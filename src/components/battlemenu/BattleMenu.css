@@ -1,0 +1,7 @@
+.battle-menu-button{
+    cursor:pointer;
+    border:1px solid black;
+}
+.battle-menu-button:hover{
+    background-color:yellow;
+}

@@ -1,0 +1,30 @@
+.status-poison{
+    background-color: #A040A0;
+    border-top-color: #D880B8;
+    border-bottom-color: #483850;
+    color:white;
+}
+.status-burned{
+    background-color: #F08030;
+    border-top-color: #F8D030;
+    border-bottom-color: #C03028;
+    color:white;
+}
+.status-frozen{
+    background-color: #98D8D8;
+    border-top-color: #D0F8E8;
+    border-bottom-color: #9090A0;
+    color:black;
+}
+.status-sleep{
+    background-color:white;
+    border-top-color:black;
+    border-bottom-color:black;
+    color:black;
+}
+.status-paralyzed{
+    background-color: #F8D030;
+    border-top-color: #F8F878;
+    border-bottom-color: #B8A038;
+    color:black;
+}

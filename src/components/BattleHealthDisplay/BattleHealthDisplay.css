@@ -1,0 +1,22 @@
+.battle-health-container{
+    border:2px solid black;
+    border-radius:5px;
+    padding:5px 5px 5px 5px;
+    display:inline-block;
+    width:150px;
+    font-size:12px;
+}
+.battle-health-name{
+    text-align:left;
+}
+.battle-health-bar{
+    text-align:right;
+}
+.battle-health-text{
+    text-align:right;
+}
+
+.battle-name-and-status-container{
+    display:flex;
+    justify-content:space-between;
+}

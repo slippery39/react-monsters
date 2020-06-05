@@ -1,0 +1,14 @@
+.item-menu{
+    border:1px solid black;    
+    border-collapse:collapse;
+    width:100%;
+}
+.item-menu td, .item-menu th{
+    border:1px solid black;
+}
+.item-row{
+    cursor:pointer;
+}
+.item-row:hover{
+    background-color:yellow;
+}
