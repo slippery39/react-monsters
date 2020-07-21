@@ -2,7 +2,7 @@ import React from 'react';
 import './BattleHealthDisplay.css';
 import HealthBar from '../HealthBar/HealthBar';
 import PokemonStatus from "../PokemonStatus/PokemonStatus";
-import { Pokemon } from '../../interfaces/pokemon';
+import { Pokemon } from '../../game/interfaces';
 
 interface Props {
     pokemon: Pokemon

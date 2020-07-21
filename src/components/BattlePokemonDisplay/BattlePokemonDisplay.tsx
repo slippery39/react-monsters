@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Pokemon } from '../../interfaces/pokemon';
+import React from 'react'
+import { Pokemon } from '../../game/interfaces';
 import BattleHealthDisplay from '../BattleHealthDisplay/BattleHealthDisplay';
 import PokemonImage from '../PokemonImage/PokemonImage';
 
@@ -17,7 +17,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
 
     const styles = {
         width:'160px',
-        display:'inline-block'
+        display:'inline-block',
     }
 
      //basically the health bar is flipped for allies / enemies.
@@ -34,6 +34,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
             <PokemonImage type="front" name={props.pokemon.name} />
         </div>
     </div>)   
+    
 
     return (
         props.owner === OwnerType.Ally ? allyDisplay : enemyDisplay
