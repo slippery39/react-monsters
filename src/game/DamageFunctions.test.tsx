@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pokemon,Stats, ElementType,Technique } from './interfaces';
-import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './BattleController';
+import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './DamageFunctions';
 
 /*
 Test these functions
@@ -62,6 +62,7 @@ const createFireblast = function() : Technique{
         currentPP:10,
         pp:10,
         power:120,
+        chance:100,
         damageType:'special',
         elementalType:ElementType.Fire
     }
@@ -77,6 +78,7 @@ const createEarthquake = function(): Technique{
         currentPP:10,
         pp:10,
         power:120,
+        chance:100,
         damageType:'physical',
         elementalType:ElementType.Ground
     }
@@ -144,20 +146,16 @@ describe('GetBaseDamage tests', ()=>{
     });
 
     describe('GetDamageModifier() Tests', ()=>{
-
-
         //scenarios to test
         //STAB
         //Critical
-        //effectuvenss?
-
+        //effectuveness?
         it ('modifies damage correctly without stab', ()=>{
             const damageModifier = GetDamageModifier(createCharizard(),createBlastoise(),createEarthquake(),{
                 autoCrit:false,
                 autoAmt:true
             });
-
-            expect(damageModifier).toBe(1);
+            expect(damageModifier.stabBonus).toBe(1);
         });
         it('modifies damage correctly with not very effective + stab', ()=>{
 
@@ -166,7 +164,7 @@ describe('GetBaseDamage tests', ()=>{
                 autoAmt:true
             });
 
-            expect(damageModifier).toBe(0.5*1.25);
+            expect(damageModifier.stabBonus*damageModifier.typeEffectivenessBonus).toBe(0.5*1.25);
         });
 
         it ('modifies damage correctly with stab and crit', ()=>{
@@ -174,14 +172,14 @@ describe('GetBaseDamage tests', ()=>{
                 autoCrit:true,
                 autoAmt:true
             });
-            expect(damageModifier).toBe(2*1.25*0.5);
+            expect(damageModifier.critAmt*damageModifier.stabBonus*damageModifier.typeEffectivenessBonus).toBe(2*1.25*0.5);
         });
         it('modifies damage correctly for crits', ()=>{
             const damageModifier = GetDamageModifier(createCharizard(),createBlastoise(),createEarthquake(),{
                 autoCrit:true,
                 autoAmt:true
             });
-            expect(damageModifier).toBe(2);
+            expect(damageModifier.critAmt).toBe(2);
         });
     });
 

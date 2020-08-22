@@ -1,9 +1,13 @@
 import { Status, Pokemon, Technique, ElementType, Player } from './interfaces';
 import {createCharizard,createBlastoise,createVenusaur} from './premadePokemon';
+import _ from 'lodash';
+import { GetBaseDamage, GetDamageModifier, GetTypeMod } from './DamageFunctions';
+import {GetActionPriority,GetSpeedPriority,GetMoveOrder} from './BattleFunctions';
 
 export enum BattleEventType {
     UseMove = 'use-move',
     SwitchPokemon = 'switch-pokemon',
+    CriticalHIt = 'critical-hit',
     UseItem = 'use-item',
     //non user initiated events can happen here too, (like poison damage, pokemon unable to move because of stun,confusion or frozen etc)
     PokemonFainted = 'pokemon-fainted',
@@ -21,13 +25,14 @@ export enum EffectType {
     StatusChange = 'status-change',
     SwitchIn = 'switch-in',
     SwitchOut = 'switch-out',
+    MissedMove = 'missed-move',
     None = 'none' //used in cases where nothing happaned (i.e an attack missed or something)
 }
 
 export interface Effect {
     pokemonId:number,
     targetPokemonId:number,
-    type: EffectType, //should be enum?
+    type: EffectType,
     target: string, //should be enum?,
     targetName: string,
     targetId: number
@@ -71,219 +76,52 @@ export interface UseItemAction {
 export type BattleAction = UseMoveAction | SwitchPokemonAction | UseItemAction
 
 
-
-/*
-Allow input of actions,
-Once both players have inputted their actions calculate the turn log (We will use the fake one for now.)
-*/
-
-//first part of damage =   ( ( (2*level) * Power * Attack / Defence)  / 50 ) + 2 ) * Modifier
-//modifier = Critical * random * STAB * Type
-
-
-
-//Calculates the base damage before any modifiers (type effectiveness, crit etc.)
-export function GetBaseDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique) {
-    const level = 100; //constant for level since we aren't dealing with that stuff now.
-    const Power = techUsed.power;
-    const Attack = techUsed.damageType === 'physical' ? attackingPokemon.currentStats.attack : attackingPokemon.currentStats.specialAttack;
-    const Defence = techUsed.damageType === 'physical' ? defendingPokemon.currentStats.defence : defendingPokemon.currentStats.specialDefence;
-
-    //todo: this is a mess, clean this up.
-    return Math.ceil(((((((2 * level) / 5) + 2) * Power * (Attack / Defence)) / 50) + 2));
-}
-
-//Gets the type effectiveness of the technique used on the defending pokemon.
-export function GetTypeMod(defendingElements: Array<ElementType>, elementOfAttack: ElementType) {
-    let effectivenessMap = new Map<string, number>();
-
-    //Effectivenss Map Generated Through Excel File.
-    effectivenessMap.set(ElementType.Normal + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Rock, 0.5); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Ghost, 0); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Normal + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Normal, 2); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Flying, 0.5); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Poison, 0.5); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Rock, 2); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Bug, 0.5); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Ghost, 0); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Steel, 2); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Psychic, 0.5); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Ice, 2); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Dark, 2); effectivenessMap.set(ElementType.Fighting + '-' + ElementType.Fairy, 0.5);
-    effectivenessMap.set(ElementType.Flying + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Fighting, 2); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Rock, 0.5); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Bug, 2); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Grass, 2); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Electric, 0.5); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Flying + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Poison + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Poison, 0.5); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Ground, 0.5); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Rock, 0.5); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Ghost, 0.5); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Steel, 0); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Grass, 2); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Poison + '-' + ElementType.Fairy, 2);
-    effectivenessMap.set(ElementType.Ground + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Flying, 0); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Poison, 2); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Rock, 2); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Bug, 0.5); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Steel, 2); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Fire, 2); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Grass, 0.5); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Electric, 2); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Ground + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Rock + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Fighting, 0.5); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Flying, 2); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Ground, 0.5); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Bug, 2); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Fire, 2); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Ice, 2); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Rock + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Bug + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Fighting, 0.5); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Flying, 0.5); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Poison, 0.5); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Ghost, 0.5); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Fire, 0.5); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Grass, 2); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Psychic, 2); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Dark, 2); effectivenessMap.set(ElementType.Bug + '-' + ElementType.Fairy, 0.5);
-    effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Normal, 0); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Ghost, 2); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Steel, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Psychic, 2); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Dark, 0.5); effectivenessMap.set(ElementType.Ghost + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Steel + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Rock, 2); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Fire, 0.5); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Water, 0.5); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Electric, 0.5); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Ice, 2); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Steel + '-' + ElementType.Fairy, 2);
-    effectivenessMap.set(ElementType.Fire + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Rock, 0.5); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Bug, 2); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Steel, 2); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Fire, 0.5); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Water, 0.5); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Grass, 2); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Ice, 2); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Dragon, 0.5); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Fire + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Water + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Ground, 2); effectivenessMap.set(ElementType.Water + '-' + ElementType.Rock, 2); effectivenessMap.set(ElementType.Water + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Steel, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Fire, 2); effectivenessMap.set(ElementType.Water + '-' + ElementType.Water, 0.5); effectivenessMap.set(ElementType.Water + '-' + ElementType.Grass, 0.5); effectivenessMap.set(ElementType.Water + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Dragon, 0.5); effectivenessMap.set(ElementType.Water + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Water + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Grass + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Flying, 0.5); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Poison, 0.5); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Ground, 2); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Rock, 2); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Bug, 0.5); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Fire, 0.5); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Water, 2); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Grass, 0.5); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Dragon, 0.5); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Grass + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Electric + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Flying, 2); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Ground, 0); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Steel, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Water, 2); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Grass, 0.5); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Electric, 0.5); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Dragon, 0.5); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Electric + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Fighting, 2); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Poison, 2); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Psychic, 0.5); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Dark, 0); effectivenessMap.set(ElementType.Psychic + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Ice + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Flying, 2); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Ground, 2); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Fire, 0.5); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Water, 0.5); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Grass, 2); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Ice, 0.5); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Dragon, 2); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Ice + '-' + ElementType.Fairy, 1);
-    effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Fighting, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Dragon, 2); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Dark, 1); effectivenessMap.set(ElementType.Dragon + '-' + ElementType.Fairy, 0);
-    effectivenessMap.set(ElementType.Dark + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Fighting, 0.5); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Poison, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Ghost, 2); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Steel, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Fire, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Psychic, 2); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Dragon, 1); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Dark, 0.5); effectivenessMap.set(ElementType.Dark + '-' + ElementType.Fairy, 0.5);
-    effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Normal, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Fighting, 2); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Flying, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Poison, 0.5); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Ground, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Rock, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Bug, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Ghost, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Steel, 0.5); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Fire, 0.5); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Water, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Grass, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Electric, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Psychic, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Ice, 1); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Dragon, 2); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Dark, 2); effectivenessMap.set(ElementType.Fairy + '-' + ElementType.Fairy, 1);
-
-    //The default value is to satisfy typescript, but we should never get it.
-    let effectiveness: number = effectivenessMap.get(elementOfAttack + "-" + defendingElements[0]) || 1
-    //The default value is to satisfy typescript, but we should never get it.
-    if (defendingElements.length > 1) {
-        effectiveness *= effectivenessMap.get(elementOfAttack + "-" + defendingElements[1]) || 1
-    }
-
-    return effectiveness;
-}
-
-
-//TODO: test this
-export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique,options?:{autoCrit?:boolean,autoAmt?:boolean}) {
-
-    function lerp(v0: number, v1: number, t: number) {
-        return (1 - t) * v0 + t * v1;
-    }
-
-    function GetCritical() {
-
-        //this option is to be able to test crits without randomness
-        if (options?.autoCrit){
-            return 2;
-        }
-
-        const chance = 6.25
-        const roll = Math.random() * 100;
-        if (roll <= chance) {
-            return 2;
-        }
-        else {
-            return 1;
-        }
-    }
-    function GetRandomAmt() {
-
-        //this option is to be able to test this amount modifier without randomness
-        if (options?.autoAmt){
-            return 1;
-        }
-
-        const perc = Math.random() * 1;
-        //needs to be a random value between 0.85 and 1.00
-        return lerp(0.85, 1.00, perc);
-    }
-    function GetSTAB() {
-        if (attackingPokemon.elementalTypes.filter(e => {
-            return e === techUsed.elementalType
-        }).length > 0) {
-            return 1.25
-        }
-        else {
-            return 1;
-        }
-    }
-    function GetEffectiveness() {
-        return GetTypeMod(defendingPokemon.elementalTypes, techUsed.elementalType)
-    }
-
-
-    return GetCritical() * GetRandomAmt() * GetSTAB() * GetEffectiveness();
-}
-
-class BattleController {
+class TurnController {
     //need to store the state here somehow.
     actions: Array<BattleAction> = [];
-    players: Array<Player> = []
-    turnLog: Array<BattleEvent> = [];
 
-    constructor(players:Array<Player>){
+    players: Array<Player> = [] //needs to be initial turn state.
+    turnLog: Array<BattleEvent> = [];
+    turnFinished = false;
+
+    //initial state: BattleState - the initial state should be brought into the turn controller from the top level battle state.
+    //Players,
+    //BattleFieldEffects
+
+
+    constructor(turnId:Number,players:Array<Player>){
         this.players = players;
     }
 
-    GetTurnLog() : Array<BattleEvent>{
-        return this.turnLog;
+    GetTurnLog() : Array<BattleEvent> | undefined{
+        if (this.turnFinished === true){
+            //reset the logs.
+            this.actions = [];
+            console.log('the turn has been finished inside the game');
+            console.log(this.turnLog);
+            return this.turnLog;
+        }
+        else{
+            return undefined
+        }
     }
 
     SetPlayerAction(action: BattleAction) {
-        //check the id, 
-        //update the actions object
-        //if both actions have been submitted then start calculating the turn.
-        /*
-        if (!this.actions.filter(act => {
-            return act.playerId === action.playerId
-        })) 
-        */{
-            this.actions.push(action);
-        }
-        /*
-        else {
-            console.error(`cannot add action, action already made by player ${action.playerId}`)
-        }*/
-
-        //maybe some error checking to make sure that the actions is always 2.
-
+       const actionExistsForPlayer = this.actions.filter(act=>act.playerId === action.playerId);
+            if (actionExistsForPlayer.length===0){
+                this.actions.push(action);
+            }
         if (this.actions.length === 2) {
-            this.CalculateTurn();
+            if (!this.turnFinished){
+                this.CalculateTurn();
+                this.turnFinished = true;
+            }
+            
         }
-    }
-
-    GetActionPriority(action: BattleAction) {
-
-        //priorities are defined from -5 to +7  https://bulbapedia.bulbagarden.net/wiki/Priority
-        let priority: number = 0;
-        switch (action.type) {
-            case 'use-move-action': {
-                priority = 0;
-                break;
-            }
-            case 'use-item-action': {
-                priority = 6;
-                break;
-            }
-            case 'switch-pokemon-action': {
-                priority = 7;
-                break;
-            }
-        }
-        return priority;
-    }
-    GetSpeedPriority() {
-        return this.actions.map(act => {
-            const player = this.players.find(p => p.id === act.playerId);
-            if (player === undefined) {
-                console.error(`cannot find player with id ${act.playerId}`)
-                return {
-                    action: act,
-                    speed: 0
-                }
-            }
-            const activePokemon = player.pokemon.find(p => p.id === player.currentPokemonId);
-
-            if (activePokemon === undefined) {
-                console.log(`cannot find pokemon with id ${player.currentPokemonId}`)
-                return {
-                    action: act,
-                    speed: 0
-                }
-            }
-            return {
-                action: act,
-                speed: activePokemon.currentStats.speed
-            }
-        }).sort((a, b) => a.speed - b.speed);
     }
 
     GetMoveOrder() {
-        const actionPriorities = this.actions.map(act => {
-            return {
-                playerId: act.playerId,
-                priority: this.GetActionPriority(act),
-                action: act
-            }
-        }).sort((a, b) => a.priority - b.priority);
-
-        let actionOrder: Array<BattleAction> = [];
-
-        //2 cases here, the priority is equal, or the priorities are different
-        if (actionPriorities[0].priority === actionPriorities[1].priority) {
-            //search for the active player's pokemons speed.
-            actionOrder = this.GetSpeedPriority().map(priority => priority.action);
-        }
-        else {
-            //they should be sorted already.
-            actionOrder = actionPriorities.map(priority => priority.action);
-        }
-        return actionOrder;
+        return GetMoveOrder(this.players,this.actions);
     }
 
     CalculateTurn() {
@@ -295,14 +133,25 @@ class BattleController {
             ]
         }
         */
+
+        if (this.turnFinished == false){
         const actionOrder = this.GetMoveOrder();
-        //lets run the moves.
-        //this.StartTurn();
-        this.DoAction(actionOrder[0]);
-        //this.CheckStateBasedEffects();
-        this.DoAction(actionOrder[1]);
-        //this.CheckStateBasedEffects();
-        //this.EndTurn():
+            //lets run the moves.
+            //this.StartTurn();            
+            this.DoAction(actionOrder[0]);
+            //this.CheckStateBasedEffects();
+            //if (swutchPokemonNeeded){
+            //wait for pokemon to be chosen before continuing the turn.
+            //request a pokemon switch.
+            //weird behaviour where if a pokemon dies due to its own recoil damage, we would still need to request a switch
+            //for the player but still continue the rest of the actions in the turn.
+            //to implement this we will have to be able to calculate the turn in steps and track which step we are currently on.              
+            
+            this.DoAction(actionOrder[1]);
+            //this.CheckStateBasedEffects();
+            //this.EndTurn():
+            this.turnFinished = true;
+        }
 
         //check state-based effects here (i.e pokemon dying etc)
     }
@@ -352,15 +201,44 @@ class BattleController {
         }
 
 
-        //only programming damaging moves for now
+        //Only Programming Damaging Moves for Now.
+
+        //Check if the move should miss:       
+        const randomAmount = Math.round(Math.random()*100);
+        if (move.chance < randomAmount){
+            const log: BattleEvent = 
+            {
+                type: BattleEventType.UseMove,
+                message: `${pokemon.name} used ${move.name}`,
+                effects: [{
+                    type:EffectType.MissedMove,
+                    //maybe we don't need these anymore
+                    target:'opponent',
+                    targetName:'opponent',
+                    targetId:defendingPokemon.id, //todo: clean this up.
+                    pokemonId: pokemon.id,
+                    targetPokemonId: defendingPokemon.id,
+                    targetFinalHealth: defendingPokemon.currentStats.health,
+                    targetDamageTaken: 0,
+                    effectiveness: "none",
+                    message: `But it failed!`
+                },
+            ]
+            }
+
+            console.log('missed move?');
+            this.turnLog.push(log);
+            return;
+        }
 
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
-        const damageModifier = GetDamageModifier(pokemon, defendingPokemon, move);
+        const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
 
-        const totalDamage = Math.ceil(baseDamage * damageModifier);
+        const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
 
         //apply the damage
         defendingPokemon.currentStats.health -= totalDamage;
+        defendingPokemon.currentStats.health = Math.max(0,defendingPokemon.currentStats.health);
 
         //what do we need in the turn log?
         /*
@@ -382,6 +260,18 @@ class BattleController {
         //all the variables used in an object?
         let effectiveLabel = GetEffectivenessMessage(defendingPokemon, move);
 
+
+        //TODO: Apply Secondary Effects (i.e. Fireblast Burn)
+        if (move.secondaryEffects){
+            move.secondaryEffects.map(m=>{
+                const randomAmount = Math.round(Math.random()*100);
+                if (m.chance<=randomAmount){
+                    //Apply effect here.                   
+
+                }
+            });
+        }
+
         const log: BattleEvent = 
             {
                 type: BattleEventType.UseMove,
@@ -391,15 +281,17 @@ class BattleController {
                     //maybe we don't need these anymore
                     target:'opponent',
                     targetName:'opponent',
-                    targetId:defendingPokemon.id,
+                    targetId:defendingPokemon.id, //todo: clean this up.
                     pokemonId: pokemon.id,
                     targetPokemonId: defendingPokemon.id,
                     targetFinalHealth: defendingPokemon.currentStats.health,
                     targetDamageTaken: totalDamage,
                     effectiveness: GetTypeMod(defendingPokemon.elementalTypes, move.elementalType).toString(),
-                    message: effectiveLabel
-                }]
+                    message: damageModifierInfo.critStrike? "It was a critical strike! " + effectiveLabel : effectiveLabel
+                },
+            ]
             }
+            //add a critical strike effect if it crits?
 
             this.turnLog.push(log);
         }
@@ -432,7 +324,6 @@ class BattleController {
 
 function GetEffectivenessMessage(defendingPokemon: Pokemon, move: Technique) {
     const effectiveness = GetTypeMod(defendingPokemon.elementalTypes, move.elementalType);
-
     let effectiveLabel = '';
     switch (effectiveness) {
         case 0.25: {
@@ -463,38 +354,77 @@ function GetEffectivenessMessage(defendingPokemon: Pokemon, move: Technique) {
     return effectiveLabel;
 }
 
-export function getTurnLog(): BattleEventsLog {
+
+const player1 : Player = {
+    id:1,
+    name: 'Shayne',
+    pokemon:[
+        createCharizard(1),
+        createVenusaur(2),
+        createBlastoise(3)
+    ],
+    currentPokemonId:1,
+    items:[]
+}
+const player2 : Player = {
+    id:2,
+    name:'Bob',
+    pokemon:[
+        createBlastoise(4),
+        createVenusaur(5),
+        createCharizard(6)
+    ],
+    currentPokemonId:4,
+    items:[]
+}
+
+class Battle{
+    turns:Array<TurnController> = [];
+    turnIndex = 0;
+    //right now our players is basically our state.
+    players:Array<Player> = [player1,player2];
+
+
+    constructor(){
+
+    }
+    GetCurrentTurn(){
+        return turns[turnIndex];
+    }
+    GetPlayers() : Array<Player>{
+        return _.cloneDeep(GetCurrentTurn().players);
+    }
+}
+
+//so now after every turn, we should create a new turn with copies of the players?
+let turns : Array<TurnController> = [];
+let turnIndex = 0;
+turns.push(new TurnController(1,[player1,player2]));
+
+function GetCurrentTurn(){
+    return turns[turnIndex];
+}
+
+//gets the player state for the current turn?
+export function GetPlayers() : Array<Player>{
+    return _.cloneDeep(GetCurrentTurn().players);
+}
+
+
+//Lets set a course of action here.
+//So lets expose an interface to the "Front-End that allows us to set actions"
+//this is wrapped because we do not want to expose anything about the battle system to the front-end
+export function SetPlayerAction(action:BattleAction){
+ turns[turnIndex].SetPlayerAction(action);
+}
+
+export function getTurnLog(): BattleEventsLog |undefined{
 
     //TODO: Mock this turn log, by auto applying actions
     //lets say Charizard uses fireblast and Blastoise uses HydroPump or something.
 
-
-    //mock players for now.
-    const player1 : Player = {
-        id:1,
-        name: 'Shayne',
-        pokemon:[
-            createCharizard(1),
-            createVenusaur(2),
-            createBlastoise(3)
-        ],
-        currentPokemonId:1,
-        items:[]
-    }
-    
-    const player2 : Player = {
-        id:2,
-        name:'Bob',
-        pokemon:[
-            createBlastoise(4),
-            createVenusaur(5),
-            createCharizard(6)
-        ],
-        currentPokemonId:4,
-        items:[]
-    }
-
-    const battle = new BattleController([player1,player2]);
+    const player1 = GetCurrentTurn().players[0];
+    const player2 = GetCurrentTurn().players[1];
 
     const moveId1 = player1.pokemon.find(p=>p.id === player1.currentPokemonId)?.techniques[0].id || -1;
     const player1Action: UseMoveAction = {
@@ -512,14 +442,23 @@ export function getTurnLog(): BattleEventsLog {
         moveId:moveId2
     }
 
-    battle.SetPlayerAction(player1Action);
-    battle.SetPlayerAction(player2Action);
+    //battle.SetPlayerAction(player1Action);
+    GetCurrentTurn().SetPlayerAction(player2Action);
 
+    if (GetCurrentTurn().GetTurnLog() === undefined){
+        return undefined;
+    }
+    console.log('should be returning the turn log at this point');
     const returnLog = {
-        events:battle.GetTurnLog()
+        events:GetCurrentTurn().GetTurnLog()!
     }
 
     console.log(returnLog);
+
+    //start the next turn
+    turnIndex++;
+    turns.push(new TurnController(turnIndex+1,[player1,player2]));
+
     return returnLog;
 
     const battleState: BattleEventsLog = {

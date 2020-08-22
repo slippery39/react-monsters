@@ -6,6 +6,17 @@ export interface Stats{
     specialDefence:number,
     speed:number
 }
+
+//etc.
+export enum TechniqueEffectType{
+    Poison='poison',
+    Burn='burn',
+    SkipTurn='skip-turn'
+}
+export interface TechniqueEffect{
+    effectType:TechniqueEffectType,
+    chance:number
+}
 export interface Technique{
  id:number,
  name:string,
@@ -14,7 +25,9 @@ export interface Technique{
  currentPP:number,
  power:number,
  damageType: 'physical' | 'special',
- elementalType:ElementType
+ elementalType:ElementType,
+ secondaryEffects?:Array<TechniqueEffect>,
+ chance: number
 }
 export interface Item {
     id: number,

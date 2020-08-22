@@ -9,7 +9,6 @@ interface Props {
 }
 
 const BattleHealthDisplay: React.FunctionComponent<Props> = (props) => {
-
     return (
         <div className='battle-health-container'>
             <div className='battle-name-and-status-container'>

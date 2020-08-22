@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
 
-import { Player, Status, Pokemon, ElementType } from '../../game/interfaces';
-import { createCharizard, createVenusaur, createBlastoise } from "../../game/premadePokemon";
-import {getTurnLog, EffectType } from "../../game/BattleController";
+import { Player, Status, Pokemon, ElementType, Technique } from '../../game/interfaces';
+import {getTurnLog, EffectType,GetPlayers,SetPlayerAction,UseMoveAction } from "../../game/BattleController";
 import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
 import ItemMenu from "../ItemMenu/ItemMenu";
@@ -35,34 +34,7 @@ type Action = {
 
 const initialState: State = {
     allySwitchOut: false,
-    players:  [
-        {
-            id:1,
-            name: 'Player 1',
-            currentPokemonId: 1,
-            pokemon: [
-                createCharizard(1),
-                createVenusaur(2),
-                createBlastoise(3),
-            ],
-            items: [{ id: 1, name: 'potion', description: 'heals 30 health', quantity: 99 },
-            { id: 2, name: 'antidote', description: 'cures poison', quantity: 99 }
-            ]
-        },
-        {
-            id:2,
-            name: 'Player 2',
-            currentPokemonId: 4,
-            pokemon: [
-                createBlastoise(4),
-                createCharizard(5),
-                createVenusaur(6),
-            ],
-            items: [{ id: 1, name: 'potion', description: 'heals 30 health', quantity: 99 },
-            { id: 2, name: 'antidote', description: 'cures poison', quantity: 99 }
-            ]
-        }
-    ]
+    players:GetPlayers()    
 }
 
 const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player | undefined, pokemon: Pokemon | undefined } {
@@ -133,18 +105,21 @@ const reducer = function (state = initialState, action: Action): State {
     }
 }
 
-const battleState = getTurnLog();
+//Right here, this needs to happen dynamically, not right away.
+let turnLog = getTurnLog();
 
 function Battle() {
 
-    const [menuState, setMenuState] = useState('showing-turn');
+    const [menuState, setMenuState] = useState('main-menu');
 
     const [eventIndex, setEventIndex] = useState(0);
     const [effectIndex, setEffectIndex] = useState(0);
 
-    const [currentEventState, setCurrentEventState] = useState(BattleEventUIState.ShowingEventMessage);
+    const [currentEventState, setCurrentEventState] = useState(BattleEventUIState.None);
     const [state, dispatch] = useReducer(reducer, initialState);
 
+    //TODO - wait for a turn log to be generated.
+    
     function getAllyPokemon() : Pokemon {
         const pokemon =  state.players[0].pokemon.find(p=>{
             return p.id === state.players[0].currentPokemonId
@@ -213,6 +188,10 @@ function Battle() {
     //our simple state machine for our events log.
     const nextEvent = useCallback(() => {
 
+        if (turnLog === undefined){
+            return;
+        }
+
         //The logic is like this:
         //So we should have these states: 'showing-event-message, showing-effect-animation showing-effect-message'?
         //repeat until there are no more events
@@ -223,8 +202,8 @@ function Battle() {
         //show the effect message,
         //
 
-        const currentEvent = battleState.events[eventIndex];
-        const nextEvent = battleState.events[eventIndex + 1];
+        const currentEvent = turnLog.events[eventIndex];
+        const nextEvent = turnLog.events[eventIndex + 1];
         const isNextEvent = nextEvent !== undefined;
 
         const nextEffect = currentEvent.effects[effectIndex + 1];
@@ -261,7 +240,11 @@ function Battle() {
 
 
     useEffect(() => {
-        const currentEvent = battleState.events[eventIndex];
+
+        if (turnLog === undefined){
+            return;
+        }
+        const currentEvent = turnLog!.events[eventIndex];
 
         //skip messages that are blank.
         if (currentEventState === BattleEventUIState.ShowingEventMessage && currentEvent.message === '') {
@@ -269,7 +252,7 @@ function Battle() {
         }
 
         if (currentEventState === BattleEventUIState.ShowingEffectAnimation) {
-            const currentEvent = battleState.events[eventIndex];
+            const currentEvent = turnLog!.events[eventIndex];
             const currentEffect = currentEvent.effects[effectIndex];
 
             const pokemonId = currentEffect.targetId;
@@ -279,7 +262,6 @@ function Battle() {
                 return;
             }
             if (currentEffect.type === EffectType.Damage) {
-                console.log(currentEffect);
                 const timeForHealthChange = (1000 / (pokemon.currentStats.health) - currentEffect.targetFinalHealth);
                 //if i want health changes to take a second.
                 //then it needs to be (pokemon.currentStats.health - currentEffect.targetFinalHealth = deltaHealth);
@@ -355,6 +337,20 @@ function Battle() {
         }
     }, [currentEventState, eventIndex, nextEvent, effectIndex, state]);
 
+    function SetBattleAction(technique:Technique){
+        console.log('checking if this ran twice "set battle action');
+        console.log(technique);
+        SetPlayerAction({
+             playerId:1, //todo : get player id
+             pokemonId:1, //todo: get proper pokemon id
+             moveId:technique.id, //todo: get technique id
+             type:'use-move-action'
+        });
+        turnLog =  getTurnLog();
+        setCurrentEventState(BattleEventUIState.ShowingEventMessage);
+        setMenuState('none');
+    }
+
     return (
         <div className="App">
             <div>Current Event State : {currentEventState} </div>
@@ -363,18 +359,18 @@ function Battle() {
             {getAllyPokemon().id!==-1 && <BattlePokemonDisplay owner={OwnerType.Ally}  pokemon={getAllyPokemon()} />}
             {(currentEventState === BattleEventUIState.ShowingEventMessage || currentEventState === BattleEventUIState.ShowingEffectAnimation) &&
                 <Message
-                    message={battleState.events[eventIndex].message}
+                    message={turnLog!.events[eventIndex].message}
                     onFinish={function () { nextEvent() }} />}
             {currentEventState === BattleEventUIState.ShowingEffectMessage &&
                 <Message
-                    message={battleState.events[eventIndex].effects[effectIndex].message}
+                    message={turnLog!.events[eventIndex].effects[effectIndex].message}
                     onFinish={function () { nextEvent() }} />}
             {menuState === 'main-menu' &&
                 <BattleMenu
                     onMenuAttackClick={(evt) => { setMenuState('attack-menu') }}
                     onMenuItemClick={(evt) => { setMenuState('item-menu') }}
                     onMenuSwitchClick={(evt) => { setMenuState('switch-menu') }} />}
-            {menuState === 'attack-menu' && <AttackMenu onAttackClick={(tech: any) => { console.log(tech) }} techniques={getAllyPokemon().techniques} />}
+            {menuState === 'attack-menu' && <AttackMenu onAttackClick={(tech: any) => { console.log('checking if this has ran twice');SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
             {menuState === 'item-menu' && <ItemMenu onItemClick={(item: any) => { console.log(item) }} items={state.players[0].items} />}
         </div>
     );

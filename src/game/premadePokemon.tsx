@@ -1,4 +1,4 @@
-import {Pokemon,ElementType} from './interfaces';
+import {Pokemon,ElementType, TechniqueEffectType} from './interfaces';
 
 export function createCharizard(id: number) : Pokemon {
     const charizard: Pokemon = {
@@ -30,7 +30,14 @@ export function createCharizard(id: number) : Pokemon {
                 currentPP: 10,
                 power:120,
                 damageType:'special',
-                elementalType:ElementType.Fire
+                elementalType:ElementType.Fire,
+                chance:85,
+                secondaryEffects:[
+                    {
+                    effectType:TechniqueEffectType.Burn,
+                    chance:15,
+                    }
+                ]
             },
             {
                 id: 2,
@@ -39,6 +46,7 @@ export function createCharizard(id: number) : Pokemon {
                 pp: 15,
                 currentPP: 15,
                 power:75,
+                chance:85,
                 damageType:'physical',
                 elementalType:ElementType.Flying
             }
@@ -77,6 +85,7 @@ export function createBlastoise(id: number) {
                 description: 'hydro pumpy action',
                 currentPP: 10,
                 power:120,
+                chance:85,
                 elementalType:ElementType.Water,
                 damageType:'special'
                 
@@ -114,6 +123,7 @@ export function createVenusaur(id: number) {
             pp: 35,
             currentPP: 35,
             power:55,
+            chance:95,
             damageType:'physical',
             elementalType:ElementType.Grass
         }]
