@@ -3,7 +3,7 @@ import images from "../../pokemonimages";
 
 interface Props {
     name:string,
-    type:string
+    type: 'back' | 'front' | 'small'
 }
 
 const PokemonImage: React.FunctionComponent<Props> = (props) => {

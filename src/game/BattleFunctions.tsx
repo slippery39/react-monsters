@@ -23,6 +23,8 @@ export function  GetActionPriority(action: BattleAction) {
 }
 
 export function GetSpeedPriority(players:Array<Player>,actions:Array<BattleAction>) {
+
+ 
     return actions.map(act => {
         const player = players.find(p => p.id === act.playerId);
         if (player === undefined) {
@@ -33,6 +35,8 @@ export function GetSpeedPriority(players:Array<Player>,actions:Array<BattleActio
             }
         }
         const activePokemon = player.pokemon.find(p => p.id === player.currentPokemonId);
+
+   
 
         if (activePokemon === undefined) {
             console.log(`cannot find pokemon with id ${player.currentPokemonId}`)
@@ -45,7 +49,7 @@ export function GetSpeedPriority(players:Array<Player>,actions:Array<BattleActio
             action: act,
             speed: activePokemon.currentStats.speed
         }
-    }).sort((a, b) => a.speed - b.speed);
+    }).sort((a, b) => { return b.speed - a.speed});
 }
 
 export function GetMoveOrder(players:Array<Player>,actions:Array<BattleAction>) {
@@ -55,7 +59,7 @@ export function GetMoveOrder(players:Array<Player>,actions:Array<BattleAction>) 
             priority: GetActionPriority(act),
             action: act
         }
-    }).sort((a, b) => a.priority - b.priority);
+    }).sort((a, b) => b.priority - a.priority);
 
     let actionOrder: Array<BattleAction> = [];
 

@@ -1,0 +1,17 @@
+.switch-pokemon-item{
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid black;
+    padding: 2px 2px 2px 2px;
+    width:350px;
+    justify-content:space-evenly;
+    box-sizing:border-box;
+    cursor:pointer;
+}
+.switch-pokemon-item:hover{
+    background-color:yellow;
+}
+.switch-pokemon-item > *{
+    margin-right: 3px;
+    margin-left: 3px;
+}

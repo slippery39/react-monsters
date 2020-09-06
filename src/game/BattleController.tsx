@@ -1,8 +1,8 @@
-import { Status, Pokemon, Technique, ElementType, Player } from './interfaces';
-import {createCharizard,createBlastoise,createVenusaur} from './premadePokemon';
+import { Status, Pokemon, Technique, Player } from './interfaces';
+import { createCharizard, createBlastoise, createVenusaur } from './premadePokemon';
 import _ from 'lodash';
 import { GetBaseDamage, GetDamageModifier, GetTypeMod } from './DamageFunctions';
-import {GetActionPriority,GetSpeedPriority,GetMoveOrder} from './BattleFunctions';
+import { GetMoveOrder } from './BattleFunctions';
 
 export enum BattleEventType {
     UseMove = 'use-move',
@@ -30,28 +30,74 @@ export enum EffectType {
 }
 
 export interface Effect {
-    pokemonId:number,
-    targetPokemonId:number,
+    pokemonId: number,
+    targetPokemonId: number,
     type: EffectType,
     target: string, //should be enum?,
     targetName: string,
     targetId: number
     targetFinalHealth: number,
-    targetDamageTaken:number,
+    targetDamageTaken: number,
     effectiveness: string,
     message: string
     status?: Status
 }
 
+export interface DamageEffect {
+    type: EffectType.Damage,
+    targetPokemonId: number,
+    attackerPokemonId: number,
+    targetFinalHealth: number,
+    targetDamageTaken: number,
+    effectiveness: string,
+    message: string
+}
+
+export interface SwitchOutEffect {
+    type: EffectType.SwitchOut,
+    switchOutPokemonId: number,
+    switchInPokemonId: number,
+    message: string
+}
+export interface SwitchInEffect {
+    type: EffectType.SwitchIn,
+    switchOutPokemonId: number,
+    switchInPokemonId: number,
+    message: string
+}
+export interface HealEffect {
+    type: EffectType.Heal,
+    targetPokemonId: number,
+    targetFinalHealth: number,
+    totalHealing: number,
+    message: string
+}
+export interface MissedMoveEffect {
+    type: EffectType.MissedMove,
+    message: string
+}
+
+/*
+EffectType.Damage;
+EffectType.Heal;
+EffectType.MissedMove;
+EffectType.None;
+EffectType.Poisoned;
+EffectType.StatusChange;
+EffectType.Switch;
+EffectType.SwitchIn;
+EffectType.SwitchOut;
+*/
+
 export interface BattleEvent {
     type: BattleEventType,
     message: string,
-    effects: Array<Effect>,
+    effects: Array<SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | MissedMoveEffect>,
 }
 
 export interface BattleEventsLog {
-    //state: string,
-    events: Array<BattleEvent>
+    events: Array<BattleEvent>,
+    newState?:Array<Player>
 }
 
 export interface UseMoveAction {
@@ -76,52 +122,48 @@ export interface UseItemAction {
 export type BattleAction = UseMoveAction | SwitchPokemonAction | UseItemAction
 
 
-class TurnController {
+export class Turn {
     //need to store the state here somehow.
     actions: Array<BattleAction> = [];
-
     players: Array<Player> = [] //needs to be initial turn state.
     turnLog: Array<BattleEvent> = [];
     turnFinished = false;
+    id: Number;
 
-    //initial state: BattleState - the initial state should be brought into the turn controller from the top level battle state.
-    //Players,
-    //BattleFieldEffects
-
-
-    constructor(turnId:Number,players:Array<Player>){
+    constructor(turnId: Number, players: Array<Player>) {
+        this.id = turnId;
         this.players = players;
     }
 
-    GetTurnLog() : Array<BattleEvent> | undefined{
-        if (this.turnFinished === true){
+    GetTurnLog(): Array<BattleEvent> | undefined {
+        if (this.turnFinished === true) {
             //reset the logs.
             this.actions = [];
             console.log('the turn has been finished inside the game');
             console.log(this.turnLog);
             return this.turnLog;
         }
-        else{
+        else {
             return undefined
         }
     }
 
     SetPlayerAction(action: BattleAction) {
-       const actionExistsForPlayer = this.actions.filter(act=>act.playerId === action.playerId);
-            if (actionExistsForPlayer.length===0){
-                this.actions.push(action);
-            }
+        const actionExistsForPlayer = this.actions.filter(act => act.playerId === action.playerId);
+        if (actionExistsForPlayer.length === 0) {
+            this.actions.push(action);
+        }
         if (this.actions.length === 2) {
-            if (!this.turnFinished){
+            if (!this.turnFinished) {
                 this.CalculateTurn();
                 this.turnFinished = true;
             }
-            
+
         }
     }
 
     GetMoveOrder() {
-        return GetMoveOrder(this.players,this.actions);
+        return GetMoveOrder(this.players, this.actions);
     }
 
     CalculateTurn() {
@@ -134,8 +176,8 @@ class TurnController {
         }
         */
 
-        if (this.turnFinished == false){
-        const actionOrder = this.GetMoveOrder();
+        if (this.turnFinished === false) {
+            const actionOrder = this.GetMoveOrder();
             //lets run the moves.
             //this.StartTurn();            
             this.DoAction(actionOrder[0]);
@@ -146,7 +188,7 @@ class TurnController {
             //weird behaviour where if a pokemon dies due to its own recoil damage, we would still need to request a switch
             //for the player but still continue the rest of the actions in the turn.
             //to implement this we will have to be able to calculate the turn in steps and track which step we are currently on.              
-            
+
             this.DoAction(actionOrder[1]);
             //this.CheckStateBasedEffects();
             //this.EndTurn():
@@ -157,10 +199,10 @@ class TurnController {
     }
 
     SwitchPokemon(playerId: number, pokemonInId: number) {
-
         //not yet implemented, just for practice.
         const player = this.players.find(p => p.id === playerId);
         const pokemon = player?.pokemon.find(p => p.id === pokemonInId);
+        const switchOutPokemonId = player?.currentPokemonId;
 
 
         if (player === undefined || pokemon === undefined) {
@@ -168,16 +210,40 @@ class TurnController {
             //should never get to this point?
             return;
         }
-        const pokemonOutId = player.currentPokemonId;
-        player.currentPokemonId = pokemon.id;
 
-        /*
-        this.turnLog.push({
-                        playerId: playerId,
-            pokemonInId: pokemonInId,
-            pokemonOutId: pokemonOutId
-        });
-        */
+        //current pokemon position is 0
+
+        //find the pokemon to switch in position
+        const switchInPokemonPos = player.pokemon.indexOf(player.pokemon.find(p => p.id === pokemonInId)!);
+        let pokemonArrCopy = player.pokemon.slice();
+
+        pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
+        pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
+
+        player.pokemon = pokemonArrCopy;
+        player.currentPokemonId = pokemonArrCopy[0].id;
+
+        const switchOutEffect: SwitchOutEffect = {
+            type: EffectType.SwitchOut,
+            switchOutPokemonId: switchOutPokemonId!,
+            switchInPokemonId: pokemonInId,
+            message: '',
+        }
+        const switchInEffect: SwitchInEffect = {
+            type: EffectType.SwitchIn,
+            switchOutPokemonId: switchOutPokemonId!,
+            switchInPokemonId: pokemonInId,
+            message: 'Go Pokemon!'
+        }
+
+        const log: BattleEvent = {
+            type: BattleEventType.SwitchPokemon,
+            message: 'Enough, Come back!',
+            effects: [switchOutEffect, switchInEffect]
+        }
+
+        this.turnLog.push(log);
+
     }
     UseItem(playerId: number, itemId: number) {
         //not implemented yet;
@@ -204,30 +270,19 @@ class TurnController {
         //Only Programming Damaging Moves for Now.
 
         //Check if the move should miss:       
-        const randomAmount = Math.round(Math.random()*100);
-        if (move.chance < randomAmount){
-            const log: BattleEvent = 
+        const randomAmount = Math.round(Math.random() * 100);
+        if (move.chance < randomAmount) {
+            const missedMoveEffect: MissedMoveEffect = {
+                type: EffectType.MissedMove,
+                message: 'But it failed!'
+            }
+            let missedMoveLog: BattleEvent =
             {
                 type: BattleEventType.UseMove,
                 message: `${pokemon.name} used ${move.name}`,
-                effects: [{
-                    type:EffectType.MissedMove,
-                    //maybe we don't need these anymore
-                    target:'opponent',
-                    targetName:'opponent',
-                    targetId:defendingPokemon.id, //todo: clean this up.
-                    pokemonId: pokemon.id,
-                    targetPokemonId: defendingPokemon.id,
-                    targetFinalHealth: defendingPokemon.currentStats.health,
-                    targetDamageTaken: 0,
-                    effectiveness: "none",
-                    message: `But it failed!`
-                },
-            ]
+                effects: [missedMoveEffect]
             }
-
-            console.log('missed move?');
-            this.turnLog.push(log);
+            this.turnLog.push(missedMoveLog);
             return;
         }
 
@@ -238,7 +293,7 @@ class TurnController {
 
         //apply the damage
         defendingPokemon.currentStats.health -= totalDamage;
-        defendingPokemon.currentStats.health = Math.max(0,defendingPokemon.currentStats.health);
+        defendingPokemon.currentStats.health = Math.max(0, defendingPokemon.currentStats.health);
 
         //what do we need in the turn log?
         /*
@@ -262,56 +317,54 @@ class TurnController {
 
 
         //TODO: Apply Secondary Effects (i.e. Fireblast Burn)
-        if (move.secondaryEffects){
-            move.secondaryEffects.map(m=>{
-                const randomAmount = Math.round(Math.random()*100);
-                if (m.chance<=randomAmount){
+        if (move.secondaryEffects) {
+            move.secondaryEffects.map(m => {
+                const randomAmount = Math.round(Math.random() * 100);
+                if (m.chance <= randomAmount) {
                     //Apply effect here.                   
 
                 }
+                return {};
             });
         }
 
-        const log: BattleEvent = 
-            {
-                type: BattleEventType.UseMove,
-                message: `${pokemon.name} used ${move.name}`,
-                effects: [{
-                    type:EffectType.Damage,
-                    //maybe we don't need these anymore
-                    target:'opponent',
-                    targetName:'opponent',
-                    targetId:defendingPokemon.id, //todo: clean this up.
-                    pokemonId: pokemon.id,
-                    targetPokemonId: defendingPokemon.id,
-                    targetFinalHealth: defendingPokemon.currentStats.health,
-                    targetDamageTaken: totalDamage,
-                    effectiveness: GetTypeMod(defendingPokemon.elementalTypes, move.elementalType).toString(),
-                    message: damageModifierInfo.critStrike? "It was a critical strike! " + effectiveLabel : effectiveLabel
-                },
-            ]
-            }
-            //add a critical strike effect if it crits?
-
-            this.turnLog.push(log);
+        const damageEffect: DamageEffect = {
+            type: EffectType.Damage,
+            targetPokemonId: defendingPokemon.id,
+            attackerPokemonId: pokemon.id,
+            targetFinalHealth: defendingPokemon.currentStats.health,
+            targetDamageTaken: totalDamage,
+            effectiveness: GetTypeMod(defendingPokemon.elementalTypes, move.elementalType).toString(),
+            message: damageModifierInfo.critStrike ? "It was a critical strike! " + effectiveLabel : effectiveLabel
         }
-      
-    
-    
+        const log: BattleEvent =
+        {
+            type: BattleEventType.UseMove,
+            message: `${pokemon.name} used ${move.name}`,
+            effects: [damageEffect]
+        }
+
+        //add a critical strike effect if it crits?
+
+        this.turnLog.push(log);
+    }
+
+
+
 
     DoAction(action: BattleAction) {
         switch (action.type) {
-            case 'switch-pokemon-action': {
+            case 'switch-pokemon-action': {                
+                this.SwitchPokemon(action.playerId,action.switchPokemonId);
                 break;
-                //this.SwitchPokemon(action.playerId,action.switchPokemonId);
             }
             case 'use-item-action': {
                 break;
                 //this.UseItem(action.playerId,action.itemId);
             }
             case 'use-move-action': {
-                this.UseTechnique(action.playerId,action.pokemonId,action.moveId);
-                break;                
+                this.UseTechnique(action.playerId, action.pokemonId, action.moveId);
+                break;
             }
         }
     }
@@ -355,31 +408,33 @@ function GetEffectivenessMessage(defendingPokemon: Pokemon, move: Technique) {
 }
 
 
-const player1 : Player = {
-    id:1,
+const player1: Player = {
+    id: 1,
     name: 'Shayne',
-    pokemon:[
+    pokemon: [
         createCharizard(1),
         createVenusaur(2),
         createBlastoise(3)
     ],
-    currentPokemonId:1,
-    items:[]
+    currentPokemonId: 1,
+    items: []
 }
-const player2 : Player = {
-    id:2,
-    name:'Bob',
-    pokemon:[
+const player2: Player = {
+    id: 2,
+    name: 'Bob',
+    pokemon: [
         createBlastoise(4),
         createVenusaur(5),
         createCharizard(6)
     ],
-    currentPokemonId:4,
-    items:[]
+    currentPokemonId: 4,
+    items: []
 }
 
+//In progress
+/*
 class Battle{
-    turns:Array<TurnController> = [];
+    turns:Array<Turn> = [];
     turnIndex = 0;
     //right now our players is basically our state.
     players:Array<Player> = [player1,player2];
@@ -395,18 +450,19 @@ class Battle{
         return _.cloneDeep(GetCurrentTurn().players);
     }
 }
+*/
 
 //so now after every turn, we should create a new turn with copies of the players?
-let turns : Array<TurnController> = [];
+let turns: Array<Turn> = [];
 let turnIndex = 0;
-turns.push(new TurnController(1,[player1,player2]));
+turns.push(new Turn(1, [player1, player2]));
 
-function GetCurrentTurn(){
+function GetCurrentTurn() {
     return turns[turnIndex];
 }
 
 //gets the player state for the current turn?
-export function GetPlayers() : Array<Player>{
+export function GetPlayers(): Array<Player> {
     return _.cloneDeep(GetCurrentTurn().players);
 }
 
@@ -414,11 +470,11 @@ export function GetPlayers() : Array<Player>{
 //Lets set a course of action here.
 //So lets expose an interface to the "Front-End that allows us to set actions"
 //this is wrapped because we do not want to expose anything about the battle system to the front-end
-export function SetPlayerAction(action:BattleAction){
- turns[turnIndex].SetPlayerAction(action);
+export function SetPlayerAction(action: BattleAction) {
+    turns[turnIndex].SetPlayerAction(action);
 }
 
-export function getTurnLog(): BattleEventsLog |undefined{
+export function getTurnLog(): BattleEventsLog | undefined {
 
     //TODO: Mock this turn log, by auto applying actions
     //lets say Charizard uses fireblast and Blastoise uses HydroPump or something.
@@ -426,44 +482,38 @@ export function getTurnLog(): BattleEventsLog |undefined{
     const player1 = GetCurrentTurn().players[0];
     const player2 = GetCurrentTurn().players[1];
 
-    const moveId1 = player1.pokemon.find(p=>p.id === player1.currentPokemonId)?.techniques[0].id || -1;
-    const player1Action: UseMoveAction = {
-        type:'use-move-action',
-        playerId:player1.id,
-        pokemonId:player1.currentPokemonId,
-        moveId:moveId1
-    }
-
-    const moveId2 = player2.pokemon.find(p=>p.id === player2.currentPokemonId)?.techniques[0].id || -1;
+    const moveId2 = player2.pokemon.find(p => p.id === player2.currentPokemonId)?.techniques[0].id || -1;
     const player2Action: UseMoveAction = {
-        type:'use-move-action',
-        playerId:player2.id,
-        pokemonId:player2.currentPokemonId,
-        moveId:moveId2
+        type: 'use-move-action',
+        playerId: player2.id,
+        pokemonId: player2.currentPokemonId,
+        moveId: moveId2
     }
 
     //battle.SetPlayerAction(player1Action);
     GetCurrentTurn().SetPlayerAction(player2Action);
 
-    if (GetCurrentTurn().GetTurnLog() === undefined){
+    if (GetCurrentTurn().GetTurnLog() === undefined) {
         return undefined;
     }
     console.log('should be returning the turn log at this point');
     const returnLog = {
-        events:GetCurrentTurn().GetTurnLog()!
+        events: GetCurrentTurn().GetTurnLog()!,
+        newState:GetPlayers()
     }
 
     console.log(returnLog);
 
     //start the next turn
     turnIndex++;
-    turns.push(new TurnController(turnIndex+1,[player1,player2]));
+    turns.push(new Turn(turnIndex + 1, [player1, player2]));
 
     return returnLog;
 
+    /*
     const battleState: BattleEventsLog = {
         events: [
-            /*
+            
             {
                 type: BattleEventType.UseMove,
                 message: 'Charizard used fireblast!',
@@ -540,38 +590,39 @@ export function getTurnLog(): BattleEventsLog |undefined{
                 }]
             },
             */
-           /*
-            {
-                type: BattleEventType.SwitchOut,
-                message: 'Enough Charizard, Come back!',
-                effects: [{
-                    type: EffectType.SwitchOut,
-                    targetName: 'Charizard',
-                    target: 'ally',
-                    targetId: 1,
-                    targetFinalHealth: 9999,
-                    effectiveness: 'none',
-                    message: ''
-                }]
-            },
-            {
-                type: BattleEventType.SwitchIn,
-                message: 'Go Venusaur!',
-                effects: [
-                    {
-                        type: EffectType.SwitchIn,
-                        targetName: 'Venusaur',
-                        target: 'ally',
-                        targetId: 2,
-                        targetFinalHealth: 9999,
-                        effectiveness: 'none',
-                        message: ''
-                    }
-                ]
-            }
-            */
+    /*
+     {
+         type: BattleEventType.SwitchOut,
+         message: 'Enough Charizard, Come back!',
+         effects: [{
+             type: EffectType.SwitchOut,
+             targetName: 'Charizard',
+             target: 'ally',
+             targetId: 1,
+             targetFinalHealth: 9999,
+             effectiveness: 'none',
+             message: ''
+         }]
+     },
+     {
+         type: BattleEventType.SwitchIn,
+         message: 'Go Venusaur!',
+         effects: [
+             {
+                 type: EffectType.SwitchIn,
+                 targetName: 'Venusaur',
+                 target: 'ally',
+                 targetId: 2,
+                 targetFinalHealth: 9999,
+                 effectiveness: 'none',
+                 message: ''
+             }
+         ]
+     }
+     
 
-        ]
-    }
-    return battleState;
+ ]
+}
+return battleState;
+*/
 }

@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
 
-import { Player, Status, Pokemon, ElementType, Technique } from '../../game/interfaces';
-import {getTurnLog, EffectType,GetPlayers,SetPlayerAction,UseMoveAction } from "../../game/BattleController";
+import { Player,  Pokemon, ElementType, Technique } from '../../game/interfaces';
+import { getTurnLog, EffectType, GetPlayers, SetPlayerAction, SwitchPokemonAction } from "../../game/BattleController";
 import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
 import ItemMenu from "../ItemMenu/ItemMenu";
 import AttackMenu from "../AttackMenu/AttackMenu";
-
+import './Battle.css';
 import Message from "../Message/Message";
+import PokemonSwitchScreen from "../PokemonSwitchScreen/PokemonSwitchScreen";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 
@@ -23,18 +24,18 @@ enum BattleEventUIState {
 
 type State = {
     players: Array<Player>,
-    allySwitchOut: Boolean
 }
 
 type Action = {
-    type: 'health-tick-down' | 'health-tick-up' | 'status-change' | 'switch-in' | 'switch-out'
+    type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change'
     id: number,
-    targetId?: number | undefined
+    targetId?: number | undefined,
+    newHealth?: number | undefined
+    newState?:Array<Player>
 }
 
 const initialState: State = {
-    allySwitchOut: false,
-    players:GetPlayers()    
+    players: GetPlayers()
 }
 
 const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player | undefined, pokemon: Pokemon | undefined } {
@@ -57,41 +58,34 @@ const reducer = function (state = initialState, action: Action): State {
     //then we may run into performance issues. but for now it works fine.
     var newState = _.cloneDeep(state);
     switch (action.type) {
-        case 'health-tick-down': {
-            const pokemonData = getPokemonAndOwner(newState, action.id);
-            if (pokemonData.owner === undefined || pokemonData.pokemon === undefined) {
-                console.error('Could not find proper pokemon in call to getPokemonAndOwner()');
-                return state;
-            }
-            //since we are using lodash we can mutate our state!
-            pokemonData.pokemon.currentStats.health -= 1;
-            return newState;
+        //for syncing the state with the server.
+        case 'state-change':{
+            return {players:action.newState!};
         }
-        case 'health-tick-up': {
-            const pokemonData = getPokemonAndOwner(newState, action.id);
+        case 'health-change': {
+              const pokemonData = getPokemonAndOwner(newState, action.id);
             if (pokemonData.owner === undefined || pokemonData.pokemon === undefined) {
                 console.error('Could not find proper pokemon in call to getPokemonAndOwner()');
                 return state;
             }
-            //since we are using lodash we can mutate our state!
-            pokemonData.pokemon.currentStats.health += 1;
+            if (action.newHealth === undefined) {
+                console.error('new health is needed for health change event');
+                return state;
+            }
+            pokemonData.pokemon.currentStats.health = action.newHealth;
             return newState;
         }
         case 'switch-in': {
-            const pokemonData = getPokemonAndOwner(newState, action.id);
-            console.log(action);
+             const pokemonData = getPokemonAndOwner(newState, action.id);
             if (pokemonData.owner) {
-                if (action.targetId) {
-                    pokemonData.owner.currentPokemonId = action.targetId;
-                }
+                     pokemonData.owner.currentPokemonId = action.id;
+                
             }
-            //need to be able to switch here.
-            newState.allySwitchOut = false;
             return newState;
         }
         case 'switch-out': {
-            const pokemonData = getPokemonAndOwner(newState,action.id);
-            if (pokemonData.owner){
+            const pokemonData = getPokemonAndOwner(newState, action.id);
+            if (pokemonData.owner) {
                 pokemonData.owner.currentPokemonId = -1;
             }
             /*
@@ -118,69 +112,79 @@ function Battle() {
     const [currentEventState, setCurrentEventState] = useState(BattleEventUIState.None);
     const [state, dispatch] = useReducer(reducer, initialState);
 
-    //TODO - wait for a turn log to be generated.
-    
-    function getAllyPokemon() : Pokemon {
-        const pokemon =  state.players[0].pokemon.find(p=>{
+    const currentEvent = turnLog?.events[eventIndex];
+    const nextEvent1 = turnLog?.events[eventIndex + 1];
+
+    console.log(currentEvent);
+    console.log(nextEvent1);
+    const isNextEvent = nextEvent1 !== undefined;
+
+    function getAllyPokemon(): Pokemon {
+        const pokemon = state.players[0].pokemon.find(p => {
             return p.id === state.players[0].currentPokemonId
         });
-        if (pokemon === undefined){
+        if (pokemon === undefined) {
             //something is wrong;
-            console.error('cannot find ally pokemon');            
+            /*
+            console.error('cannot find ally pokemon');
+            console.error('id was ' + state.players[0].currentPokemonId);
+            console.error(state.players[0]);
+            */
+
         }
-        const nullPokemon : Pokemon = {
-            id:-1,
-            name:'', 
-            originalStats:{
-                health:0,
-                attack:0,
-                specialAttack:0,
-                defence:0,
-                specialDefence:0,
-                speed:0                
+        const nullPokemon: Pokemon = {
+            id: -1,
+            name: '',
+            originalStats: {
+                health: 0,
+                attack: 0,
+                specialAttack: 0,
+                defence: 0,
+                specialDefence: 0,
+                speed: 0
             },
-            currentStats:{
-                health:0,
-                attack:0,
-                specialAttack:0,
-                defence:0,
-                specialDefence:0,
-                speed:0                
+            currentStats: {
+                health: 0,
+                attack: 0,
+                specialAttack: 0,
+                defence: 0,
+                specialDefence: 0,
+                speed: 0
             },
-            techniques:[],
-            elementalTypes:[ElementType.Normal]
+            techniques: [],
+            elementalTypes: [ElementType.Normal]
         }
-        return pokemon || nullPokemon ;
+        return pokemon || nullPokemon;
 
     }
-    function getEnemyPokemon() : Pokemon {
-        const pokemon =  state.players[1].pokemon.find(p=>{
+    function getEnemyPokemon(): Pokemon {
+        const pokemon = state.players[1].pokemon.find(p => {
             return p.id === state.players[1].currentPokemonId
         });
-        if (pokemon === undefined){
+        if (pokemon === undefined) {
             console.error('cannot find ally pokemon with id ' + state.players[1].currentPokemonId);
         }
-        const nullPokemon : Pokemon = {
-            id:-1,
-            name:'NULLMON', 
-            originalStats:{
-                health:0,
-                attack:0,
-                specialAttack:0,
-                defence:0,
-                specialDefence:0,
-                speed:0                
+        const nullPokemon: Pokemon = {
+            id: -1,
+            name: 'NULLMON',
+            originalStats: {
+                health: 0,
+                attack: 0,
+                specialAttack: 0,
+                defence: 0,
+                specialDefence: 0,
+                speed: 0
             },
-            currentStats:{
-                health:0,
-                attack:0,
-                specialAttack:0,
-                defence:0,
-                specialDefence:0,
-                speed:0                
+            currentStats: {
+                health: 0,
+                attack: 0,
+                specialAttack: 0,
+                defence: 0,
+                specialDefence: 0,
+                speed: 0
             },
-            elementalTypes:[ElementType.Fire],
-            techniques:[],
+            elementalTypes: [ElementType.Fire],
+            techniques: [],
         }
         return pokemon || nullPokemon;
     }
@@ -188,7 +192,8 @@ function Battle() {
     //our simple state machine for our events log.
     const nextEvent = useCallback(() => {
 
-        if (turnLog === undefined){
+
+        if (turnLog === undefined) {
             return;
         }
 
@@ -224,26 +229,43 @@ function Battle() {
                 setCurrentEventState(BattleEventUIState.ShowingEffectAnimation);
             }
             else if (isNextEvent) {
-                setEffectIndex(0);
-                setEventIndex(e => e + 1);
+                setEffectIndex(0);          
+
+                //BUG - FOR SOME REASON THIS WAS UPDATING TWICE when we switched.. causing it to jump by 2 and us having an undefined event errror. 
+                //No clue why, this fixes it by clamping it so it never goes past the max length;
+                setEventIndex(e => {return Math.min(turnLog!.events.length-1,e + 1)});
+               
                 setCurrentEventState(BattleEventUIState.ShowingEventMessage);
+                 console.log('are we reaching the end of next event here?')
             }
-            else {
+            else { //turn is complete.
+
+             
                 setEffectIndex(0);
                 setEventIndex(0);
                 setCurrentEventState(BattleEventUIState.None);
                 setMenuState('main-menu');
+                   dispatch({
+                       id:0,
+                       type:'state-change',
+                       newState:turnLog.newState
+                   })
+                   
+                   
             }
         }
+        
 
     }, [currentEventState, eventIndex, effectIndex]);
 
 
     useEffect(() => {
 
-        if (turnLog === undefined){
+        if (turnLog === undefined) {
             return;
         }
+
+
         const currentEvent = turnLog!.events[eventIndex];
 
         //skip messages that are blank.
@@ -255,79 +277,31 @@ function Battle() {
             const currentEvent = turnLog!.events[eventIndex];
             const currentEffect = currentEvent.effects[effectIndex];
 
-            const pokemonId = currentEffect.targetId;
-            const pokemon = getPokemonAndOwner(state, pokemonId).pokemon;
-            if (pokemon === undefined) {
-                console.error('error could not find pokemon with id :' + pokemonId)
-                return;
-            }
-            if (currentEffect.type === EffectType.Damage) {
-                const timeForHealthChange = (1000 / (pokemon.currentStats.health) - currentEffect.targetFinalHealth);
-                //if i want health changes to take a second.
-                //then it needs to be (pokemon.currentStats.health - currentEffect.targetFinalHealth = deltaHealth);
-                //1000/deltaHealth = intervals in seconds.
+            
 
-                //what if we instead define the health to take off every turn?
-                //So if we update every 33 seconds, the health change per interval would have to be deltaHealth/33
-                //the only thing here is that we might end up in fractional healths and would need to consider that.
-                const healthChange = setInterval(() => {
-                    if (pokemon.currentStats.health !== currentEffect.targetFinalHealth) {
-                        dispatch({
-                            type: 'health-tick-down',
-                            id: pokemonId
-                        })
-
-                        //TOOD: a failsafe to make sure that if there any any weird values getting in here (i.e. decimal number or whatnot) that this still works 
-                        //and does not end up ticking non stop.
-                    }
-                    else {
-                        //pokemon.currentStats.health = currentEffect.targetFinalHealth;
-                        nextEvent();
-                        clearInterval(healthChange);
-                    }
-                }, timeForHealthChange);
-
-                return () => clearInterval(healthChange);
-            }
-            else if (currentEffect.type === EffectType.Heal) {
-                const timeForHealthChange = (1000 / (currentEffect.targetFinalHealth) - pokemon.currentStats.health);
-
-                //i want the health change to be a constant time.
-                const heal = setInterval(() => {
-                    if (pokemon.currentStats.health !== currentEffect.targetFinalHealth) {
-                        dispatch({
-                            type: 'health-tick-up',
-                            id: pokemonId
-                        })
-                    }
-                    else {
-                        //the interval is firing one extra time but i don't know why.
-                        pokemon.currentStats.health = currentEffect.targetFinalHealth;
-                        nextEvent();
-                        clearInterval(heal);
-                    }
-                }, timeForHealthChange);
-
-                return () => clearInterval(heal);
-            }
-            else if (currentEffect.type === EffectType.Poisoned) {
-                //TODO: need to dispatch status changed 
-                pokemon.status = Status.Poison;
-                nextEvent();
-            }
-            else if (currentEffect.type === EffectType.SwitchOut) {
-                //for now lets apply no animations.
+            if (currentEffect.type === EffectType.Damage || currentEffect.type === EffectType.Heal) {
+                const pokemonId = currentEffect.targetPokemonId
+                const targetHealth = currentEffect.targetFinalHealth;
                 dispatch({
+                    type: 'health-change',
+                    id: pokemonId,
+                    newHealth: targetHealth
+                });
+                //the next event is controlled by a callback in the healthbar.
+
+            }
+             else if (currentEffect.type === EffectType.SwitchOut) {
+                //for now lets apply no animations.
+                 dispatch({
                     type: 'switch-out',
-                    id: pokemonId
+                    id: currentEffect.switchOutPokemonId
                 })
                 nextEvent()
             }
             else if (currentEffect.type === EffectType.SwitchIn) {
                 dispatch({
                     type: 'switch-in',
-                    id: pokemonId,
-                    targetId:currentEffect.targetId
+                    id: currentEffect.switchInPokemonId
                 })
                 nextEvent()
             }
@@ -335,28 +309,47 @@ function Battle() {
                 nextEvent();
             }
         }
-    }, [currentEventState, eventIndex, nextEvent, effectIndex, state]);
+    }, [currentEventState, eventIndex, effectIndex,nextEvent]);
 
-    function SetBattleAction(technique:Technique){
-        console.log('checking if this ran twice "set battle action');
-        console.log(technique);
+    function SetBattleAction(technique: Technique) {
         SetPlayerAction({
-             playerId:1, //todo : get player id
-             pokemonId:1, //todo: get proper pokemon id
-             moveId:technique.id, //todo: get technique id
-             type:'use-move-action'
+            playerId: 1, //todo : get player id
+            pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
+            moveId: technique.id, //todo: get technique id
+            type: 'use-move-action'
         });
-        turnLog =  getTurnLog();
+        turnLog = getTurnLog();
+        setCurrentEventState(BattleEventUIState.ShowingEventMessage);
+        setMenuState('none');
+    }
+    function SetSwitchAction(pokemonSwitchId: number){
+        const action: SwitchPokemonAction = {
+            type:'switch-pokemon-action',
+            playerId:1, //todo : get proper player id.
+            switchPokemonId:pokemonSwitchId
+        }
+        SetPlayerAction(action);
+        turnLog = getTurnLog();
         setCurrentEventState(BattleEventUIState.ShowingEventMessage);
         setMenuState('none');
     }
 
+    //props.pokemon.currentStats.health / props.pokemon.originalStats.health) * 100
     return (
         <div className="App">
-            <div>Current Event State : {currentEventState} </div>
-            <div>Current Menu State : {menuState} </div>
-            {getEnemyPokemon().id!==-1&& <BattlePokemonDisplay owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
-            {getAllyPokemon().id!==-1 && <BattlePokemonDisplay owner={OwnerType.Ally}  pokemon={getAllyPokemon()} />}
+            <div className="debug">
+                <b>DEBUG INFO</b>
+                <div>Current Event State : {currentEventState} </div>
+                <div>Current Menu State : {menuState} </div>
+                <div> Current Event Index : {eventIndex} </div>
+                <div> Current Effect Index : {effectIndex}</div>
+
+
+            </div>
+            <PokemonSwitchScreen player={state.players[0]}/>
+            <div className="battle-window">
+            {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
+            {getAllyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
             {(currentEventState === BattleEventUIState.ShowingEventMessage || currentEventState === BattleEventUIState.ShowingEffectAnimation) &&
                 <Message
                     message={turnLog!.events[eventIndex].message}
@@ -370,8 +363,11 @@ function Battle() {
                     onMenuAttackClick={(evt) => { setMenuState('attack-menu') }}
                     onMenuItemClick={(evt) => { setMenuState('item-menu') }}
                     onMenuSwitchClick={(evt) => { setMenuState('switch-menu') }} />}
-            {menuState === 'attack-menu' && <AttackMenu onAttackClick={(tech: any) => { console.log('checking if this has ran twice');SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
-            {menuState === 'item-menu' && <ItemMenu onItemClick={(item: any) => { console.log(item) }} items={state.players[0].items} />}
+            {menuState === 'attack-menu' && <AttackMenu onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
+            {menuState === 'item-menu' && <ItemMenu onItemClick={(item: any) => { }} items={state.players[0].items} />}
+            {menuState === 'switch-menu' && <PokemonSwitchScreen onPokemonClick={(pokemon)=>{SetSwitchAction(pokemon.id);}} player={state.players[0]}/>
+            }
+            </div>
         </div>
     );
 }

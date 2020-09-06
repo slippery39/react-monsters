@@ -10,7 +10,8 @@ export enum OwnerType {
 
 interface Props {
     owner: OwnerType,
-    pokemon: Pokemon
+    pokemon: Pokemon,
+    onHealthAnimateComplete?:()=>void
 }
 
 const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
@@ -25,11 +26,11 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
         <div style={styles}>
             <PokemonImage type="back" name={props.pokemon.name} />
         </div>
-        <BattleHealthDisplay pokemon={props.pokemon} />
+        <BattleHealthDisplay onHealthAnimateComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()}}}  pokemon={props.pokemon} />
     </div>)
 
     const enemyDisplay = (<div>
-        <BattleHealthDisplay pokemon={props.pokemon} />
+        <BattleHealthDisplay onHealthAnimateComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()}}}  pokemon={props.pokemon} />
         <div style={styles}>
             <PokemonImage type="front" name={props.pokemon.name} />
         </div>

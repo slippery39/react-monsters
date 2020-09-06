@@ -1,0 +1,12 @@
+.battle-window{
+    text-align: center;
+    width:350px;
+    margin:0 auto;
+    border:2px solid black;
+}
+
+.debug{
+    padding:10px 10px 10px 10px;
+    border:3px solid black;
+    margin-bottom:10px;
+}
