@@ -1,12 +1,35 @@
+@font-face {
+    font-family: 'PokemonFont';
+    src: url('/fonts/DiamondPearl/PowerClear.woff2') format('woff2'),
+        url('/fonts/DiamondPearl/PowerClear.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+
 .battle-window{
     text-align: center;
-    width:350px;
+    width:400px;
     margin:0 auto;
-    border:2px solid black;
+    border:2px solid black;    
+
+ 
+    font-family:"PokemonFont";
+
 }
 
 .debug{
     padding:10px 10px 10px 10px;
     border:3px solid black;
     margin-bottom:10px;
+}
+
+.battle-terrain{
+    background-image: url(/images/backgrounds/battle-background.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    width:100%;
+    height:240px;
 }

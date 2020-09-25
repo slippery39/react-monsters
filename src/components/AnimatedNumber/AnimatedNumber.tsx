@@ -16,6 +16,7 @@ const Number : React.FunctionComponent<Props> = props => {
     
   
   useEffect(() => {
+      
     TweenLite.to(value.current, 2, {
       value: props.number,
       roundProps: "value",

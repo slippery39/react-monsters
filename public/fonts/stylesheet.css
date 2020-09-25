@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'Pokemon Fire Red';
+    src: url('Pokemon-Fire-Red.woff2') format('woff2'),
+        url('Pokemon-Fire-Red.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+

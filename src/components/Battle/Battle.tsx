@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useReducer } from 'react';
 
-import { Player,  Pokemon, ElementType, Technique } from '../../game/interfaces';
-import { getTurnLog, EffectType, GetPlayers, SetPlayerAction, SwitchPokemonAction } from "../../game/BattleController";
+
+import BattleService, { OnNewTurnLogArgs } from "../../game/BattleService";
+import { Player, Pokemon, ElementType, Technique } from '../../game/interfaces';
+import { EffectType, SwitchPokemonAction, BattleEvent } from "../../game/BattleController";
 import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
 import ItemMenu from "../ItemMenu/ItemMenu";
@@ -9,6 +11,7 @@ import AttackMenu from "../AttackMenu/AttackMenu";
 import './Battle.css';
 import Message from "../Message/Message";
 import PokemonSwitchScreen from "../PokemonSwitchScreen/PokemonSwitchScreen";
+import ElementIcon from "../ElementIcon/ElementIcon";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 
@@ -31,11 +34,13 @@ type Action = {
     id: number,
     targetId?: number | undefined,
     newHealth?: number | undefined
-    newState?:Array<Player>
+    newState?: Array<Player>
 }
 
+let battleService = new BattleService();
+
 const initialState: State = {
-    players: GetPlayers()
+    players: battleService.GetPlayers()
 }
 
 const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player | undefined, pokemon: Pokemon | undefined } {
@@ -59,11 +64,11 @@ const reducer = function (state = initialState, action: Action): State {
     var newState = _.cloneDeep(state);
     switch (action.type) {
         //for syncing the state with the server.
-        case 'state-change':{
-            return {players:action.newState!};
+        case 'state-change': {
+            return { players: action.newState! };
         }
         case 'health-change': {
-              const pokemonData = getPokemonAndOwner(newState, action.id);
+            const pokemonData = getPokemonAndOwner(newState, action.id);
             if (pokemonData.owner === undefined || pokemonData.pokemon === undefined) {
                 console.error('Could not find proper pokemon in call to getPokemonAndOwner()');
                 return state;
@@ -76,10 +81,10 @@ const reducer = function (state = initialState, action: Action): State {
             return newState;
         }
         case 'switch-in': {
-             const pokemonData = getPokemonAndOwner(newState, action.id);
+            const pokemonData = getPokemonAndOwner(newState, action.id);
             if (pokemonData.owner) {
-                     pokemonData.owner.currentPokemonId = action.id;
-                
+                pokemonData.owner.currentPokemonId = action.id;
+
             }
             return newState;
         }
@@ -100,7 +105,7 @@ const reducer = function (state = initialState, action: Action): State {
 }
 
 //Right here, this needs to happen dynamically, not right away.
-let turnLog = getTurnLog();
+let turnLog: OnNewTurnLogArgs | undefined = undefined;
 
 function Battle() {
 
@@ -112,12 +117,12 @@ function Battle() {
     const [currentEventState, setCurrentEventState] = useState(BattleEventUIState.None);
     const [state, dispatch] = useReducer(reducer, initialState);
 
-    const currentEvent = turnLog?.events[eventIndex];
-    const nextEvent1 = turnLog?.events[eventIndex + 1];
 
-    console.log(currentEvent);
-    console.log(nextEvent1);
-    const isNextEvent = nextEvent1 !== undefined;
+    battleService.OnNewTurnLog = (args: OnNewTurnLogArgs) => {
+        turnLog = args;
+        setCurrentEventState(BattleEventUIState.ShowingEventMessage);
+        setMenuState('none');
+    };
 
     function getAllyPokemon(): Pokemon {
         const pokemon = state.players[0].pokemon.find(p => {
@@ -207,8 +212,8 @@ function Battle() {
         //show the effect message,
         //
 
-        const currentEvent = turnLog.events[eventIndex];
-        const nextEvent = turnLog.events[eventIndex + 1];
+        const currentEvent = turnLog?.currentTurnLog[eventIndex];
+        const nextEvent = turnLog?.currentTurnLog[eventIndex + 1];
         const isNextEvent = nextEvent !== undefined;
 
         const nextEffect = currentEvent.effects[effectIndex + 1];
@@ -229,32 +234,39 @@ function Battle() {
                 setCurrentEventState(BattleEventUIState.ShowingEffectAnimation);
             }
             else if (isNextEvent) {
-                setEffectIndex(0);          
+                setEffectIndex(0);
 
                 //BUG - FOR SOME REASON THIS WAS UPDATING TWICE when we switched.. causing it to jump by 2 and us having an undefined event errror. 
                 //No clue why, this fixes it by clamping it so it never goes past the max length;
-                setEventIndex(e => {return Math.min(turnLog!.events.length-1,e + 1)});
-               
+                setEventIndex(e => { return Math.min(turnLog!.currentTurnLog.length - 1, e + 1) });
+
                 setCurrentEventState(BattleEventUIState.ShowingEventMessage);
-                 console.log('are we reaching the end of next event here?')
+                console.log('are we reaching the end of next event here?')
             }
             else { //turn is complete.
 
-             
-                setEffectIndex(0);
-                setEventIndex(0);
-                setCurrentEventState(BattleEventUIState.None);
-                setMenuState('main-menu');
-                   dispatch({
-                       id:0,
-                       type:'state-change',
-                       newState:turnLog.newState
-                   })
-                   
-                   
+                //must be awaiting switch action, and the person awaiting the switch action must the player.
+                if (turnLog.currentTurnState === 'awaiting-switch-action') {
+                    setMenuState('switch-menu');
+                }
+                else {
+                    //turn has finished, reset to main menu.
+
+                    setEffectIndex(0);
+                    setEventIndex(0);
+                    setCurrentEventState(BattleEventUIState.None);
+                    setMenuState('main-menu');
+                    dispatch({
+                        id: 0,
+                        type: 'state-change',
+                        newState: turnLog.newState
+                    })
+                }
+
+
             }
         }
-        
+
 
     }, [currentEventState, eventIndex, effectIndex]);
 
@@ -266,7 +278,7 @@ function Battle() {
         }
 
 
-        const currentEvent = turnLog!.events[eventIndex];
+        const currentEvent = turnLog!.currentTurnLog[eventIndex];
 
         //skip messages that are blank.
         if (currentEventState === BattleEventUIState.ShowingEventMessage && currentEvent.message === '') {
@@ -274,10 +286,10 @@ function Battle() {
         }
 
         if (currentEventState === BattleEventUIState.ShowingEffectAnimation) {
-            const currentEvent = turnLog!.events[eventIndex];
+            const currentEvent = turnLog!.currentTurnLog[eventIndex];
             const currentEffect = currentEvent.effects[effectIndex];
 
-            
+
 
             if (currentEffect.type === EffectType.Damage || currentEffect.type === EffectType.Heal) {
                 const pokemonId = currentEffect.targetPokemonId
@@ -290,9 +302,9 @@ function Battle() {
                 //the next event is controlled by a callback in the healthbar.
 
             }
-             else if (currentEffect.type === EffectType.SwitchOut) {
+            else if (currentEffect.type === EffectType.SwitchOut) {
                 //for now lets apply no animations.
-                 dispatch({
+                dispatch({
                     type: 'switch-out',
                     id: currentEffect.switchOutPokemonId
                 })
@@ -309,30 +321,39 @@ function Battle() {
                 nextEvent();
             }
         }
-    }, [currentEventState, eventIndex, effectIndex,nextEvent]);
+    }, [currentEventState, eventIndex, effectIndex, nextEvent]);
 
     function SetBattleAction(technique: Technique) {
-        SetPlayerAction({
+        battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
             moveId: technique.id, //todo: get technique id
             type: 'use-move-action'
         });
-        turnLog = getTurnLog();
-        setCurrentEventState(BattleEventUIState.ShowingEventMessage);
-        setMenuState('none');
     }
-    function SetSwitchAction(pokemonSwitchId: number){
+    function SetSwitchAction(pokemonSwitchId: number) {
         const action: SwitchPokemonAction = {
-            type:'switch-pokemon-action',
-            playerId:1, //todo : get proper player id.
-            switchPokemonId:pokemonSwitchId
+            type: 'switch-pokemon-action',
+            playerId: 1, //todo : get proper player id.
+            switchPokemonId: pokemonSwitchId
         }
-        SetPlayerAction(action);
-        turnLog = getTurnLog();
-        setCurrentEventState(BattleEventUIState.ShowingEventMessage);
-        setMenuState('none');
+        battleService.SetPlayerAction(action);
     }
+
+
+    function MakeElementIcons(){
+
+        var icons = [];
+        for (let element in ElementType){
+            //var myElement: ElementType = ElementType[element as keyof typeof ElementType];
+            var myElement: ElementType = ElementType[element as keyof typeof ElementType];
+            icons.push( (<ElementIcon element={myElement} />))
+        }
+
+        return ( <div>{icons}</div>);    
+
+        }
+    
 
     //props.pokemon.currentStats.health / props.pokemon.originalStats.health) * 100
     return (
@@ -343,30 +364,35 @@ function Battle() {
                 <div>Current Menu State : {menuState} </div>
                 <div> Current Event Index : {eventIndex} </div>
                 <div> Current Effect Index : {effectIndex}</div>
-
-
+                <div>Turn ID : {battleService.GetCurrentTurn().id} </div>
+                <div>Turn State : {battleService.GetCurrentTurn().currentState.type} </div>
+                {MakeElementIcons()}
             </div>
-            <PokemonSwitchScreen player={state.players[0]}/>
+            <PokemonSwitchScreen player={state.players[0]} />
             <div className="battle-window">
-            {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
-            {getAllyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
-            {(currentEventState === BattleEventUIState.ShowingEventMessage || currentEventState === BattleEventUIState.ShowingEffectAnimation) &&
-                <Message
-                    message={turnLog!.events[eventIndex].message}
-                    onFinish={function () { nextEvent() }} />}
-            {currentEventState === BattleEventUIState.ShowingEffectMessage &&
-                <Message
-                    message={turnLog!.events[eventIndex].effects[effectIndex].message}
-                    onFinish={function () { nextEvent() }} />}
-            {menuState === 'main-menu' &&
-                <BattleMenu
-                    onMenuAttackClick={(evt) => { setMenuState('attack-menu') }}
-                    onMenuItemClick={(evt) => { setMenuState('item-menu') }}
-                    onMenuSwitchClick={(evt) => { setMenuState('switch-menu') }} />}
-            {menuState === 'attack-menu' && <AttackMenu onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
-            {menuState === 'item-menu' && <ItemMenu onItemClick={(item: any) => { }} items={state.players[0].items} />}
-            {menuState === 'switch-menu' && <PokemonSwitchScreen onPokemonClick={(pokemon)=>{SetSwitchAction(pokemon.id);}} player={state.players[0]}/>
-            }
+                <div className='battle-terrain'>
+                    {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
+                    {getAllyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
+                </div>
+                <div style={{height:"75px"}}>
+                    {(currentEventState === BattleEventUIState.ShowingEventMessage || currentEventState === BattleEventUIState.ShowingEffectAnimation) &&
+                        <Message
+                            message={turnLog!.currentTurnLog[eventIndex].message}
+                            onFinish={function () { nextEvent() }} />}
+                    {currentEventState === BattleEventUIState.ShowingEffectMessage &&
+                        <Message
+                            message={turnLog!.currentTurnLog[eventIndex].effects[effectIndex].message}
+                            onFinish={function () { nextEvent() }} />}
+                    {menuState === 'main-menu' &&
+                        <BattleMenu
+                            onMenuAttackClick={(evt) => { setMenuState('attack-menu') }}
+                            onMenuItemClick={(evt) => { setMenuState('item-menu') }}
+                            onMenuSwitchClick={(evt) => { setMenuState('switch-menu') }} />}
+                    {menuState === 'attack-menu' && <AttackMenu onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
+                    {menuState === 'item-menu' && <ItemMenu onItemClick={(item: any) => { }} items={state.players[0].items} />}
+                    {menuState === 'switch-menu' && <PokemonSwitchScreen onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />
+                    }
+                </div>
             </div>
         </div>
     );

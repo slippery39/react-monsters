@@ -5,6 +5,7 @@
     display:inline-block;
     width:150px;
     font-size:12px;
+    background-color:white;
 }
 .battle-health-name{
     text-align:left;

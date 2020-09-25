@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'Power Clear';
+    src: url('PowerClear.woff2') format('woff2'),
+        url('PowerClear.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
