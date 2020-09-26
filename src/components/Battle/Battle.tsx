@@ -8,6 +8,7 @@ import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
 import ItemMenu from "../ItemMenu/ItemMenu";
 import AttackMenu from "../AttackMenu/AttackMenu";
+import AttackMenuNew from "../AttackMenuNew/AttackMenuNew";
 import './Battle.css';
 import Message from "../Message/Message";
 import PokemonSwitchScreen from "../PokemonSwitchScreen/PokemonSwitchScreen";
@@ -388,7 +389,7 @@ function Battle() {
                             onMenuAttackClick={(evt) => { setMenuState('attack-menu') }}
                             onMenuItemClick={(evt) => { setMenuState('item-menu') }}
                             onMenuSwitchClick={(evt) => { setMenuState('switch-menu') }} />}
-                    {menuState === 'attack-menu' && <AttackMenu onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
+                    {menuState === 'attack-menu' && <AttackMenuNew onCancelClick={()=>setMenuState('main-menu')} onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
                     {menuState === 'item-menu' && <ItemMenu onItemClick={(item: any) => { }} items={state.players[0].items} />}
                     {menuState === 'switch-menu' && <PokemonSwitchScreen onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />
                     }

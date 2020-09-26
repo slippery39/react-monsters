@@ -1,0 +1,20 @@
+.technique-menu{
+    display:flex;
+    justify-content: space-evenly;
+    margin-top:10px;
+}
+
+.technique-cancel-button{
+cursor:pointer;
+color: white;
+background-color: darkblue;
+display: inline-block;
+width: 90%;
+margin-left: 10px;
+margin-right: 10px;
+margin-top: 20px;
+font-weight: bold;
+font-size: 25px;
+padding: 4px 4px 4px 4px;
+background: linear-gradient(45deg, darkblue, blue,darkblue);
+}

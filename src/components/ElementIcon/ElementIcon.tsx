@@ -13,9 +13,9 @@ const ElementIcon: React.FunctionComponent<Props> = (props) => {
     const classes = `element-icon element-${props.element.toString().toLowerCase()}`
 
     return (
-        <div className={classes}>
+        <span className={classes}>
             {props.element.toString()}
-        </div>
+        </span>
     );
 }
 

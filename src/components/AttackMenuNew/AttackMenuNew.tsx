@@ -1,33 +1,28 @@
 import React from 'react';
 import './AttackMenuNew.css'
-
-interface Technique {
-    id: number,
-    name: String,
-    description: String,
-    currentPP: number,
-    pp: number
-}
+import {Technique} from "../../game/interfaces";
+import AttackContainer from "./AttackContainer/AttackContainer";
 
 interface Props {
     techniques: Array<Technique>,
-    onAttackClick:(tech:Technique)=>void
+    onAttackClick:(tech:Technique)=>void,
+    onCancelClick:()=>void
 }
 
 const AttackMenu: React.FunctionComponent<Props> = (props) => {
 
     const techniques = props.techniques.map((el, index) => {
         return (
-            <div onClick={(ev)=>props.onAttackClick(el)} key={el.id} className='technique-container'>
-                <span>{el.name} </span> <span> PP :  {el.currentPP} / {el.pp} </span>
-            </div>
+            <AttackContainer onAttackClick={(ev)=>props.onAttackClick(el)} technique={el} key={el.id} />
         )
     });
 
     return (
+        <div>
         <div className="technique-menu">
-            <div> Choose a technique to use </div>
             {techniques}
+        </div>
+            <div onClick={()=>props.onCancelClick()} className="technique-cancel-button"> Cancel </div>
         </div>
     );
 }

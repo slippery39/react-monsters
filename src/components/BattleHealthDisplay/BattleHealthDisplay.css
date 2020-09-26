@@ -8,13 +8,16 @@
     background-color:white;
 }
 .battle-health-name{
-    text-align:left;
+    text-align: left;
+    font-size: 18px;
 }
 .battle-health-bar{
     text-align:right;
 }
 .battle-health-text{
     text-align:right;
+    font-size:14px;
+    font-weight:bold;
 }
 
 .battle-name-and-status-container{
