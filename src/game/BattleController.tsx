@@ -83,6 +83,7 @@ EffectType.SwitchOut;
 */
 
 export interface BattleEvent {
+    id:number,
     type: BattleEventType,
     message: string,
     effects: Array<SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | MissedMoveEffect | FaintedPokemonEffect>,
@@ -127,6 +128,8 @@ export class Turn {
     players: Array<Player> = [] //needs to be initial turn state.
     turnLog: Array<BattleEvent> = [];
     id: Number;
+    eventNum: number = 1; //next id for when we have a new event.
+
 
     currentState: State = { type: 'awaiting-initial-actions' }
 
@@ -284,6 +287,7 @@ export class Turn {
         }
 
         const log: BattleEvent = {
+            id:this.eventNum++,
             type: BattleEventType.SwitchPokemon,
             message: 'Enough, Come back!',
             effects: [switchOutEffect, switchInEffect]
@@ -327,6 +331,7 @@ export class Turn {
             }
             let missedMoveLog: BattleEvent =
             {
+                id:this.eventNum++,
                 type: BattleEventType.UseMove,
                 message: `${pokemon.name} used ${move.name}`,
                 effects: [missedMoveEffect]
@@ -378,6 +383,7 @@ export class Turn {
         }
         const log: BattleEvent =
         {
+            id:this.eventNum++,
             type: BattleEventType.UseMove,
             message: `${pokemon.name} used ${move.name}`,
             effects: [damageEffect]
@@ -396,6 +402,7 @@ export class Turn {
 
             let pokemonFaintedLog: BattleEvent =
             {
+                id:this.eventNum++,
                 type: BattleEventType.PokemonFainted,
                 message: defendingPokemon.name + ' has fainted!',
                 effects: [faintedPokemonEffect]

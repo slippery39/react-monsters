@@ -62,9 +62,6 @@ class BattleService {
         }
         this.GetCurrentTurn().SetInitialPlayerAction(player2Action);
 
-
-
-
         //Allowing the AI player to switch his fainted pokemon to something else.
         if (this.GetCurrentTurn().currentState.type ==='awaiting-switch-action' && this.GetCurrentTurn().currentState.playerId === player2.id){
             const unfaintedPokemon = player2.pokemon.filter(poke=>poke.currentStats.health!=0)[0];
@@ -78,9 +75,6 @@ class BattleService {
             return;
         }
         if (this.OnNewTurnLog !== undefined) {
-
-            console.log('on new turn log test');
-            console.log(this.GetCurrentTurn());
             this.OnNewTurnLog(
                 {
                     currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
@@ -91,11 +85,24 @@ class BattleService {
         }
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction) {
+
+        //cache the turn up to this date.
+        const oldTurnLog = this.GetCurrentTurn().GetTurnLog();
+
+        const maxId = Math.max(...oldTurnLog.map(tl=>tl.id));
+
+
+
         this.GetCurrentTurn().SetSwitchFaintedPokemonAction(action);
+
+
+        const newTurnLogDiff = this.GetCurrentTurn().GetTurnLog().filter(tl=>tl.id>maxId);
+        console.log(newTurnLogDiff);
+
         if (this.OnNewTurnLog !== undefined) {
             this.OnNewTurnLog(
                 {
-                    currentTurnLog: this.GetCurrentTurn().GetTurnLog(),//need to only gather new turn logs, not the whole thing. //possibly an id system?
+                    currentTurnLog: this.GetCurrentTurn().GetTurnLog().filter(tl=>tl.id>maxId),//need to only gather new turn logs, not the whole thing. //possibly an id system?
                     newState: this.GetPlayers(),
                     currentTurnState: this.GetCurrentTurn().currentState.type //after the ui goes through the turn log, it should use this get prompt type to determine what screen we should show.
                 }

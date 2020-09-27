@@ -121,6 +121,8 @@ function Battle() {
 
 
     battleService.OnNewTurnLog = (args: OnNewTurnLogArgs) => {
+        setEventIndex(0);
+        setEffectIndex(0);
         turnLog = args;
         setCurrentEventState(BattleEventUIState.ShowingEventMessage);
         setMenuState('none');
