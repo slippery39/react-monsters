@@ -22,7 +22,7 @@ const AttackMenu: React.FunctionComponent<Props> = (props) => {
         <div className="technique-menu">
             {techniques}
         </div>
-            <div onClick={()=>props.onCancelClick()} className="technique-cancel-button"> Cancel </div>
+            <div onClick={()=>props.onCancelClick()} className="cancel-button"> Cancel </div>
         </div>
     );
 }

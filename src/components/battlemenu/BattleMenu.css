@@ -1,7 +1,43 @@
 .battle-menu-button{
     cursor:pointer;
     border:1px solid black;
+    color: #fff;
+    text-shadow: 1px 0 0 #000, 0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000;
+    font-weight:bold;
+    font-size:25px;
+    border-radius: 10px;
 }
 .battle-menu-button:hover{
-    background-color:yellow;
+    color:blue;
+}
+
+.battle-menu-button-small{
+    width:30%;
+}
+
+.battle-menu-attack{
+    background-color:red;
+    width: 60%;
+    display: inline-block;
+    margin: 0 auto;
+    padding-left: 40px;
+    padding-right: 40px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+.battle-menu-bottom-row{
+    margin-top:20px;
+    display:flex;
+    justify-content:space-between;
+    margin-left:5px;
+    margin-right:5px;
+    margin-bottom:5px;
+}
+
+.battle-menu-item{
+    background-color:orange
+}
+.battle-menu-switch{
+    background-color:green;
 }

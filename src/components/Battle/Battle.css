@@ -33,3 +33,14 @@
     width:100%;
     height:240px;
 }
+
+.bottom-screen{
+    background-image: linear-gradient(45deg, white, lightgrey);
+}
+
+.pokemon-party-pokeballs{
+    padding-top:10px;
+    display:flex;
+    padding-bottom:10px;
+    padding-left:10px;
+}

@@ -7,12 +7,13 @@ import { EffectType, SwitchPokemonAction, BattleEvent } from "../../game/BattleC
 import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
 import ItemMenu from "../ItemMenu/ItemMenu";
-import AttackMenu from "../AttackMenu/AttackMenu";
 import AttackMenuNew from "../AttackMenuNew/AttackMenuNew";
 import './Battle.css';
 import Message from "../Message/Message";
 import PokemonSwitchScreen from "../PokemonSwitchScreen/PokemonSwitchScreen";
 import ElementIcon from "../ElementIcon/ElementIcon";
+
+import Pokeball from "../Pokeball/Pokeball"
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 
@@ -342,19 +343,19 @@ function Battle() {
     }
 
 
-    function MakeElementIcons(){
+    function MakeElementIcons() {
 
         var icons = [];
-        for (let element in ElementType){
+        for (let element in ElementType) {
             //var myElement: ElementType = ElementType[element as keyof typeof ElementType];
             var myElement: ElementType = ElementType[element as keyof typeof ElementType];
-            icons.push( (<ElementIcon element={myElement} />))
+            icons.push((<ElementIcon element={myElement} />))
         }
 
-        return ( <div>{icons}</div>);    
+        return (<div>{icons}</div>);
 
-        }
-    
+    }
+
 
     //props.pokemon.currentStats.health / props.pokemon.originalStats.health) * 100
     return (
@@ -371,11 +372,12 @@ function Battle() {
             </div>
             <PokemonSwitchScreen player={state.players[0]} />
             <div className="battle-window">
+                <div className="top-screen">
                 <div className='battle-terrain'>
                     {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
                     {getAllyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
                 </div>
-                <div style={{height:"75px"}}>
+                <div style={{ height: "75px",border:"5px solid black" }}>
                     {(currentEventState === BattleEventUIState.ShowingEventMessage || currentEventState === BattleEventUIState.ShowingEffectAnimation) &&
                         <Message
                             message={turnLog!.currentTurnLog[eventIndex].message}
@@ -384,18 +386,22 @@ function Battle() {
                         <Message
                             message={turnLog!.currentTurnLog[eventIndex].effects[effectIndex].message}
                             onFinish={function () { nextEvent() }} />}
+                </div>
+                </div>
+                <div className="bottom-screen">
+                    {menuState ==="main-menu" && <div className="pokemon-party-pokeballs">{state.players[0].pokemon.map(p=>(<span style={{width:"30px",marginRight:"10px"}}><Pokeball/></span>))}</div>}
                     {menuState === 'main-menu' &&
                         <BattleMenu
                             onMenuAttackClick={(evt) => { setMenuState('attack-menu') }}
                             onMenuItemClick={(evt) => { setMenuState('item-menu') }}
                             onMenuSwitchClick={(evt) => { setMenuState('switch-menu') }} />}
-                    {menuState === 'attack-menu' && <AttackMenuNew onCancelClick={()=>setMenuState('main-menu')} onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
+                    {menuState === 'attack-menu' && <AttackMenuNew onCancelClick={() => setMenuState('main-menu')} onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
                     {menuState === 'item-menu' && <ItemMenu onItemClick={(item: any) => { }} items={state.players[0].items} />}
-                    {menuState === 'switch-menu' && <PokemonSwitchScreen onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />
+                    {menuState === 'switch-menu' && <PokemonSwitchScreen onCancelClick={() => setMenuState('main-menu')}  onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />
                     }
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 
