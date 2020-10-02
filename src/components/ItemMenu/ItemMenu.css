@@ -2,13 +2,17 @@
     border:1px solid black;    
     border-collapse:collapse;
     width:100%;
+    display:flex;
 }
-.item-menu td, .item-menu th{
-    border:1px solid black;
+
+.item-menu-left{
+    width:40%;
 }
-.item-row{
-    cursor:pointer;
+
+.item-menu-items{
+    margin-top:10px;
 }
-.item-row:hover{
-    background-color:yellow;
+
+.item-menu-items .item-container{
+    margin-bottom:3px;
 }

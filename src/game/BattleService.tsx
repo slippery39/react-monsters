@@ -70,7 +70,7 @@ class BattleService {
                 type:'switch-pokemon-action',
                 switchPokemonId: unfaintedPokemon.id
             }
-            this.SetSwitchFaintedPokemonAction(switchPokemonAction);
+            this.SetSwitchFaintedPokemonAction(switchPokemonAction,false);
             //no need to return an new turn log yet, since we will still be adding to it.
             return;
         }
@@ -84,25 +84,23 @@ class BattleService {
             );
         }
     }
-    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction) {
-
+    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?:Boolean) {
+        
         //cache the turn up to this date.
         const oldTurnLog = this.GetCurrentTurn().GetTurnLog();
-
         const maxId = Math.max(...oldTurnLog.map(tl=>tl.id));
-
-
 
         this.GetCurrentTurn().SetSwitchFaintedPokemonAction(action);
 
-
-        const newTurnLogDiff = this.GetCurrentTurn().GetTurnLog().filter(tl=>tl.id>maxId);
-        console.log(newTurnLogDiff);
+        var newTurnLog = this.GetCurrentTurn().GetTurnLog();
+        if (diffLog == undefined || diffLog==true ){
+             newTurnLog = newTurnLog.filter(tl=>tl.id>maxId);
+        }
 
         if (this.OnNewTurnLog !== undefined) {
             this.OnNewTurnLog(
                 {
-                    currentTurnLog: this.GetCurrentTurn().GetTurnLog().filter(tl=>tl.id>maxId),//need to only gather new turn logs, not the whole thing. //possibly an id system?
+                    currentTurnLog: newTurnLog,//need to only gather new turn logs, not the whole thing. //possibly an id system?
                     newState: this.GetPlayers(),
                     currentTurnState: this.GetCurrentTurn().currentState.type //after the ui goes through the turn log, it should use this get prompt type to determine what screen we should show.
                 }

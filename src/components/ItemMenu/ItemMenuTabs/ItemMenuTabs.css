@@ -1,0 +1,42 @@
+.tabs-container{
+    display:flex;
+}
+
+.tab-hp-restore{
+    color:green;    
+}
+.tab-hp-restore.selected{
+    background-color:green;
+    color:white;
+}
+
+.tab-status-restore{
+    color:blue;
+}
+.tab-status-restore.selected{
+    background-color:blue;
+    color:white;
+}
+
+.tab-pokeballs{
+    color:Red;  
+}
+.tab-pokeballs.selected{
+    background-color:red;
+    color:white;
+}
+
+.tab-battle-items{
+    color:violet;
+}
+.tab-battle-items.selected{
+    background-color:violet;
+    color:white;
+}
+
+.tab-button{
+    background-color:white;
+    border:1px solid lightgrey;
+    cursor:pointer;
+    padding:3px 3px 3px 3px;
+}

@@ -1,0 +1,13 @@
+.item-container{
+    border-radius:20px;
+    background:white;
+    border:1px solid black;
+    cursor:pointer;
+    margin-right:10px;
+    margin-left:10px;
+    background: linear-gradient(45deg, lightgrey,white,white);
+}
+
+.item-container:hover{
+    color:blue;
+}

@@ -27,6 +27,14 @@ enum BattleEventUIState {
     None = 'none'
 }
 
+enum MenuState {
+    None = 'none',
+    MainMenu = 'main=menu',
+    AttackMenu = 'attack-menu',
+    ItemMenu = 'item-menu',
+    SwitchMenu = 'switch-menu'
+}
+
 type State = {
     players: Array<Player>,
 }
@@ -111,7 +119,7 @@ let turnLog: OnNewTurnLogArgs | undefined = undefined;
 
 function Battle() {
 
-    const [menuState, setMenuState] = useState('main-menu');
+    const [menuState, setMenuState] = useState(MenuState.MainMenu);
 
     const [eventIndex, setEventIndex] = useState(0);
     const [effectIndex, setEffectIndex] = useState(0);
@@ -125,7 +133,7 @@ function Battle() {
         setEffectIndex(0);
         turnLog = args;
         setCurrentEventState(BattleEventUIState.ShowingEventMessage);
-        setMenuState('none');
+        setMenuState(MenuState.None);
     };
 
     function getAllyPokemon(): Pokemon {
@@ -251,7 +259,7 @@ function Battle() {
 
                 //must be awaiting switch action, and the person awaiting the switch action must the player.
                 if (turnLog.currentTurnState === 'awaiting-switch-action') {
-                    setMenuState('switch-menu');
+                    setMenuState(MenuState.SwitchMenu);
                 }
                 else {
                     //turn has finished, reset to main menu.
@@ -259,7 +267,7 @@ function Battle() {
                     setEffectIndex(0);
                     setEventIndex(0);
                     setCurrentEventState(BattleEventUIState.None);
-                    setMenuState('main-menu');
+                    setMenuState(MenuState.MainMenu);
                     dispatch({
                         id: 0,
                         type: 'state-change',
@@ -379,7 +387,8 @@ function Battle() {
                     {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
                     {getAllyPokemon().id !== -1 && <BattlePokemonDisplay onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
                 </div>
-                <div style={{ height: "75px",border:"5px solid black" }}>
+                <div style={{ height: "75px",border:"5px solid black", textAlign:"left" }}>
+                    {currentEventState === BattleEventUIState.None && <Message message={`What will ${getAllyPokemon().name} do?`}/>}
                     {(currentEventState === BattleEventUIState.ShowingEventMessage || currentEventState === BattleEventUIState.ShowingEffectAnimation) &&
                         <Message
                             message={turnLog!.currentTurnLog[eventIndex].message}
@@ -391,15 +400,15 @@ function Battle() {
                 </div>
                 </div>
                 <div className="bottom-screen">
-                    {menuState ==="main-menu" && <div className="pokemon-party-pokeballs">{state.players[0].pokemon.map(p=>(<span style={{width:"30px",marginRight:"10px"}}><Pokeball/></span>))}</div>}
-                    {menuState === 'main-menu' &&
+                    {menuState ===MenuState.MainMenu && <div className="pokemon-party-pokeballs">{state.players[0].pokemon.map(p=>(<span style={{width:"30px",marginRight:"10px"}}><Pokeball/></span>))}</div>}
+                    {menuState ===MenuState.MainMenu &&
                         <BattleMenu
-                            onMenuAttackClick={(evt) => { setMenuState('attack-menu') }}
-                            onMenuItemClick={(evt) => { setMenuState('item-menu') }}
-                            onMenuSwitchClick={(evt) => { setMenuState('switch-menu') }} />}
-                    {menuState === 'attack-menu' && <AttackMenuNew onCancelClick={() => setMenuState('main-menu')} onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
-                    {menuState === 'item-menu' && <ItemMenu onItemClick={(item: any) => { }} items={state.players[0].items} />}
-                    {menuState === 'switch-menu' && <PokemonSwitchScreen onCancelClick={() => setMenuState('main-menu')}  onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />
+                            onMenuAttackClick={(evt) => { setMenuState(MenuState.AttackMenu) }}
+                            onMenuItemClick={(evt) => { setMenuState(MenuState.ItemMenu) }}
+                            onMenuSwitchClick={(evt) => { setMenuState(MenuState.SwitchMenu) }} />}
+                    {menuState === MenuState.AttackMenu && <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)} onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
+                    {menuState === MenuState.ItemMenu && <ItemMenu onItemClick={(item: any) => { }} items={state.players[0].items} />}
+                    {menuState === MenuState.SwitchMenu && <PokemonSwitchScreen onCancelClick={() => setMenuState(MenuState.MainMenu)}  onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />
                     }
                 </div>
             </div>

@@ -130,17 +130,13 @@ export class Turn {
     id: Number;
     eventNum: number = 1; //next id for when we have a new event.
 
-
     currentState: State = { type: 'awaiting-initial-actions' }
-
 
     constructor(turnId: Number, players: Array<Player>) {
         this.id = turnId;
         this.players = players;
 
     }
-
-
 
     GetTurnLog(): Array<BattleEvent> {
         return this.turnLog;
