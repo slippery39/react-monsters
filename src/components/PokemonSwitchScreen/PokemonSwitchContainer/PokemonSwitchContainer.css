@@ -15,10 +15,15 @@ width: 175px;
     cursor:pointer;
 }
 
-.pokemon-switch-container:hover{
+.pokemon-switch-container.pokemon-switch-fainted{
+    cursor:initial;
+}
+
+.pokemon-switch-container:not(.pokemon-switch-fainted):hover{
     color:yellow;
     border-color:yellow;
 }
+
 
 .pokemon-switch-pokeball{
 width: 20px;

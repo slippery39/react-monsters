@@ -8,9 +8,6 @@
     box-sizing:border-box;
     cursor:pointer;
 }
-.switch-pokemon-item:hover{
-    background-color:yellow;
-}
 .switch-pokemon-item > *{
     margin-right: 3px;
     margin-left: 3px;

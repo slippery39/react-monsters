@@ -2,6 +2,7 @@ import { Turn, BattleAction, UseMoveAction, BattleEvent, SwitchPokemonAction,Tur
 import { Player } from "./interfaces";
 import _ from 'lodash';
 import { createCharizard, createVenusaur, createBlastoise } from "./premadePokemon";
+import {createItem} from "./PremadeItems";
 
 
 export interface OnNewTurnLogArgs {
@@ -12,11 +13,15 @@ export interface OnNewTurnLogArgs {
 
 class BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
+    allyPlayerId:number = 1;
     turns: Array<Turn> = [];
     turnIndex = 0;
     OnNewTurnLog: (args: OnNewTurnLogArgs) => void = (args) => { };
 
     constructor() {
+
+
+
         const player1: Player = {
             id: 1,
             name: 'Shayne',
@@ -26,7 +31,7 @@ class BattleService {
                 createBlastoise(3)
             ],
             currentPokemonId: 1,
-            items: []
+            items: [createItem("Potion",1,1),createItem("Super Potion",2,1),createItem("Hyper Potion",3,1),createItem("Max Potion",4,1)]
         }
         const player2: Player = {
             id: 2,
@@ -47,6 +52,14 @@ class BattleService {
     OnActionError(callback: () => {}) {
         callback();
     }
+
+    GetAllyPlayer(){
+        return this.GetPlayers().filter(player=>player.id === this.allyPlayerId)[0];
+    }
+    GetEnemyPlayer(){
+        return this.GetPlayers().filter(player=>player.id !== this.allyPlayerId)[0];
+    }
+
     SetInitialAction(action: BattleAction) {
         this.GetCurrentTurn().SetInitialPlayerAction(action);
 

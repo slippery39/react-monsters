@@ -1,0 +1,21 @@
+.healthbar{
+    width: 100px;
+    height: 10px;
+    display: inline-block;
+    box-sizing:border-box;
+    border: 1px solid black;
+    border-radius: 20px; 
+    background-color:grey;
+}
+
+.healthbar-hp-prepend{
+    color:red;
+    background-color:black;
+    font-size:11px;
+    padding-left:2px;
+}
+
+.healthbar-container{
+    display: inline-block;
+    background-color: black;
+}

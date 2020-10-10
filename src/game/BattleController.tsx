@@ -23,6 +23,7 @@ export enum EffectType {
     Heal = 'heal',
     Switch = 'switch',
     Poisoned = 'poisoned',
+    UsedTechnique = 'used-technique',
     StatusChange = 'status-change',
     PokemonFainted = 'pokemon-fainted',
     SwitchIn = 'switch-in',
@@ -108,6 +109,7 @@ export interface UseItemAction {
     type: 'use-item-action'
 }
 
+
 export type BattleAction = UseMoveAction | SwitchPokemonAction | UseItemAction
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'first-action' | 'second-action'
@@ -118,7 +120,6 @@ interface State {
     playerId?: number,
     nextState?: TurnState
 }
-
 
 
 export class Turn {
@@ -294,13 +295,159 @@ export class Turn {
             pokemonHasFainted: false,
             defendingPlayerId: 1
         };
-
     }
+
+    GetPlayer(playerId:number){
+        return this.players.find(player=>player.id === playerId);
+    }
+
+    GetActivePokemon(playerId:number): Pokemon| undefined{
+        const player = this.GetPlayer(playerId);
+        const activePokemon = player?.pokemon.find(poke=>poke.id === player.currentPokemonId);
+        return activePokemon;
+    }
+
     UseItem(playerId: number, itemId: number) {
-        //not implemented yet;
+        //find the player
+        //find the item in the player.
+        //figure out the effect of the item
+        //-1 the quantity of that item
+        //if the quantity is 0 then remove that item completely from the inventory.
+
+        const player = this.GetPlayer(playerId);
+
+
+        if (player === undefined){
+            console.error("could not find player for use item");
+            return;
+        }
+        const item = player?.items.find(item=>item.id === itemId);
+
+        if (item === undefined){
+            console.error("could not find item to use for use item");
+            return;
+        }
+
+        const pokemon = this.GetActivePokemon(playerId);
+
+        if (pokemon === undefined){
+            console.error("could not find pokemon to use for use item");
+            return;
+        }
+
+        //hard coded in here, we will eventually need systems for each item type
+        //and we will need to know which item is being used on what pokemon
+
+        let itemEvent : BattleEvent = {
+            id:this.eventNum++,
+            type:BattleEventType.UseItem,
+            message:`Trainer used ${item.name}`,
+            effects:[]
+        }
+
+
+        switch (item?.name){
+            case "Potion":{     
+                
+
+                const itemHealAmount = 20;
+                //how do we figure out healing
+                //its 20 - (originalStats.health - currentStats.health)
+                //Math.min(currentStats.health-originalstats.health,20)
+                
+                const healing = Math.min(pokemon.currentStats.health - pokemon.originalStats.health,itemHealAmount);
+                pokemon.currentStats.health = Math.min(pokemon.originalStats.health,pokemon.currentStats.health+itemHealAmount);
+                let itemEffect : HealEffect = {
+                    type: EffectType.Heal,
+                    targetPokemonId: pokemon.id,
+                    targetFinalHealth:pokemon.currentStats.health,
+                    totalHealing:healing,
+                    message:`${pokemon.name} healed a little!`
+                }
+                itemEvent.effects.push(itemEffect);
+                break;
+            }
+            case "Super Potion":{
+
+                const itemHealAmount = 60;
+                const healing = Math.min(pokemon.currentStats.health - pokemon.originalStats.health,itemHealAmount);
+
+                pokemon.currentStats.health = Math.min(pokemon.originalStats.health,pokemon.currentStats.health+itemHealAmount);
+                let itemEffect : HealEffect = {
+                    type: EffectType.Heal,
+                    targetPokemonId: pokemon.id,
+                    targetFinalHealth:pokemon.currentStats.health,
+                    totalHealing:healing,
+                    message:`${pokemon.name} healed decently!`
+                }
+                itemEvent.effects.push(itemEffect);
+                break;
+            }
+            case "Hyper Potion":{
+
+                const itemHealAmount = 250;
+                const healing = Math.min(pokemon.currentStats.health - pokemon.originalStats.health,itemHealAmount);
+
+
+                pokemon.currentStats.health = Math.min(pokemon.originalStats.health,pokemon.currentStats.health+itemHealAmount);
+                let itemEffect : HealEffect = {
+                    type: EffectType.Heal,
+                    targetPokemonId: pokemon.id,
+                    targetFinalHealth:pokemon.currentStats.health,
+                    totalHealing:healing,
+                    message:`${pokemon.name} healed alot!`
+                }
+                itemEvent.effects.push(itemEffect);
+                break;
+            }
+            case "Max Potion":{
+
+                const itemHealAmount = 999;
+                const healing = Math.min(pokemon.currentStats.health - pokemon.originalStats.health,itemHealAmount);
+
+                pokemon.currentStats.health = pokemon.originalStats.health;
+                let itemEffect : HealEffect = {
+                    type: EffectType.Heal,
+                    targetPokemonId: pokemon.id,
+                    targetFinalHealth:pokemon.currentStats.health,
+                    totalHealing:healing,
+                    message:`${pokemon.name} healed to max health!`
+                }
+                itemEvent.effects.push(itemEffect);
+                break;
+            }
+        }
+        item.quantity-=1;
+
+
+        //remove item from inventory.
+        if (item.quantity <=0){
+            const itemIndex = player.items.indexOf(item);
+            player.items.splice(itemIndex,1);
+        }
+
+        //todo: check if item quantity is 0 and remove it from inventory.
+
+        this.turnLog.push(itemEvent);
+
+        return {
+            pokemonHasFainted: pokemon.currentStats.health === 0,
+            defendingPlayerId: pokemon.id
+        }
     }
 
     UseTechnique(playerId: number, pokemonId: number, techniqueId: number) {
+
+        /*
+        Wrap this in our new generic event with a bunch of effects
+        'use-move'
+        'missed-move'
+        'deal-damage'
+        etc
+
+        our UI will figure out what message to display (if applicable for each effect)
+        */
+
 
         const player = this.players.find(p => p.id === playerId);
         const pokemon = player?.pokemon.find(p => p.id === pokemonId);
@@ -367,7 +514,6 @@ export class Turn {
                 return {};
             });
         }
-
         const damageEffect: DamageEffect = {
             type: EffectType.Damage,
             targetPokemonId: defendingPokemon.id,
@@ -418,24 +564,15 @@ export class Turn {
         switch (action.type) {
             case 'switch-pokemon-action': {
                 return this.SwitchPokemon(action.playerId, action.switchPokemonId);
-                break;
             }
             case 'use-item-action': {
-                return { pokemonHasFainted: false, defendingPlayerId: 1 }
-                break;
-                //this.UseItem(action.playerId,action.itemId);
+                return this.UseItem(action.playerId,action.itemId);
             }
             case 'use-move-action': {
                 return this.UseTechnique(action.playerId, action.pokemonId, action.moveId);
-                break;
             }
         }
     }
-    CheckDeaths() {
-        //check if any pokemon have died.
-
-    }
-
 };
 
 function GetEffectivenessMessage(defendingPokemon: Pokemon, move: Technique) {
@@ -451,7 +588,7 @@ function GetEffectivenessMessage(defendingPokemon: Pokemon, move: Technique) {
             break;
         }
         case 1.0: {
-            effectiveLabel = "Normal Effectiveness";
+            effectiveLabel = "";
             break;
         }
         case 2.0: {

@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { Item } from '../../game/interfaces';
 import './ItemMenu.css'
-import ItemMenuTabs, {ItemTabName} from './ItemMenuTabs/ItemMenuTabs';
+import ItemMenuTabs, { ItemTabName } from './ItemMenuTabs/ItemMenuTabs';
 import ItemContainer from "./ItemContainer/ItemContainer"
 
 
 interface Props {
     items: Array<Item>,
     onItemClick: (item: Item) => void
+    onCancelClick?: () => void
 }
 
 const ItemMenu: React.FunctionComponent<Props> = (props) => {
 
-    const [menuState,setMenuState] = useState(ItemTabName.HPandPP);
-
+    const [menuState, setMenuState] = useState(ItemTabName.HPandPP);
 
     /*
     const items = props.items.map((el, index) => {
@@ -33,29 +33,9 @@ const ItemMenu: React.FunctionComponent<Props> = (props) => {
     });
     */
 
-    const fakeItems:Array<Item> = [
-        {
-            id:1,
-            name:'Potion',
-            description:'A potion',
-            quantity:5
-        },
-        {
-            id:2,
-            name:'Antidote',
-            description:'An antidote for poison',
-            quantity:99
-        },
-        {
-            id:3,
-            name:'Paralyze Heal',
-            description:'A healing solution for paralysis',
-            quantity:33
-        }
-    ]
 
-    const items = fakeItems.map((el,index)=>
-        <ItemContainer item={el} />
+    const items = props.items.map((el, index) =>
+        <ItemContainer onClick={(item)=>props.onItemClick(item)}  key={el.id} item={el} />
     );
 
     return (
@@ -64,15 +44,15 @@ const ItemMenu: React.FunctionComponent<Props> = (props) => {
                 <div className='pokemon-party'>
 
                 </div>
-                <div className='cancel-button'></div>
+                <div className='cancel-button' onClick={() => { if (props.onCancelClick) { props.onCancelClick() } }} style={{ width: "80%" }}>Cancel </div>
             </div>
             <div className='item-menu-right'>
-                <ItemMenuTabs onTabClick={(type)=>{setMenuState(type)}} selectedTab={menuState} />
+                <ItemMenuTabs onTabClick={(type) => { setMenuState(type) }} selectedTab={menuState} />
                 <div className='item-menu-items'>
                     {items}
                 </div>
             </div>
-            
+
         </div>
     );
 }

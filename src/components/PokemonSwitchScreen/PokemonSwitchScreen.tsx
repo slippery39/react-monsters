@@ -9,6 +9,7 @@ interface Props {
     player: Player
     onPokemonClick?: (pokemon: Pokemon) => void
     onCancelClick?: () => void
+    showCancelButton?: boolean
 }
 
 const PokemonSwitchScreen: React.FunctionComponent<Props> = (props) => {
@@ -31,7 +32,7 @@ const PokemonSwitchScreen: React.FunctionComponent<Props> = (props) => {
     const items = props.player.pokemon.map((pokemon, index) =>
         (
             <PokemonSwitchContainer key={pokemon.id} pokemon={pokemon} onClick={() => {
-                if (props.onPokemonClick != undefined) {
+                if (props.onPokemonClick != undefined && pokemon.currentStats.health > 0) {
                     props.onPokemonClick(pokemon)
                 }
             }
@@ -45,7 +46,7 @@ const PokemonSwitchScreen: React.FunctionComponent<Props> = (props) => {
             <div>
                 {items}
             </div>
-            <div style={{margin:"0 auto",marginTop:"10px",marginBottom:"10px",}} onClick={() => { if (props.onCancelClick) { props.onCancelClick() } }} className="cancel-button"> Cancel </div>
+           {props.showCancelButton && <div style={{margin:"0 auto",marginTop:"10px",marginBottom:"10px",}} onClick={() => { if (props.onCancelClick) { props.onCancelClick() } }} className="cancel-button"> Cancel </div>}
         </div>
     );
 }

@@ -11,7 +11,8 @@ export enum OwnerType {
 interface Props {
     owner: OwnerType,
     pokemon: Pokemon,
-    onHealthAnimateComplete?:()=>void
+    onHealthAnimateComplete?:()=>void,
+    inputRef:(el:any)=>void
 }
 
 const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
@@ -24,7 +25,11 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
     if (props.owner===OwnerType.Ally){
         styles.left = "40px";
         styles.position ="absolute";
-        styles.top="170px";
+        styles.top="151px"; //151 places the bottom of the image right on the edge. note that if the image has padding then it will not take into account this padding (i.e. the padding will still show)
+        styles.display="flex";
+        styles.alignItems="flex-end";
+        styles.height="90px";
+        styles.justifyContent="center";
     }
     else{
         styles.left = "240px";
@@ -34,7 +39,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
 
      //basically the health bar is flipped for allies / enemies.
     const allyDisplay = (<div className="ally-display" style={{position:"relative"}}>
-        <div style={styles}>
+        <div ref={props.inputRef} style={styles}>
             <PokemonImage type="back" name={props.pokemon.name} />
         </div>
         <div className="pokemon-health-display" style={{left:"20px",position:'absolute',top:"70px"}}>
@@ -46,7 +51,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
         <div style={{position:"absolute",left:"220px",top:"20px"}}>
         <BattleHealthDisplay  onHealthAnimateComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()}}}  pokemon={props.pokemon} />
         </div>
-        <div style={styles}>
+        <div ref={props.inputRef} style={styles}>
             <PokemonImage type="front" name={props.pokemon.name} />
         </div>
     </div>)   

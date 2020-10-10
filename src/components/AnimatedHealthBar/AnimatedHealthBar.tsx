@@ -2,6 +2,9 @@ import React, { useRef, useEffect, useState } from "react";
 import { TweenMax } from "gsap";
 import './AnimatedHealthBar.css'
 
+
+
+
 interface Props {
     value: Number,
     animate?:Boolean,
@@ -20,6 +23,13 @@ const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
     const [bgColor, setBGColor] = useState<string>("green");
     let healthRef: any = useRef(null);
 
+
+
+    //i don't like how this is based on the html element instead of the actual health value.
+    //the reason why this is, is teh way this is setup, the actual number value for the prop is immediatley set 
+    //and does not actually count down.
+    //we would have to change the way this works in order to change this.
+    //see the "animated number" component to see how this might work instead.
     function getHealthColor(element: any) {
         if (element.current) {
             return 'pink';
@@ -37,16 +47,36 @@ const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
         }
     }
 
+
+
     
     useEffect(() => {
-
-        console.log('animation effect has started');
         let animTime = 2;
+
+        let healthBar = healthRef;
+
+
+        //little hack here, for some reason the healtbar color doesn't change with animtime 0. probably because onUpdate() never gets called.
+        //so we are using this work around here until i can come up with cleaner solution.
         if (props.animate === false){
             animTime = 0;
+            setHealthAnimation(TweenMax.to(healthRef, 0.01, {
+                width: props.value + '%',
+                 onUpdate: () => {
+                    setBGColor(getHealthColor(healthBar))
+                },
+                onComplete:()=>{
+                    if (props.onComplete){
+                        props.onComplete();
+                    }
+                }
+            }));
 
+            return;
+            
         }
-        let healthBar = healthRef;
+
+        
         setHealthAnimation(TweenMax.to(healthRef, animTime, {
             width: props.value + '%',
              onUpdate: () => {
@@ -54,25 +84,28 @@ const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
             },
             onComplete:()=>{
                 if (props.onComplete){
-                    console.log('has the health animation completed?')
                     props.onComplete();
-                    console.log('health animation on complete has fired');
                 }
             }
         }));
     }, [props.value]);
-    
-
 
     useEffect(() => {
         setBGColor(getHealthColor(healthRef));
     }, []);
 
+    
+
+
+ 
 
     return (
-        <div className="healthbar" style={{ width: '100px', height: '10px', display: 'inline-block', border: '1px solid black',boxSizing: 'border-box' }}>
+        <div className="healthbar-container">
+        <span className="healthbar-hp-prepend"> HP </span>
+        <div className="healthbar">
             <div ref={element => { healthRef = element }} style={{ height: '100%', backgroundColor: bgColor }} className="healthbar-fill"> </div>
         </div>        
+        </div>
     );
 }
 
