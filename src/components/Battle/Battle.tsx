@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useReducer, useRef } from 'rea
 
 import BattleService, { OnNewTurnLogArgs } from "../../game/BattleService";
 import { Player, Pokemon, ElementType, Technique, Item } from '../../game/interfaces';
-import { EffectType, SwitchPokemonAction, BattleEvent, UseItemAction } from "../../game/BattleController";
+import { EffectType, SwitchPokemonAction, UseItemAction } from "../../game/BattleController";
 import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
 import ItemMenu from "../ItemMenu/ItemMenu";
@@ -15,20 +15,13 @@ import ElementIcon from "../ElementIcon/ElementIcon";
 
 import Pokeball from "../Pokeball/Pokeball"
 
-import { TweenMax,gsap } from "gsap";
+import { gsap } from "gsap";
+import { TextPlugin } from "gsap/TextPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 
+gsap.registerPlugin(TextPlugin);
 
-/*
-For now we are using this app component to test out and fiddle with our ui components.
-*/
-enum BattleEventUIState {
-    ShowingEventMessage = 'showing-event-message',
-    ShowingEffectAnimation = 'showing-effect-animation',
-    ShowingEffectMessage = 'showing-effect-message',
-    None = 'none'
-}
 
 enum MenuState {
     None = 'none',
@@ -36,7 +29,8 @@ enum MenuState {
     AttackMenu = 'attack-menu',
     ItemMenu = 'item-menu',
     SwitchMenu = 'switch-menu',
-    FaintedSwitchMenu = 'fainted-switch-menu'
+    FaintedSwitchMenu = 'fainted-switch-menu',
+    ShowingTurn = 'showing-turn'
 }
 
 type State = {
@@ -72,10 +66,11 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
 
 
 
-//Right here, this needs to happen dynamically, not right away.
-let turnLog: OnNewTurnLogArgs | undefined = undefined;
 
 function Battle() {
+
+
+
 
     const reducer = function (state = initialState, action: Action): State {
 
@@ -105,7 +100,7 @@ function Battle() {
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (pokemonData.owner) {
                     pokemonData.owner.currentPokemonId = action.id;
-    
+
                 }
                 return newState;
             }
@@ -125,82 +120,63 @@ function Battle() {
         }
     }
 
-
-
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
-
     const [eventIndex, setEventIndex] = useState(0);
-    const [effectIndex, setEffectIndex] = useState(0);
+    const [turnLog,setTurnLog] = useState<OnNewTurnLogArgs|undefined>(undefined);
+    
 
-    const [currentEventState, setCurrentEventState] = useState(BattleEventUIState.None);
+    const [runningAnimations, setRunningAnimations] = useState(false);
+
     const [state, dispatch] = useReducer(reducer, initialState);
+    const [message,setMessage] = useState(`What will ${getAllyPokemon().name} do?`);
 
     //for animation purposes
     const allyPokemonImage = useRef(null);
     const enemyPokemonImage = useRef(null);
+    const messageBox = useRef(null);
 
+        /*
+    animation testing
+    */
 
-  
+    /*
+   useEffect( ()=>{
 
+    if (allyPokemonImage.current === undefined){
+        return;
+    }
+    const timeline = gsap.timeline();
 
-
-    useEffect(()=>{
-
-        if (allyPokemonImage.current === undefined){
-            return;
-        }
-
-        //attack animation
-        const timeLine = gsap.timeline();
-        timeLine.to(allyPokemonImage.current,{left:"60px",duration:0.3})
-        timeLine.to(allyPokemonImage.current,{left:"40px",duration:0.4})
-
-        //pokemon has been damaged animation
-        timeLine.to(enemyPokemonImage.current,{filter:"brightness(50)",duration:0.1});
-        timeLine.to(enemyPokemonImage.current,{filter:"brightness(1)",duration:0.1});
-
-        //healthbar animation.
-
-        //message animation.
-
-
-
-        //starting position for ally pokemon is "left 40px"{}
-        //we want to move it to left 60px in half a second
-        //then move it back to lwft 40px after its done
-/*    
-    TweenMax.to(allyPokemonImage.current, 2, {
-        left:"180px"
-    })
+    //pokemon fainting animation
+    timeline.to(allyPokemonImage.current,{opacity:"0",top:"+=100",duration:1});
+});
 */
-},[allyPokemonImage]
-    );
-    
-
 
 
     battleService.OnNewTurnLog = (args: OnNewTurnLogArgs) => {
-        setEventIndex(0);
-        setEffectIndex(0);
-        turnLog = args;
+        setTurnLog(args);
         console.log(args);
-        setCurrentEventState(BattleEventUIState.ShowingEventMessage);
-        setMenuState(MenuState.None);
+        setEventIndex(0);
+        setMenuState(MenuState.ShowingTurn);
     };
+
+
+    function isAllyPokemon(id: number): boolean {
+        return state.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
+    }
+
+    function getPokemonById(id: number): Pokemon {
+        const pokemon = state.players.map(player => {
+            return player.pokemon;
+        }).flat().filter(pokemon => pokemon.id === id);
+
+        return pokemon[0];
+    }
 
     function getAllyPokemon(): Pokemon {
         const pokemon = state.players[0].pokemon.find(p => {
             return p.id === state.players[0].currentPokemonId
         });
-        if (pokemon === undefined) {
-            //something is wrong;
-            /*
-            console.error('cannot find ally pokemon');
-            console.error('id was ' + state.players[0].currentPokemonId);
-            console.error(state.players[0]);
-            */
-
-        }
         const nullPokemon: Pokemon = {
             id: -1,
             name: '',
@@ -259,131 +235,261 @@ function Battle() {
     }
 
     //our simple state machine for our events log.
+    //TODO: when we are just using generic events, this will be simplified.
     const nextEvent = useCallback(() => {
-
 
         if (turnLog === undefined) {
             return;
         }
-
-        //The logic is like this:
-        //So we should have these states: 'showing-event-message, showing-effect-animation showing-effect-message'?
-        //repeat until there are no more events
-        //show the event message
-
-        //repeat until there are no more effects
-        //show the effect animation,
-        //show the effect message,
-        //
-
-        const currentEvent = turnLog?.currentTurnLog[eventIndex];
         const nextEvent = turnLog?.currentTurnLog[eventIndex + 1];
         const isNextEvent = nextEvent !== undefined;
 
-        const nextEffect = currentEvent.effects[effectIndex + 1];
-        const isNextEffect = nextEffect !== undefined;
-
-        if (currentEventState === BattleEventUIState.ShowingEventMessage) {
-            setCurrentEventState(BattleEventUIState.ShowingEffectAnimation);
-        }
-        else if (currentEventState === BattleEventUIState.ShowingEffectAnimation) {
-            setCurrentEventState(BattleEventUIState.ShowingEffectMessage);
-        }
-        else if (currentEventState === BattleEventUIState.ShowingEffectMessage) {
-            //if there are more effects show them,
-            //otherwise if there are more events show them,
-            //otherwise stop
-            if (isNextEffect) {
-                setEffectIndex(e => e + 1);
-                setCurrentEventState(BattleEventUIState.ShowingEffectAnimation);
+        if (!isNextEvent) {
+            setTurnLog(undefined);
+            //must be awaiting switch action, and the person awaiting the switch action must the player.
+            if (turnLog.currentTurnState === 'awaiting-switch-action') {
+                setMenuState(MenuState.FaintedSwitchMenu);
             }
-            else if (isNextEvent) {
-                setEffectIndex(0);
-
-                //BUG - FOR SOME REASON THIS WAS UPDATING TWICE when we switched.. causing it to jump by 2 and us having an undefined event errror. 
-                //No clue why, this fixes it by clamping it so it never goes past the max length;
-                setEventIndex(e => { return Math.min(turnLog!.currentTurnLog.length - 1, e + 1) });
-
-                setCurrentEventState(BattleEventUIState.ShowingEventMessage);
-            }
-            else { //turn is complete.
-
-                //must be awaiting switch action, and the person awaiting the switch action must the player.
-                if (turnLog.currentTurnState === 'awaiting-switch-action') {
-                    setMenuState(MenuState.FaintedSwitchMenu);
-                }
-                else {
-                    //turn has finished, reset to main menu.
-
-                    setEffectIndex(0);
-                    setEventIndex(0);
-                    setCurrentEventState(BattleEventUIState.None);
-                    setMenuState(MenuState.MainMenu);
-                    dispatch({
-                        id: 0,
-                        type: 'state-change',
-                        newState: turnLog.newState
-                    })
-                }
-
-
+            else {
+                setEventIndex(0);
+                setMenuState(MenuState.MainMenu);
+                dispatch({
+                    id: 0,
+                    type: 'state-change',
+                    newState: turnLog.newState
+                })
             }
         }
+        setEventIndex(e => { return Math.min(turnLog!.currentTurnLog.length - 1, e + 1) });
 
-
-    }, [currentEventState, eventIndex, effectIndex]);
-
+    },[turnLog,eventIndex]);
 
     useEffect(() => {
-
-        if (turnLog === undefined) {
+        if (turnLog === undefined || menuState !== MenuState.ShowingTurn) {
             return;
         }
 
-
         const currentEvent = turnLog!.currentTurnLog[eventIndex];
 
-        //skip messages that are blank.
-        if (currentEventState === BattleEventUIState.ShowingEventMessage && currentEvent.message === '') {
-            nextEvent();
+        console.log(currentEvent)
+
+        if (currentEvent === undefined) {
+            return;
         }
 
-        if (currentEventState === BattleEventUIState.ShowingEffectAnimation) {
-            const currentEvent = turnLog!.currentTurnLog[eventIndex];
-            const currentEffect = currentEvent.effects[effectIndex];
-
-
-
-            if (currentEffect.type === EffectType.Damage || currentEffect.type === EffectType.Heal) {
-                const pokemonId = currentEffect.targetPokemonId
-                const targetHealth = currentEffect.targetFinalHealth;
-                dispatch({
-                    type: 'health-change',
-                    id: pokemonId,
-                    newHealth: targetHealth
-                });
-                //the next event is controlled by a callback in the healthbar.
-            }
-            else if (currentEffect.type === EffectType.SwitchOut) {
-                //for now lets apply no animations.
-                dispatch({
-                    type: 'switch-out',
-                    id: currentEffect.switchOutPokemonId
-                })
-                nextEvent()
-            }
-            else if (currentEffect.type === EffectType.SwitchIn) {
-                dispatch({
-                    type: 'switch-in',
-                    id: currentEffect.switchInPokemonId
-                })
-                nextEvent()
-            }
-            else {
-                nextEvent();
-            }
+        if (runningAnimations === true) {
+            return;
         }
-    }, [currentEventState, eventIndex, effectIndex, nextEvent]);
+
+        //TODO:go through all the effects in the event and add them to the timeline one by one.
+        const timeLine = gsap.timeline({ paused: true, onComplete: () => { console.log('is on complete going?'); setRunningAnimations(false);  nextEvent(); } });
+        setRunningAnimations(true);
+
+        currentEvent.effects.forEach(effect => {
+            console.log(effect);
+            //animations we still need to do:
+
+            //pokemon switching out, -pokemon going to the left
+            //pokemon switching in, -pokemon coming in from the right
+            //pokemon fainting -pokemon dropping down past the battle window and maybe a quick fade
+
+
+            //oopsies problem
+            //we need the critical hit message to happen after the healthbar message
+
+            switch (effect.type) {
+
+                case EffectType.PokemonFainted:{
+                    const pokemon = getPokemonById(effect.targetPokemonId);                                        
+                    if (isAllyPokemon(pokemon.id)){
+                        timeLine.to(allyPokemonImage.current,{delay:0.5,top:"+=100",opacity:0,duration:1})
+                    }
+                    else{
+                        timeLine.to(enemyPokemonImage.current,{delay:0.5,top:"+=100",opacity:0,duration:1});
+                    }
+                    timeLine.fromTo(messageBox.current, { text: "" }, {
+                        delay: 0.5, duration: 1, text: `${pokemon.name} has fainted!`, ease: "none"
+                    });
+                    break;
+                }
+
+
+
+                case EffectType.SwitchIn:{
+
+
+                    const pokemon = getPokemonById(effect.switchInPokemonId);
+                    const owner = getPokemonAndOwner(state,pokemon.id).owner;
+                    
+                    if (isAllyPokemon(pokemon.id)){
+                        timeLine.fromTo(messageBox.current, { text: "" }, {
+                        delay: 0.5, duration: 1, text: `Go ${pokemon.name}!`, ease: "none",
+                        onComplete:()=>{
+                            dispatch({
+                                type: 'switch-in',
+                                id: pokemon.id
+                            });
+                        }
+                        });
+                    }
+                    else{
+                        timeLine.fromTo(messageBox.current, { text: "" }, {
+                            delay: 0.5, duration: 1, text: `${owner?.name} has sent out ${pokemon.name}!`, ease: "none",
+                            onComplete:()=>{
+                                dispatch({
+                                    type: 'switch-in',
+                                    id: pokemon.id
+                                });
+                            }
+                        });
+                    }
+
+                  
+                    //watch out we need to "reset" the css state
+                    
+                    //at some point the state needs to change here.
+                    if (isAllyPokemon(pokemon.id)){
+                        //left: 40px is the default place for the pokemon.
+                        timeLine.fromTo(allyPokemonImage.current,{top:"151px",left:"-150px"},{delay:0.5,left:"40px",opacity:1,duration:1,immediateRender:false})
+                    }
+                    else{
+                        timeLine.fromTo(enemyPokemonImage.current,{top:"100px",left:"350px"},{delay:0.5,left:"240px",opacity:1,duration:1,immediateRender:false})
+                    }
+                    break;
+                }   
+                case EffectType.SwitchOut:{
+
+                    
+                    const pokemon = getPokemonById(effect.switchOutPokemonId);
+                    const owner = getPokemonAndOwner(state,pokemon.id).owner;
+                    
+                    if (isAllyPokemon(pokemon.id)){
+                        timeLine.fromTo(messageBox.current, { text: "" }, {
+                        delay: 0.5, duration: 1, text: `Enough ${pokemon.name}, come back!`, ease: "none"
+                        });
+                    }
+                    else{
+                        timeLine.fromTo(messageBox.current, { text: "" }, {
+                            delay: 0.5, duration: 1, text: `${owner?.name} has returned ${pokemon.name}!`, ease: "none"
+                        });
+                    }
+                    
+                    //at some point the state needs to change here.
+                    if (isAllyPokemon(pokemon.id)){
+                        //left: 40px is the default place for the pokemon.
+                        timeLine.fromTo(allyPokemonImage.current,{left:"40px"},{delay:0.5,left:"-150px",duration:1,immediateRender:false})
+                    }
+                    else{
+                        timeLine.fromTo(enemyPokemonImage.current,{left:"350px"},{delay:0.5,left:"240px",duration:1,immediateRender:false})
+                    }
+
+                    break;
+                }
+                case EffectType.UseMove: {
+                    const pokemon = getPokemonById(effect.userId);
+                    timeLine.fromTo(messageBox.current, { text: "" }, {
+                        delay: 0.5, duration: 1, text: `${pokemon.name} used ${effect.moveName}`, ease: "none"
+                    });
+
+                    //if move didn't hit, just display a message
+                    if (!effect.didMoveHit) {
+                        timeLine.fromTo(messageBox.current, { text: "" }, {
+                            delay: 0.5, duration: 1, text: `But it missed!`, ease: "none"
+                        })
+                        return;
+                    }
+                    //This is the attack animation, a slight move to the right.
+                    if (isAllyPokemon(effect.userId)) {
+                        timeLine.to(allyPokemonImage.current, { delay: 0.5, left: "60px", duration: 0.3 })
+                        timeLine.to(allyPokemonImage.current, { left: "40px", duration: 0.3 })
+                    }
+                    else {
+                        timeLine.to(enemyPokemonImage.current, { delay: 0.5, left: "220px", duration: 0.3 })
+                        timeLine.to(enemyPokemonImage.current, { left: "240px", duration: 0.3 })
+                    }
+                    return;
+                }
+                case EffectType.Damage: {
+                    //Pokemon damaged animation
+                    if (isAllyPokemon(effect.targetPokemonId)) {
+                        timeLine.to(allyPokemonImage.current, { delay: 0.5, filter: "brightness(50)", duration: 0.1 });
+                        timeLine.to(allyPokemonImage.current, { filter: "brightness(1)", duration: 0.1 });
+                        timeLine.to(
+                            getAllyPokemon().currentStats, {
+                            health: effect.targetFinalHealth,
+                            duration: 1.5,
+                            onUpdate: (val) => {
+                                dispatch({
+                                    type: 'health-change',
+                                    id: val.id,
+                                    newHealth: val.currentStats.health
+                                });
+                            },
+                            onUpdateParams: [getAllyPokemon()]
+                        })
+                    }
+                    else {
+                        timeLine.to(enemyPokemonImage.current, { delay: 0.5, filter: "brightness(50)", duration: 0.1 });
+                        timeLine.to(enemyPokemonImage.current, { filter: "brightness(1)", duration: 0.1 });
+                        timeLine.to(
+                            getEnemyPokemon().currentStats, {
+                            health: effect.targetFinalHealth,
+                            duration: 1.5,
+                            onUpdate: (val) => {
+                                dispatch({
+                                    type: 'health-change',
+                                    id: val.id,
+                                    newHealth: val.currentStats.health
+                                });
+                            },
+                            onUpdateParams: [getEnemyPokemon()]
+                        })
+                    }
+
+                    //Healthbar animation
+                    //try this for healthbar animation.
+                    timeLine.to(
+                        getAllyPokemon().currentStats, {
+                        delay: 0.5,
+                        health: 10,
+                        duration: 1.5,
+                        onUpdate: (val) => {
+                            dispatch({
+                                type: 'health-change',
+                                id: val.id,
+                                newHealth: val.currentStats.health
+                            });
+                        },
+                        onUpdateParams: [getEnemyPokemon()]
+                    })
+
+                    if (effect.didCritical){
+                        timeLine.fromTo(messageBox.current, { text: "" }, {
+                            delay: 0.5, duration: 1, text: `It was a critical hit!`, ease: "none"
+                        })
+                    }
+                    if (effect.effectivenessAmt > 1.0){
+                        timeLine.fromTo(messageBox.current, { text: "" }, {
+                            delay: 0.5, duration: 1, text: `It was super effective!`, ease: "none"
+                        })
+                    }
+                    if (effect.effectivenessAmt < 1.0){
+                        timeLine.fromTo(messageBox.current, { text: "" }, {
+                            delay: 0.5, duration: 1, text: `It wasn't very effective!`, ease: "none"
+                        })
+                    }
+                }
+
+
+            }
+        });
+
+        //add 1 second of padding.
+        timeLine.set({},{},"+=1");
+        timeLine.play();
+        return;
+
+    }, [nextEvent,turnLog,eventIndex]);
 
     function SetBattleAction(technique: Technique) {
         battleService.SetPlayerAction({
@@ -410,9 +516,7 @@ function Battle() {
         battleService.SetPlayerAction(action);
     }
 
-
     function MakeElementIcons() {
-
         var icons = [];
         for (let element in ElementType) {
             //var myElement: ElementType = ElementType[element as keyof typeof ElementType];
@@ -421,19 +525,14 @@ function Battle() {
         }
 
         return (<div>{icons}</div>);
-
     }
 
-
-    //props.pokemon.currentStats.health / props.pokemon.originalStats.health) * 100
     return (
         <div className="App">
             <div className="debug">
                 <b>DEBUG INFO</b>
-                <div>Current Event State : {currentEventState} </div>
                 <div>Current Menu State : {menuState} </div>
                 <div> Current Event Index : {eventIndex} </div>
-                <div> Current Effect Index : {effectIndex}</div>
                 <div>Turn ID : {battleService.GetCurrentTurn().id} </div>
                 <div>Turn State : {battleService.GetCurrentTurn().currentState.type} </div>
                 {MakeElementIcons()}
@@ -442,19 +541,15 @@ function Battle() {
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
-                        {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay inputRef={el=>{enemyPokemonImage.current = el; console.log(enemyPokemonImage.current)}} onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
-                        {getAllyPokemon().id !== -1 && <BattlePokemonDisplay inputRef={el=>{allyPokemonImage.current = el; console.log(allyPokemonImage.current)}}onHealthAnimateComplete={() => nextEvent()} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
+                        {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay imageRef={el => { enemyPokemonImage.current = el;  }} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
+                        {getAllyPokemon().id !== -1 && <BattlePokemonDisplay imageRef={el => { allyPokemonImage.current = el; }} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
                     </div>
                     <div style={{ height: "75px", border: "5px solid black", textAlign: "left" }}>
-                        {currentEventState === BattleEventUIState.None && <Message message={`What will ${getAllyPokemon().name} do?`} />}
-                        {(currentEventState === BattleEventUIState.ShowingEventMessage || currentEventState === BattleEventUIState.ShowingEffectAnimation) &&
-                            <Message
-                                message={turnLog!.currentTurnLog[eventIndex].message}
-                                onFinish={function () { nextEvent() }} />}
-                        {currentEventState === BattleEventUIState.ShowingEffectMessage &&
-                            <Message
-                                message={turnLog!.currentTurnLog[eventIndex].effects[effectIndex].message}
-                                onFinish={function () { nextEvent() }} />}
+    { menuState !== MenuState.ShowingTurn && <Message animated={true} message={`What will ${getAllyPokemon().name} do?`} /> }
+                        {menuState === MenuState.ShowingTurn && <Message
+                            animated={false}
+                            message={message}
+                            messageRef={el => { messageBox.current = el;}} />}
                     </div>
                 </div>
                 <div className="bottom-screen">

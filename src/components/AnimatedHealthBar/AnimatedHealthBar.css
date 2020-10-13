@@ -9,9 +9,10 @@
 }
 
 .healthbar-hp-prepend{
-    color:red;
+    color:orange;
     background-color:black;
-    font-size:11px;
+    font-size:12px;
+    font-weight:bold;
     padding-left:2px;
 }
 

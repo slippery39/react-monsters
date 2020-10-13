@@ -12,7 +12,7 @@ interface Props {
     owner: OwnerType,
     pokemon: Pokemon,
     onHealthAnimateComplete?:()=>void,
-    inputRef:(el:any)=>void
+    imageRef:(el:any)=>void
 }
 
 const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
@@ -39,11 +39,11 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
 
      //basically the health bar is flipped for allies / enemies.
     const allyDisplay = (<div className="ally-display" style={{position:"relative"}}>
-        <div ref={props.inputRef} style={styles}>
+        <div ref={props.imageRef} style={styles}>
             <PokemonImage type="back" name={props.pokemon.name} />
         </div>
         <div className="pokemon-health-display" style={{left:"20px",position:'absolute',top:"70px"}}>
-        <BattleHealthDisplay onHealthAnimateComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()}}}  pokemon={props.pokemon} />
+        <BattleHealthDisplay  onHealthAnimateComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()}}}  pokemon={props.pokemon} />
         </div>
     </div>)
 
@@ -51,7 +51,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
         <div style={{position:"absolute",left:"220px",top:"20px"}}>
         <BattleHealthDisplay  onHealthAnimateComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()}}}  pokemon={props.pokemon} />
         </div>
-        <div ref={props.inputRef} style={styles}>
+        <div ref={props.imageRef} style={styles}>
             <PokemonImage type="front" name={props.pokemon.name} />
         </div>
     </div>)   

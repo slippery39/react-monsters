@@ -1,11 +1,17 @@
-import { Status, Pokemon, Technique, Player } from './interfaces';
+import {Pokemon, Technique, Player } from './interfaces';
 import _ from 'lodash';
 import { GetBaseDamage, GetDamageModifier, GetTypeMod } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { unwatchFile } from 'fs';
-import { type } from 'os';
+
 
 export enum BattleEventType {
+    /*
+    all events except for the generic event are being depreciated, once we convert everything over to our new event system we will
+    remove the event types completely and everything relevant will be moved to an "effect" instead.
+
+    the messages shown will be moved to the UI code instead of being set in the backend.
+    */
+    GenericEvent = 'generic-event', //all of our events will be generic from now on 
     UseMove = 'use-move',
     SwitchPokemon = 'switch-pokemon',
     CriticalHIt = 'critical-hit',
@@ -14,8 +20,8 @@ export enum BattleEventType {
     PokemonFainted = 'pokemon-fainted',
     PoisonDamage = 'poison-damage',
     SwitchIn = 'switch-in',
-    SwitchOut = 'switch-out'
-
+    SwitchOut = 'switch-out',
+    
 }
 
 export enum EffectType {
@@ -26,6 +32,7 @@ export enum EffectType {
     UsedTechnique = 'used-technique',
     StatusChange = 'status-change',
     PokemonFainted = 'pokemon-fainted',
+    UseMove = 'use-move',
     SwitchIn = 'switch-in',
     SwitchOut = 'switch-out',
     MissedMove = 'missed-move',
@@ -39,6 +46,8 @@ export interface DamageEffect {
     targetFinalHealth: number,
     targetDamageTaken: number,
     effectiveness: string,
+    didCritical:boolean,
+    effectivenessAmt:number
     message: string
 }
 
@@ -53,6 +62,15 @@ export interface SwitchInEffect {
     switchOutPokemonId: number,
     switchInPokemonId: number,
     message: string
+}
+
+export interface UseMoveEffect {
+    type: EffectType.UseMove,
+    userId: number,
+    targetId:number,
+    didMoveHit:Boolean,
+    message:string,
+    moveName:string
 }
 export interface HealEffect {
     type: EffectType.Heal,
@@ -87,7 +105,7 @@ export interface BattleEvent {
     id:number,
     type: BattleEventType,
     message: string,
-    effects: Array<SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | MissedMoveEffect | FaintedPokemonEffect>,
+    effects: Array<SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | MissedMoveEffect | FaintedPokemonEffect | UseMoveEffect>,
 }
 
 export interface UseMoveAction {
@@ -448,6 +466,8 @@ export class Turn {
         our UI will figure out what message to display (if applicable for each effect)
         */
 
+      
+
 
         const player = this.players.find(p => p.id === playerId);
         const pokemon = player?.pokemon.find(p => p.id === pokemonId);
@@ -465,75 +485,73 @@ export class Turn {
         }
         //Only Programming Damaging Moves for Now.
 
-        //Check if the move should miss:       
+
+        //Create our event container
+        //TODO: move this into its own Creator function
+        const usedTechniqueEvent : BattleEvent = {
+            id:this.eventNum++,
+            type:BattleEventType.GenericEvent,
+            effects:[],
+            message:"no message needed"
+        }
+        this.turnLog.push(usedTechniqueEvent);
+
+        const useMoveEffect : UseMoveEffect = {
+            type:EffectType.UseMove,
+            userId: pokemon.id,
+            targetId: defendingPokemon.id,
+            didMoveHit: true,
+            moveName:move.name,
+            message:'used move'
+        }
+
+        usedTechniqueEvent.effects.push(useMoveEffect);
+
+
+        //Check if the move should miss: 
         const randomAmount = Math.round(Math.random() * 100);
         if (move.chance < randomAmount) {
-            const missedMoveEffect: MissedMoveEffect = {
-                type: EffectType.MissedMove,
-                message: 'But it failed!'
-            }
-            let missedMoveLog: BattleEvent =
-            {
-                id:this.eventNum++,
-                type: BattleEventType.UseMove,
-                message: `${pokemon.name} used ${move.name}`,
-                effects: [missedMoveEffect]
-            }
-            this.turnLog.push(missedMoveLog);
+            useMoveEffect.didMoveHit = false;            
             return {
                 pokemonHasFainted: defendingPokemon.currentStats.health === 0,
                 defendingPlayerId: defendingPlayer.id
             };
         }
 
+        //calculate damage
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
-
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
 
         //apply the damage
         defendingPokemon.currentStats.health -= totalDamage;
         defendingPokemon.currentStats.health = Math.max(0, defendingPokemon.currentStats.health);
 
-
-
         //we need to figure out if it was super effective ornot
         //need to move the super effectiveness calculation function out and call it here to find out? or have the damage calculator return
         //all the variables used in an object?
+
+        //TODO: delete this when ready
         let effectiveLabel = GetEffectivenessMessage(defendingPokemon, move);
 
-
-        //TODO: Apply Secondary Effects (i.e. Fireblast Burn)
-        if (move.secondaryEffects) {
-            move.secondaryEffects.map(m => {
-                const randomAmount = Math.round(Math.random() * 100);
-                if (m.chance <= randomAmount) {
-                    //Apply effect here.                   
-
-                }
-                return {};
-            });
-        }
+        const effectiveness = GetTypeMod(defendingPokemon.elementalTypes, move.elementalType);
+       
+        //TODO: add didCritical:Boolean field.
+        //TODO: add effectivenessAmt : Number field.
         const damageEffect: DamageEffect = {
             type: EffectType.Damage,
             targetPokemonId: defendingPokemon.id,
             attackerPokemonId: pokemon.id,
             targetFinalHealth: defendingPokemon.currentStats.health,
             targetDamageTaken: totalDamage,
+            didCritical: damageModifierInfo.critStrike,
+            effectivenessAmt:effectiveness,
             effectiveness: GetTypeMod(defendingPokemon.elementalTypes, move.elementalType).toString(),
-            message: damageModifierInfo.critStrike ? "It was a critical strike! " + effectiveLabel : effectiveLabel
+            message: damageModifierInfo.critStrike ? "It was a critical strike! " + effectiveLabel : effectiveLabel //todo: remove when not needed
         }
-        const log: BattleEvent =
-        {
-            id:this.eventNum++,
-            type: BattleEventType.UseMove,
-            message: `${pokemon.name} used ${move.name}`,
-            effects: [damageEffect]
-        }
+        usedTechniqueEvent.effects.push(damageEffect);
 
-        //add a critical strike effect if it crits?
-        this.turnLog.push(log);
-
+        //POKEMON FAINT CHECK, I DON'T KNOW IF THIS SHOULD ACTUALLY HAPPEN HERE
         //check to see if pokemon has fainted.
         if (defendingPokemon.currentStats.health === 0) {
             const faintedPokemonEffect: FaintedPokemonEffect = {
@@ -541,18 +559,8 @@ export class Turn {
                 type: EffectType.PokemonFainted,
                 message: ''
             }
-
-            let pokemonFaintedLog: BattleEvent =
-            {
-                id:this.eventNum++,
-                type: BattleEventType.PokemonFainted,
-                message: defendingPokemon.name + ' has fainted!',
-                effects: [faintedPokemonEffect]
-            }
-
-            this.turnLog.push(
-                pokemonFaintedLog
-            )
+            usedTechniqueEvent.effects.push(faintedPokemonEffect);
+            //TODO: We will leave this in for now as its own event but I believe we should be moving this out of this function
         }
 
         return {
@@ -560,6 +568,7 @@ export class Turn {
             defendingPlayerId: defendingPlayer.id
         }
     }
+    
     DoAction(action: BattleAction) {
         switch (action.type) {
             case 'switch-pokemon-action': {

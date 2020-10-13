@@ -6,15 +6,24 @@ interface Props {
     message?: String,
     writeTimeMilliseconds?: number,
     finishDelayTime?: number,
-    onFinish?(): any
+    animated?:Boolean,
+    onFinish?(): any,
+    messageRef?:(el:any)=>void
 }
 
-const Message: React.FC<Props> = ({ message = '', writeTimeMilliseconds = 1000, finishDelayTime = 1000, onFinish = () => { } }: Props,) => {
+//this default parameters thing is annoying
+const Message: React.FC<Props> = ({ message = '', animated= true, writeTimeMilliseconds = 1000, finishDelayTime = 1000, onFinish = () => { },messageRef=(el)=>{} }: Props,) => {
 
     //instantly show the message if the writeTime is set to 0
-    const [currentTextIndex, setCurrentTextIndex] = useState(writeTimeMilliseconds === 0 ? message.length : 0);
+    const [currentTextIndex, setCurrentTextIndex] = useState(writeTimeMilliseconds === 0 || animated === false ? message.length : 0);
+
     const [hasFinished, setHasFinished] = useState(false);
     useEffect(function () {
+
+        if (animated === false){
+            return;
+        }
+
         const interval = setInterval(() => {
             if (currentTextIndex >= message.length) {
                 if (hasFinished === true) {
@@ -33,7 +42,7 @@ const Message: React.FC<Props> = ({ message = '', writeTimeMilliseconds = 1000, 
 
 
     return (
-        <div className='message' >
+        <div className='message' ref={messageRef}  >
             {message.substr(0, currentTextIndex)}
         </div>
     );

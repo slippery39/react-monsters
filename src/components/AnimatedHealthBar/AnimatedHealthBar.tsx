@@ -48,12 +48,26 @@ const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
     }
 
 
+    useEffect( ()=>{
+        let healthBar = healthRef;
+        if (props.animate === false){
+            setBGColor(getHealthColor(healthBar))
+            return;
+        }
+
+    },[props.value]);
+
+
 
     
     useEffect(() => {
         let animTime = 2;
 
         let healthBar = healthRef;
+
+        //we are going to control animation from the top level controller so this is now fine
+
+      
 
 
         //little hack here, for some reason the healtbar color doesn't change with animtime 0. probably because onUpdate() never gets called.
