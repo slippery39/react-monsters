@@ -1,4 +1,4 @@
-import { BattleAction } from "./BattleController";
+import { BattleAction } from "./BattleActions";
 import { Player } from "./interfaces";
 
 export function  GetActionPriority(action: BattleAction) {

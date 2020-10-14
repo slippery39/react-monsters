@@ -1,144 +1,17 @@
-import {Pokemon, Technique, Player } from './interfaces';
+import { Pokemon, Player } from './interfaces';
 import _ from 'lodash';
 import { GetBaseDamage, GetDamageModifier, GetTypeMod } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-
-
-export enum BattleEventType {
-    /*
-    all events except for the generic event are being depreciated, once we convert everything over to our new event system we will
-    remove the event types completely and everything relevant will be moved to an "effect" instead.
-
-    the messages shown will be moved to the UI code instead of being set in the backend.
-    */
-    GenericEvent = 'generic-event', //all of our events will be generic from now on 
-    UseMove = 'use-move',
-    SwitchPokemon = 'switch-pokemon',
-    CriticalHIt = 'critical-hit',
-    UseItem = 'use-item',
-    //non user initiated events can happen here too, (like poison damage, pokemon unable to move because of stun,confusion or frozen etc)
-    PokemonFainted = 'pokemon-fainted',
-    PoisonDamage = 'poison-damage',
-    SwitchIn = 'switch-in',
-    SwitchOut = 'switch-out',
-    
-}
-
-export enum EffectType {
-    Damage = 'damage',
-    Heal = 'heal',
-    Switch = 'switch',
-    Poisoned = 'poisoned',
-    UsedTechnique = 'used-technique',
-    StatusChange = 'status-change',
-    PokemonFainted = 'pokemon-fainted',
-    UseMove = 'use-move',
-    SwitchIn = 'switch-in',
-    SwitchOut = 'switch-out',
-    MissedMove = 'missed-move',
-    None = 'none' //used in cases where nothing happaned (i.e an attack missed or something)
-}
-
-export interface DamageEffect {
-    type: EffectType.Damage,
-    targetPokemonId: number,
-    attackerPokemonId: number,
-    targetFinalHealth: number,
-    targetDamageTaken: number,
-    effectiveness: string,
-    didCritical:boolean,
-    effectivenessAmt:number
-    message: string
-}
-
-export interface SwitchOutEffect {
-    type: EffectType.SwitchOut,
-    switchOutPokemonId: number,
-    switchInPokemonId: number,
-    message: string
-}
-export interface SwitchInEffect {
-    type: EffectType.SwitchIn,
-    switchOutPokemonId: number,
-    switchInPokemonId: number,
-    message: string
-}
-
-export interface UseMoveEffect {
-    type: EffectType.UseMove,
-    userId: number,
-    targetId:number,
-    didMoveHit:Boolean,
-    message:string,
-    moveName:string
-}
-export interface HealEffect {
-    type: EffectType.Heal,
-    targetPokemonId: number,
-    targetFinalHealth: number,
-    totalHealing: number,
-    message: string
-}
-export interface MissedMoveEffect {
-    type: EffectType.MissedMove,
-    message: string
-}
-export interface FaintedPokemonEffect {
-    type: EffectType.PokemonFainted,
-    targetPokemonId: number,
-    message: string
-}
-
-/*
-EffectType.Damage;
-EffectType.Heal;
-EffectType.MissedMove;
-EffectType.None;
-EffectType.Poisoned;
-EffectType.StatusChange;
-EffectType.Switch;
-EffectType.SwitchIn;
-EffectType.SwitchOut;
-*/
-
-export interface BattleEvent {
-    id:number,
-    type: BattleEventType,
-    message: string,
-    effects: Array<SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | MissedMoveEffect | FaintedPokemonEffect | UseMoveEffect>,
-}
-
-export interface UseMoveAction {
-    playerId: number,
-    pokemonId: number,
-    moveId: number
-    type: 'use-move-action'
-}
-
-export interface SwitchPokemonAction {
-    playerId: number
-    switchPokemonId: number
-    type: 'switch-pokemon-action'
-}
-
-export interface UseItemAction {
-    playerId: number
-    itemId: number
-    type: 'use-item-action'
-}
-
-
-export type BattleAction = UseMoveAction | SwitchPokemonAction | UseItemAction
+import { BattleEvent, DamageEffect, FaintedPokemonEffect, HealEffect, SwitchInEffect, SwitchOutEffect, UseItemEffect, UseMoveEffect, EffectType } from "./BattleEffects";
+import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'first-action' | 'second-action'
-
 
 interface State {
     type: TurnState,
     playerId?: number,
     nextState?: TurnState
 }
-
 
 export class Turn {
     //need to store the state here somehow.
@@ -168,12 +41,21 @@ export class Turn {
         }
         if (this.initialActions.length === 2) {
             this.currentState = {
-                type:'first-action'
+                type: 'first-action'
             }
             this.CalculateTurn();
         }
     }
 
+    CreateEvent(): BattleEvent {
+        const evt: BattleEvent = {
+            id: this.eventNum++,
+            effects: []
+        }
+        return evt;
+    }
+
+    //Special Action for when a pokemon faints in the middle of the turn.
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction) {
         if (action.playerId !== this.currentState.playerId) {
             console.error("Invalid command in SetSwitchFaintedPokemonAction, this player should not be switching a fainted pokemon");
@@ -237,31 +119,6 @@ export class Turn {
         if (this.currentState.type === 'turn-finished') {
             this.EndTurn();
         }
-
-
-
-        /*
-        if (this.turnFinished === false) {
-            const actionOrder = this.GetMoveOrder();
-            //lets run the moves.
-            //this.StartTurn();            
-            this.DoAction(actionOrder[0]);            
-            //check if the other pokemon fainted from the move.
-            //if they did, then the rest of the events should not happen.
-            const pokemonFaintedCheck1 = this.CheckForFaintedPokemon(this.players.find(p=>p.id===actionOrder[1].playerId)!);
-            if (pokemonFaintedCheck1){
-                //don't finish the turn, but request a switch.
-                this.currentState = 'awaiting-switch-action';
-                return;
-            }      
-            this.DoAction(actionOrder[1]);
-            this.CheckForFaintedPokemon(this.players.find(p=>p.id===actionOrder[0].playerId)!);
-            //this.EndTurn():
-            this.turnFinished = true;
-        }
-        */
-
-        //check state-based effects here (i.e pokemon dying etc)
     }
     SwitchPokemon(playerId: number, pokemonInId: number) {
         //not yet implemented, just for practice.
@@ -292,21 +149,18 @@ export class Turn {
             type: EffectType.SwitchOut,
             switchOutPokemonId: switchOutPokemonId!,
             switchInPokemonId: pokemonInId,
-            message: '',
         }
         const switchInEffect: SwitchInEffect = {
             type: EffectType.SwitchIn,
             switchOutPokemonId: switchOutPokemonId!,
             switchInPokemonId: pokemonInId,
-            message: `Go ${player.pokemon[0].name}!`
         }
 
-        const log: BattleEvent = {
-            id:this.eventNum++,
-            type: BattleEventType.SwitchPokemon,
-            message: 'Enough, Come back!',
-            effects: [switchOutEffect, switchInEffect]
-        }
+
+        const log: BattleEvent = this.CreateEvent();
+        log.effects = [switchOutEffect, switchInEffect];
+
+
 
         this.turnLog.push(log);
         return {
@@ -315,13 +169,13 @@ export class Turn {
         };
     }
 
-    GetPlayer(playerId:number){
-        return this.players.find(player=>player.id === playerId);
+    GetPlayer(playerId: number) {
+        return this.players.find(player => player.id === playerId);
     }
 
-    GetActivePokemon(playerId:number): Pokemon| undefined{
+    GetActivePokemon(playerId: number): Pokemon | undefined {
         const player = this.GetPlayer(playerId);
-        const activePokemon = player?.pokemon.find(poke=>poke.id === player.currentPokemonId);
+        const activePokemon = player?.pokemon.find(poke => poke.id === player.currentPokemonId);
         return activePokemon;
     }
 
@@ -335,20 +189,20 @@ export class Turn {
         const player = this.GetPlayer(playerId);
 
 
-        if (player === undefined){
+        if (player === undefined) {
             console.error("could not find player for use item");
             return;
         }
-        const item = player?.items.find(item=>item.id === itemId);
+        const item = player?.items.find(item => item.id === itemId);
 
-        if (item === undefined){
+        if (item === undefined) {
             console.error("could not find item to use for use item");
             return;
         }
 
         const pokemon = this.GetActivePokemon(playerId);
 
-        if (pokemon === undefined){
+        if (pokemon === undefined) {
             console.error("could not find pokemon to use for use item");
             return;
         }
@@ -356,95 +210,91 @@ export class Turn {
         //hard coded in here, we will eventually need systems for each item type
         //and we will need to know which item is being used on what pokemon
 
-        let itemEvent : BattleEvent = {
-            id:this.eventNum++,
-            type:BattleEventType.UseItem,
-            message:`Trainer used ${item.name}`,
-            effects:[]
+        let itemEvent: BattleEvent = this.CreateEvent();
+
+        const useItemEffect: UseItemEffect = {
+            type: EffectType.UseItem,
+            itemName: item.name,
+            itemId: item.id,
+            targetPokemonId: pokemon.id
         }
 
+        itemEvent.effects.push(useItemEffect);
 
-        switch (item?.name){
-            case "Potion":{     
-                
 
+        switch (item?.name) {
+            case "Potion": {
                 const itemHealAmount = 20;
                 //how do we figure out healing
                 //its 20 - (originalStats.health - currentStats.health)
                 //Math.min(currentStats.health-originalstats.health,20)
-                
-                const healing = Math.min(pokemon.currentStats.health - pokemon.originalStats.health,itemHealAmount);
-                pokemon.currentStats.health = Math.min(pokemon.originalStats.health,pokemon.currentStats.health+itemHealAmount);
-                let itemEffect : HealEffect = {
+
+                //so basically you cant over heal
+                //so its (pokemon.currentStats.health + itemHealAmount) - pokemon.original
+
+                const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
+                pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
+                let itemEffect: HealEffect = {
                     type: EffectType.Heal,
                     targetPokemonId: pokemon.id,
-                    targetFinalHealth:pokemon.currentStats.health,
-                    totalHealing:healing,
-                    message:`${pokemon.name} healed a little!`
+                    targetFinalHealth: pokemon.currentStats.health,
+                    totalHealing: healing,
                 }
                 itemEvent.effects.push(itemEffect);
                 break;
             }
-            case "Super Potion":{
-
+            case "Super Potion": {
                 const itemHealAmount = 60;
-                const healing = Math.min(pokemon.currentStats.health - pokemon.originalStats.health,itemHealAmount);
+                const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
 
-                pokemon.currentStats.health = Math.min(pokemon.originalStats.health,pokemon.currentStats.health+itemHealAmount);
-                let itemEffect : HealEffect = {
+                pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
+                let itemEffect: HealEffect = {
                     type: EffectType.Heal,
                     targetPokemonId: pokemon.id,
-                    targetFinalHealth:pokemon.currentStats.health,
-                    totalHealing:healing,
-                    message:`${pokemon.name} healed decently!`
+                    targetFinalHealth: pokemon.currentStats.health,
+                    totalHealing: healing,
                 }
                 itemEvent.effects.push(itemEffect);
                 break;
             }
-            case "Hyper Potion":{
-
+            case "Hyper Potion": {
                 const itemHealAmount = 250;
-                const healing = Math.min(pokemon.currentStats.health - pokemon.originalStats.health,itemHealAmount);
+                const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
 
-
-                pokemon.currentStats.health = Math.min(pokemon.originalStats.health,pokemon.currentStats.health+itemHealAmount);
-                let itemEffect : HealEffect = {
+                pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
+                let itemEffect: HealEffect = {
                     type: EffectType.Heal,
                     targetPokemonId: pokemon.id,
-                    targetFinalHealth:pokemon.currentStats.health,
-                    totalHealing:healing,
-                    message:`${pokemon.name} healed alot!`
+                    targetFinalHealth: pokemon.currentStats.health,
+                    totalHealing: healing,
                 }
                 itemEvent.effects.push(itemEffect);
                 break;
             }
-            case "Max Potion":{
+            case "Max Potion": {
 
                 const itemHealAmount = 999;
-                const healing = Math.min(pokemon.currentStats.health - pokemon.originalStats.health,itemHealAmount);
+                const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
 
                 pokemon.currentStats.health = pokemon.originalStats.health;
-                let itemEffect : HealEffect = {
+                let itemEffect: HealEffect = {
                     type: EffectType.Heal,
                     targetPokemonId: pokemon.id,
-                    targetFinalHealth:pokemon.currentStats.health,
-                    totalHealing:healing,
-                    message:`${pokemon.name} healed to max health!`
+                    targetFinalHealth: pokemon.currentStats.health,
+                    totalHealing: healing,
                 }
                 itemEvent.effects.push(itemEffect);
                 break;
             }
         }
-        item.quantity-=1;
+        item.quantity -= 1;
 
 
         //remove item from inventory.
-        if (item.quantity <=0){
+        if (item.quantity <= 0) {
             const itemIndex = player.items.indexOf(item);
-            player.items.splice(itemIndex,1);
+            player.items.splice(itemIndex, 1);
         }
-
-        //todo: check if item quantity is 0 and remove it from inventory.
 
         this.turnLog.push(itemEvent);
 
@@ -455,19 +305,6 @@ export class Turn {
     }
 
     UseTechnique(playerId: number, pokemonId: number, techniqueId: number) {
-
-        /*
-        Wrap this in our new generic event with a bunch of effects
-        'use-move'
-        'missed-move'
-        'deal-damage'
-        etc
-
-        our UI will figure out what message to display (if applicable for each effect)
-        */
-
-      
-
 
         const player = this.players.find(p => p.id === playerId);
         const pokemon = player?.pokemon.find(p => p.id === pokemonId);
@@ -483,35 +320,24 @@ export class Turn {
             //should never get to this point?
             return;
         }
-        //Only Programming Damaging Moves for Now.
 
-
-        //Create our event container
-        //TODO: move this into its own Creator function
-        const usedTechniqueEvent : BattleEvent = {
-            id:this.eventNum++,
-            type:BattleEventType.GenericEvent,
-            effects:[],
-            message:"no message needed"
-        }
+        const usedTechniqueEvent: BattleEvent = this.CreateEvent();
         this.turnLog.push(usedTechniqueEvent);
 
-        const useMoveEffect : UseMoveEffect = {
-            type:EffectType.UseMove,
+        const useMoveEffect: UseMoveEffect = {
+            type: EffectType.UseMove,
             userId: pokemon.id,
             targetId: defendingPokemon.id,
             didMoveHit: true,
-            moveName:move.name,
-            message:'used move'
+            moveName: move.name,
         }
 
         usedTechniqueEvent.effects.push(useMoveEffect);
 
-
         //Check if the move should miss: 
         const randomAmount = Math.round(Math.random() * 100);
         if (move.chance < randomAmount) {
-            useMoveEffect.didMoveHit = false;            
+            useMoveEffect.didMoveHit = false;
             return {
                 pokemonHasFainted: defendingPokemon.currentStats.health === 0,
                 defendingPlayerId: defendingPlayer.id
@@ -527,17 +353,8 @@ export class Turn {
         defendingPokemon.currentStats.health -= totalDamage;
         defendingPokemon.currentStats.health = Math.max(0, defendingPokemon.currentStats.health);
 
-        //we need to figure out if it was super effective ornot
-        //need to move the super effectiveness calculation function out and call it here to find out? or have the damage calculator return
-        //all the variables used in an object?
-
-        //TODO: delete this when ready
-        let effectiveLabel = GetEffectivenessMessage(defendingPokemon, move);
-
         const effectiveness = GetTypeMod(defendingPokemon.elementalTypes, move.elementalType);
-       
-        //TODO: add didCritical:Boolean field.
-        //TODO: add effectivenessAmt : Number field.
+
         const damageEffect: DamageEffect = {
             type: EffectType.Damage,
             targetPokemonId: defendingPokemon.id,
@@ -545,9 +362,7 @@ export class Turn {
             targetFinalHealth: defendingPokemon.currentStats.health,
             targetDamageTaken: totalDamage,
             didCritical: damageModifierInfo.critStrike,
-            effectivenessAmt:effectiveness,
-            effectiveness: GetTypeMod(defendingPokemon.elementalTypes, move.elementalType).toString(),
-            message: damageModifierInfo.critStrike ? "It was a critical strike! " + effectiveLabel : effectiveLabel //todo: remove when not needed
+            effectivenessAmt: effectiveness,
         }
         usedTechniqueEvent.effects.push(damageEffect);
 
@@ -557,10 +372,8 @@ export class Turn {
             const faintedPokemonEffect: FaintedPokemonEffect = {
                 targetPokemonId: defendingPokemon.id,
                 type: EffectType.PokemonFainted,
-                message: ''
             }
             usedTechniqueEvent.effects.push(faintedPokemonEffect);
-            //TODO: We will leave this in for now as its own event but I believe we should be moving this out of this function
         }
 
         return {
@@ -568,14 +381,14 @@ export class Turn {
             defendingPlayerId: defendingPlayer.id
         }
     }
-    
+
     DoAction(action: BattleAction) {
         switch (action.type) {
             case 'switch-pokemon-action': {
                 return this.SwitchPokemon(action.playerId, action.switchPokemonId);
             }
             case 'use-item-action': {
-                return this.UseItem(action.playerId,action.itemId);
+                return this.UseItem(action.playerId, action.itemId);
             }
             case 'use-move-action': {
                 return this.UseTechnique(action.playerId, action.pokemonId, action.moveId);
@@ -583,35 +396,3 @@ export class Turn {
         }
     }
 };
-
-function GetEffectivenessMessage(defendingPokemon: Pokemon, move: Technique) {
-    const effectiveness = GetTypeMod(defendingPokemon.elementalTypes, move.elementalType);
-    let effectiveLabel = '';
-    switch (effectiveness) {
-        case 0.25: {
-            effectiveLabel = "It wasn't very effective";
-            break;
-        }
-        case 0.5: {
-            effectiveLabel = "It wasn't very effective";
-            break;
-        }
-        case 1.0: {
-            effectiveLabel = "";
-            break;
-        }
-        case 2.0: {
-            effectiveLabel = "It was super effective";
-            break;
-        }
-        case 4.0: {
-            effectiveLabel = "It was super effective";
-            break;
-        }
-        default: {
-            break;
-        }
-
-    }
-    return effectiveLabel;
-}

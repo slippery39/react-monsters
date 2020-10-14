@@ -1,4 +1,6 @@
-import { Turn, BattleAction, UseMoveAction, BattleEvent, SwitchPokemonAction,TurnState } from "./BattleController";
+import { Turn,TurnState} from "./BattleController";
+import {BattleAction, UseMoveAction,SwitchPokemonAction} from "./BattleActions";
+import {BattleEvent} from "./BattleEffects";
 import { Player } from "./interfaces";
 import _ from 'lodash';
 import { createCharizard, createVenusaur, createBlastoise } from "./premadePokemon";
@@ -142,8 +144,6 @@ class BattleService {
             this.turnIndex++;
             this.turns.push(new Turn(this.turnIndex + 1, [player1, player2]));
         }
-
-
     }
 
     //gets the player state for the current turn?
