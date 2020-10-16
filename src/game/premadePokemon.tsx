@@ -1,8 +1,15 @@
 import {Pokemon,ElementType, TechniqueEffectType} from './interfaces';
 
-export function createCharizard(id: number) : Pokemon {
-    const charizard: Pokemon = {
-        id: id,
+interface PokemonDB {
+    [key:string] : Pokemon
+}
+
+
+export function GetPokemon(name:string){
+
+const pokemons: PokemonDB = {
+    "charizard":{
+        id: 1,
         name: 'Charizard',
         elementalTypes:[ElementType.Fire,ElementType.Flying],
         originalStats: {
@@ -51,14 +58,9 @@ export function createCharizard(id: number) : Pokemon {
                 elementalType:ElementType.Flying
             }
         ]
-    }
-
-    return charizard;
-}
-
-export function createBlastoise(id: number) {
-    const blastoise: Pokemon = {
-        id: id,
+    },
+    "blastoise": {
+        id: 2,
         name: 'Blastoise',
         elementalTypes:[ElementType.Water],
         originalStats: {
@@ -91,13 +93,9 @@ export function createBlastoise(id: number) {
                 
             }
         ]
-    }
-    return blastoise;
-}
-
-export function createVenusaur(id: number) {
-    const venusaur: Pokemon = {
-        id: id,
+    },
+    "venusaur":{
+        id: 3,
         name: 'Venusaur',
         elementalTypes:[ElementType.Grass,ElementType.Poison],
         originalStats: {
@@ -127,7 +125,9 @@ export function createVenusaur(id: number) {
             damageType:'physical',
             elementalType:ElementType.Grass
         }]
-
     }
-    return venusaur;
+}
+
+return pokemons[name];
+
 }

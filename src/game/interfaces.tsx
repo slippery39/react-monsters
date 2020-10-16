@@ -29,11 +29,17 @@ export interface Technique{
  secondaryEffects?:Array<TechniqueEffect>,
  chance: number
 }
-export interface Item {
+
+
+export interface BaseItem{
+    name:string,
+    description:string,
+    quantity:number
+}
+
+//Represents an item that is connected with game logic.
+export interface Item extends BaseItem {
     id: number,
-    name: string,
-    description: string
-    quantity: number
 }
 
 export interface Player {

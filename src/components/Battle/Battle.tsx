@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useReducer, useRef } from 'rea
 
 
 import BattleService, { OnNewTurnLogArgs } from "../../game/BattleService";
-import { Player, Pokemon, ElementType, Technique, Item } from '../../game/interfaces';
+import { Player, Pokemon, ElementType } from '../../game/interfaces';
 import { SwitchPokemonAction, UseItemAction } from "../../game/BattleActions";
 import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
@@ -462,11 +462,11 @@ function Battle() {
     }, [nextEvent, turnLog, eventIndex]);
     /* eslint-enable */
 
-    function SetBattleAction(technique: Technique) {
+    function SetBattleAction(techniqueId: number) {
         battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
-            moveId: technique.id, //todo: get technique id
+            moveId: techniqueId, //todo: get technique id
             type: 'use-move-action'
         });
     }
@@ -478,11 +478,11 @@ function Battle() {
         }
         battleService.SetPlayerAction(action);
     }
-    function SetUseItemAction(item: Item) {
+    function SetUseItemAction(itemId: number) {
         const action: UseItemAction = {
             type: 'use-item-action',
             playerId: 1,
-            itemId: item.id
+            itemId: itemId
         }
         battleService.SetPlayerAction(action);
     }
@@ -531,8 +531,8 @@ function Battle() {
                             onMenuAttackClick={(evt) => { setMenuState(MenuState.AttackMenu) }}
                             onMenuItemClick={(evt) => { setMenuState(MenuState.ItemMenu) }}
                             onMenuSwitchClick={(evt) => { setMenuState(MenuState.SwitchMenu) }} />}
-                    {menuState === MenuState.AttackMenu && <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)} onAttackClick={(tech: any) => { SetBattleAction(tech); }} techniques={getAllyPokemon().techniques} />}
-                    {menuState === MenuState.ItemMenu && <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} onItemClick={(item: any) => { console.log("item has been clicked"); SetUseItemAction(item) }} items={state.players[0].items} />}
+                    {menuState === MenuState.AttackMenu && <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)} onAttackClick={(tech: any) => { SetBattleAction(tech.id); }} techniques={getAllyPokemon().techniques} />}
+                    {menuState === MenuState.ItemMenu && <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} onItemClick={(item: any) => { console.log("item has been clicked"); SetUseItemAction(item.id) }} items={state.players[0].items} />}
                     {menuState === MenuState.SwitchMenu && <PokemonSwitchScreen showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
                     }
                     {menuState === MenuState.FaintedSwitchMenu && <PokemonSwitchScreen onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />}

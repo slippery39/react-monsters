@@ -4,6 +4,7 @@ import { GetMoveOrder } from './BattleFunctions';
 import { BattleEvent, DamageEffect, FaintedPokemonEffect, HealEffect, SwitchInEffect, SwitchOutEffect, UseItemEffect, UseMoveEffect, EffectType } from "./BattleEffects";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 
+
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'first-action' | 'second-action'
 
 interface State {
@@ -21,12 +22,51 @@ export class Turn {
     id: Number;
     eventNum: number = 1; //next id for when we have a new event.
 
+    itemIdCount = 1;
+    pokemonIdCount=1;
+
+
     currentState: State = { type: 'awaiting-initial-actions' }
 
     constructor(turnId: Number, players: Array<Player>) {
         this.id = turnId;
         this.players = players;
+   
+        this.AutoAssignPokemonIds();
+        this.AutoAssignCurrentPokemonIds();
+        this.AutoAssignItemIds();
+    }
 
+    AutoAssignPokemonIds():void{
+        this.players.flat().map(player=>{
+            return player.pokemon           
+        }).flat().forEach(pokemon=>{
+            //quick hack here to see if the id for these entities has already been set, this pattern is repeated in the auto assign item ids and auto assign current pokemon ids functions as well.
+            if (pokemon.id===-1){
+            pokemon.id = this.pokemonIdCount++
+            }
+        });
+        console.log(this.players);
+    }
+
+    AutoAssignItemIds():void{
+        this.players.flat().map(player=>{
+            return player.items            
+        }).flat().forEach(item=>{
+            if (item.id===-1){
+            item.id = this.itemIdCount++;
+            }
+        });
+        console.log(this.players);
+    }
+
+    AutoAssignCurrentPokemonIds():void{
+        if (this.players[0].currentPokemonId===-1){
+        this.players[0].currentPokemonId = this.players[0].pokemon[0].id;
+        }
+        if (this.players[1].currentPokemonId===-1){
+        this.players[1].currentPokemonId = this.players[1].pokemon[0].id;
+        }
     }
 
     GetTurnLog(): Array<BattleEvent> {
@@ -102,6 +142,8 @@ export class Turn {
         }
         if (this.currentState.type === 'second-action') {
             const actionResult = this.DoAction(actionOrder[1]);
+            console.log(actionOrder);
+            console.log(actionResult);
             if (actionResult!.pokemonHasFainted === true) {
                 this.currentState = {
                     type: 'awaiting-switch-action',

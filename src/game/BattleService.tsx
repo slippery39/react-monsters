@@ -3,11 +3,9 @@ import { BattleAction, UseMoveAction, SwitchPokemonAction, UseItemAction } from 
 import { BattleEvent } from "./BattleEffects";
 import { Player } from "./interfaces";
 import _, { shuffle } from 'lodash';
-import { createCharizard, createVenusaur, createBlastoise } from "./premadePokemon";
-import { createItem } from "./PremadeItems";
 
 import { GetActivePokemon, GetPercentageHealth} from "./HelperFunctions"
-
+import { PlayerBuilder } from "./PlayerBuilder";
 
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>,
@@ -24,34 +22,30 @@ class BattleService {
 
     constructor() {
 
-        const player1: Player = {
-            id: 1,
-            name: 'Shayne',
-            pokemon: [
-                createCharizard(1),
-                createVenusaur(2),
-                createBlastoise(3)
-            ],
-            currentPokemonId: 1,
-            items: [createItem("Potion", 1, 1), createItem("Super Potion", 2, 1), createItem("Hyper Potion", 3, 1), createItem("Max Potion", 4, 1)]
-        }
-        const player2: Player = {
-            id: 2,
-            name: 'Bob',
-            pokemon: [
-                createBlastoise(4),
-                createVenusaur(5),
-                createCharizard(6)
-            ],
-            currentPokemonId: 4,
-            items: [createItem("Potion", 5, 1), createItem("Super Potion", 6, 1), createItem("Hyper Potion", 7, 1), createItem("Max Potion", 8, 1)]
-        }
+        const player1:Player = new PlayerBuilder(1)
+            .WithName("Shayne")
+            .WithPokemon("charizard")
+            .WithPokemon("venusaur")
+            .WithPokemon("blastoise")
+            .WithItem("Potion",1)
+            .WithItem("Super Potion",2)
+            .WithItem("Hyper Potion",3)
+            .WithItem("Max Potion",1)
+            .Build();
 
-        player2.pokemon.forEach(p=>{
-            p.currentStats.speed+=0;
-        });
+            const player2: Player = new PlayerBuilder(2)
+            .WithName("Bob")
+            .WithPokemon("blastoise")
+            .WithPokemon("venusaur")
+            .WithPokemon("charizard")
+            .WithItem("Potion",1)
+            .WithItem("Super Potion",2)
+            .WithItem("Hyper Potion",3)
+            .WithItem("Max Potion",1)
+            .Build();
 
-        this.turns.push(new Turn(1, [player1, player2]))
+
+            this.turns.push(new Turn(1, [player1, player2]))
     }
     GetCurrentTurn() {
         return this.turns[this.turnIndex];
