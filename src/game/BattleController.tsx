@@ -1,5 +1,4 @@
 import { Pokemon, Player } from './interfaces';
-import _ from 'lodash';
 import { GetBaseDamage, GetDamageModifier, GetTypeMod } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import { BattleEvent, DamageEffect, FaintedPokemonEffect, HealEffect, SwitchInEffect, SwitchOutEffect, UseItemEffect, UseMoveEffect, EffectType } from "./BattleEffects";

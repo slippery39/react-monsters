@@ -17,7 +17,7 @@ const Pokeball: React.FunctionComponent<Props> = (props) => {
         className += ' pokeball-fainted'
     }
     return (
-        <img className={className} width="100%" src="/images/misc/pokeball.png"/>
+        <img className={className} alt={"pokeball"} width="100%" src="/images/misc/pokeball.png"/>
     );
 }
 

@@ -19,7 +19,7 @@ const Number : React.FunctionComponent<Props> = props => {
     if (props.animate===false){
       setTotal(Math.floor(props.number));
     }
-  },[props.number])
+  },[props.number,props.animate])
   
   useEffect(() => {
 
@@ -34,7 +34,7 @@ const Number : React.FunctionComponent<Props> = props => {
           setTotal(value.current.value)
       },      
     });
-  }, [props.number]);
+  }, [props.number,props.animate]);
   
   
   

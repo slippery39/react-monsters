@@ -121,12 +121,12 @@ function Battle() {
     }
 
 
-    var defaultDelayTime: number = 0.3;
-    var healthAnimationTime: number = 1;
-    var messageAnimationTime: number = 0.5;
-    var attackAnimationTime: number = 0.25;
-    var damageAnimationTime: number = 0.1;
-    var defaultAnimationTime: number = 0.5;
+    const defaultDelayTime: number = 0.3;
+    const healthAnimationTime: number = 1;
+    const messageAnimationTime: number = 0.5;
+    const attackAnimationTime: number = 0.25;
+    const damageAnimationTime: number = 0.1;
+    const defaultAnimationTime: number = 0.5;
 
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
     const [eventIndex, setEventIndex] = useState(0);
@@ -136,8 +136,7 @@ function Battle() {
     const [runningAnimations, setRunningAnimations] = useState(false);
 
     const [state, dispatch] = useReducer(reducer, initialState);
-    const [message, setMessage] = useState(`What will ${getAllyPokemon().name} do?`);
-
+    
     //for animation purposes
     const allyPokemonImage = useRef(null);
     const enemyPokemonImage = useRef(null);
@@ -237,6 +236,9 @@ function Battle() {
 
     }, [turnLog, eventIndex]);
 
+
+
+    /* eslint-disable */
     useEffect(() => {
         if (turnLog === undefined || menuState !== MenuState.ShowingTurn) {
             return;
@@ -458,6 +460,7 @@ function Battle() {
         return;
 
     }, [nextEvent, turnLog, eventIndex]);
+    /* eslint-enable */
 
     function SetBattleAction(technique: Technique) {
         battleService.SetPlayerAction({
@@ -509,6 +512,7 @@ function Battle() {
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
+                    <div className="enemy-party-pokeballs">{state.players[1].pokemon.map(p => (<span style={{ width: "15px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.health === 0} /></span>))}</div>
                         {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay potionRef={el => enemyPotionNode.current = el} imageRef={el => { enemyPokemonImage.current = el; }} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
                         {getAllyPokemon().id !== -1 && <BattlePokemonDisplay potionRef={el => allyPotionNode.current = el} imageRef={el => { allyPokemonImage.current = el; }} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
                     </div>
@@ -516,7 +520,7 @@ function Battle() {
                         {menuState !== MenuState.ShowingTurn && <Message animated={true} message={`What will ${getAllyPokemon().name} do?`} />}
                         {menuState === MenuState.ShowingTurn && <Message
                             animated={false}
-                            message={message}
+                            message={""}
                             messageRef={el => { messageBox.current = el; }} />}
                     </div>
                 </div>

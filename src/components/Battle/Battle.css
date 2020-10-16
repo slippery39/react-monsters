@@ -33,6 +33,7 @@
     width:100%;
     height:240px;
     overflow:hidden;
+    position:relative;
 }
 
 .bottom-screen{
@@ -44,4 +45,10 @@
     display:flex;
     padding-bottom:10px;
     padding-left:10px;
+}
+
+.enemy-party-pokeballs{
+    position:absolute;
+    display:flex;
+    left:220px;
 }

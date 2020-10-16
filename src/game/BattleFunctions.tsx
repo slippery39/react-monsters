@@ -1,3 +1,4 @@
+import { shuffle } from "lodash";
 import { BattleAction } from "./BattleActions";
 import { Player } from "./interfaces";
 
@@ -23,9 +24,9 @@ export function  GetActionPriority(action: BattleAction) {
 }
 
 export function GetSpeedPriority(players:Array<Player>,actions:Array<BattleAction>) {
-
  
-    return actions.map(act => {
+    //randomize the actions to prevent the same speed priority always going in favor of player 1
+    return shuffle(actions).map(act => {
         const player = players.find(p => p.id === act.playerId);
         if (player === undefined) {
             console.error(`cannot find player with id ${act.playerId}`)

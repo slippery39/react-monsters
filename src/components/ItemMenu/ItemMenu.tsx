@@ -40,14 +40,11 @@ const ItemMenu: React.FunctionComponent<Props> = (props) => {
 
     return (
         <div className='item-menu'>
-            <div className='item-menu-left'>
-                <div className='pokemon-party'>
-
-                </div>
+            <div className='item-menu-top'>
                 <div className='cancel-button' onClick={() => { if (props.onCancelClick) { props.onCancelClick() } }} style={{ width: "80%" }}>Cancel </div>
-            </div>
-            <div className='item-menu-right'>
                 <ItemMenuTabs onTabClick={(type) => { setMenuState(type) }} selectedTab={menuState} />
+            </div>
+            <div className='item-menu-bottom'>                
                 <div className='item-menu-items'>
                     {items}
                 </div>

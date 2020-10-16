@@ -2,13 +2,11 @@
     border:1px solid black;    
     border-collapse:collapse;
     width:100%;
+}
+
+.item-menu-top{
     display:flex;
 }
-
-.item-menu-left{
-    width:40%;
-}
-
 .item-menu-items{
     margin-top:10px;
 }

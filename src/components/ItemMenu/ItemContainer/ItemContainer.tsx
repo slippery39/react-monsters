@@ -9,8 +9,11 @@ interface Props {
 
 const ItemContainer: React.FunctionComponent<Props> = (props) => {
     return (
-        <div onClick={()=>{if (props.onClick){props.onClick(props.item)}}} className='item-container'>
+        <div className='item-container'>
+        <div className='item-name' onClick={()=>{if (props.onClick){props.onClick(props.item)}}} >
             {props.item.name} x{props.item.quantity}
+        </div>
+        <div className='item-description'>{props.item.description}</div>
         </div>
     );
 }

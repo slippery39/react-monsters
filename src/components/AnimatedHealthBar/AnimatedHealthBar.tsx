@@ -7,8 +7,8 @@ import './AnimatedHealthBar.css'
 
 interface Props {
     value: Number,
-    animate?:Boolean,
-    onComplete?: ()=>void
+    animate?: Boolean,
+    onComplete?: () => void
 }
 
 /*
@@ -18,12 +18,9 @@ it will run an animation of the health going down (i.e. it won't instantly chang
 */
 
 const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
-    //not sure if i need this at the moment, our tween works just fine
-    const [healthAnimation, setHealthAnimation] = useState<TweenMax>();
+
     const [bgColor, setBGColor] = useState<string>("green");
     let healthRef: any = useRef(null);
-
-
 
     //i don't like how this is based on the html element instead of the actual health value.
     //the reason why this is, is teh way this is setup, the actual number value for the prop is immediatley set 
@@ -48,18 +45,18 @@ const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
     }
 
 
-    useEffect( ()=>{
+    useEffect(() => {
         let healthBar = healthRef;
-        if (props.animate === false){
+        if (props.animate === false) {
             setBGColor(getHealthColor(healthBar))
             return;
         }
 
-    },[props.value]);
+    }, [props.value,props.animate]);
 
 
 
-    
+
     useEffect(() => {
         let animTime = 2;
 
@@ -67,64 +64,64 @@ const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
 
         //we are going to control animation from the top level controller so this is now fine
 
-      
+
 
 
         //little hack here, for some reason the healtbar color doesn't change with animtime 0. probably because onUpdate() never gets called.
         //so we are using this work around here until i can come up with cleaner solution.
-        if (props.animate === false){
+        if (props.animate === false) {
             animTime = 0;
-            setHealthAnimation(TweenMax.to(healthRef, 0.01, {
+            TweenMax.to(healthRef, 0.01, {
                 width: props.value + '%',
-                 onUpdate: () => {
+                onUpdate: () => {
                     setBGColor(getHealthColor(healthBar))
                 },
-                onComplete:()=>{
-                    if (props.onComplete){
+                onComplete: () => {
+                    if (props.onComplete) {
                         props.onComplete();
                     }
                 }
-            }));
+            });
 
             return;
-            
+
         }
 
-        
-        setHealthAnimation(TweenMax.to(healthRef, animTime, {
+
+        TweenMax.to(healthRef, animTime, {
             width: props.value + '%',
-             onUpdate: () => {
+            onUpdate: () => {
                 setBGColor(getHealthColor(healthBar))
             },
-            onComplete:()=>{
-                if (props.onComplete){
+            onComplete: () => {
+                if (props.onComplete) {
                     props.onComplete();
                 }
             }
-        }));
-    }, [props.value]);
+        });
+    }, [props.value,props]);
 
     useEffect(() => {
         setBGColor(getHealthColor(healthRef));
     }, []);
 
-    
 
 
- 
+
+
 
     return (
         <div className="healthbar-container">
-        <span className="healthbar-hp-prepend"> HP </span>
-        <div className="healthbar">
-            <div ref={element => { healthRef = element }} style={{ height: '100%', backgroundColor: bgColor }} className="healthbar-fill"> </div>
-        </div>        
+            <span className="healthbar-hp-prepend"> HP </span>
+            <div className="healthbar">
+                <div ref={element => { healthRef = element }} style={{ height: '100%', backgroundColor: bgColor }} className="healthbar-fill"> </div>
+            </div>
         </div>
     );
 }
 
 AnimatedHealthBar.defaultProps = {
-    animate:true
+    animate: true
 }
 
 export default AnimatedHealthBar;

@@ -18,6 +18,7 @@ const Message: React.FC<Props> = ({ message = '', animated= true, writeTimeMilli
     const [currentTextIndex, setCurrentTextIndex] = useState(writeTimeMilliseconds === 0 || animated === false ? message.length : 0);
 
     const [hasFinished, setHasFinished] = useState(false);
+    /*eslint-disable*/
     useEffect(function () {
 
         if (animated === false){
@@ -38,7 +39,8 @@ const Message: React.FC<Props> = ({ message = '', animated= true, writeTimeMilli
             }
         }, writeTimeMilliseconds / message.length);
         return () => clearInterval(interval);
-    }, [currentTextIndex, writeTimeMilliseconds, message, onFinish, finishDelayTime, hasFinished]);
+    }, [animated,currentTextIndex, writeTimeMilliseconds, message, onFinish, finishDelayTime, hasFinished]);
+    /*eslintenable*/
 
 
     return (

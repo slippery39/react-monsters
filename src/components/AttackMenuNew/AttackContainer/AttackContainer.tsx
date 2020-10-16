@@ -14,7 +14,7 @@ const AttackContainer: React.FunctionComponent<Props> = (props) => {
 
     const outerContainerClass = `outer-attack-container element-${props.technique.elementalType.toString().toLowerCase()}`
     return (
-        <div className={outerContainerClass} onClick={(ev)=>{ if (props.onAttackClick!=undefined) props.onAttackClick(props.technique); }}>
+        <div className={outerContainerClass} onClick={(ev)=>{ if (props.onAttackClick!==undefined) props.onAttackClick(props.technique); }}>
         <div className="attack-container">
             <div className="attack-name">{props.technique.name}</div>
             <div style={{display: "flex","justifyContent": "space-between","alignItems":"baseline"}}

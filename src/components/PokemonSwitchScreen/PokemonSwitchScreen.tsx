@@ -1,7 +1,5 @@
 import React from 'react'
 import { Player, Pokemon } from '../../game/interfaces';
-import PokemonImage from '../PokemonImage/PokemonImage';
-import AnimatedHealthBar from '../AnimatedHealthBar/AnimatedHealthBar';
 import './PokemonSwitchScreen.css'
 import PokemonSwitchContainer from './PokemonSwitchContainer/PokemonSwitchContainer';
 
@@ -14,25 +12,10 @@ interface Props {
 
 const PokemonSwitchScreen: React.FunctionComponent<Props> = (props) => {
 
-
-    /*
-
-
-        <div key={pokemon.id} className="switch-pokemon-item" onClick={() => { if (props.onPokemonClick) { props.onPokemonClick(pokemon); } }}>
-            <div style={{ fontSize: '10px', width: '20px' }}> {index === 0 ? "ACTIVE" : ""} </div>
-            <PokemonImage name={pokemon.name} type="small" />
-            <div>{pokemon.name}</div>
-            <div>
-                <AnimatedHealthBar value={(pokemon.currentStats.health / pokemon.originalStats.health) * 100} />
-                <div> {pokemon.currentStats.health} / {pokemon.originalStats.health}</div>
-            </div>
-        </div>)
-    */
-
     const items = props.player.pokemon.map((pokemon, index) =>
         (
             <PokemonSwitchContainer key={pokemon.id} pokemon={pokemon} onClick={() => {
-                if (props.onPokemonClick != undefined && pokemon.currentStats.health > 0) {
+                if (props.onPokemonClick !== undefined && pokemon.currentStats.health > 0) {
                     props.onPokemonClick(pokemon)
                 }
             }
