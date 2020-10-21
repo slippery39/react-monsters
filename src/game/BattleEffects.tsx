@@ -2,11 +2,13 @@
 All the different "events" that can happen as a result of a turn
 */
 
+import {Status} from "./interfaces";
+
 export interface BattleEvent {
     id: number,
     effects: Array<Effect>,
 }
-type Effect = SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | FaintedPokemonEffect | UseMoveEffect | UseItemEffect
+type Effect = (SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | FaintedPokemonEffect | UseMoveEffect | UseItemEffect | StatusChangeEffect | CannotAttackEffect)
 
 export enum EffectType {
     Damage = 'damage',
@@ -21,9 +23,22 @@ export enum EffectType {
     SwitchOut = 'switch-out',
     MissedMove = 'missed-move',
     UseItem = 'use-item',
+    CantAttack = `can't attack`,
     None = 'none' //used in cases where nothing happaned (i.e an attack missed or something)
 }
 
+export interface CannotAttackEffect{
+    type:EffectType.CantAttack,
+    targetPokemonId:number,
+    reason:Status
+}
+
+export interface StatusChangeEffect {
+    type:EffectType.StatusChange,
+    targetPokemonId:number,
+    attackerPokemonId:number
+    status: Status
+}
 
 export interface DamageEffect {
     type: EffectType.Damage,

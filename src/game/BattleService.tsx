@@ -1,7 +1,7 @@
 import { Turn, TurnState } from "./BattleController";
 import { BattleAction, UseMoveAction, SwitchPokemonAction, UseItemAction } from "./BattleActions";
 import { BattleEvent } from "./BattleEffects";
-import { Player } from "./interfaces";
+import { Player, Pokemon, Status } from "./interfaces";
 import _, { shuffle } from 'lodash';
 
 import { GetActivePokemon, GetPercentageHealth} from "./HelperFunctions"
@@ -13,12 +13,19 @@ export interface OnNewTurnLogArgs {
     currentTurnState: TurnState
 }
 
+export interface OnStateChangeArgs{
+    newState:Array<Player>    
+}
+
 class BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
     turns: Array<Turn> = [];
     turnIndex = 0;
     OnNewTurnLog: (args: OnNewTurnLogArgs) => void = (args) => { };
+    
+    //mainly for debug purposes
+    OnStateChange: (args:OnStateChangeArgs) => void = (args) => {};
 
     constructor() {
 
@@ -52,6 +59,13 @@ class BattleService {
     }
     OnActionError(callback: () => {}) {
         callback();
+    }
+
+    //For debugging purposes only
+    SetStatusOfPokemon(pokemonId:number,status:Status){
+        console.log(`TODO: setting status of pokemon to ${status}`);
+        this.GetCurrentTurn().SetStatusOfPokemon(pokemonId,status);
+        this.OnStateChange({newState:this.GetCurrentTurn().players});
     }
 
     GetAllyPlayer() {

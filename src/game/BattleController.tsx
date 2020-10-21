@@ -1,8 +1,9 @@
-import { Pokemon, Player } from './interfaces';
+import { Pokemon, Player, Technique, Status } from './interfaces';
 import { GetBaseDamage, GetDamageModifier, GetTypeMod } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { BattleEvent, DamageEffect, FaintedPokemonEffect, HealEffect, SwitchInEffect, SwitchOutEffect, UseItemEffect, UseMoveEffect, EffectType } from "./BattleEffects";
+import { BattleEvent, DamageEffect, FaintedPokemonEffect, HealEffect, SwitchInEffect, SwitchOutEffect, UseItemEffect, UseMoveEffect, EffectType, CannotAttackEffect,StatusChangeEffect } from "./BattleEffects";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
+
 
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'first-action' | 'second-action'
@@ -36,39 +37,6 @@ export class Turn {
         this.AutoAssignCurrentPokemonIds();
         this.AutoAssignItemIds();
     }
-
-    AutoAssignPokemonIds():void{
-        this.players.flat().map(player=>{
-            return player.pokemon           
-        }).flat().forEach(pokemon=>{
-            //quick hack here to see if the id for these entities has already been set, this pattern is repeated in the auto assign item ids and auto assign current pokemon ids functions as well.
-            if (pokemon.id===-1){
-            pokemon.id = this.pokemonIdCount++
-            }
-        });
-        console.log(this.players);
-    }
-
-    AutoAssignItemIds():void{
-        this.players.flat().map(player=>{
-            return player.items            
-        }).flat().forEach(item=>{
-            if (item.id===-1){
-            item.id = this.itemIdCount++;
-            }
-        });
-        console.log(this.players);
-    }
-
-    AutoAssignCurrentPokemonIds():void{
-        if (this.players[0].currentPokemonId===-1){
-        this.players[0].currentPokemonId = this.players[0].pokemon[0].id;
-        }
-        if (this.players[1].currentPokemonId===-1){
-        this.players[1].currentPokemonId = this.players[1].pokemon[0].id;
-        }
-    }
-
     GetTurnLog(): Array<BattleEvent> {
         return this.turnLog;
     }
@@ -85,15 +53,6 @@ export class Turn {
             this.CalculateTurn();
         }
     }
-
-    CreateEvent(): BattleEvent {
-        const evt: BattleEvent = {
-            id: this.eventNum++,
-            effects: []
-        }
-        return evt;
-    }
-
     //Special Action for when a pokemon faints in the middle of the turn.
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction) {
         if (action.playerId !== this.currentState.playerId) {
@@ -107,16 +66,56 @@ export class Turn {
         //continue calculating the turn
         this.CalculateTurn();
     }
+    //Any status conditions or whatever that must apply before the pokemon starts to attack.
+    private BeforeAttack(pokemon:Pokemon): void{
 
-    GetMoveOrder() {
-        return GetMoveOrder(this.players, this.initialActions);
+
+
+        const event = this.CreateEvent();
+
+        if (pokemon.status === Status.Paralyzed){
+            const paralyzeChance = 25;
+            const chanceToAttack = this.GetRandomChance();
+
+            if (chanceToAttack<=paralyzeChance){
+                const cantAttackEffect : CannotAttackEffect = {
+                    type:EffectType.CantAttack,
+                    targetPokemonId:pokemon.id,
+                    reason:Status.Paralyzed
+                }
+                event.effects.push(cantAttackEffect);
+            }
+            //chance to not move
+            //add the event to the log if applicable
+        }
+        else if (pokemon.status === Status.Sleep){            
+            //chance to not move
+            //add the event to the log if applicable
+        }
+        else if (pokemon.status === Status.Frozen){
+            //chance to not move
+            //add the event to the log if applicable
+        }
+
+    }
+    DoAction(action: BattleAction) {
+        switch (action.type) {
+            case 'switch-pokemon-action': {
+                return this.SwitchPokemon(action.playerId, action.switchPokemonId);
+            }
+            case 'use-item-action': {
+                return this.UseItem(action.playerId, action.itemId);
+            }
+            case 'use-move-action': {
+                return this.UseTechnique(action.playerId, action.pokemonId, action.moveId);
+            }
+        }
     }
 
-
-    EndTurn() {
-        this.currentState = {
-            type: 'turn-finished'
-        }
+    //For testing only
+    SetStatusOfPokemon(pokemonId:number,status:Status){
+        this.GetPokemon(pokemonId).status = status;
+        //need some way of notifying the service.
     }
 
     CalculateTurn() {
@@ -124,6 +123,7 @@ export class Turn {
         const actionOrder = this.GetMoveOrder();
         if (this.currentState.type === 'first-action') {
             const actionResult = this.DoAction(actionOrder[0]);
+            //CheckIfPokemonHasJustFainted() //checks if a pokemon has fainted due to the last action performed.
             if (actionResult!.pokemonHasFainted) {
                 //TODO: check if a player has won first before prompting to switch
                 this.currentState = {
@@ -142,8 +142,6 @@ export class Turn {
         }
         if (this.currentState.type === 'second-action') {
             const actionResult = this.DoAction(actionOrder[1]);
-            console.log(actionOrder);
-            console.log(actionResult);
             if (actionResult!.pokemonHasFainted === true) {
                 this.currentState = {
                     type: 'awaiting-switch-action',
@@ -161,6 +159,7 @@ export class Turn {
             this.EndTurn();
         }
     }
+
     SwitchPokemon(playerId: number, pokemonInId: number) {
         //not yet implemented, just for practice.
         const player = this.players.find(p => p.id === playerId);
@@ -180,6 +179,7 @@ export class Turn {
         const switchInPokemonPos = player.pokemon.indexOf(player.pokemon.find(p => p.id === pokemonInId)!);
         let pokemonArrCopy = player.pokemon.slice();
 
+        //i don't think we actualy want to switch the pokemon position anymore?
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
         pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
 
@@ -210,15 +210,7 @@ export class Turn {
         };
     }
 
-    GetPlayer(playerId: number) {
-        return this.players.find(player => player.id === playerId);
-    }
 
-    GetActivePokemon(playerId: number): Pokemon | undefined {
-        const player = this.GetPlayer(playerId);
-        const activePokemon = player?.pokemon.find(poke => poke.id === player.currentPokemonId);
-        return activePokemon;
-    }
 
     UseItem(playerId: number, itemId: number) {
         //find the player
@@ -345,21 +337,23 @@ export class Turn {
         }
     }
 
+  
     UseTechnique(playerId: number, pokemonId: number, techniqueId: number) {
 
-        const player = this.players.find(p => p.id === playerId);
-        const pokemon = player?.pokemon.find(p => p.id === pokemonId);
-        const move = pokemon?.techniques.find(t => t.id === techniqueId);
+        const player = this.GetPlayer(playerId);
+        const pokemon = this.GetPokemon(pokemonId);
+        const move = pokemon.techniques.find(t => t.id === techniqueId);
 
-        //This should work as long as it stays 1v1
+        //This should work as long as it stays 1v1;
         const defendingPlayer = this.players.find(p => p !== player);
-        const defendingPokemon = defendingPlayer?.pokemon.find(p => p.id === defendingPlayer.currentPokemonId);
+        if (defendingPlayer === undefined){
+            throw new Error(`Could not find defending player`);
+        }
 
+        const defendingPokemon = this.GetPokemon(defendingPlayer.currentPokemonId);
 
-        if (player === undefined || pokemon === undefined || move === undefined || defendingPlayer === undefined || defendingPokemon === undefined) {
-            console.error('error in using technique');
-            //should never get to this point?
-            return;
+        if (move === undefined) {
+            throw new Error(`Error in using technique, could not find technique with id ${techniqueId}`);
         }
 
         const usedTechniqueEvent: BattleEvent = this.CreateEvent();
@@ -376,7 +370,7 @@ export class Turn {
         usedTechniqueEvent.effects.push(useMoveEffect);
 
         //Check if the move should miss: 
-        const randomAmount = Math.round(Math.random() * 100);
+        const randomAmount = this.GetRandomChance();
         if (move.chance < randomAmount) {
             useMoveEffect.didMoveHit = false;
             return {
@@ -385,7 +379,75 @@ export class Turn {
             };
         }
 
-        //calculate damage
+
+        if (move.damageType === 'physical' || move.damageType === 'special'){
+            //this method was extracted by using "extract method" and needs to be refactored. we should probably just return a partial event log.
+            return this.DoDamageMove(pokemon, defendingPokemon, move, usedTechniqueEvent, defendingPlayer);
+        }
+        else{
+            //this method was extracted by using extract method and should be refactored.
+            this.DoStatusMove(move, defendingPokemon, pokemon, usedTechniqueEvent);
+        }
+  
+    }
+
+    private DoStatusMove(move: Technique, defendingPokemon: Pokemon, pokemon: Pokemon, usedTechniqueEvent: BattleEvent) {
+        if (move.name === 'Poison Powder') {
+            //defending pokemon gets poisoned
+            defendingPokemon.status = Status.Poison;
+
+            const poisonInflictedEffect: StatusChangeEffect = {
+                type: EffectType.StatusChange,
+                targetPokemonId: defendingPokemon.id,
+                attackerPokemonId: pokemon.id,
+                status: Status.Poison
+            };
+
+            usedTechniqueEvent.effects.push(poisonInflictedEffect);
+        }
+        else if (move.name === 'Sleep Powder') {
+
+            defendingPokemon.status = Status.Sleep;
+
+            //defending pokemon goes to sleep
+            const sleepInflictedEffect: StatusChangeEffect = {
+                type: EffectType.StatusChange,
+                targetPokemonId: defendingPokemon.id,
+                attackerPokemonId: pokemon.id,
+                status: Status.Sleep
+            };
+
+            usedTechniqueEvent.effects.push(sleepInflictedEffect);
+        }
+        else if (move.name === 'Thunder Wave') {
+            defendingPokemon.status = Status.Paralyzed;
+            //defending pokemon is paralyzed
+            const paralyzeInflictedEffect: StatusChangeEffect = {
+                type: EffectType.StatusChange,
+                targetPokemonId: defendingPokemon.id,
+                attackerPokemonId: pokemon.id,
+                status: Status.Paralyzed
+            };
+
+            usedTechniqueEvent.effects.push(paralyzeInflictedEffect);
+        }
+        else if (move.name === 'Will o wisp') {
+            defendingPokemon.status = Status.Burned;
+            //defending pokemon is burned
+            //defending pokemon is paralyzed
+            const burnInflictedEffect: StatusChangeEffect = {
+                type: EffectType.StatusChange,
+                targetPokemonId: defendingPokemon.id,
+                attackerPokemonId: pokemon.id,
+                status: Status.Paralyzed
+            };
+
+            usedTechniqueEvent.effects.push(burnInflictedEffect);
+        }
+    }
+
+    //refactor this
+    private DoDamageMove(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, usedTechniqueEvent: BattleEvent, defendingPlayer: Player) {
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
@@ -404,7 +466,7 @@ export class Turn {
             targetDamageTaken: totalDamage,
             didCritical: damageModifierInfo.critStrike,
             effectivenessAmt: effectiveness,
-        }
+        };
         usedTechniqueEvent.effects.push(damageEffect);
 
         //POKEMON FAINT CHECK, I DON'T KNOW IF THIS SHOULD ACTUALLY HAPPEN HERE
@@ -413,27 +475,90 @@ export class Turn {
             const faintedPokemonEffect: FaintedPokemonEffect = {
                 targetPokemonId: defendingPokemon.id,
                 type: EffectType.PokemonFainted,
-            }
+            };
             usedTechniqueEvent.effects.push(faintedPokemonEffect);
         }
 
         return {
             pokemonHasFainted: defendingPokemon.currentStats.health === 0,
             defendingPlayerId: defendingPlayer.id
+        };
+    }
+  
+    EndTurn() {
+        this.currentState = {
+            type: 'turn-finished'
         }
+    }
+  
+    /*
+        PRIVATE INTERNAL METHODS
+    */
+    private GetRandomChance(): number{
+        return Math.round(Math.random() * 100);
     }
 
-    DoAction(action: BattleAction) {
-        switch (action.type) {
-            case 'switch-pokemon-action': {
-                return this.SwitchPokemon(action.playerId, action.switchPokemonId);
-            }
-            case 'use-item-action': {
-                return this.UseItem(action.playerId, action.itemId);
-            }
-            case 'use-move-action': {
-                return this.UseTechnique(action.playerId, action.pokemonId, action.moveId);
-            }
+    private GetPlayer(playerId: number) : Player {
+        const player = this.players.find(player=>player.id === playerId);
+        if (player === undefined){
+            throw new Error(`Could not find player with id ${playerId}`);
         }
+        return player;
     }
+    private GetPokemon(pokemonId:number):Pokemon{
+        const pokemon = this.players.map(player=>{return player.pokemon}).flat().find(pokemon=>pokemon.id === pokemonId);
+        if (pokemon === undefined){
+            throw new Error(`Could not find pokemon with id ${pokemonId}`);
+        }
+        return pokemon;
+    }
+
+    private GetActivePokemon(playerId: number): Pokemon | undefined {
+        const player = this.GetPlayer(playerId);
+        const activePokemon = player?.pokemon.find(poke => poke.id === player.currentPokemonId);
+        return activePokemon;
+    }
+    
+    private AutoAssignPokemonIds():void{
+        this.players.flat().map(player=>{
+            return player.pokemon           
+        }).flat().forEach(pokemon=>{
+            //quick hack here to see if the id for these entities has already been set, this pattern is repeated in the auto assign item ids and auto assign current pokemon ids functions as well.
+            if (pokemon.id===-1){
+            pokemon.id = this.pokemonIdCount++
+            }
+        });
+        console.log(this.players);
+    }
+
+    private AutoAssignItemIds():void{
+        this.players.flat().map(player=>{
+            return player.items            
+        }).flat().forEach(item=>{
+            if (item.id===-1){
+            item.id = this.itemIdCount++;
+            }
+        });
+        console.log(this.players);
+    }
+
+    private AutoAssignCurrentPokemonIds():void{
+        if (this.players[0].currentPokemonId===-1){
+        this.players[0].currentPokemonId = this.players[0].pokemon[0].id;
+        }
+        if (this.players[1].currentPokemonId===-1){
+        this.players[1].currentPokemonId = this.players[1].pokemon[0].id;
+        }
+    }    
+    private GetMoveOrder() {
+        return GetMoveOrder(this.players, this.initialActions);
+    }
+    private CreateEvent(): BattleEvent {
+        const evt: BattleEvent = {
+            id: this.eventNum++,
+            effects: []
+        }
+        return evt;
+    }
+
 };

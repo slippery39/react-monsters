@@ -17,6 +17,8 @@ export interface TechniqueEffect{
     effectType:TechniqueEffectType,
     chance:number
 }
+
+
 export interface Technique{
  id:number,
  name:string,
@@ -24,7 +26,7 @@ export interface Technique{
  pp:number,
  currentPP:number,
  power:number,
- damageType: 'physical' | 'special',
+ damageType: 'physical' | 'special' | 'status',
  elementalType:ElementType,
  secondaryEffects?:Array<TechniqueEffect>,
  chance: number
@@ -55,7 +57,8 @@ export enum Status{
     Paralyzed ='paralyzed',
     Sleep='sleep',
     Burned = 'burned',
-    Frozen = 'frozen'
+    Frozen = 'frozen',
+    None = 'none'
 }
 
 export interface Pokemon {

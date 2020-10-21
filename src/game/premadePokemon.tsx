@@ -1,5 +1,7 @@
 import {Pokemon,ElementType, TechniqueEffectType} from './interfaces';
 
+import {GetTech} from "./PremadeTechniques";
+
 interface PokemonDB {
     [key:string] : Pokemon
 }
@@ -29,34 +31,8 @@ const pokemons: PokemonDB = {
             speed: 350
         },
         techniques: [
-            {
-                id: 1,
-                name: 'Fire blast',
-                description: 'A fiery blast',
-                pp: 10,
-                currentPP: 10,
-                power:120,
-                damageType:'special',
-                elementalType:ElementType.Fire,
-                chance:85,
-                secondaryEffects:[
-                    {
-                    effectType:TechniqueEffectType.Burn,
-                    chance:15,
-                    }
-                ]
-            },
-            {
-                id: 2,
-                name: 'Fly',
-                description: 'a flying attack',
-                pp: 15,
-                currentPP: 15,
-                power:75,
-                chance:85,
-                damageType:'physical',
-                elementalType:ElementType.Flying
-            }
+            GetTech("Fireblast"),
+            GetTech("Fly")
         ]
     },
     "blastoise": {
@@ -80,18 +56,7 @@ const pokemons: PokemonDB = {
             speed: 350
         },
         techniques: [
-            {
-                id: 3,
-                name: 'Hydro Pump',
-                pp: 10,
-                description: 'hydro pumpy action',
-                currentPP: 10,
-                power:120,
-                chance:85,
-                elementalType:ElementType.Water,
-                damageType:'special'
-                
-            }
+            GetTech("Hydro Pump")
         ]
     },
     "venusaur":{
@@ -114,17 +79,9 @@ const pokemons: PokemonDB = {
             specialDefence: 250,
             speed: 350
         },
-        techniques: [{
-            id: 5,
-            name: 'Razor Leaf',
-            description: 'some razory leaves',
-            pp: 35,
-            currentPP: 35,
-            power:55,
-            chance:95,
-            damageType:'physical',
-            elementalType:ElementType.Grass
-        }]
+        techniques: [
+            GetTech("Razor Leaf")
+        ]
     }
 }
 

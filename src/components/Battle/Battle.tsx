@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 
 
-import BattleService, { OnNewTurnLogArgs } from "../../game/BattleService";
-import { Player, Pokemon, ElementType } from '../../game/interfaces';
+import BattleService, { OnNewTurnLogArgs, OnStateChangeArgs } from "../../game/BattleService";
+import { Player, Pokemon, ElementType, Status } from '../../game/interfaces';
 import { SwitchPokemonAction, UseItemAction } from "../../game/BattleActions";
 import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
@@ -11,7 +11,9 @@ import AttackMenuNew from "../AttackMenuNew/AttackMenuNew";
 import './Battle.css';
 import Message from "../Message/Message";
 import PokemonSwitchScreen from "../PokemonSwitchScreen/PokemonSwitchScreen";
-import ElementIcon from "../ElementIcon/ElementIcon";
+
+import Debug from "../Debug/Debug";
+
 
 import Pokeball from "../Pokeball/Pokeball"
 
@@ -150,6 +152,15 @@ function Battle() {
         setEventIndex(0);
         setMenuState(MenuState.ShowingTurn);
     };
+    battleService.OnStateChange = (args: OnStateChangeArgs) =>{
+
+        console.log('on state change is occuring');
+        dispatch({
+            id:0,
+            type:'state-change',
+            newState:args.newState
+        })
+    }
 
 
     function isAllyPokemon(id: number): boolean {
@@ -487,28 +498,13 @@ function Battle() {
         battleService.SetPlayerAction(action);
     }
 
-    function MakeElementIcons() {
-        var icons = [];
-        for (let element in ElementType) {
-            //var myElement: ElementType = ElementType[element as keyof typeof ElementType];
-            var myElement: ElementType = ElementType[element as keyof typeof ElementType];
-            icons.push((<ElementIcon key={myElement} element={myElement} />))
-        }
 
-        return (<div>{icons}</div>);
-    }
+
+
 
     return (
         <div className="App">
-            <div className="debug">
-                <b>DEBUG INFO</b>
-                <div>Current Menu State : {menuState} </div>
-                <div> Current Event Index : {eventIndex} </div>
-                <div>Turn ID : {battleService.GetCurrentTurn().id} </div>
-                <div>Turn State : {battleService.GetCurrentTurn().currentState.type} </div>
-                {MakeElementIcons()}
-            </div>
-            <PokemonSwitchScreen player={state.players[0]} />
+            <Debug players={state.players} battleService={battleService}/>
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
