@@ -11,6 +11,7 @@ import AttackMenuNew from "../AttackMenuNew/AttackMenuNew";
 import './Battle.css';
 import Message from "../Message/Message";
 import PokemonSwitchScreen from "../PokemonSwitchScreen/PokemonSwitchScreen";
+import {GetActivePokemon} from "../../game/HelperFunctions";
 
 import Debug from "../Debug/Debug";
 
@@ -48,6 +49,7 @@ type Action = {
     targetId?: number | undefined,
     newHealth?: number | undefined
     newState?: Array<Player>
+    newStatus?:Status
 }
 
 let battleService = new BattleService();
@@ -56,7 +58,7 @@ const initialState: State = {
     players: battleService.GetPlayers()
 }
 
-const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player | undefined, pokemon: Pokemon | undefined } {
+const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: Pokemon} {
     let pokemon;
     const pokemonOwner = state.players.find(p => {
         return p.pokemon.find(p => {
@@ -66,6 +68,13 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
             return p.id === pokemonId;
         });
     });
+
+    if (pokemon === undefined){
+        throw new Error(`Could not find pokemon with id ${pokemonId}`);
+    }
+    if (pokemonOwner === undefined){
+        throw new Error(`Could not find owner for pokemon with id ${pokemonId}`)
+    }
     return { owner: pokemonOwner, pokemon: pokemon }
 }
 
@@ -87,15 +96,16 @@ function Battle() {
             }
             case 'health-change': {
                 const pokemonData = getPokemonAndOwner(newState, action.id);
-                if (pokemonData.owner === undefined || pokemonData.pokemon === undefined) {
-                    console.error('Could not find proper pokemon in call to getPokemonAndOwner()');
-                    return state;
-                }
                 if (action.newHealth === undefined) {
                     console.error('new health is needed for health change event');
                     return state;
                 }
                 pokemonData.pokemon.currentStats.health = action.newHealth;
+                return newState;
+            }
+            case 'status-change':{
+                const pokemonData = getPokemonAndOwner(newState,action.id);
+                pokemonData.pokemon.status = action.newStatus;
                 return newState;
             }
             case 'switch-in': {
@@ -153,8 +163,6 @@ function Battle() {
         setMenuState(MenuState.ShowingTurn);
     };
     battleService.OnStateChange = (args: OnStateChangeArgs) =>{
-
-        console.log('on state change is occuring');
         dispatch({
             id:0,
             type:'state-change',
@@ -175,47 +183,11 @@ function Battle() {
         return pokemon[0];
     }
 
-    function CreateNullPokemon(): Pokemon {
-        const nullPokemon: Pokemon = {
-            id: -1,
-            name: 'NULLMON',
-            originalStats: {
-                health: 0,
-                attack: 0,
-                specialAttack: 0,
-                defence: 0,
-                specialDefence: 0,
-                speed: 0
-            },
-            currentStats: {
-                health: 0,
-                attack: 0,
-                specialAttack: 0,
-                defence: 0,
-                specialDefence: 0,
-                speed: 0
-            },
-            techniques: [],
-            elementalTypes: [ElementType.Normal]
-        }
-        return nullPokemon;
-    }
-
     function getAllyPokemon(): Pokemon {
-        const pokemon = state.players[0].pokemon.find(p => {
-            return p.id === state.players[0].currentPokemonId
-        });
-
-        return pokemon || CreateNullPokemon();
+        return GetActivePokemon(state.players[0]);
     }
     function getEnemyPokemon(): Pokemon {
-        const pokemon = state.players[1].pokemon.find(p => {
-            return p.id === state.players[1].currentPokemonId
-        });
-        if (pokemon === undefined) {
-            console.error('cannot find ally pokemon with id ' + state.players[1].currentPokemonId);
-        }
-        return pokemon || CreateNullPokemon();
+       return GetActivePokemon(state.players[1]);
     }
 
     //our simple state machine for our events log.
@@ -257,25 +229,34 @@ function Battle() {
 
         const currentEvent: BattleEvent = turnLog!.currentTurnLog[eventIndex];
 
-        console.log(currentEvent)
-
         if (currentEvent === undefined) {
             return;
         }
 
         //so that the timeline does not get added to twice
+
+        //this could be extracted to the useBattleAnimations() hook
+        //we need to pass in the state
+        //we need to pass in the ref to the messageBox
+        //we need to pass in the ref to the pokemonNodes
+
         if (runningAnimations === true) {
             return;
         }
 
         //TODO:go through all the effects in the event and add them to the timeline one by one.
-        const timeLine = gsap.timeline({ paused: true, onComplete: () => { console.log('is on complete going?'); setRunningAnimations(false); nextEvent(); } });
+        const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); nextEvent(); } });
         setRunningAnimations(true);
 
 
+        //testing our animate message timeline function
+        const animateMessage = function(text:string,onComplete?:()=>void | undefined){
+            timeLine.fromTo(messageBox.current, { text: "" }, {
+                delay: defaultDelayTime, duration: messageAnimationTime, text: text, ease: "none",onComplete:onComplete
+            });
+        }
+
         currentEvent.effects.forEach(effect => {
-            console.log('showing effect');
-            console.log(effect);
 
             switch (effect.type) {
 
@@ -338,8 +319,30 @@ function Battle() {
                     break;
                 }
 
-                case EffectType.SwitchIn: {
+                case EffectType.StatusChange:{
+                    const pokemon = getPokemonById(effect.targetPokemonId);                    
+                    animateMessage(`${pokemon.name} is now ${effect.status.toLowerCase()}`,()=>{
+                        dispatch({
+                            type:'status-change',
+                            id:pokemon.id,
+                            newStatus:effect.status
+                        });
+                    })
+                    break;
+                }
 
+                case EffectType.CantAttack:{
+
+                    const pokemon = getPokemonById(effect.targetPokemonId);
+                    timeLine.fromTo(messageBox.current,{text:""},{
+                        delay:defaultDelayTime,
+                        duration:messageAnimationTime,
+                        text:`${pokemon.name} could not attack due to being ${effect.reason.toLowerCase()}`,
+                    })
+                    break;
+                }
+
+                case EffectType.SwitchIn: {
 
                     const pokemon = getPokemonById(effect.switchInPokemonId);
                     const owner = getPokemonAndOwner(state, pokemon.id).owner;
@@ -395,15 +398,21 @@ function Battle() {
                 }
                 case EffectType.UseMove: {
                     const pokemon = getPokemonById(effect.userId);
+                    animateMessage(`${pokemon.name} used ${effect.moveName}`);
+                    /*
                     timeLine.fromTo(messageBox.current, { text: "" }, {
                         delay: defaultDelayTime, duration: messageAnimationTime, text: `${pokemon.name} used ${effect.moveName}`, ease: "none"
                     });
+                    */
 
                     //if move didn't hit, just display a message
                     if (!effect.didMoveHit) {
+                        animateMessage('But it missed');
+                        /*
                         timeLine.fromTo(messageBox.current, { text: "" }, {
                             delay: defaultDelayTime, duration: messageAnimationTime, text: `But it missed!`, ease: "none"
                         })
+                        */
                         return;
                     }
                     //This is the attack animation, a slight move to the right.

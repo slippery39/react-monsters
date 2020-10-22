@@ -1,3 +1,5 @@
+import { ItemEffect } from "./PremadeItems";
+
 export interface Stats{
     health:number,
     attack:number,
@@ -28,15 +30,27 @@ export interface Technique{
  power:number,
  damageType: 'physical' | 'special' | 'status',
  elementalType:ElementType,
- secondaryEffects?:Array<TechniqueEffect>,
+ effects?:Array<MoveEffect>
  chance: number
 }
+
+
+
+interface InflictStatusMoveEffect{
+    type:'inflict-status',
+    status:Status
+    target:'ally' | 'enemy'
+    chance:number
+}
+
+type MoveEffect = (InflictStatusMoveEffect);
 
 
 export interface BaseItem{
     name:string,
     description:string,
     quantity:number
+    effects:Array<ItemEffect>
 }
 
 //Represents an item that is connected with game logic.

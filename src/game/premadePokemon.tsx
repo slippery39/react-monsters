@@ -32,7 +32,8 @@ const pokemons: PokemonDB = {
         },
         techniques: [
             GetTech("Fireblast"),
-            GetTech("Fly")
+            GetTech("Fly"),
+            GetTech("Thunder Wave")
         ]
     },
     "blastoise": {

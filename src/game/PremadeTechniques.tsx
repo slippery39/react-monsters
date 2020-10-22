@@ -1,4 +1,4 @@
-import {ElementType, Technique, TechniqueEffectType} from "./interfaces";
+import {ElementType, Status, Technique} from "./interfaces";
 
 
 
@@ -18,6 +18,14 @@ export function GetTech(name:string){
             currentPP:15,
             power:0,
             elementalType: ElementType.Grass,
+            effects:[
+                {
+                    type:'inflict-status',
+                    status:Status.Burned,
+                    target:'enemy',
+                    chance:100
+                }
+            ],
             chance:75
         },
         "will o wisp":{
@@ -29,6 +37,15 @@ export function GetTech(name:string){
             currentPP:15,
             power:0,
             elementalType:ElementType.Fire,
+            effects:[
+                {
+
+                    type:'inflict-status',
+                    status:Status.Burned,
+                    target:'enemy',
+                    chance:100
+                }
+            ],
             chance:85
         },
         "poison powder":{
@@ -40,6 +57,15 @@ export function GetTech(name:string){
             currentPP:15,
             power:0,
             elementalType:ElementType.Poison,
+            effects:[
+                {
+
+                    type:'inflict-status',
+                    status:Status.Poison,
+                    target:'enemy',
+                    chance:100
+                }
+            ],
             chance:75
         },
         "thunder wave":{     
@@ -51,7 +77,16 @@ export function GetTech(name:string){
             power:0,
             currentPP:20,
             elementalType:ElementType.Electric,
-            chance:90
+            effects:[
+                {
+
+                    type:'inflict-status',
+                    status:Status.Paralyzed,
+                    target:'enemy',
+                    chance:100
+                }
+            ],
+            chance:85
         },
         "fireblast":       {
             id: 1,
@@ -63,10 +98,12 @@ export function GetTech(name:string){
             damageType: 'special',
             elementalType:ElementType.Fire,
             chance:85,
-            secondaryEffects:[
+            effects:[
                 {
-                effectType:TechniqueEffectType.Burn,
-                chance:15,
+                    type:'inflict-status',
+                    status:Status.Burned,
+                    target:'enemy',
+                    chance:100
                 }
             ]
         },
@@ -92,7 +129,15 @@ export function GetTech(name:string){
                     power:120,
                     chance:85,
                     elementalType:ElementType.Water,
-                    damageType:'special'
+                    damageType:'special',
+                    effects:[
+                        {
+                            type:'inflict-status',
+                            status:Status.Frozen,
+                            target:'enemy',
+                            chance:100
+                        }
+                    ]
                     
                 
             },
@@ -106,8 +151,15 @@ export function GetTech(name:string){
                     power:55,
                     chance:95,
                     damageType:'physical',
-                    elementalType:ElementType.Grass
-                
+                    elementalType:ElementType.Grass,
+                    effects:[
+                        {
+                            type:'inflict-status',
+                            status:Status.Sleep,
+                            target:'enemy',
+                            chance:100
+                        }
+                    ]                
             }
     
     }

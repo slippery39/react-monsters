@@ -67,7 +67,7 @@ export class Turn {
         this.CalculateTurn();
     }
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
-    private BeforeAttack(pokemon:Pokemon): void{
+    private BeforeAttack(pokemon:Pokemon): {canAttack:boolean}{
 
 
 
@@ -84,6 +84,9 @@ export class Turn {
                     reason:Status.Paralyzed
                 }
                 event.effects.push(cantAttackEffect);
+                this.turnLog.push(event);
+
+                return {canAttack:false}
             }
             //chance to not move
             //add the event to the log if applicable
@@ -96,6 +99,7 @@ export class Turn {
             //chance to not move
             //add the event to the log if applicable
         }
+        return {canAttack:true}
 
     }
     DoAction(action: BattleAction) {
@@ -213,19 +217,7 @@ export class Turn {
 
 
     UseItem(playerId: number, itemId: number) {
-        //find the player
-        //find the item in the player.
-        //figure out the effect of the item
-        //-1 the quantity of that item
-        //if the quantity is 0 then remove that item completely from the inventory.
-
         const player = this.GetPlayer(playerId);
-
-
-        if (player === undefined) {
-            console.error("could not find player for use item");
-            return;
-        }
         const item = player?.items.find(item => item.id === itemId);
 
         if (item === undefined) {
@@ -239,7 +231,6 @@ export class Turn {
             console.error("could not find pokemon to use for use item");
             return;
         }
-
         //hard coded in here, we will eventually need systems for each item type
         //and we will need to know which item is being used on what pokemon
 
@@ -255,16 +246,10 @@ export class Turn {
         itemEvent.effects.push(useItemEffect);
 
 
-        switch (item?.name) {
-            case "Potion": {
-                const itemHealAmount = 20;
-                //how do we figure out healing
-                //its 20 - (originalStats.health - currentStats.health)
-                //Math.min(currentStats.health-originalstats.health,20)
+        item.effects.forEach(effect=>{
 
-                //so basically you cant over heal
-                //so its (pokemon.currentStats.health + itemHealAmount) - pokemon.original
-
+            if (effect.type === 'health-restore'){
+                const itemHealAmount = effect.amount;
                 const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
                 pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
                 let itemEffect: HealEffect = {
@@ -274,55 +259,10 @@ export class Turn {
                     totalHealing: healing,
                 }
                 itemEvent.effects.push(itemEffect);
-                break;
             }
-            case "Super Potion": {
-                const itemHealAmount = 60;
-                const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
+        });
 
-                pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
-                let itemEffect: HealEffect = {
-                    type: EffectType.Heal,
-                    targetPokemonId: pokemon.id,
-                    targetFinalHealth: pokemon.currentStats.health,
-                    totalHealing: healing,
-                }
-                itemEvent.effects.push(itemEffect);
-                break;
-            }
-            case "Hyper Potion": {
-                const itemHealAmount = 250;
-                const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
-
-                pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
-                let itemEffect: HealEffect = {
-                    type: EffectType.Heal,
-                    targetPokemonId: pokemon.id,
-                    targetFinalHealth: pokemon.currentStats.health,
-                    totalHealing: healing,
-                }
-                itemEvent.effects.push(itemEffect);
-                break;
-            }
-            case "Max Potion": {
-
-                const itemHealAmount = 999;
-                const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
-
-                pokemon.currentStats.health = pokemon.originalStats.health;
-                let itemEffect: HealEffect = {
-                    type: EffectType.Heal,
-                    targetPokemonId: pokemon.id,
-                    targetFinalHealth: pokemon.currentStats.health,
-                    totalHealing: healing,
-                }
-                itemEvent.effects.push(itemEffect);
-                break;
-            }
-        }
         item.quantity -= 1;
-
-
         //remove item from inventory.
         if (item.quantity <= 0) {
             const itemIndex = player.items.indexOf(item);
@@ -343,6 +283,16 @@ export class Turn {
         const player = this.GetPlayer(playerId);
         const pokemon = this.GetPokemon(pokemonId);
         const move = pokemon.techniques.find(t => t.id === techniqueId);
+
+
+        const beforeAttackResult = this.BeforeAttack(pokemon);
+
+        if (!beforeAttackResult.canAttack){
+            return {
+                pokemonHasFainted:false,
+                defendingPlayerId:0
+            }
+        }
 
         //This should work as long as it stays 1v1;
         const defendingPlayer = this.players.find(p => p !== player);
@@ -382,68 +332,45 @@ export class Turn {
 
         if (move.damageType === 'physical' || move.damageType === 'special'){
             //this method was extracted by using "extract method" and needs to be refactored. we should probably just return a partial event log.
-            return this.DoDamageMove(pokemon, defendingPokemon, move, usedTechniqueEvent, defendingPlayer);
+            const retValue = this.DoDamageMove(pokemon, defendingPokemon, move, usedTechniqueEvent, defendingPlayer);
+            this.ApplyMoveEffects(move,pokemon,defendingPokemon,usedTechniqueEvent);
+            return retValue;
         }
         else{
             //this method was extracted by using extract method and should be refactored.
-            this.DoStatusMove(move, defendingPokemon, pokemon, usedTechniqueEvent);
+            return this.DoStatusMove(move, defendingPokemon, pokemon, usedTechniqueEvent);
         }
   
     }
 
     private DoStatusMove(move: Technique, defendingPokemon: Pokemon, pokemon: Pokemon, usedTechniqueEvent: BattleEvent) {
-        if (move.name === 'Poison Powder') {
-            //defending pokemon gets poisoned
-            defendingPokemon.status = Status.Poison;
-
-            const poisonInflictedEffect: StatusChangeEffect = {
-                type: EffectType.StatusChange,
-                targetPokemonId: defendingPokemon.id,
-                attackerPokemonId: pokemon.id,
-                status: Status.Poison
-            };
-
-            usedTechniqueEvent.effects.push(poisonInflictedEffect);
+        this.ApplyMoveEffects(move, pokemon, defendingPokemon, usedTechniqueEvent);
+        return {
+            pokemonHasFainted: false,
+            defendingPlayerId: -1
         }
-        else if (move.name === 'Sleep Powder') {
+    }
 
-            defendingPokemon.status = Status.Sleep;
-
-            //defending pokemon goes to sleep
-            const sleepInflictedEffect: StatusChangeEffect = {
-                type: EffectType.StatusChange,
-                targetPokemonId: defendingPokemon.id,
-                attackerPokemonId: pokemon.id,
-                status: Status.Sleep
-            };
-
-            usedTechniqueEvent.effects.push(sleepInflictedEffect);
+    private ApplyMoveEffects(move: Technique, pokemon: Pokemon, defendingPokemon: Pokemon, usedTechniqueEvent: BattleEvent) {
+        if (!move.effects) {
+            return;
         }
-        else if (move.name === 'Thunder Wave') {
-            defendingPokemon.status = Status.Paralyzed;
-            //defending pokemon is paralyzed
-            const paralyzeInflictedEffect: StatusChangeEffect = {
-                type: EffectType.StatusChange,
-                targetPokemonId: defendingPokemon.id,
-                attackerPokemonId: pokemon.id,
-                status: Status.Paralyzed
-            };
-
-            usedTechniqueEvent.effects.push(paralyzeInflictedEffect);
-        }
-        else if (move.name === 'Will o wisp') {
-            defendingPokemon.status = Status.Burned;
-            //defending pokemon is burned
-            //defending pokemon is paralyzed
-            const burnInflictedEffect: StatusChangeEffect = {
-                type: EffectType.StatusChange,
-                targetPokemonId: defendingPokemon.id,
-                attackerPokemonId: pokemon.id,
-                status: Status.Paralyzed
-            };
-
-            usedTechniqueEvent.effects.push(burnInflictedEffect);
-        }
+        move.effects.forEach((effect) => {
+            const roll = this.GetRandomChance();
+            if (effect.chance >= roll) {
+                if (effect.type === 'inflict-status') {
+                    const targetPokemon = effect.target === 'ally' ? pokemon : defendingPokemon;
+                    targetPokemon.status = effect.status;
+                    const statusInflictedEffect: StatusChangeEffect = {
+                        type: EffectType.StatusChange,
+                        status: effect.status,
+                        attackerPokemonId: pokemon.id,
+                        targetPokemonId: targetPokemon.id
+                    };
+                    usedTechniqueEvent.effects.push(statusInflictedEffect);
+                }
+            }
+        });
     }
 
     //refactor this
@@ -515,7 +442,10 @@ export class Turn {
 
     private GetActivePokemon(playerId: number): Pokemon | undefined {
         const player = this.GetPlayer(playerId);
-        const activePokemon = player?.pokemon.find(poke => poke.id === player.currentPokemonId);
+        const activePokemon = player.pokemon.find(poke => poke.id === player.currentPokemonId);
+        if (activePokemon === undefined){
+            throw new Error(`Could not find active pokemon for player with id ${playerId}`)
+        }
         return activePokemon;
     }
     
