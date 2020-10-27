@@ -1,5 +1,6 @@
 .technique-menu{
-    display:flex;
+    display:grid;
+    grid-template-columns: 165px 165px;
     justify-content: space-evenly;
     margin-top:10px;
 }

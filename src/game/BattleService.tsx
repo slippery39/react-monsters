@@ -10,7 +10,8 @@ import { PlayerBuilder } from "./PlayerBuilder";
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>,
     newState: Array<Player>,
-    currentTurnState: TurnState
+    currentTurnState: TurnState,
+    waitingForSwitchIds:Array<number>
 }
 
 export interface OnStateChangeArgs{
@@ -61,10 +62,9 @@ class BattleService {
         callback();
     }
 
-    //For debugging purposes only
+    //For testing purposes only
     SetStatusOfPokemon(pokemonId:number,status:Status){
-        console.log(`TODO: setting status of pokemon to ${status}`);
-        this.GetCurrentTurn().SetStatusOfPokemon(pokemonId,status);
+         this.GetCurrentTurn().SetStatusOfPokemon(pokemonId,status);
         this.OnStateChange({newState:this.GetCurrentTurn().players});
     }
 
@@ -77,6 +77,8 @@ class BattleService {
 
 
     SetInitialAction(action: BattleAction) {
+
+        console.log('are we setting an action in the battle service?');
         this.GetCurrentTurn().SetInitialPlayerAction(action);
 
         //Quick here so we can set the AI action for player2.
@@ -119,7 +121,10 @@ class BattleService {
         }
 
         //Allowing the AI player to switch his fainted pokemon to something else.
-        if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action' && this.GetCurrentTurn().currentState.playerId === player2.id) {
+        if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action' && this.GetCurrentTurn().faintedPokemonPlayers.filter(p=>p.id === player2.id).length>0) {
+
+            console.log('who is fainting here?');
+
             const unfaintedPokemon = player2.pokemon.filter(poke => poke.currentStats.health !== 0)[0];
             const switchPokemonAction: SwitchPokemonAction = {
                 playerId: player2.id,
@@ -135,7 +140,8 @@ class BattleService {
                 {
                     currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
                     newState: this.GetPlayers(),
-                    currentTurnState: this.GetCurrentTurn().currentState.type //after the ui goes through the turn log, it should use this get prompt type to determine what screen we should show.
+                    currentTurnState: this.GetCurrentTurn().currentState.type,
+                    waitingForSwitchIds:this.GetCurrentTurn().faintedPokemonPlayers.map(p=>p.id) //after the ui goes through the turn log, it should use this get prompt type to determine what screen we should show.
                 }
             );
         }
@@ -158,7 +164,8 @@ class BattleService {
                 {
                     currentTurnLog: newTurnLog,//need to only gather new turn logs, not the whole thing. //possibly an id system?
                     newState: this.GetPlayers(),
-                    currentTurnState: this.GetCurrentTurn().currentState.type //after the ui goes through the turn log, it should use this get prompt type to determine what screen we should show.
+                    currentTurnState: this.GetCurrentTurn().currentState.type,
+                    waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p=>p.id) //after the ui goes through the turn log, it should use this get prompt type to determine what screen we should show.
                 }
             );
         }
@@ -168,6 +175,9 @@ class BattleService {
         //Quick here so we can set the AI action for player2.
         const player1 = this.GetCurrentTurn().players[0];
         const player2 = this.GetCurrentTurn().players[1];
+
+        console.log('are we setting a player action???');
+        console.log(this.GetCurrentTurn().currentState.type);
 
         if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {
             this.SetInitialAction(action);

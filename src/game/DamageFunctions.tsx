@@ -1,4 +1,4 @@
-import { Pokemon, ElementType, Technique } from "./interfaces";
+import { Pokemon, ElementType, Technique, Status } from "./interfaces";
 
 //Calculates the base damage before any modifiers (type effectiveness, crit etc.)
 export function GetBaseDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique) {
@@ -100,13 +100,17 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
     const effectiveness = GetEffectiveness();
     const stabBonus = GetSTAB();
 
+    //Stat decrease for the burn status.
+    const burnDecrease = attackingPokemon.status === Status.Burned && techUsed.damageType === 'physical' ? 0.5 : 1
+   
+
     const modInfoObj = {
         critStrike: critStrike,
         critAmt:critAmt,
         stabBonus: stabBonus,
         typeEffectivenessBonus: effectiveness,
         randomDamageMod:randomAmt,
-        modValue: critAmt * stabBonus * randomAmt * effectiveness
+        modValue: critAmt * stabBonus * randomAmt * effectiveness * burnDecrease
     }
 
     return modInfoObj;

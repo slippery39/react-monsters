@@ -12,9 +12,6 @@
 .attack-container:hover{
     color:blue;
 }
-.outer-attack-container{
-    width:45%;
-}
 
 .attack-name{
     font-weight: bold;

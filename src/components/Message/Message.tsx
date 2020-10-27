@@ -18,6 +18,10 @@ const Message: React.FC<Props> = ({ message = '', animated= true, writeTimeMilli
     const [currentTextIndex, setCurrentTextIndex] = useState(writeTimeMilliseconds === 0 || animated === false ? message.length : 0);
 
     const [hasFinished, setHasFinished] = useState(false);
+
+    useEffect(()=>{
+        setCurrentTextIndex(0)
+    },[message]);
     /*eslint-disable*/
     useEffect(function () {
 

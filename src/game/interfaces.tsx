@@ -82,7 +82,8 @@ export interface Pokemon {
     currentStats: Stats,  
     techniques:Array<Technique>  ,
     status?: Status,
-    elementalTypes:Array<ElementType>
+    elementalTypes:Array<ElementType>,
+    canAttackThisTurn?:boolean
 }
 
 export enum ElementType{

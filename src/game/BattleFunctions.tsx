@@ -1,6 +1,7 @@
 import { shuffle } from "lodash";
 import { BattleAction } from "./BattleActions";
-import { Player } from "./interfaces";
+import { GetActivePokemon } from "./HelperFunctions";
+import { Player, Status } from "./interfaces";
 
 export function  GetActionPriority(action: BattleAction) {
 
@@ -35,20 +36,10 @@ export function GetSpeedPriority(players:Array<Player>,actions:Array<BattleActio
                 speed: 0
             }
         }
-        const activePokemon = player.pokemon.find(p => p.id === player.currentPokemonId);
-
-   
-
-        if (activePokemon === undefined) {
-            console.log(`cannot find pokemon with id ${player.currentPokemonId}`)
-            return {
-                action: act,
-                speed: 0
-            }
-        }
+        const activePokemon =  GetActivePokemon(player);
         return {
             action: act,
-            speed: activePokemon.currentStats.speed
+            speed:  activePokemon.status === Status.Paralyzed ? activePokemon.currentStats.speed /2 : activePokemon.currentStats.speed
         }
     }).sort((a, b) => { return b.speed - a.speed});
 }

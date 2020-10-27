@@ -1,4 +1,4 @@
-import {Pokemon,ElementType, TechniqueEffectType} from './interfaces';
+import {Pokemon,ElementType} from './interfaces';
 
 import {GetTech} from "./PremadeTechniques";
 
@@ -42,17 +42,17 @@ const pokemons: PokemonDB = {
         elementalTypes:[ElementType.Water],
         originalStats: {
             health: 300,
-            attack: 250,
+            attack: 200,
             defence: 200,
-            specialAttack: 250,
+            specialAttack: 200,
             specialDefence: 250,
             speed: 350
         },
         currentStats: {
             health: 300,
-            attack: 250,
+            attack: 200,
             defence: 200,
-            specialAttack: 250,
+            specialAttack: 200,
             specialDefence: 250,
             speed: 350
         },

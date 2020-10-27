@@ -3,6 +3,9 @@ import { Player, Pokemon } from '../../game/interfaces';
 import './PokemonSwitchScreen.css'
 import PokemonSwitchContainer from './PokemonSwitchContainer/PokemonSwitchContainer';
 
+
+
+
 interface Props {
     player: Player
     onPokemonClick?: (pokemon: Pokemon) => void
