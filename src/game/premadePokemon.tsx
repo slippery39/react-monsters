@@ -66,9 +66,9 @@ const pokemons: PokemonDB = {
         elementalTypes:[ElementType.Grass,ElementType.Poison],
         originalStats: {
             health: 300,
-            attack: 250,
+            attack: 500,
             defence: 200,
-            specialAttack: 250,
+            specialAttack: 500,
             specialDefence: 250,
             speed: 350
         },

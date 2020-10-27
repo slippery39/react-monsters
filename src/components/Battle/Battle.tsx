@@ -36,7 +36,8 @@ enum MenuState {
     ItemMenu = 'item-menu',
     SwitchMenu = 'switch-menu',
     FaintedSwitchMenu = 'fainted-switch-menu',
-    ShowingTurn = 'showing-turn'
+    ShowingTurn = 'showing-turn',
+    GameOver = 'game-over'
 }
 
 type State = {
@@ -146,6 +147,7 @@ function Battle() {
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
     const [eventIndex, setEventIndex] = useState(0);
     const [turnLog, setTurnLog] = useState<OnNewTurnLogArgs | undefined>(undefined);
+    const [winningPlayer,setWinningPlayer] = useState<number|undefined>(undefined)
 
 
     const [runningAnimations, setRunningAnimations] = useState(false);
@@ -203,9 +205,17 @@ function Battle() {
         const isNextEvent = nextEvent !== undefined;
 
         if (!isNextEvent) {
+            const turnLogCopy = turnLog;
             setTurnLog(undefined);
+
             //must be awaiting switch action, and the person awaiting the switch action must the player.
-            if (turnLog.currentTurnState === 'awaiting-switch-action') {
+            console.log('next event happening');
+            console.log(turnLog);
+            if (turnLog.currentTurnState === 'game-over'){
+                setWinningPlayer(turnLogCopy.winningPlayerId);
+                setMenuState(MenuState.GameOver)
+            }            
+            else if (turnLog.currentTurnState === 'awaiting-switch-action') {
                 setMenuState(MenuState.FaintedSwitchMenu);
             }
             else {
@@ -514,6 +524,17 @@ function Battle() {
             }
             case MenuState.FaintedSwitchMenu: {
                 return `Which pokemon do you want to switch to?`
+            }
+            case MenuState.GameOver:{
+                if (winningPlayer === undefined){
+                    throw new Error('Could not find winning player for game over screen in Battle.tsx');
+                }
+                if (state.players[0].id === winningPlayer){
+                    return `You have won the battle!`
+                }
+                else{
+                    return `All your pokemon have fainted!, You have lost the battle!`
+                }
             }
             default: {
                 return ''

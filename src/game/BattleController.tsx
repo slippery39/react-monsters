@@ -6,7 +6,7 @@ import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import { HasElementType } from './HelperFunctions';
 
 
-export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'first-action' | 'second-action'
+export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
 
 enum BattleStepState {
@@ -24,7 +24,8 @@ interface State {
     type: TurnState,
     playerId?: number, //depreciated
     faintedPlayerIds?: Array<number>,
-    nextState?: TurnState
+    nextState?: TurnState,
+    winningPlayerId?:number
 }
 
 export class Turn {
@@ -79,7 +80,7 @@ export class Turn {
         console.log(this.initialActions);
         if (this.initialActions.length === 2) {
             this.currentState = {
-                type: 'first-action'
+                type: 'calculating-turn'
             }
             this.CalculateTurn();
         }
@@ -275,8 +276,26 @@ export class Turn {
         this.turnLog.push(faintEvent);
 
         const owner = this.GetPokemonOwner(pokemon);
+
+        //game over check.
+        if (owner.pokemon.filter(poke=>poke.currentStats.health>0).length === 0){
+
+
+            const winningPlayer = this.players.filter(player=>player.id!=owner.id)[0];
+            console.log('winning player inside the battle controller ');
+            console.log(winningPlayer);
+            this.currentState = {
+                type:'game-over',
+                winningPlayerId:winningPlayer.id
+            }
+
+        }
+        else{
+
         this.faintedPokemonPlayers.push(owner);
-        this.currentState = { type: 'awaiting-switch-action' }
+
+            this.currentState = { type: 'awaiting-switch-action' }
+        }
     }
 
     private ApplyDamage(pokemon: Pokemon, damage: number, damageInfo: any) {
@@ -346,7 +365,7 @@ export class Turn {
         //this needs to be cached.
         const actionOrder = this.GetMoveOrder();
 
-        while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished') {
+        while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished' && this.currentState.type!=='game-over') {
 
             var startStep = nextStateLookups.find((e) => {
                 return e.current === this.currentBattleStep

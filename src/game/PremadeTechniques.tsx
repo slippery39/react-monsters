@@ -21,7 +21,7 @@ export function GetTech(name:string){
             effects:[
                 {
                     type:'inflict-status',
-                    status:Status.Burned,
+                    status:Status.Sleep,
                     target:'enemy',
                     chance:100
                 }
@@ -103,7 +103,7 @@ export function GetTech(name:string){
                     type:'inflict-status',
                     status:Status.Burned,
                     target:'enemy',
-                    chance:100
+                    chance:15
                 }
             ]
         },
@@ -126,20 +126,11 @@ export function GetTech(name:string){
                     pp: 10,
                     description: 'hydro pumpy action',
                     currentPP: 10,
-                    power:120,
-                    chance:85,
+                    power:1000,
+                    chance:100,
                     elementalType:ElementType.Water,
-                    damageType:'special',
-                    effects:[
-                        {
-                            type:'inflict-status',
-                            status:Status.Frozen,
-                            target:'enemy',
-                            chance:100
-                        }
-                    ]
-                    
-                
+                    damageType:'special',               
+               
             },
             "razor leaf":{
                 
@@ -148,18 +139,11 @@ export function GetTech(name:string){
                     description: 'some razory leaves',
                     pp: 35,
                     currentPP: 35,
-                    power:55,
+                    power:34,
                     chance:95,
                     damageType:'physical',
                     elementalType:ElementType.Grass,
-                    effects:[
-                        {
-                            type:'inflict-status',
-                            status:Status.Sleep,
-                            target:'enemy',
-                            chance:100
-                        }
-                    ]                
+             
             }
     
     }
