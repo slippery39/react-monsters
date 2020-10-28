@@ -140,6 +140,7 @@ function Battle() {
 
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
     const [turnLog, setTurnLog] = useState<OnNewTurnLogArgs | undefined>(undefined);
+    const [eventIndex,setEventIndex] = useState<number>(0);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
 
@@ -198,6 +199,7 @@ function Battle() {
         }
         const turnLogCopy = turnLog;
         setTurnLog(undefined);
+        setEventIndex(0);
 
         if (turnLog.currentTurnState === 'game-over') {
             setWinningPlayer(turnLogCopy.winningPlayerId);
@@ -217,6 +219,8 @@ function Battle() {
         }
 
     }, [turnLog]);
+
+ 
 
 
 
@@ -244,22 +248,27 @@ function Battle() {
         const damageAnimationTime: number = 0.1;
         const defaultAnimationTime: number = 0.5;
 
-        const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); onEndOfTurnLog(); } });       
+        const nextEvent = ()=>{
+            if (eventIndex>=turnLog.currentTurnLog.length-1){
+                onEndOfTurnLog();
+            }
+            else{
+                setEventIndex(eventIndex+1);
+            }
+        }
+
+        const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); nextEvent(); } });       
 
 
         //testing our animate message timeline function
         const animateMessage = function (text: string, onComplete?: () => void | undefined) {
             timeLine.fromTo(messageBox.current, { text: "" }, {
-                delay: defaultDelayTime, duration: messageAnimationTime, text: text, ease: "none", onComplete: onComplete
+                delay: defaultDelayTime, duration: messageAnimationTime, text: text, ease: "none",immediateRender: false, onComplete: onComplete
             });
         }
 
-        //we need to delay these calls
-
-
-
-
-        turnLog.currentTurnLog.forEach(effect => {
+        //we need to delay these calls because the state needs to update per animation.
+        const effect = turnLog.currentTurnLog[eventIndex];
 
             switch (effect.type) {
 
@@ -423,10 +432,6 @@ function Battle() {
                     break;
                 }
                 case EffectType.Damage: {
-
-
-                    console.log('damage being entered');
-
                     //when this is made on a switch out, the ally pokemon is the original pokemon
 
                     let pokemonNode;
@@ -436,18 +441,13 @@ function Battle() {
                     isAllyPokemon(effect.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon();
 
                     //Pokemon damaged animation
-                    timeLine.to(pokemonNode, { onStart:()=>{
-                        //need to delay this call in case the current pokemon changes.
-                        isAllyPokemon(effect.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon(); 
-                    }, delay: defaultDelayTime, filter: "brightness(50)", duration: damageAnimationTime });
+                    timeLine.to(pokemonNode, {delay: defaultDelayTime, filter: "brightness(50)", duration: damageAnimationTime });
                     timeLine.to(pokemonNode, { filter: "brightness(1)", duration: damageAnimationTime });
                     timeLine.to(
                         pokemonObj.currentStats, {
                         health: effect.targetFinalHealth,
                         duration: healthAnimationTime,
                         onUpdate: (val) => {
-                            console.log('is on update happening?')
-                            console.log(val);
                             dispatch({
                                 type: 'health-change',
                                 id: val.id,
@@ -457,32 +457,24 @@ function Battle() {
                         onUpdateParams: [pokemonObj]
                     });
                     if (effect.didCritical) {
-                        timeLine.fromTo(messageBox.current, { text: "" }, {
-                            delay: defaultDelayTime, duration: messageAnimationTime, text: `It was a critical hit!`, ease: "none"
-                        })
+                        animateMessage("It was a critical hit");
                     }
                     if (effect.effectivenessAmt > 1.0) {
-                        timeLine.fromTo(messageBox.current, { text: "" }, {
-                            delay: defaultDelayTime, duration: messageAnimationTime, text: `It was super effective!`, ease: "none"
-                        })
+                        animateMessage("It was super effective");
                     }
                     if (effect.effectivenessAmt < 1.0) {
-                        timeLine.fromTo(messageBox.current, { text: "" }, {
-                            delay: defaultDelayTime, duration: messageAnimationTime, text: `It wasn't very effective!`, ease: "none"
-                        })
+                        animateMessage("It wasn't very effective");
                     }
                     break;
                 }
 
             }
-        });
-
-        //add 1 second of padding.
-        timeLine.set({}, {}, "+=1");
+         //add 1 second of padding.
+        timeLine.set({}, {}, "+=0.5");
         timeLine.play();
         return;
 
-    }, [onEndOfTurnLog, turnLog]);
+    }, [onEndOfTurnLog, turnLog,eventIndex]);
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
@@ -564,7 +556,7 @@ function Battle() {
                         {menuState !== MenuState.ShowingTurn && <Message writeTimeMilliseconds={500} animated={true} message={`${GetMenuMessage()}`} />}
                         {menuState === MenuState.ShowingTurn && <Message
                             animated={false}
-                            message={""}
+                            message={"banans"}
                             messageRef={el => { messageBox.current = el; }} />}
                     </div>
                 </div>
