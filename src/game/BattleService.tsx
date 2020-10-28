@@ -1,14 +1,14 @@
 import { Turn, TurnState } from "./BattleController";
 import { BattleAction, UseMoveAction, SwitchPokemonAction, UseItemAction } from "./BattleActions";
-import { BaseEffect, BattleEvent, Effect } from "./BattleEffects";
-import { Player, Pokemon, Status } from "./interfaces";
+import { BattleEvent } from "./BattleEvents";
+import { Player, Status } from "./interfaces";
 import _, { shuffle } from 'lodash';
 
 import { GetActivePokemon, GetPercentageHealth } from "./HelperFunctions"
 import { PlayerBuilder } from "./PlayerBuilder";
 
 export interface OnNewTurnLogArgs {
-    currentTurnLog: Array<Effect>
+    currentTurnLog: Array<BattleEvent>
     newState: Array<Player>,
     currentTurnState: TurnState,
     waitingForSwitchIds: Array<number>
@@ -147,19 +147,6 @@ class BattleService {
                 }
             );
         }
-    }
-
-    //temporary function, remove when not needed anymore
-    private FlattenTurnLog(log: Array<BattleEvent>) {
-        let flattenedTurnLog: Array<Effect> = log.map(tl => tl.effects).flat();
-
-        let flattenedEventLog: Array<BattleEvent> = [
-            {
-                id: 1,
-                effects: flattenedTurnLog
-            }
-        ]
-        return flattenedEventLog;
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useReducer, useRef } from 'rea
 
 
 import BattleService, { OnNewTurnLogArgs, OnStateChangeArgs } from "../../game/BattleService";
-import { Player, Pokemon, ElementType, Status } from '../../game/interfaces';
+import { Player, Pokemon, Status } from '../../game/interfaces';
 import { SwitchPokemonAction, UseItemAction } from "../../game/BattleActions";
 import BattleMenu from "../battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
@@ -23,7 +23,7 @@ import { TextPlugin } from "gsap/TextPlugin";
 import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
-import { BattleEvent, EffectType } from '../../game/BattleEffects';
+import { BattleEventType } from '../../game/BattleEvents'
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -272,12 +272,12 @@ function Battle() {
 
             switch (effect.type) {
 
-                case EffectType.GenericMessage: {
+                case BattleEventType.GenericMessage: {
                     animateMessage(effect.defaultMessage);
                     break;
                 }
 
-                case EffectType.Heal: {
+                case BattleEventType.Heal: {
                     const pokemon = getPokemonById(effect.targetPokemonId);
 
                     let animObj;
@@ -304,7 +304,7 @@ function Battle() {
                     break;
                 }
 
-                case EffectType.UseItem: {
+                case BattleEventType.UseItem: {
 
                     const pokemon = getPokemonById(effect.targetPokemonId);
                     const owner = getPokemonAndOwner(state, pokemon.id).owner;
@@ -323,7 +323,7 @@ function Battle() {
                     break;
 
                 }
-                case EffectType.PokemonFainted: {
+                case BattleEventType.PokemonFainted: {
                     const pokemon = getPokemonById(effect.targetPokemonId);
 
                     let pokemonNode;
@@ -337,7 +337,7 @@ function Battle() {
                     break;
                 }
 
-                case EffectType.StatusChange: {
+                case BattleEventType.StatusChange: {
                     const pokemon = getPokemonById(effect.targetPokemonId);
 
                     let message = `${pokemon.name} is now ${effect.status.toLowerCase()}`;
@@ -354,7 +354,7 @@ function Battle() {
                     break;
                 }
 
-                case EffectType.CantAttack: {
+                case BattleEventType.CantAttack: {
 
                     const pokemon = getPokemonById(effect.targetPokemonId);
                     timeLine.fromTo(messageBox.current, { text: "" }, {
@@ -365,7 +365,7 @@ function Battle() {
                     break;
                 }
 
-                case EffectType.SwitchIn: {
+                case BattleEventType.SwitchIn: {
 
                     const pokemon = getPokemonById(effect.switchInPokemonId);
                     const owner = getPokemonAndOwner(state, pokemon.id).owner;
@@ -391,7 +391,7 @@ function Battle() {
                     }
                     break;
                 }
-                case EffectType.SwitchOut: {
+                case BattleEventType.SwitchOut: {
 
                     const pokemon = getPokemonById(effect.switchOutPokemonId);
                     const owner = getPokemonAndOwner(state, pokemon.id).owner;
@@ -412,7 +412,7 @@ function Battle() {
 
                     break;
                 }
-                case EffectType.UseMove: {
+                case BattleEventType.UseMove: {
                     const pokemon = getPokemonById(effect.userId);
                     animateMessage(`${pokemon.name} used ${effect.moveName}`);
 
@@ -431,7 +431,7 @@ function Battle() {
                     }
                     break;
                 }
-                case EffectType.Damage: {
+                case BattleEventType.Damage: {
                     //when this is made on a switch out, the ally pokemon is the original pokemon
 
                     let pokemonNode;

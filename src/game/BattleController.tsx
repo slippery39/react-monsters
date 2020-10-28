@@ -1,7 +1,7 @@
 import { Pokemon, Player, Technique, Status, ElementType } from './interfaces';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { BattleEvent, DamageEffect, FaintedPokemonEffect, HealEffect, SwitchInEffect, SwitchOutEffect, UseItemEffect, UseMoveEffect, EffectType, CannotAttackEffect, StatusChangeEffect, GenericMessageEffect, BaseEffect, Effect } from "./BattleEffects";
+import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, CannotAttackEvent, StatusChangeEvent, GenericMessageEvent,BattleEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import { HasElementType } from './HelperFunctions';
 
@@ -33,7 +33,7 @@ export class Turn {
     initialActions: Array<BattleAction> = [];
 
     players: Array<Player> = [] //needs to be initial turn state.
-    turnLog: Array<Effect> = [];
+    turnLog: Array<BattleEvent> = [];
     id: Number;
     eventNum: number = 1; //next id for when we have a new event.
 
@@ -68,7 +68,7 @@ export class Turn {
         this._activePokemonIdAtStart2 = players[1].currentPokemonId;
     }
     //NEW: Returning a flattened turn log instead
-    GetTurnLog(): Array<Effect> {
+    GetTurnLog(): Array<BattleEvent> {
         return this.turnLog;
     }
 
@@ -136,21 +136,21 @@ export class Turn {
                 const poisonDamage = Math.ceil(maxHp / 8);
                 pokemon.currentStats.health -= poisonDamage;
 
-                const poisonMessage: GenericMessageEffect = {
-                    type: EffectType.GenericMessage,
+                const poisonMessage: GenericMessageEvent = {
+                    type: BattleEventType.GenericMessage,
                     defaultMessage: `${pokemon.name} is hurt by poison`
                 }
-                this.AddEffect(poisonMessage);
+                this.AddEvent(poisonMessage);
                 this.ApplyDamage(pokemon, poisonDamage, {})
             }
             else if (pokemon.status === Status.Burned) {
                 const maxHp = pokemon.originalStats.health;
                 const burnDamage = Math.ceil(maxHp / 8);
-                const burnMessage: GenericMessageEffect = {
-                    type: EffectType.GenericMessage,
+                const burnMessage: GenericMessageEvent = {
+                    type: BattleEventType.GenericMessage,
                     defaultMessage: `${pokemon.name} is hurt by its burn`
                 }
-                this.AddEffect(burnMessage);
+                this.AddEvent(burnMessage);
                 this.ApplyDamage(pokemon, burnDamage, {});
             }
         })
@@ -165,12 +165,12 @@ export class Turn {
             const paralyzeChance = 25;
 
             if (this.Roll(paralyzeChance)) {
-                const cantAttackEffect: CannotAttackEffect = {
-                    type: EffectType.CantAttack,
+                const cantAttackEffect: CannotAttackEvent = {
+                    type: BattleEventType.CantAttack,
                     targetPokemonId: pokemon.id,
                     reason: Status.Paralyzed
                 }
-                this.AddEffect(cantAttackEffect);
+                this.AddEvent(cantAttackEffect);
                 pokemon.canAttackThisTurn = false;
                 return;
             }
@@ -180,22 +180,22 @@ export class Turn {
         else if (pokemon.status === Status.Sleep) {
 
             const wakeUpChance = 40;
-            const isAsleepEffect: GenericMessageEffect = {
-                type: EffectType.GenericMessage,
+            const isAsleepEffect: GenericMessageEvent = {
+                type: BattleEventType.GenericMessage,
                 defaultMessage: `${pokemon.name} is sleeping!`
             }
-            this.AddEffect(isAsleepEffect);
+            this.AddEvent(isAsleepEffect);
             if (this.Roll(wakeUpChance)) {
                 //Pokemon Wakes Up
                 pokemon.status = Status.None;
 
-                const wakeupEffect: StatusChangeEffect = {
-                    type: EffectType.StatusChange,
+                const wakeupEffect: StatusChangeEvent = {
+                    type: BattleEventType.StatusChange,
                     targetPokemonId: pokemon.id,
                     status: Status.None,
                     defaultMessage: `${pokemon.name} has woken up!`
                 }
-                this.AddEffect(wakeupEffect);
+                this.AddEvent(wakeupEffect);
                 return;
             }
             else {
@@ -205,23 +205,23 @@ export class Turn {
         }
         else if (pokemon.status === Status.Frozen) {
             const thawChance = 25;
-            const isFrozenEffect: GenericMessageEffect = {
-                type: EffectType.GenericMessage,
+            const isFrozenEffect: GenericMessageEvent = {
+                type: BattleEventType.GenericMessage,
                 defaultMessage: `${pokemon.name} is frozen!`
             }
-            this.AddEffect(isFrozenEffect);
+            this.AddEvent(isFrozenEffect);
 
             if (this.Roll(thawChance)) {
                 //Pokemon Wakes Up
                 pokemon.status = Status.None;
                 
-                const thawEffect: StatusChangeEffect = {
-                    type: EffectType.StatusChange,
+                const thawEffect: StatusChangeEvent = {
+                    type: BattleEventType.StatusChange,
                     targetPokemonId: pokemon.id,
                     status: Status.None,
                     defaultMessage: `${pokemon.name} is not frozen anymore!`
                 }
-                this.AddEffect(thawEffect);
+                this.AddEvent(thawEffect);
             }
             else {
                 pokemon.canAttackThisTurn = false;
@@ -252,11 +252,11 @@ export class Turn {
     }
 
     private PokemonFainted(pokemon: Pokemon) {
-        const faintedPokemonEffect: FaintedPokemonEffect = {
+        const faintedPokemonEffect: FaintedPokemonEvent = {
             targetPokemonId: pokemon.id,
-            type: EffectType.PokemonFainted,
+            type: BattleEventType.PokemonFainted,
         };
-        this.AddEffect(faintedPokemonEffect);
+        this.AddEvent(faintedPokemonEffect);
 
         const owner = this.GetPokemonOwner(pokemon);
 
@@ -281,8 +281,8 @@ export class Turn {
         pokemon.currentStats.health -= damage
         pokemon.currentStats.health = Math.max(0, pokemon.currentStats.health);
 
-        const damageEffect: DamageEffect = {
-            type: EffectType.Damage,
+        const damageEffect: DamageEvent = {
+            type: BattleEventType.Damage,
             targetPokemonId: pokemon.id,
             attackerPokemonId: pokemon.id, //this is wrong, we need a way to pass this into this function 
             targetFinalHealth: pokemon.currentStats.health,
@@ -291,7 +291,7 @@ export class Turn {
             effectivenessAmt: damageInfo.typeEffectivenessBonus === undefined ? 1 : damageInfo.typeEffectivenessBonus
         };
 
-        this.AddEffect(damageEffect);
+        this.AddEvent(damageEffect);
 
         if (pokemon.currentStats.health <= 0) {
             this.PokemonFainted(pokemon)
@@ -471,18 +471,18 @@ export class Turn {
         player.pokemon = pokemonArrCopy;
         player.currentPokemonId = pokemonArrCopy[0].id;
 
-        const switchOutEffect: SwitchOutEffect = {
-            type: EffectType.SwitchOut,
+        const switchOutEffect: SwitchOutEvent = {
+            type: BattleEventType.SwitchOut,
             switchOutPokemonId: switchOutPokemonId!,
             switchInPokemonId: pokemonInId,
         }
-        this.AddEffect(switchOutEffect);
-        const switchInEffect: SwitchInEffect = {
-            type: EffectType.SwitchIn,
+        this.AddEvent(switchOutEffect);
+        const switchInEffect: SwitchInEvent = {
+            type: BattleEventType.SwitchIn,
             switchOutPokemonId: switchOutPokemonId!,
             switchInPokemonId: pokemonInId,
         }
-        this.AddEffect(switchInEffect);
+        this.AddEvent(switchInEffect);
     }
 
     private UseItem(playerId: number, itemId: number) {
@@ -501,26 +501,26 @@ export class Turn {
             return;
         }
 
-        const useItemEffect: UseItemEffect = {
-            type: EffectType.UseItem,
+        const useItemEffect: UseItemEvent = {
+            type: BattleEventType.UseItem,
             itemName: item.name,
             itemId: item.id,
             targetPokemonId: pokemon.id
         }
-        this.AddEffect(useItemEffect);
+        this.AddEvent(useItemEffect);
 
         item.effects.forEach(effect => {
             if (effect.type === 'health-restore') {
                 const itemHealAmount = effect.amount;
                 const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
                 pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
-                let itemEffect: HealEffect = {
-                    type: EffectType.Heal,
+                let itemEffect: HealEvent = {
+                    type: BattleEventType.Heal,
                     targetPokemonId: pokemon.id,
                     targetFinalHealth: pokemon.currentStats.health,
                     totalHealing: healing,
                 }
-                this.AddEffect(itemEffect);
+                this.AddEvent(itemEffect);
             }
         });
 
@@ -550,14 +550,14 @@ export class Turn {
         if (move === undefined) {
             throw new Error(`Error in using technique, could not find technique with id ${techniqueId} `);
         }
-        const useMoveEffect: UseMoveEffect = {
-            type: EffectType.UseMove,
+        const useMoveEffect: UseMoveEvent = {
+            type: BattleEventType.UseMove,
             userId: pokemon.id,
             targetId: defendingPokemon.id,
             didMoveHit: true,
             moveName: move.name,
         }
-        this.AddEffect(useMoveEffect);
+        this.AddEvent(useMoveEffect);
 
         if (!this.Roll(move.chance)) {
             useMoveEffect.didMoveHit = false;
@@ -573,14 +573,14 @@ export class Turn {
             */
             if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
                 defendingPokemon.status = Status.None;
-                 const thawEffect: StatusChangeEffect = {
-                    type: EffectType.StatusChange,
+                 const thawEffect: StatusChangeEvent = {
+                    type: BattleEventType.StatusChange,
                     status: Status.None,
                     targetPokemonId: defendingPokemon.id,
                     attackerPokemonId: pokemon.id,
                     defaultMessage: `${defendingPokemon.name} is not frozen anymore!`
                 }
-                this.AddEffect(thawEffect);
+                this.AddEvent(thawEffect);
             }
 
             this.ApplyMoveEffects(move, pokemon, defendingPokemon);
@@ -629,19 +629,18 @@ export class Turn {
 
                     targetPokemon.status = effect.status;
 
-                    const statusInflictedEffect: StatusChangeEffect = {
-                        type: EffectType.StatusChange,
+                    const statusInflictedEffect: StatusChangeEvent = {
+                        type: BattleEventType.StatusChange,
                         status: effect.status,
                         attackerPokemonId: pokemon.id,
                         targetPokemonId: targetPokemon.id
                     };
-                    this.AddEffect(statusInflictedEffect);
+                    this.AddEvent(statusInflictedEffect);
                 }
             }
         });
     }
 
-    //refactor this
     private DoDamageMove(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
@@ -746,7 +745,7 @@ export class Turn {
         return this._moveOrder;
 
     }
-    private AddEffect(effect : Effect){
+    private AddEvent(effect : BattleEvent){
         effect.id = this.eventNum++;
         this.turnLog.push(effect);
     }

@@ -4,13 +4,9 @@ All the different "events" that can happen as a result of a turn
 
 import {Status} from "./interfaces";
 
-export interface BattleEvent {
-    id: number,
-    effects: Array<Effect>,
-}
-export type Effect = (SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | FaintedPokemonEffect | UseMoveEffect | UseItemEffect | StatusChangeEffect | CannotAttackEffect | GenericMessageEffect)
+export type BattleEvent = (SwitchOutEvent | SwitchInEvent | DamageEvent | HealEvent | FaintedPokemonEvent | UseMoveEvent | UseItemEvent | StatusChangeEvent | CannotAttackEvent | GenericMessageEvent)
 
-export enum EffectType {
+export enum BattleEventType {
     Damage = 'damage',
     Heal = 'heal',
     Switch = 'switch',
@@ -29,32 +25,32 @@ export enum EffectType {
 }
 
 
-export interface BaseEffect{
+export interface BaseBattleEvent{
     id?:number
 }
 
 //A default effect type for easy prototyping, we can just use this one to easily display messages on the front-end, and when we are ready turn it into an actual effect.
-export interface GenericMessageEffect extends BaseEffect{
-    type:EffectType.GenericMessage,
+export interface GenericMessageEvent extends BaseBattleEvent{
+    type:BattleEventType.GenericMessage,
     defaultMessage:string
 }
 
-export interface CannotAttackEffect extends BaseEffect{
-    type:EffectType.CantAttack,
+export interface CannotAttackEvent extends BaseBattleEvent{
+    type:BattleEventType.CantAttack,
     targetPokemonId:number,
     reason:Status
 }
 
-export interface StatusChangeEffect extends BaseEffect {
-    type:EffectType.StatusChange,
+export interface StatusChangeEvent extends BaseBattleEvent {
+    type:BattleEventType.StatusChange,
     targetPokemonId:number,
     attackerPokemonId?:number
     status: Status,
     defaultMessage?:string
 }
 
-export interface DamageEffect extends BaseEffect {
-    type: EffectType.Damage,
+export interface DamageEvent extends BaseBattleEvent {
+    type: BattleEventType.Damage,
     targetPokemonId: number,
     attackerPokemonId: number,
     targetFinalHealth: number,
@@ -63,39 +59,39 @@ export interface DamageEffect extends BaseEffect {
     effectivenessAmt: number
 }
 
-export interface UseItemEffect extends BaseEffect {
-    type: EffectType.UseItem,
+export interface UseItemEvent extends BaseBattleEvent {
+    type: BattleEventType.UseItem,
     itemName: string,
     itemId: number,
     targetPokemonId: number
 }
 
-export interface SwitchOutEffect extends BaseEffect{
-    type: EffectType.SwitchOut,
+export interface SwitchOutEvent extends BaseBattleEvent{
+    type: BattleEventType.SwitchOut,
     switchOutPokemonId: number,
     switchInPokemonId: number,
 }
-export interface SwitchInEffect extends BaseEffect {
-    type: EffectType.SwitchIn,
+export interface SwitchInEvent extends BaseBattleEvent {
+    type: BattleEventType.SwitchIn,
     switchOutPokemonId: number,
     switchInPokemonId: number,
 }
 
-export interface UseMoveEffect extends BaseEffect {
-    type: EffectType.UseMove,
+export interface UseMoveEvent extends BaseBattleEvent {
+    type: BattleEventType.UseMove,
     userId: number,
     targetId: number,
     didMoveHit: Boolean,
     moveName: string
 }
-export interface HealEffect extends BaseEffect {
-    type: EffectType.Heal,
+export interface HealEvent extends BaseBattleEvent {
+    type: BattleEventType.Heal,
     targetPokemonId: number,
     targetFinalHealth: number,
     totalHealing: number,
 }
 
-export interface FaintedPokemonEffect extends BaseEffect{
-    type: EffectType.PokemonFainted,
+export interface FaintedPokemonEvent extends BaseBattleEvent{
+    type: BattleEventType.PokemonFainted,
     targetPokemonId: number,
 }
