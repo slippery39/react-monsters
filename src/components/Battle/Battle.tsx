@@ -137,20 +137,13 @@ function Battle() {
     }
 
 
-    const defaultDelayTime: number = 0.3;
-    const healthAnimationTime: number = 1;
-    const messageAnimationTime: number = 0.5;
-    const attackAnimationTime: number = 0.25;
-    const damageAnimationTime: number = 0.1;
-    const defaultAnimationTime: number = 0.5;
 
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
-    const [eventIndex, setEventIndex] = useState(0);
     const [turnLog, setTurnLog] = useState<OnNewTurnLogArgs | undefined>(undefined);
-    const [winningPlayer,setWinningPlayer] = useState<number|undefined>(undefined)
-
-
+    const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
+
+    ;
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -164,9 +157,8 @@ function Battle() {
 
     battleService.OnNewTurnLog = (args: OnNewTurnLogArgs) => {
         setTurnLog(args);
-        setEventIndex(0);
         setMenuState(MenuState.ShowingTurn);
-    };
+    }
     battleService.OnStateChange = (args: OnStateChangeArgs) => {
         dispatch({
             id: 0,
@@ -196,41 +188,35 @@ function Battle() {
     }
 
     //our simple state machine for our events log.
-    const nextEvent = useCallback(() => {
+
+    //NEW: This should be called at the end of the turn log animation.
+    //this is only used once
+    const onEndOfTurnLog = useCallback(() => {
 
         if (turnLog === undefined) {
             return;
         }
-        const nextEvent = turnLog?.currentTurnLog[eventIndex + 1];
-        const isNextEvent = nextEvent !== undefined;
+        const turnLogCopy = turnLog;
+        setTurnLog(undefined);
 
-        if (!isNextEvent) {
-            const turnLogCopy = turnLog;
-            setTurnLog(undefined);
-
-            //must be awaiting switch action, and the person awaiting the switch action must the player.
-            console.log('next event happening');
-            console.log(turnLog);
-            if (turnLog.currentTurnState === 'game-over'){
-                setWinningPlayer(turnLogCopy.winningPlayerId);
-                setMenuState(MenuState.GameOver)
-            }            
-            else if (turnLog.currentTurnState === 'awaiting-switch-action') {
-                setMenuState(MenuState.FaintedSwitchMenu);
-            }
-            else {
-                setEventIndex(0);
-                setMenuState(MenuState.MainMenu);
-                dispatch({
-                    id: 0,
-                    type: 'state-change',
-                    newState: turnLog.newState
-                })
-            }
+        if (turnLog.currentTurnState === 'game-over') {
+            setWinningPlayer(turnLogCopy.winningPlayerId);
+            setMenuState(MenuState.GameOver)
         }
-        setEventIndex(e => { return Math.min(turnLog!.currentTurnLog.length - 1, e + 1) });
+        else if (turnLog.currentTurnState === 'awaiting-switch-action') {
+            setMenuState(MenuState.FaintedSwitchMenu);
+        }
+        //Perhaps this should happen all the time no matter what
+        else {
+            setMenuState(MenuState.MainMenu);
+            dispatch({
+                id: 0,
+                type: 'state-change',
+                newState: turnLog.newState
+            })
+        }
 
-    }, [turnLog, eventIndex]);
+    }, [turnLog]);
 
 
 
@@ -239,27 +225,26 @@ function Battle() {
         if (turnLog === undefined || menuState !== MenuState.ShowingTurn) {
             return;
         }
-
-        const currentEvent: BattleEvent = turnLog!.currentTurnLog[eventIndex];
-
-        if (currentEvent === undefined) {
+        if (runningAnimations === true) {
             return;
         }
-
-        //so that the timeline does not get added to twice
+        //so that the animations don't get set twice.
+        setRunningAnimations(true);
 
         //this could be extracted to the useBattleAnimations() hook
         //we need to pass in the state
         //we need to pass in the ref to the messageBox
-        //we need to pass in the ref to the pokemonNodes
+        //we need to pass in the ref to the pokemonNodes        
+       
+       //default times
+        const defaultDelayTime: number = 0.3;
+        const healthAnimationTime: number = 1;
+        const messageAnimationTime: number = 0.5;
+        const attackAnimationTime: number = 0.25;
+        const damageAnimationTime: number = 0.1;
+        const defaultAnimationTime: number = 0.5;
 
-        if (runningAnimations === true) {
-            return;
-        }
-
-        //TODO:go through all the effects in the event and add them to the timeline one by one.
-        const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); nextEvent(); } });
-        setRunningAnimations(true);
+        const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); onEndOfTurnLog(); } });       
 
 
         //testing our animate message timeline function
@@ -269,7 +254,12 @@ function Battle() {
             });
         }
 
-        currentEvent.effects.forEach(effect => {
+        //we need to delay these calls
+
+
+
+
+        turnLog.currentTurnLog.forEach(effect => {
 
             switch (effect.type) {
 
@@ -284,7 +274,12 @@ function Battle() {
                     let animObj;
                     isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
                     timeLine.to(
+                        
                         animObj.currentStats, {
+                        onStart:()=>{
+                            //in case the pokemon has switched we need to reset the pokemon object to use.
+                            isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
+                        },
                         delay: defaultDelayTime,
                         health: effect.targetFinalHealth,
                         duration: healthAnimationTime,
@@ -430,6 +425,10 @@ function Battle() {
                 case EffectType.Damage: {
 
 
+                    console.log('damage being entered');
+
+                    //when this is made on a switch out, the ally pokemon is the original pokemon
+
                     let pokemonNode;
                     isAllyPokemon(effect.targetPokemonId) ? pokemonNode = allyPokemonImage.current : pokemonNode = enemyPokemonImage.current;
 
@@ -437,13 +436,18 @@ function Battle() {
                     isAllyPokemon(effect.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon();
 
                     //Pokemon damaged animation
-                    timeLine.to(pokemonNode, { delay: defaultDelayTime, filter: "brightness(50)", duration: damageAnimationTime });
+                    timeLine.to(pokemonNode, { onStart:()=>{
+                        //need to delay this call in case the current pokemon changes.
+                        isAllyPokemon(effect.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon(); 
+                    }, delay: defaultDelayTime, filter: "brightness(50)", duration: damageAnimationTime });
                     timeLine.to(pokemonNode, { filter: "brightness(1)", duration: damageAnimationTime });
                     timeLine.to(
                         pokemonObj.currentStats, {
                         health: effect.targetFinalHealth,
                         duration: healthAnimationTime,
                         onUpdate: (val) => {
+                            console.log('is on update happening?')
+                            console.log(val);
                             dispatch({
                                 type: 'health-change',
                                 id: val.id,
@@ -478,7 +482,7 @@ function Battle() {
         timeLine.play();
         return;
 
-    }, [nextEvent, turnLog, eventIndex]);
+    }, [onEndOfTurnLog, turnLog]);
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
@@ -525,14 +529,14 @@ function Battle() {
             case MenuState.FaintedSwitchMenu: {
                 return `Which pokemon do you want to switch to?`
             }
-            case MenuState.GameOver:{
-                if (winningPlayer === undefined){
+            case MenuState.GameOver: {
+                if (winningPlayer === undefined) {
                     throw new Error('Could not find winning player for game over screen in Battle.tsx');
                 }
-                if (state.players[0].id === winningPlayer){
+                if (state.players[0].id === winningPlayer) {
                     return `You have won the battle!`
                 }
-                else{
+                else {
                     return `All your pokemon have fainted!, You have lost the battle!`
                 }
             }
@@ -572,7 +576,7 @@ function Battle() {
                             onMenuItemClick={(evt) => { setMenuState(MenuState.ItemMenu) }}
                             onMenuSwitchClick={(evt) => { setMenuState(MenuState.SwitchMenu) }} />}
                     {menuState === MenuState.AttackMenu && <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)} onAttackClick={(tech: any) => { SetBattleAction(tech.id); }} techniques={getAllyPokemon().techniques} />}
-                    {menuState === MenuState.ItemMenu && <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} onItemClick={(item: any) => { console.log("item has been clicked"); SetUseItemAction(item.id) }} items={state.players[0].items} />}
+                    {menuState === MenuState.ItemMenu && <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} onItemClick={(item: any) => { SetUseItemAction(item.id) }} items={state.players[0].items} />}
                     {menuState === MenuState.SwitchMenu && <PokemonSwitchScreen showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
                     }
                     {menuState === MenuState.FaintedSwitchMenu && <PokemonSwitchScreen onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />}

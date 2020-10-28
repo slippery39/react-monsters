@@ -1,6 +1,6 @@
 import { Turn, TurnState } from "./BattleController";
 import { BattleAction, UseMoveAction, SwitchPokemonAction, UseItemAction } from "./BattleActions";
-import { BattleEvent } from "./BattleEffects";
+import { BaseEffect, BattleEvent, Effect } from "./BattleEffects";
 import { Player, Pokemon, Status } from "./interfaces";
 import _, { shuffle } from 'lodash';
 
@@ -8,7 +8,7 @@ import { GetActivePokemon, GetPercentageHealth } from "./HelperFunctions"
 import { PlayerBuilder } from "./PlayerBuilder";
 
 export interface OnNewTurnLogArgs {
-    currentTurnLog: Array<BattleEvent>,
+    currentTurnLog: Array<Effect>
     newState: Array<Player>,
     currentTurnState: TurnState,
     waitingForSwitchIds: Array<number>
@@ -45,16 +45,12 @@ class BattleService {
         const player2: Player = new PlayerBuilder(2)
             .WithName("Bob")
             .WithPokemon("blastoise")
-            /*
             .WithPokemon("venusaur")
             .WithPokemon("charizard")
-            */
-            /*
-             .WithItem("Potion",1)
-             .WithItem("Super Potion",2)
-             .WithItem("Hyper Potion",3)
-             .WithItem("Max Potion",1)
-             */
+            .WithItem("Potion", 1)
+            .WithItem("Super Potion", 2)
+            .WithItem("Hyper Potion", 3)
+            .WithItem("Max Potion", 1)
             .Build();
 
 
@@ -127,9 +123,6 @@ class BattleService {
 
         //Allowing the AI player to switch his fainted pokemon to something else.
         if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action' && this.GetCurrentTurn().faintedPokemonPlayers.filter(p => p.id === player2.id).length > 0) {
-
-            console.log('who is fainting here?');
-
             const unfaintedPokemon = player2.pokemon.filter(poke => poke.currentStats.health !== 0)[0];
 
             if (unfaintedPokemon != undefined) {
@@ -144,44 +137,53 @@ class BattleService {
             return;
         }
         if (this.OnNewTurnLog !== undefined) {
-
-            console.log('new turn log')
-            console.log('current turn state');
-            console.log(this.GetCurrentTurn().currentState);
-
-            const object = {
-                currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
-                newState: this.GetPlayers(),
-                winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
-                currentTurnState: this.GetCurrentTurn().currentState.type,
-                waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id) 
-            }
-
-            console.log('object we are passing into the new turn log');
-            console.log(object);
-
             this.OnNewTurnLog(
-               object
+                {
+                    currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
+                    newState: this.GetPlayers(),
+                    winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
+                    currentTurnState: this.GetCurrentTurn().currentState.type,
+                    waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
+                }
             );
         }
+    }
+
+    //temporary function, remove when not needed anymore
+    private FlattenTurnLog(log: Array<BattleEvent>) {
+        let flattenedTurnLog: Array<Effect> = log.map(tl => tl.effects).flat();
+
+        let flattenedEventLog: Array<BattleEvent> = [
+            {
+                id: 1,
+                effects: flattenedTurnLog
+            }
+        ]
+        return flattenedEventLog;
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
 
         //cache the turn up to this date.
         const oldTurnLog = this.GetCurrentTurn().GetTurnLog();
-        const maxId = Math.max(...oldTurnLog.map(tl => tl.id));
+        const maxId = Math.max(...oldTurnLog.map(tl => {
+            if (tl.id === undefined) { throw new Error('NO ID FOUND FOR TURN LOG') }
+            return tl.id
+        }));
 
         this.GetCurrentTurn().SetSwitchFaintedPokemonAction(action);
 
         var newTurnLog = this.GetCurrentTurn().GetTurnLog();
         if (diffLog === undefined || diffLog === true) {
-            newTurnLog = newTurnLog.filter(tl => tl.id > maxId);
+            newTurnLog = newTurnLog.filter(tl => {
+                if (tl.id === undefined) { throw new Error('NO ID FOUND FOR TURN LOG') }
+                return tl.id > maxId;
+            });
         }
 
         if (this.OnNewTurnLog !== undefined) {
             this.OnNewTurnLog(
                 {
-                    currentTurnLog: newTurnLog,//need to only gather new turn logs, not the whole thing. //possibly an id system?
+                    currentTurnLog: newTurnLog,
                     newState: this.GetPlayers(),
                     currentTurnState: this.GetCurrentTurn().currentState.type,
                     winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
@@ -196,7 +198,6 @@ class BattleService {
         const player1 = this.GetCurrentTurn().players[0];
         const player2 = this.GetCurrentTurn().players[1];
 
-        console.log('are we setting a player action???');
         console.log(this.GetCurrentTurn().currentState.type);
 
         if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {

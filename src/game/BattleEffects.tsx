@@ -8,7 +8,7 @@ export interface BattleEvent {
     id: number,
     effects: Array<Effect>,
 }
-type Effect = (SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | FaintedPokemonEffect | UseMoveEffect | UseItemEffect | StatusChangeEffect | CannotAttackEffect | GenericMessageEffect)
+export type Effect = (SwitchOutEffect | SwitchInEffect | DamageEffect | HealEffect | FaintedPokemonEffect | UseMoveEffect | UseItemEffect | StatusChangeEffect | CannotAttackEffect | GenericMessageEffect)
 
 export enum EffectType {
     Damage = 'damage',
@@ -29,19 +29,23 @@ export enum EffectType {
 }
 
 
+export interface BaseEffect{
+    id?:number
+}
+
 //A default effect type for easy prototyping, we can just use this one to easily display messages on the front-end, and when we are ready turn it into an actual effect.
-export interface GenericMessageEffect{
+export interface GenericMessageEffect extends BaseEffect{
     type:EffectType.GenericMessage,
     defaultMessage:string
 }
 
-export interface CannotAttackEffect{
+export interface CannotAttackEffect extends BaseEffect{
     type:EffectType.CantAttack,
     targetPokemonId:number,
     reason:Status
 }
 
-export interface StatusChangeEffect {
+export interface StatusChangeEffect extends BaseEffect {
     type:EffectType.StatusChange,
     targetPokemonId:number,
     attackerPokemonId?:number
@@ -49,7 +53,7 @@ export interface StatusChangeEffect {
     defaultMessage?:string
 }
 
-export interface DamageEffect {
+export interface DamageEffect extends BaseEffect {
     type: EffectType.Damage,
     targetPokemonId: number,
     attackerPokemonId: number,
@@ -59,39 +63,39 @@ export interface DamageEffect {
     effectivenessAmt: number
 }
 
-export interface UseItemEffect {
+export interface UseItemEffect extends BaseEffect {
     type: EffectType.UseItem,
     itemName: string,
     itemId: number,
     targetPokemonId: number
 }
 
-export interface SwitchOutEffect {
+export interface SwitchOutEffect extends BaseEffect{
     type: EffectType.SwitchOut,
     switchOutPokemonId: number,
     switchInPokemonId: number,
 }
-export interface SwitchInEffect {
+export interface SwitchInEffect extends BaseEffect {
     type: EffectType.SwitchIn,
     switchOutPokemonId: number,
     switchInPokemonId: number,
 }
 
-export interface UseMoveEffect {
+export interface UseMoveEffect extends BaseEffect {
     type: EffectType.UseMove,
     userId: number,
     targetId: number,
     didMoveHit: Boolean,
     moveName: string
 }
-export interface HealEffect {
+export interface HealEffect extends BaseEffect {
     type: EffectType.Heal,
     targetPokemonId: number,
     targetFinalHealth: number,
     totalHealing: number,
 }
 
-export interface FaintedPokemonEffect {
+export interface FaintedPokemonEffect extends BaseEffect{
     type: EffectType.PokemonFainted,
     targetPokemonId: number,
 }

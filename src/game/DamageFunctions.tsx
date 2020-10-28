@@ -98,6 +98,8 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
     const critAmt = critStrike ? 2.0 : 1.0;
     const randomAmt = GetRandomAmt();
     const effectiveness = GetEffectiveness();
+    console.log('getting effectiveness from the damage');
+    console.log(effectiveness);
     const stabBonus = GetSTAB();
 
     //Stat decrease for the burn status.
