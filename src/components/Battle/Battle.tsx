@@ -140,7 +140,7 @@ function Battle() {
 
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
     const [turnLog, setTurnLog] = useState<OnNewTurnLogArgs | undefined>(undefined);
-    const [eventIndex,setEventIndex] = useState<number>(0);
+    const [eventIndex, setEventIndex] = useState<number>(0);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
 
@@ -220,7 +220,7 @@ function Battle() {
 
     }, [turnLog]);
 
- 
+
 
 
 
@@ -239,8 +239,8 @@ function Battle() {
         //we need to pass in the state
         //we need to pass in the ref to the messageBox
         //we need to pass in the ref to the pokemonNodes        
-       
-       //default times
+
+        //default times
         const defaultDelayTime: number = 0.3;
         const healthAnimationTime: number = 1;
         const messageAnimationTime: number = 0.5;
@@ -248,233 +248,233 @@ function Battle() {
         const damageAnimationTime: number = 0.1;
         const defaultAnimationTime: number = 0.5;
 
-        const nextEvent = ()=>{
-            if (eventIndex>=turnLog.currentTurnLog.length-1){
+        const nextEvent = () => {
+            if (eventIndex >= turnLog.currentTurnLog.length - 1) {
                 onEndOfTurnLog();
             }
-            else{
-                setEventIndex(eventIndex+1);
+            else {
+                setEventIndex(eventIndex + 1);
             }
         }
 
-        const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); nextEvent(); } });       
+        const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); nextEvent(); } });
 
 
         //testing our animate message timeline function
         const animateMessage = function (text: string, onComplete?: () => void | undefined) {
             timeLine.fromTo(messageBox.current, { text: "" }, {
-                delay: defaultDelayTime, duration: messageAnimationTime, text: text, ease: "none",immediateRender: false, onComplete: onComplete
+                delay: defaultDelayTime, duration: messageAnimationTime, text: text, ease: "none", immediateRender: false, onComplete: onComplete
             });
         }
 
         //we need to delay these calls because the state needs to update per animation.
         const effect = turnLog.currentTurnLog[eventIndex];
 
-            switch (effect.type) {
+        switch (effect.type) {
 
-                case BattleEventType.GenericMessage: {
-                    animateMessage(effect.defaultMessage);
-                    break;
-                }
+            case BattleEventType.GenericMessage: {
+                animateMessage(effect.defaultMessage);
+                break;
+            }
 
-                case BattleEventType.Heal: {
-                    const pokemon = getPokemonById(effect.targetPokemonId);
+            case BattleEventType.Heal: {
+                const pokemon = getPokemonById(effect.targetPokemonId);
 
-                    let animObj;
-                    isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
-                    timeLine.to(
-                        
-                        animObj.currentStats, {
-                        onStart:()=>{
-                            //in case the pokemon has switched we need to reset the pokemon object to use.
-                            isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
-                        },
-                        delay: defaultDelayTime,
-                        health: effect.targetFinalHealth,
-                        duration: healthAnimationTime,
-                        onUpdate: (val) => {
-                            dispatch({
-                                type: 'health-change',
-                                id: val.id,
-                                newHealth: val.currentStats.health
-                            });
-                        },
-                        onUpdateParams: [animObj]
-                    })
-                    break;
-                }
+                let animObj;
+                isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
+                timeLine.to(
 
-                case BattleEventType.UseItem: {
-
-                    const pokemon = getPokemonById(effect.targetPokemonId);
-                    const owner = getPokemonAndOwner(state, pokemon.id).owner;
-
-                    if (owner === undefined) {
-                        throw new Error("Owner was undefined in call getPokemonAndOwner @ Animation Effect Use Item");
-                    }
-
-                    //Show the message box
-                    animateMessage(`${owner.name} used ${effect.itemName} on ${pokemon.name}`);
-
-                    let potionNode;
-                    isAllyPokemon(pokemon.id) ? potionNode = allyPotionNode.current : potionNode = enemyPotionNode.current
-                    timeLine.fromTo(potionNode, { opacity: 0 }, { delay: defaultDelayTime, opacity: 1, top: "-=100", duration: defaultAnimationTime, immediateRender: false, clearProps: "opacity,top" });
-
-                    break;
-
-                }
-                case BattleEventType.PokemonFainted: {
-                    const pokemon = getPokemonById(effect.targetPokemonId);
-
-                    let pokemonNode;
-                    isAllyPokemon(pokemon.id) ? pokemonNode = allyPokemonImage.current : pokemonNode = enemyPokemonImage.current;
-
-                    timeLine.to(pokemonNode, { delay: defaultDelayTime, top: "+=100", opacity: 0, duration: defaultAnimationTime })
-                    timeLine.fromTo(messageBox.current, { text: "" }, {
-                        delay: defaultDelayTime, duration: 1, text: `${pokemon.name} has fainted!`, ease: "none"
-                    });
-
-                    break;
-                }
-
-                case BattleEventType.StatusChange: {
-                    const pokemon = getPokemonById(effect.targetPokemonId);
-
-                    let message = `${pokemon.name} is now ${effect.status.toLowerCase()}`;
-                    if (effect.defaultMessage) {
-                        message = effect.defaultMessage;
-                    }
-                    animateMessage(message, () => {
+                    animObj.currentStats, {
+                    onStart: () => {
+                        //in case the pokemon has switched we need to reset the pokemon object to use.
+                        isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
+                    },
+                    delay: defaultDelayTime,
+                    health: effect.targetFinalHealth,
+                    duration: healthAnimationTime,
+                    onUpdate: (val) => {
                         dispatch({
-                            type: 'status-change',
-                            id: pokemon.id,
-                            newStatus: effect.status
+                            type: 'health-change',
+                            id: val.id,
+                            newHealth: val.currentStats.health
                         });
-                    })
-                    break;
+                    },
+                    onUpdateParams: [animObj]
+                })
+                break;
+            }
+
+            case BattleEventType.UseItem: {
+
+                const pokemon = getPokemonById(effect.targetPokemonId);
+                const owner = getPokemonAndOwner(state, pokemon.id).owner;
+
+                if (owner === undefined) {
+                    throw new Error("Owner was undefined in call getPokemonAndOwner @ Animation Effect Use Item");
                 }
 
-                case BattleEventType.CantAttack: {
+                //Show the message box
+                animateMessage(`${owner.name} used ${effect.itemName} on ${pokemon.name}`);
 
-                    const pokemon = getPokemonById(effect.targetPokemonId);
-                    timeLine.fromTo(messageBox.current, { text: "" }, {
-                        delay: defaultDelayTime,
-                        duration: messageAnimationTime,
-                        text: `${pokemon.name} could not attack due to being ${effect.reason.toLowerCase()}`,
-                    })
-                    break;
-                }
+                let potionNode;
+                isAllyPokemon(pokemon.id) ? potionNode = allyPotionNode.current : potionNode = enemyPotionNode.current
+                timeLine.fromTo(potionNode, { opacity: 0 }, { delay: defaultDelayTime, opacity: 1, top: "-=100", duration: defaultAnimationTime, immediateRender: false, clearProps: "opacity,top" });
 
-                case BattleEventType.SwitchIn: {
-
-                    const pokemon = getPokemonById(effect.switchInPokemonId);
-                    const owner = getPokemonAndOwner(state, pokemon.id).owner;
-
-                    let switchInMessage;
-                    isAllyPokemon(pokemon.id) ? switchInMessage = `Go ${pokemon.name}!` : switchInMessage = `${owner?.name} has sent out ${pokemon.name}!`;
-                    timeLine.fromTo(messageBox.current, { text: "" }, {
-                        delay: defaultDelayTime, duration: messageAnimationTime, text: switchInMessage, ease: "none",
-                        onComplete: () => {
-                            dispatch({
-                                type: 'switch-in',
-                                id: pokemon.id
-                            });
-                        }
-                    });
-
-                    if (isAllyPokemon(pokemon.id)) {
-                        //left: 40px is the default place for the pokemon.
-                        timeLine.fromTo(allyPokemonImage.current, { top: "151px", left: "-150px" }, { delay: defaultDelayTime, left: "40px", opacity: 1, duration: defaultAnimationTime, immediateRender: false })
-                    }
-                    else {
-                        timeLine.fromTo(enemyPokemonImage.current, { top: "100px", left: "350px" }, { delay: defaultDelayTime, left: "240px", opacity: 1, duration: defaultAnimationTime, immediateRender: false })
-                    }
-                    break;
-                }
-                case BattleEventType.SwitchOut: {
-
-                    const pokemon = getPokemonById(effect.switchOutPokemonId);
-                    const owner = getPokemonAndOwner(state, pokemon.id).owner;
-
-                    let switchOutMessage;
-                    isAllyPokemon(pokemon.id) ? switchOutMessage = `Enough ${pokemon.name}, come back!` : switchOutMessage = `${owner?.name} has returned ${pokemon.name}!`;
-                    timeLine.fromTo(messageBox.current, { text: "" }, {
-                        delay: defaultDelayTime, duration: messageAnimationTime, text: switchOutMessage, ease: "none"
-                    });
-
-                    if (isAllyPokemon(pokemon.id)) {
-                        //left: 40px is the default place for the pokemon.
-                        timeLine.fromTo(allyPokemonImage.current, { left: "40px" }, { delay: defaultDelayTime, left: "-150px", duration: defaultAnimationTime, immediateRender: false })
-                    }
-                    else {
-                        timeLine.fromTo(enemyPokemonImage.current, { left: "350px" }, { delay: defaultDelayTime, left: "240px", duration: defaultAnimationTime, immediateRender: false })
-                    }
-
-                    break;
-                }
-                case BattleEventType.UseMove: {
-                    const pokemon = getPokemonById(effect.userId);
-                    animateMessage(`${pokemon.name} used ${effect.moveName}`);
-
-                    if (!effect.didMoveHit) {
-                        animateMessage('But it missed');
-
-                        return;
-                    }
-                    if (isAllyPokemon(effect.userId)) {
-                        timeLine.to(allyPokemonImage.current, { delay: defaultDelayTime, left: "60px", duration: attackAnimationTime })
-                        timeLine.to(allyPokemonImage.current, { left: "40px", duration: attackAnimationTime })
-                    }
-                    else {
-                        timeLine.to(enemyPokemonImage.current, { delay: defaultDelayTime, left: "220px", duration: attackAnimationTime })
-                        timeLine.to(enemyPokemonImage.current, { left: "240px", duration: attackAnimationTime })
-                    }
-                    break;
-                }
-                case BattleEventType.Damage: {
-                    //when this is made on a switch out, the ally pokemon is the original pokemon
-
-                    let pokemonNode;
-                    isAllyPokemon(effect.targetPokemonId) ? pokemonNode = allyPokemonImage.current : pokemonNode = enemyPokemonImage.current;
-
-                    let pokemonObj;
-                    isAllyPokemon(effect.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon();
-
-                    //Pokemon damaged animation
-                    timeLine.to(pokemonNode, {delay: defaultDelayTime, filter: "brightness(50)", duration: damageAnimationTime });
-                    timeLine.to(pokemonNode, { filter: "brightness(1)", duration: damageAnimationTime });
-                    timeLine.to(
-                        pokemonObj.currentStats, {
-                        health: effect.targetFinalHealth,
-                        duration: healthAnimationTime,
-                        onUpdate: (val) => {
-                            dispatch({
-                                type: 'health-change',
-                                id: val.id,
-                                newHealth: val.currentStats.health
-                            });
-                        },
-                        onUpdateParams: [pokemonObj]
-                    });
-                    if (effect.didCritical) {
-                        animateMessage("It was a critical hit");
-                    }
-                    if (effect.effectivenessAmt > 1.0) {
-                        animateMessage("It was super effective");
-                    }
-                    if (effect.effectivenessAmt < 1.0) {
-                        animateMessage("It wasn't very effective");
-                    }
-                    break;
-                }
+                break;
 
             }
-         //add 1 second of padding.
+            case BattleEventType.PokemonFainted: {
+                const pokemon = getPokemonById(effect.targetPokemonId);
+
+                let pokemonNode;
+                isAllyPokemon(pokemon.id) ? pokemonNode = allyPokemonImage.current : pokemonNode = enemyPokemonImage.current;
+
+                timeLine.to(pokemonNode, { delay: defaultDelayTime, top: "+=100", opacity: 0, duration: defaultAnimationTime })
+                timeLine.fromTo(messageBox.current, { text: "" }, {
+                    delay: defaultDelayTime, duration: 1, text: `${pokemon.name} has fainted!`, ease: "none"
+                });
+
+                break;
+            }
+
+            case BattleEventType.StatusChange: {
+                const pokemon = getPokemonById(effect.targetPokemonId);
+
+                let message = `${pokemon.name} is now ${effect.status.toLowerCase()}`;
+                if (effect.defaultMessage) {
+                    message = effect.defaultMessage;
+                }
+                animateMessage(message, () => {
+                    dispatch({
+                        type: 'status-change',
+                        id: pokemon.id,
+                        newStatus: effect.status
+                    });
+                })
+                break;
+            }
+
+            case BattleEventType.CantAttack: {
+
+                const pokemon = getPokemonById(effect.targetPokemonId);
+                timeLine.fromTo(messageBox.current, { text: "" }, {
+                    delay: defaultDelayTime,
+                    duration: messageAnimationTime,
+                    text: `${pokemon.name} could not attack due to being ${effect.reason.toLowerCase()}`,
+                })
+                break;
+            }
+
+            case BattleEventType.SwitchIn: {
+
+                const pokemon = getPokemonById(effect.switchInPokemonId);
+                const owner = getPokemonAndOwner(state, pokemon.id).owner;
+
+                let switchInMessage;
+                isAllyPokemon(pokemon.id) ? switchInMessage = `Go ${pokemon.name}!` : switchInMessage = `${owner?.name} has sent out ${pokemon.name}!`;
+                timeLine.fromTo(messageBox.current, { text: "" }, {
+                    delay: defaultDelayTime, duration: messageAnimationTime, text: switchInMessage, ease: "none",
+                    onComplete: () => {
+                        dispatch({
+                            type: 'switch-in',
+                            id: pokemon.id
+                        });
+                    }
+                });
+
+                if (isAllyPokemon(pokemon.id)) {
+                    //left: 40px is the default place for the pokemon.
+                    timeLine.fromTo(allyPokemonImage.current, { top: "151px", left: "-150px" }, { delay: defaultDelayTime, left: "40px", opacity: 1, duration: defaultAnimationTime, immediateRender: false })
+                }
+                else {
+                    timeLine.fromTo(enemyPokemonImage.current, { top: "100px", left: "350px" }, { delay: defaultDelayTime, left: "240px", opacity: 1, duration: defaultAnimationTime, immediateRender: false })
+                }
+                break;
+            }
+            case BattleEventType.SwitchOut: {
+
+                const pokemon = getPokemonById(effect.switchOutPokemonId);
+                const owner = getPokemonAndOwner(state, pokemon.id).owner;
+
+                let switchOutMessage;
+                isAllyPokemon(pokemon.id) ? switchOutMessage = `Enough ${pokemon.name}, come back!` : switchOutMessage = `${owner?.name} has returned ${pokemon.name}!`;
+                timeLine.fromTo(messageBox.current, { text: "" }, {
+                    delay: defaultDelayTime, duration: messageAnimationTime, text: switchOutMessage, ease: "none"
+                });
+
+                if (isAllyPokemon(pokemon.id)) {
+                    //left: 40px is the default place for the pokemon.
+                    timeLine.fromTo(allyPokemonImage.current, { left: "40px" }, { delay: defaultDelayTime, left: "-150px", duration: defaultAnimationTime, immediateRender: false })
+                }
+                else {
+                    timeLine.fromTo(enemyPokemonImage.current, { left: "350px" }, { delay: defaultDelayTime, left: "240px", duration: defaultAnimationTime, immediateRender: false })
+                }
+
+                break;
+            }
+            case BattleEventType.UseMove: {
+                const pokemon = getPokemonById(effect.userId);
+                animateMessage(`${pokemon.name} used ${effect.moveName}`);
+
+                if (!effect.didMoveHit) {
+                    animateMessage('But it missed');
+
+                    return;
+                }
+                if (isAllyPokemon(effect.userId)) {
+                    timeLine.to(allyPokemonImage.current, { delay: defaultDelayTime, left: "60px", duration: attackAnimationTime })
+                    timeLine.to(allyPokemonImage.current, { left: "40px", duration: attackAnimationTime })
+                }
+                else {
+                    timeLine.to(enemyPokemonImage.current, { delay: defaultDelayTime, left: "220px", duration: attackAnimationTime })
+                    timeLine.to(enemyPokemonImage.current, { left: "240px", duration: attackAnimationTime })
+                }
+                break;
+            }
+            case BattleEventType.Damage: {
+                //when this is made on a switch out, the ally pokemon is the original pokemon
+
+                let pokemonNode;
+                isAllyPokemon(effect.targetPokemonId) ? pokemonNode = allyPokemonImage.current : pokemonNode = enemyPokemonImage.current;
+
+                let pokemonObj;
+                isAllyPokemon(effect.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon();
+
+                //Pokemon damaged animation
+                timeLine.to(pokemonNode, { delay: defaultDelayTime, filter: "brightness(50)", duration: damageAnimationTime });
+                timeLine.to(pokemonNode, { filter: "brightness(1)", duration: damageAnimationTime });
+                timeLine.to(
+                    pokemonObj.currentStats, {
+                    health: effect.targetFinalHealth,
+                    duration: healthAnimationTime,
+                    onUpdate: (val) => {
+                        dispatch({
+                            type: 'health-change',
+                            id: val.id,
+                            newHealth: val.currentStats.health
+                        });
+                    },
+                    onUpdateParams: [pokemonObj]
+                });
+                if (effect.didCritical) {
+                    animateMessage("It was a critical hit");
+                }
+                if (effect.effectivenessAmt > 1.0) {
+                    animateMessage("It was super effective");
+                }
+                if (effect.effectivenessAmt < 1.0) {
+                    animateMessage("It wasn't very effective");
+                }
+                break;
+            }
+
+        }
+        //add 1 second of padding.
         timeLine.set({}, {}, "+=0.5");
         timeLine.play();
         return;
 
-    }, [onEndOfTurnLog, turnLog,eventIndex]);
+    }, [onEndOfTurnLog, turnLog, eventIndex]);
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
@@ -537,10 +537,6 @@ function Battle() {
             }
         }
     }
-
-
-
-
 
     return (
         <div className="App">

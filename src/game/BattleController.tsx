@@ -262,7 +262,7 @@ export class Turn {
 
         //game over check.
         if (owner.pokemon.filter(poke => poke.currentStats.health > 0).length === 0) {
-            const winningPlayer = this.players.filter(player => player.id != owner.id)[0];
+            const winningPlayer = this.players.filter(player => player.id !== owner.id)[0];
             this.currentState = {
                 type: 'game-over',
                 winningPlayerId: winningPlayer.id
@@ -441,7 +441,7 @@ export class Turn {
             }
 
             //go to the next state
-            if (startStep.next != undefined) {
+            if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
             }
         }
@@ -696,7 +696,7 @@ export class Turn {
     }
     private GetPokemonOwner(pokemon: Pokemon) {
         const owner = this.players.filter(player => {
-            return player.pokemon.find(poke => poke.id === pokemon.id) != undefined
+            return player.pokemon.find(poke => poke.id === pokemon.id) !== undefined
         })[0];
 
         if (owner === undefined) {

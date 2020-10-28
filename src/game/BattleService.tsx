@@ -125,7 +125,7 @@ class BattleService {
         if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action' && this.GetCurrentTurn().faintedPokemonPlayers.filter(p => p.id === player2.id).length > 0) {
             const unfaintedPokemon = player2.pokemon.filter(poke => poke.currentStats.health !== 0)[0];
 
-            if (unfaintedPokemon != undefined) {
+            if (unfaintedPokemon !== undefined) {
                 const switchPokemonAction: SwitchPokemonAction = {
                     playerId: player2.id,
                     type: 'switch-pokemon-action',
