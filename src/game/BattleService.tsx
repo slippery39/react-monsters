@@ -6,6 +6,7 @@ import _, { shuffle } from 'lodash';
 
 import { GetActivePokemon, GetPercentageHealth } from "./HelperFunctions"
 import { PlayerBuilder } from "./PlayerBuilder";
+import {TypedEvent} from "./TypedEvent/TypedEvent";
 
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>
@@ -20,11 +21,17 @@ export interface OnStateChangeArgs {
 }
 
 
+
+
 class BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
     turns: Array<Turn> = [];
     turnIndex = 0;
+
+    onNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
+
+
     OnNewTurnLog: (args: OnNewTurnLogArgs) => void = (args) => { };
 
     //mainly for debug purposes
@@ -137,14 +144,20 @@ class BattleService {
             return;
         }
         if (this.OnNewTurnLog !== undefined) {
+
+            const args =     {
+                currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
+                newState: this.GetPlayers(),
+                winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
+                currentTurnState: this.GetCurrentTurn().currentState.type,
+                waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
+            }
+
+            this.onNewTurnLog.emit(args);
+
+            //keeping the old one in for now.
             this.OnNewTurnLog(
-                {
-                    currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
-                    newState: this.GetPlayers(),
-                    winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
-                    currentTurnState: this.GetCurrentTurn().currentState.type,
-                    waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
-                }
+                args
             );
         }
     }
@@ -168,6 +181,18 @@ class BattleService {
         }
 
         if (this.OnNewTurnLog !== undefined) {
+
+            
+            const args =     {
+                currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
+                newState: this.GetPlayers(),
+                winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
+                currentTurnState: this.GetCurrentTurn().currentState.type,
+                waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
+            }
+
+            this.onNewTurnLog.emit(args);
+/*
             this.OnNewTurnLog(
                 {
                     currentTurnLog: newTurnLog,
@@ -177,6 +202,7 @@ class BattleService {
                     waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id) //after the ui goes through the turn log, it should use this get prompt type to determine what screen we should show.
                 }
             );
+            */
         }
     }
     SetPlayerAction(action: BattleAction) {
