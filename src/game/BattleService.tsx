@@ -5,7 +5,6 @@ import { Player, Status } from "./interfaces";
 import _, { shuffle } from 'lodash';
 
 import { GetActivePokemon, GetPercentageHealth } from "./HelperFunctions"
-import { PlayerBuilder } from "./PlayerBuilder";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 
 export interface OnNewTurnLogArgs {
@@ -32,31 +31,8 @@ class BattleService {
     onNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
     onStateChange = new TypedEvent<OnStateChangeArgs>();
 
-    constructor() {
-
-        const player1: Player = new PlayerBuilder(1)
-            .WithName("Shayne")
-            .WithPokemon("venusaur")
-            .WithPokemon("charizard")
-            .WithItem("Potion", 1)
-            .WithItem("Super Potion", 2)
-            .WithItem("Hyper Potion", 3)
-            .WithItem("Max Potion", 1)
-            .Build();
-
-        const player2: Player = new PlayerBuilder(2)
-            .WithName("Bob")
-            .WithPokemon("blastoise")
-            .WithPokemon("venusaur")
-            .WithPokemon("charizard")
-            .WithItem("Potion", 1)
-            .WithItem("Super Potion", 2)
-            .WithItem("Hyper Potion", 3)
-            .WithItem("Max Potion", 1)
-            .Build();
-
-
-        this.turns.push(new Turn(1, [player1, player2]))
+    constructor(player1:Player,player2:Player) {
+         this.turns.push(new Turn(1, [player1, player2]))
     }
     GetCurrentTurn() {
         return this.turns[this.turnIndex];

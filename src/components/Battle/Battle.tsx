@@ -24,6 +24,7 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEventType } from '../../game/BattleEvents'
+import { PlayerBuilder } from '../../game/PlayerBuilder';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -53,7 +54,30 @@ type Action = {
     newStatus?: Status
 }
 
-let battleService = new BattleService();
+const player1: Player = new PlayerBuilder(1)
+    .WithName("Shayne")
+    .WithPokemon("venusaur")
+    .WithPokemon("charizard")
+    .WithPokemon("blastoise")
+    .WithItem("Potion", 1)
+    .WithItem("Super Potion", 2)
+    .WithItem("Hyper Potion", 3)
+    .WithItem("Max Potion", 1)
+    .Build();
+
+const player2: Player = new PlayerBuilder(2)
+    .WithName("Bob")
+    .WithPokemon("blastoise")
+    .WithPokemon("venusaur")
+    .WithPokemon("charizard")
+    .WithItem("Potion", 1)
+    .WithItem("Super Potion", 2)
+    .WithItem("Hyper Potion", 3)
+    .WithItem("Max Potion", 1)
+    .Build();
+
+
+let battleService = new BattleService(player1, player2);
 
 const initialState: State = {
     players: battleService.GetPlayers()
