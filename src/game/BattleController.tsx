@@ -128,19 +128,13 @@ export class Turn {
 
         //apply poison damage
         activePokemon.forEach(pokemon => {
-            if (pokemon.status === Status.Poison) {
-                //apply poison damage
-                //poison damage is 1/16 of the pokemons max hp
-                const maxHp = pokemon.originalStats.health;
-                const poisonDamage = Math.ceil(maxHp / 8);
-                pokemon.currentStats.health -= poisonDamage;
 
-                const poisonMessage: GenericMessageEvent = {
-                    type: BattleEventType.GenericMessage,
-                    defaultMessage: `${pokemon.name} is hurt by poison`
+            if (pokemon.status === Status.Poison || pokemon.status === Status.Paralyzed){
+                //this is really ugly, maybe just using a base class is better.
+                const hardStatus = GetHardStatus(pokemon.status);
+                if (hardStatus.EndOfTurn!=undefined){
+                    hardStatus.EndOfTurn(this,pokemon);
                 }
-                this.AddEvent(poisonMessage);
-                this.ApplyDamage(pokemon, poisonDamage, {})
             }
             else if (pokemon.status === Status.Burned) {
                 const maxHp = pokemon.originalStats.health;
@@ -160,8 +154,17 @@ export class Turn {
         //by default we assume the pokemon will be able to attack unless determined otherwise.
         pokemon.canAttackThisTurn = true;
 
-        if (pokemon.status === Status.Paralyzed) {
-            GetHardStatus(Status.Paralyzed)?.BeforeAttack(this,pokemon);
+
+
+        if (pokemon.status === Status.Paralyzed || pokemon.status === Status.Poison) {
+
+            const hardStatus = GetHardStatus(pokemon.status);
+
+            //this is really ugly, maybe just using a base class is better.
+            if (hardStatus.BeforeAttack!=undefined){
+                hardStatus.BeforeAttack(this,pokemon);
+            }
+
         }
         else if (pokemon.status === Status.Sleep) {
 
@@ -262,7 +265,7 @@ export class Turn {
         }
     }
 
-    private ApplyDamage(pokemon: Pokemon, damage: number, damageInfo: any) {
+    ApplyDamage(pokemon: Pokemon, damage: number, damageInfo: any) {
 
         pokemon.currentStats.health -= damage
         pokemon.currentStats.health = Math.max(0, pokemon.currentStats.health);
