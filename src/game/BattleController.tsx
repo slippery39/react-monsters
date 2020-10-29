@@ -1,9 +1,8 @@
 import { Pokemon, Player, Technique, Status, ElementType } from './interfaces';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, CannotAttackEvent, StatusChangeEvent, GenericMessageEvent, BattleEvent } from "./BattleEvents";
+import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
-import { HasElementType } from './HelperFunctions';
 import GetHardStatus from './HardStatus/HardStatus';
 
 
@@ -120,103 +119,27 @@ export class Turn {
     }
 
     private BeforeEndOfTurn() {
-        //end of turn order is just the order of the players.
-        //apply poison
-
-        //Get both active pokemon.
         const activePokemon = this.players.map(player => this.GetActivePokemon(player.id));
 
-        //apply poison damage
         activePokemon.forEach(pokemon => {
-
-            if (pokemon.status === Status.Poison || pokemon.status === Status.Paralyzed){
-                //this is really ugly, maybe just using a base class is better.
-                const hardStatus = GetHardStatus(pokemon.status);
-                if (hardStatus.EndOfTurn!=undefined){
+                const hardStatus = GetHardStatus(pokemon.status || Status.None);
+                if (hardStatus.EndOfTurn!==undefined){
                     hardStatus.EndOfTurn(this,pokemon);
                 }
-            }
-            else if (pokemon.status === Status.Burned) {
-                const maxHp = pokemon.originalStats.health;
-                const burnDamage = Math.ceil(maxHp / 8);
-                const burnMessage: GenericMessageEvent = {
-                    type: BattleEventType.GenericMessage,
-                    defaultMessage: `${pokemon.name} is hurt by its burn`
-                }
-                this.AddEvent(burnMessage);
-                this.ApplyDamage(pokemon, burnDamage, {});
-            }
         })
     }
 
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
     private BeforeAttack(pokemon: Pokemon) {
-        //by default we assume the pokemon will be able to attack unless determined otherwise.
-        pokemon.canAttackThisTurn = true;
+            pokemon.canAttackThisTurn = true;
 
+            const hardStatus = GetHardStatus(pokemon.status || Status.None);
 
-
-        if (pokemon.status === Status.Paralyzed || pokemon.status === Status.Poison) {
-
-            const hardStatus = GetHardStatus(pokemon.status);
-
-            //this is really ugly, maybe just using a base class is better.
-            if (hardStatus.BeforeAttack!=undefined){
+            if (hardStatus.BeforeAttack!==undefined){
                 hardStatus.BeforeAttack(this,pokemon);
             }
-
-        }
-        else if (pokemon.status === Status.Sleep) {
-
-            const wakeUpChance = 40;
-            const isAsleepEffect: GenericMessageEvent = {
-                type: BattleEventType.GenericMessage,
-                defaultMessage: `${pokemon.name} is sleeping!`
-            }
-            this.AddEvent(isAsleepEffect);
-            if (this.Roll(wakeUpChance)) {
-                //Pokemon Wakes Up
-                pokemon.status = Status.None;
-
-                const wakeupEffect: StatusChangeEvent = {
-                    type: BattleEventType.StatusChange,
-                    targetPokemonId: pokemon.id,
-                    status: Status.None,
-                    defaultMessage: `${pokemon.name} has woken up!`
-                }
-                this.AddEvent(wakeupEffect);
-                return;
-            }
-            else {
-                pokemon.canAttackThisTurn = false;
-                return;
-            }
-        }
-        else if (pokemon.status === Status.Frozen) {
-            const thawChance = 25;
-            const isFrozenEffect: GenericMessageEvent = {
-                type: BattleEventType.GenericMessage,
-                defaultMessage: `${pokemon.name} is frozen!`
-            }
-            this.AddEvent(isFrozenEffect);
-
-            if (this.Roll(thawChance)) {
-                //Pokemon Wakes Up
-                pokemon.status = Status.None;
-
-                const thawEffect: StatusChangeEvent = {
-                    type: BattleEventType.StatusChange,
-                    targetPokemonId: pokemon.id,
-                    status: Status.None,
-                    defaultMessage: `${pokemon.name} is not frozen anymore!`
-                }
-                this.AddEvent(thawEffect);
-            }
-            else {
-                pokemon.canAttackThisTurn = false;
-            }
-        }
     }
+       
     private DoAction(action: BattleAction) {
         switch (action.type) {
             case 'switch-pokemon-action': {
@@ -560,6 +483,7 @@ export class Turn {
                 On Frozen Pokemon Damaged by Fire Move
                     -UNTHAW THE POKEMON
             */
+            //move this into 
             if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
                 defendingPokemon.status = Status.None;
                 const thawEffect: StatusChangeEvent = {
@@ -600,20 +524,11 @@ export class Turn {
                         return;
                     }
 
-                    //Cannot inflict paralyze status on electric type pokemon.
-                    if (effect.status === Status.Paralyzed && !GetHardStatus(Status.Paralyzed).CanApply(this,defendingPokemon)){
-                        return;
-                    }
-                    //Cannot inflict status on fire type pokemon
-                    if (effect.status === Status.Burned && HasElementType(defendingPokemon, ElementType.Fire)) {
-                        return;
-                    }
-                    //Cannot inflict frozen status on ice type pokemon
-                    if (effect.status === Status.Frozen && HasElementType(defendingPokemon, ElementType.Ice)) {
-                        return;
-                    }
-                    if (effect.status === Status.Poison && HasElementType(defendingPokemon, ElementType.Poison)) {
-                        return;
+                    const hardStatus = GetHardStatus(effect.status);
+                    if (hardStatus.CanApply){
+                        if (!hardStatus.CanApply()){
+                            return;
+                        }
                     }
 
                     targetPokemon.status = effect.status;
@@ -737,6 +652,4 @@ export class Turn {
         return this._moveOrder;
 
     }
-
-
 };
