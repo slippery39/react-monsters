@@ -598,7 +598,7 @@ export class Turn {
                     }
 
                     //Cannot inflict paralyze status on electric type pokemon.
-                    if (effect.status === Status.Paralyzed && HasElementType(defendingPokemon, ElementType.Electric)) {
+                    if (effect.status === Status.Paralyzed && !GetHardStatus(Status.Paralyzed).CanApply(this,defendingPokemon)){
                         return;
                     }
                     //Cannot inflict status on fire type pokemon
