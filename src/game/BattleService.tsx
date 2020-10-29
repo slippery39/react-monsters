@@ -6,7 +6,7 @@ import _, { shuffle } from 'lodash';
 
 import { GetActivePokemon, GetPercentageHealth } from "./HelperFunctions"
 import { PlayerBuilder } from "./PlayerBuilder";
-import {TypedEvent} from "./TypedEvent/TypedEvent";
+import { TypedEvent } from "./TypedEvent/TypedEvent";
 
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>
@@ -30,12 +30,7 @@ class BattleService {
     turnIndex = 0;
 
     onNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
-
-
-    OnNewTurnLog: (args: OnNewTurnLogArgs) => void = (args) => { };
-
-    //mainly for debug purposes
-    OnStateChange: (args: OnStateChangeArgs) => void = (args) => { };
+    onStateChange = new TypedEvent<OnStateChangeArgs>();
 
     constructor() {
 
@@ -73,7 +68,7 @@ class BattleService {
     //For testing purposes only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
         this.GetCurrentTurn().SetStatusOfPokemon(pokemonId, status);
-        this.OnStateChange({ newState: this.GetCurrentTurn().players });
+        this.onStateChange.emit({newState:this.GetCurrentTurn().players});
     }
 
     GetAllyPlayer() {
@@ -100,7 +95,6 @@ class BattleService {
             /*
                 use a potion on their pokemon instead of attacking
             */
-
             const itemToUse = shuffle(player2.items)[0].id;
 
             const action: UseItemAction = {
@@ -113,9 +107,6 @@ class BattleService {
 
         }
         else {
-            //use an attack
-
-
 
             const moveId2 = player2.pokemon.find(p => p.id === player2.currentPokemonId)?.techniques[0].id || -1;
             const player2Action: UseMoveAction = {
@@ -143,23 +134,17 @@ class BattleService {
             //no need to return an new turn log yet, since we will still be adding to it.
             return;
         }
-        if (this.OnNewTurnLog !== undefined) {
 
-            const args =     {
-                currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
-                newState: this.GetPlayers(),
-                winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
-                currentTurnState: this.GetCurrentTurn().currentState.type,
-                waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
-            }
-
-            this.onNewTurnLog.emit(args);
-
-            //keeping the old one in for now.
-            this.OnNewTurnLog(
-                args
-            );
+        const args = {
+            currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
+            newState: this.GetPlayers(),
+            winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
+            currentTurnState: this.GetCurrentTurn().currentState.type,
+            waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
         }
+
+        this.onNewTurnLog.emit(args);
+
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
 
@@ -180,30 +165,16 @@ class BattleService {
             });
         }
 
-        if (this.OnNewTurnLog !== undefined) {
-
-            
-            const args =     {
-                currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
-                newState: this.GetPlayers(),
-                winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
-                currentTurnState: this.GetCurrentTurn().currentState.type,
-                waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
-            }
-
-            this.onNewTurnLog.emit(args);
-/*
-            this.OnNewTurnLog(
-                {
-                    currentTurnLog: newTurnLog,
-                    newState: this.GetPlayers(),
-                    currentTurnState: this.GetCurrentTurn().currentState.type,
-                    winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
-                    waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id) //after the ui goes through the turn log, it should use this get prompt type to determine what screen we should show.
-                }
-            );
-            */
+        const args = {
+            currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
+            newState: this.GetPlayers(),
+            winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
+            currentTurnState: this.GetCurrentTurn().currentState.type,
+            waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
         }
+
+        this.onNewTurnLog.emit(args);
+
     }
     SetPlayerAction(action: BattleAction) {
 

@@ -156,21 +156,22 @@ function Battle() {
     const allyPotionNode = useRef(null);
     const enemyPotionNode = useRef(null);
 
-    useEffect(()=>{
+    useEffect(() => {
 
-   battleService.onNewTurnLog.on(args=>{
-    setTurnLog(args);
-    setMenuState(MenuState.ShowingTurn);
-   });
-    battleService.OnStateChange = (args: OnStateChangeArgs) => {
-        dispatch({
-            id: 0,
-            type: 'state-change',
-            newState: _.cloneDeep(args.newState)
-        })
-    }
+        battleService.onNewTurnLog.on(args => {
+            setTurnLog(args);
+            setMenuState(MenuState.ShowingTurn);
+        });
 
-},[]);
+        battleService.onStateChange.on(args => {
+            dispatch({
+                id: 0,
+                type: 'state-change',
+                newState: _.cloneDeep(args.newState)
+            })
+        });
+
+    }, []);
 
     function isAllyPokemon(id: number): boolean {
         return state.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
@@ -197,7 +198,7 @@ function Battle() {
     //this is only used once
     const onEndOfTurnLog = useCallback(() => {
 
-        
+
 
         if (turnLog === undefined) {
             return;
