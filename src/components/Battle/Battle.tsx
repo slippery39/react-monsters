@@ -25,6 +25,7 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEventType } from '../../game/BattleEvents'
 import { PlayerBuilder } from '../../game/PlayerBuilder';
+import BasicAI from '../../game/AI/AI';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -78,6 +79,19 @@ const player2: Player = new PlayerBuilder(2)
 
 
 let battleService = new BattleService(player1, player2);
+
+let AIBrain = new BasicAI(player2,battleService);
+
+battleService.OnNewTurn.on((arg)=>{
+    console.log('action has been chosen for ai');
+    AIBrain.ChooseAction();
+})
+battleService.OnSwitchNeeded.on((arg)=>{
+    console.log('fainted pokemon has been switched out for ai');
+    AIBrain.ChooseFaintedPokemonSwitch();
+})
+
+battleService.Start();
 
 const initialState: State = {
     players: battleService.GetPlayers()
@@ -241,7 +255,8 @@ function Battle() {
             setWinningPlayer(turnLogCopy.winningPlayerId);
             setMenuState(MenuState.GameOver)
         }
-        else if (turnLog.currentTurnState === 'awaiting-switch-action') {
+        else if (turnLog.currentTurnState === 'awaiting-switch-action' && turnLog.waitingForSwitchIds.filter(id=>id===1).length>0) {
+            //should check to see if it is our pokemon
             setMenuState(MenuState.FaintedSwitchMenu);
         }
         //Perhaps this should happen all the time no matter what
@@ -588,7 +603,7 @@ function Battle() {
                         {menuState !== MenuState.ShowingTurn && <Message writeTimeMilliseconds={500} animated={true} message={`${GetMenuMessage()}`} />}
                         {menuState === MenuState.ShowingTurn && <Message
                             animated={false}
-                            message={"banans"}
+                            message={""}
                             messageRef={el => { messageBox.current = el; }} />}
                     </div>
                 </div>
