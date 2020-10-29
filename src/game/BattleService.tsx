@@ -108,8 +108,6 @@ class BattleService {
         else {
             //use an attack
 
-
-
             const moveId2 = player2.pokemon.find(p => p.id === player2.currentPokemonId)?.techniques[0].id || -1;
             const player2Action: UseMoveAction = {
                 type: 'use-move-action',

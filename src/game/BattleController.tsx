@@ -537,6 +537,7 @@ export class Turn {
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
+
         this.ApplyDamage(defendingPokemon, totalDamage, damageModifierInfo);
     }
 
