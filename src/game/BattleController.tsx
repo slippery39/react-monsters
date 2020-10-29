@@ -1,9 +1,10 @@
 import { Pokemon, Player, Technique, Status, ElementType } from './interfaces';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, CannotAttackEvent, StatusChangeEvent, GenericMessageEvent,BattleEvent } from "./BattleEvents";
+import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, CannotAttackEvent, StatusChangeEvent, GenericMessageEvent, BattleEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import { HasElementType } from './HelperFunctions';
+import GetHardStatus from './HardStatus/HardStatus';
 
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
@@ -77,8 +78,6 @@ export class Turn {
         if (actionExistsForPlayer.length === 0) {
             this.initialActions.push(action);
         }
-
-        console.log(this.initialActions);
         if (this.initialActions.length === 2) {
             this.currentState = {
                 type: 'calculating-turn'
@@ -162,20 +161,7 @@ export class Turn {
         pokemon.canAttackThisTurn = true;
 
         if (pokemon.status === Status.Paralyzed) {
-            const paralyzeChance = 25;
-
-            if (this.Roll(paralyzeChance)) {
-                const cantAttackEffect: CannotAttackEvent = {
-                    type: BattleEventType.CantAttack,
-                    targetPokemonId: pokemon.id,
-                    reason: Status.Paralyzed
-                }
-                this.AddEvent(cantAttackEffect);
-                pokemon.canAttackThisTurn = false;
-                return;
-            }
-            //chance to not move
-            //add the event to the log if applicable
+            GetHardStatus(Status.Paralyzed)?.BeforeAttack(this,pokemon);
         }
         else if (pokemon.status === Status.Sleep) {
 
@@ -214,7 +200,7 @@ export class Turn {
             if (this.Roll(thawChance)) {
                 //Pokemon Wakes Up
                 pokemon.status = Status.None;
-                
+
                 const thawEffect: StatusChangeEvent = {
                     type: BattleEventType.StatusChange,
                     targetPokemonId: pokemon.id,
@@ -573,7 +559,7 @@ export class Turn {
             */
             if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
                 defendingPokemon.status = Status.None;
-                 const thawEffect: StatusChangeEvent = {
+                const thawEffect: StatusChangeEvent = {
                     type: BattleEventType.StatusChange,
                     status: Status.None,
                     targetPokemonId: defendingPokemon.id,
@@ -653,6 +639,14 @@ export class Turn {
             type: 'turn-finished'
         }
     }
+    //move this out
+    public Roll(chance: number): boolean {
+        const randomChance = this.GetRandomChance();
+        if (chance >= 100) {
+            return true;
+        }
+        return chance >= randomChance;
+    }
 
     /*
         PRIVATE INTERNAL METHODS
@@ -660,16 +654,11 @@ export class Turn {
     private GetRandomChance(): number {
         return Math.round(Math.random() * 100);
     }
-    //Sees if you a random chance is successful
-
-    //move this out
-    private Roll(chance: number): boolean {
-        const randomChance = this.GetRandomChance();
-        if (chance >= 100) {
-            return true;
-        }
-        return chance >= randomChance;
+    public AddEvent(effect: BattleEvent) {
+        effect.id = this.eventNum++;
+        this.turnLog.push(effect);
     }
+    //Sees if you a random chance is successful
 
     private GetPlayer(playerId: number): Player {
         const player = this.players.find(player => player.id === playerId);
@@ -745,9 +734,6 @@ export class Turn {
         return this._moveOrder;
 
     }
-    private AddEvent(effect : BattleEvent){
-        effect.id = this.eventNum++;
-        this.turnLog.push(effect);
-    }
+
 
 };
