@@ -22,7 +22,6 @@ enum BattleStepState {
 
 interface State {
     type: TurnState,
-    playerId?: number, //depreciated
     faintedPlayerIds?: Array<number>,
     nextState?: TurnState,
     winningPlayerId?: number
@@ -61,7 +60,6 @@ export class Turn {
         this.AutoAssignPokemonIds();
         this.AutoAssignCurrentPokemonIds();
         this.AutoAssignItemIds();
-
 
         //this controls some logic in the turn.
         this._activePokemonIdAtStart1 = players[0].currentPokemonId;
@@ -365,23 +363,12 @@ export class Turn {
         const pokemon = player?.pokemon.find(p => p.id === pokemonInId);
         const switchOutPokemonId = player?.currentPokemonId;
 
-
         if (player === undefined || pokemon === undefined) {
             console.error('error in switching pokemon');
             //should never get to this point?
             return;
         }
-        //current pokemon position is 0
-        //find the pokemon to switch in position
-        const switchInPokemonPos = player.pokemon.indexOf(player.pokemon.find(p => p.id === pokemonInId)!);
-        let pokemonArrCopy = player.pokemon.slice();
-
-        //i don't think we actualy want to switch the pokemon position anymore?
-        pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
-        pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
-
-        player.pokemon = pokemonArrCopy;
-        player.currentPokemonId = pokemonArrCopy[0].id;
+        player.currentPokemonId = pokemonInId;
 
         const switchOutEffect: SwitchOutEvent = {
             type: BattleEventType.SwitchOut,
@@ -508,6 +495,7 @@ export class Turn {
         this.ApplyMoveEffects(move, pokemon, defendingPokemon);
     }
 
+    //Possible that this should just be "apply effects" and opperates on any array of effects
     private ApplyMoveEffects(move: Technique, pokemon: Pokemon, defendingPokemon: Pokemon): void {
         if (!move.effects) {
             return;
