@@ -1,8 +1,8 @@
 import React from 'react';
-import BattleService from '../../game/Battle';
-import { ElementType, Player, Pokemon, Status } from '../../game/interfaces';
-import ElementIcon from '../ElementIcon/ElementIcon';
-import {GetActivePokemon} from '../../game/HelperFunctions';
+import BattleService from 'game/Battle';
+import { ElementType, Player, Pokemon, Status } from 'game/interfaces';
+import ElementIcon from 'components/ElementIcon/ElementIcon';
+import {GetActivePokemon} from 'game/HelperFunctions';
 import './Debug.css'
 
 

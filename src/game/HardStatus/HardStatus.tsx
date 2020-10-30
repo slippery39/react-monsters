@@ -1,7 +1,7 @@
-import { Turn } from "../Turn";
-import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEvent } from "../BattleEvents";
-import { HasElementType } from "../HelperFunctions";
-import { ElementType, Pokemon, Status } from "../interfaces";
+import { Turn } from "game/Turn";
+import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEvent } from "game/BattleEvents";
+import { HasElementType } from "game/HelperFunctions";
+import { ElementType, Pokemon, Status } from "game/interfaces";
 
 export interface IBeforeAttack {
     BeforeAttack: (turn: Turn, pokemon: Pokemon) => void

@@ -1,9 +1,9 @@
 import React from 'react';
 import './BattleHealthDisplay.css';
-import AnimatedHealthBar from '../AnimatedHealthBar/AnimatedHealthBar';
-import AnimatedNumber from "../AnimatedNumber/AnimatedNumber";
-import PokemonStatus from "../PokemonStatus/PokemonStatus";
-import { Pokemon } from '../../game/interfaces';
+import AnimatedHealthBar from 'components/AnimatedHealthBar/AnimatedHealthBar';
+import AnimatedNumber from "components/AnimatedNumber/AnimatedNumber";
+import PokemonStatus from "components/PokemonStatus/PokemonStatus";
+import { Pokemon } from 'game/interfaces';
 
 interface Props {
     pokemon: Pokemon

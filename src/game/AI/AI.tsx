@@ -1,9 +1,8 @@
 import { shuffle } from "lodash";
-import { servicesVersion } from "typescript";
-import { SwitchPokemonAction, UseItemAction, UseMoveAction } from "../BattleActions";
-import BattleService from "../Battle";
-import { GetActivePokemon, GetPercentageHealth } from "../HelperFunctions";
-import { Player } from "../interfaces";
+import { SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
+import BattleService from "game/Battle";
+import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
+import { Player } from "game/interfaces";
 
 interface AI {
     ChooseAction: () => void

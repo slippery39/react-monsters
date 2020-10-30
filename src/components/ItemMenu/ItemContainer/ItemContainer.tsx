@@ -1,6 +1,6 @@
 import React from 'react';
 import './ItemContainer.css'
-import { Item } from '../../../game/interfaces';
+import { Item } from 'game/interfaces';
 
 interface Props {
     item:Item

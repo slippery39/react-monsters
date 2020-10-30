@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Item } from '../../game/interfaces';
+import { Item } from 'game/interfaces';
 import './ItemMenu.css'
 import ItemMenuTabs, { ItemTabName } from './ItemMenuTabs/ItemMenuTabs';
 import ItemContainer from "./ItemContainer/ItemContainer"

@@ -1,5 +1,5 @@
 import React from 'react';
-import images from "../../pokemonimages";
+import images from "pokemonimages";
 
 interface Props {
     name:string,

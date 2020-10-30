@@ -1,7 +1,7 @@
 import React from 'react'
-import { Pokemon } from '../../game/interfaces';
-import BattleHealthDisplay from '../BattleHealthDisplay/BattleHealthDisplay';
-import PokemonImage from '../PokemonImage/PokemonImage';
+import { Pokemon } from 'game/interfaces';
+import BattleHealthDisplay from 'components/BattleHealthDisplay/BattleHealthDisplay';
+import PokemonImage from 'components/PokemonImage/PokemonImage';
 import "./BattlePokemonDisplay.css";
 
 export enum OwnerType {

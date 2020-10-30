@@ -1,6 +1,6 @@
 import React from 'react';
 import './ElementIcon.css'
-import {ElementType} from '../../game/interfaces';
+import {ElementType} from 'game/interfaces';
 
 
 

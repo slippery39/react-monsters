@@ -138,7 +138,7 @@ class BattleService {
         }
 
         const args = {
-            currentTurnLog: this.GetCurrentTurn().GetEventLog(),
+            currentTurnLog: newTurnLog,
             newState: this.GetPlayers(),
             winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
             currentTurnState: this.GetCurrentTurn().currentState.type,

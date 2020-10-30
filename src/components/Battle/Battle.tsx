@@ -77,8 +77,8 @@ const player2: Player = new PlayerBuilder(2)
 
 
 let battleService = new BattleService(player1, player2);
-//not used, but we need to initialize. the ai is designed to automatically respond to events happening in the battle service.
-let computerPlayer = new BasicAI(player2, battleService);
+//not referenced, but we need to initialize. the ai is designed to automatically respond to events happening in the battle service.
+new BasicAI(player2, battleService);
 battleService.Start();
 
 const initialState: State = {
@@ -175,6 +175,7 @@ function Battle() {
     const allyPotionNode = useRef(null);
     const enemyPotionNode = useRef(null);
 
+    /* eslint-disable */
     useEffect(() => {
 
         battleService.onNewTurnLog.on(args => {
@@ -192,6 +193,7 @@ function Battle() {
         });
 
     }, []);
+    /* eslint-enable */
 
     function isAllyPokemon(id: number): boolean {
         return state.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
