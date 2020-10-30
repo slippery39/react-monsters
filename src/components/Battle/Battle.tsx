@@ -84,11 +84,9 @@ let battleService = new BattleService(player1, player2);
 let AIBrain = new BasicAI(player2,battleService);
 
 battleService.OnNewTurn.on((arg)=>{
-    console.log('action has been chosen for ai');
     AIBrain.ChooseAction();
 })
 battleService.OnSwitchNeeded.on((arg)=>{
-    console.log('fainted pokemon has been switched out for ai');
     AIBrain.ChooseFaintedPokemonSwitch();
 })
 
@@ -132,15 +130,11 @@ function Battle() {
         switch (action.type) {
             //for syncing the state with the server.
             case 'state-change': {
-
-                console.log('state change happening?');
-                console.log(action.newState);
                 return { players: action.newState! };
             }
             case 'health-change': {
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (action.newHealth === undefined) {
-                    console.error('new health is needed for health change event');
                     return state;
                 }
                 pokemonData.pokemon.currentStats.health = action.newHealth;
@@ -324,7 +318,12 @@ function Battle() {
         //we need to delay these calls because the state needs to update per animation.
         const effect = turnLog.currentTurnLog[eventIndex];
 
+        console.warn('entering animation sequence');
+        console.log(effect);
         switch (effect.type) {
+
+            
+
 
             case BattleEventType.GenericMessage: {
                 animateMessage(effect.defaultMessage);
@@ -467,13 +466,15 @@ function Battle() {
                 break;
             }
             case BattleEventType.UseMove: {
+
+                
                 const pokemon = getPokemonById(effect.userId);
                 animateMessage(`${pokemon.name} used ${effect.moveName}`);
 
                 if (!effect.didMoveHit) {
                     animateMessage('But it missed');
-
-                    return;
+                    break;
+                    
                 }
                 if (isAllyPokemon(effect.userId)) {
                     timeLine.to(allyPokemonImage.current, { delay: defaultDelayTime, left: "60px", duration: attackAnimationTime })
@@ -526,6 +527,8 @@ function Battle() {
         //add 1 second of padding.
         timeLine.set({}, {}, "+=0.5");
         timeLine.play();
+
+        console.warn('animation should be playing at this point');
         return;
 
     }, [onEndOfTurnLog, turnLog, eventIndex]);
@@ -606,7 +609,7 @@ function Battle() {
                         {menuState !== MenuState.ShowingTurn && <Message writeTimeMilliseconds={500} animated={true} message={`${GetMenuMessage()}`} />}
                         {menuState === MenuState.ShowingTurn && <Message
                             animated={false}
-                            message={""}
+                            message={"{}"}
                             messageRef={el => { messageBox.current = el; }} />}
                     </div>
                 </div>
