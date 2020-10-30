@@ -23,7 +23,7 @@ import { TextPlugin } from "gsap/TextPlugin";
 import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
-import { BattleEventType } from '../../game/BattleEvents'
+import { BattleEvent, BattleEventType } from '../../game/BattleEvents'
 import { PlayerBuilder } from '../../game/PlayerBuilder';
 import BasicAI from '../../game/AI/AI';
 import BattleService from '../../game/Battle';
@@ -80,16 +80,8 @@ const player2: Player = new PlayerBuilder(2)
 
 
 let battleService = new BattleService(player1, player2);
-
-let AIBrain = new BasicAI(player2,battleService);
-
-battleService.OnNewTurn.on((arg)=>{
-    AIBrain.ChooseAction();
-})
-battleService.OnSwitchNeeded.on((arg)=>{
-    AIBrain.ChooseFaintedPokemonSwitch();
-})
-
+//not used, but we need to initialize. the ai is designed to automatically respond to events happening in the battle service.
+let computerPlayer = new BasicAI(player2, battleService);
 battleService.Start();
 
 const initialState: State = {
@@ -115,9 +107,6 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
     }
     return { owner: pokemonOwner, pokemon: pokemon }
 }
-
-
-
 
 function Battle() {
 
@@ -173,6 +162,7 @@ function Battle() {
 
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
     const [turnLog, setTurnLog] = useState<OnNewTurnLogArgs | undefined>(undefined);
+    const [newTurnLog, setNewTurnLog] = useState<Array<BattleEvent>>([]);
     const [eventIndex, setEventIndex] = useState<number>(0);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
@@ -193,8 +183,7 @@ function Battle() {
 
         battleService.onNewTurnLog.on(args => {
             setTurnLog(args);
-            console.warn('new event log has been recieved');
-            console.log(args);
+            setNewTurnLog(newTurnLog.concat(_.cloneDeep(args).currentTurnLog));
             setMenuState(MenuState.ShowingTurn);
         });
 
@@ -233,16 +222,9 @@ function Battle() {
     //this is only used once
     const onEndOfTurnLog = useCallback(() => {
 
-
-
         if (turnLog === undefined) {
             return;
         }
-
-
-        console.log('END OF TURN LOG CALLBACK HAS BEEN REACHED');
-        console.log(turnLog);
-        console.log(eventIndex);
 
         const turnLogCopy = turnLog;
         setTurnLog(undefined);
@@ -252,7 +234,7 @@ function Battle() {
             setWinningPlayer(turnLogCopy.winningPlayerId);
             setMenuState(MenuState.GameOver)
         }
-        else if (turnLog.currentTurnState === 'awaiting-switch-action' && turnLog.waitingForSwitchIds.filter(id=>id===1).length>0) {
+        else if (turnLog.currentTurnState === 'awaiting-switch-action' && turnLog.waitingForSwitchIds.filter(id => id === 1).length > 0) {
             //should check to see if it is our pokemon
             setMenuState(MenuState.FaintedSwitchMenu);
         }
@@ -274,7 +256,7 @@ function Battle() {
 
     /* eslint-disable */
     useEffect(() => {
-        if (turnLog === undefined || menuState !== MenuState.ShowingTurn) {
+        if (turnLog === undefined || menuState !== MenuState.ShowingTurn || newTurnLog.length == 0) {
             return;
         }
         if (runningAnimations === true) {
@@ -297,12 +279,16 @@ function Battle() {
         const defaultAnimationTime: number = 0.5;
 
         const nextEvent = () => {
-            if (eventIndex >= turnLog.currentTurnLog.length - 1) {
-                onEndOfTurnLog();
+
+            const copy = newTurnLog.slice();
+            copy.shift();
+            setNewTurnLog(copy);
+
+            if (copy.length === 0) {
+                    onEndOfTurnLog();
             }
-            else {
-                setEventIndex(eventIndex + 1);
-            }
+
+
         }
 
         const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); nextEvent(); } });
@@ -316,13 +302,11 @@ function Battle() {
         }
 
         //we need to delay these calls because the state needs to update per animation.
-        const effect = turnLog.currentTurnLog[eventIndex];
+        const effect = newTurnLog[0]//turnLog.currentTurnLog[eventIndex];
 
-        console.warn('entering animation sequence');
-        console.log(effect);
         switch (effect.type) {
 
-            
+
 
 
             case BattleEventType.GenericMessage: {
@@ -467,14 +451,14 @@ function Battle() {
             }
             case BattleEventType.UseMove: {
 
-                
+
                 const pokemon = getPokemonById(effect.userId);
                 animateMessage(`${pokemon.name} used ${effect.moveName}`);
 
                 if (!effect.didMoveHit) {
                     animateMessage('But it missed');
                     break;
-                    
+
                 }
                 if (isAllyPokemon(effect.userId)) {
                     timeLine.to(allyPokemonImage.current, { delay: defaultDelayTime, left: "60px", duration: attackAnimationTime })
@@ -528,18 +512,16 @@ function Battle() {
         timeLine.set({}, {}, "+=0.5");
         timeLine.play();
 
-        console.warn('animation should be playing at this point');
         return;
 
-    }, [onEndOfTurnLog, turnLog, eventIndex]);
+    }, [onEndOfTurnLog, turnLog, eventIndex, newTurnLog]);
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
-        console.log('are we setting a battle action?');
         battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
-            moveId: techniqueId, //todo: get technique id
+            moveId: techniqueId,
             type: 'use-move-action'
         });
     }

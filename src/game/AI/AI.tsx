@@ -18,6 +18,13 @@ class BasicAI implements AI {
     constructor(aiPlayer: Player, service: BattleService) {
         this._player = aiPlayer;
         this._service = service;
+
+        this._service.OnNewTurn.on((arg) => {
+            this.ChooseAction();
+        })
+        this._service.OnSwitchNeeded.on((arg) => {
+            this.ChooseFaintedPokemonSwitch();
+        })
     }
     ChooseAction() {
         //NEW AI if current pokemon has 40% health use a potion
