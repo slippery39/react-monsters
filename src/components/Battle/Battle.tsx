@@ -1,32 +1,29 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 
 
-import { OnNewTurnLogArgs } from "../../game/Battle";
-import { Player, Pokemon, Status } from '../../game/interfaces';
-import { SwitchPokemonAction, UseItemAction } from "../../game/BattleActions";
-import BattleMenu from "../battlemenu/BattleMenu";
-import BattlePokemonDisplay, { OwnerType } from "../BattlePokemonDisplay/BattlePokemonDisplay";
-import ItemMenu from "../ItemMenu/ItemMenu";
-import AttackMenuNew from "../AttackMenuNew/AttackMenuNew";
+import { OnNewTurnLogArgs } from "game/Battle";
+import { Player, Pokemon, Status } from 'game/interfaces';
+import { SwitchPokemonAction, UseItemAction } from "game/BattleActions";
+import BattleMenu from "components/battlemenu/BattleMenu";
+import BattlePokemonDisplay, { OwnerType } from "components/BattlePokemonDisplay/BattlePokemonDisplay";
+import ItemMenu from "components/ItemMenu/ItemMenu";
+import AttackMenuNew from "components/AttackMenuNew/AttackMenuNew";
 import './Battle.css';
-import Message from "../Message/Message";
-import PokemonSwitchScreen from "../PokemonSwitchScreen/PokemonSwitchScreen";
-import { GetActivePokemon } from "../../game/HelperFunctions";
-
-import Debug from "../Debug/Debug";
-
-
-import Pokeball from "../Pokeball/Pokeball"
+import Message from "components/Message/Message";
+import PokemonSwitchScreen from "components/PokemonSwitchScreen/PokemonSwitchScreen";
+import { GetActivePokemon } from "game/HelperFunctions";
+import Debug from "components/Debug/Debug";
+import Pokeball from "components/Pokeball/Pokeball"
 
 import { gsap } from "gsap";
 import { TextPlugin } from "gsap/TextPlugin";
 import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
-import { BattleEvent, BattleEventType } from '../../game/BattleEvents'
-import { PlayerBuilder } from '../../game/PlayerBuilder';
-import BasicAI from '../../game/AI/AI';
-import BattleService from '../../game/Battle';
+import { BattleEvent, BattleEventType } from 'game/BattleEvents'
+import { PlayerBuilder } from 'game/PlayerBuilder';
+import BasicAI from 'game/AI/AI';
+import BattleService from 'game/Battle';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -163,7 +160,6 @@ function Battle() {
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
     const [turnLog, setTurnLog] = useState<OnNewTurnLogArgs | undefined>(undefined);
     const [newTurnLog, setNewTurnLog] = useState<Array<BattleEvent>>([]);
-    const [eventIndex, setEventIndex] = useState<number>(0);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
 
@@ -228,7 +224,7 @@ function Battle() {
 
         const turnLogCopy = turnLog;
         setTurnLog(undefined);
-        setEventIndex(0);
+
 
         if (turnLog.currentTurnState === 'game-over') {
             setWinningPlayer(turnLogCopy.winningPlayerId);
@@ -271,24 +267,22 @@ function Battle() {
         //we need to pass in the ref to the pokemonNodes        
 
         //default times
-        const defaultDelayTime: number = 0.3;
-        const healthAnimationTime: number = 1;
-        const messageAnimationTime: number = 0.5;
-        const attackAnimationTime: number = 0.25;
+        const defaultDelayTime: number = 0.2;
+        const healthAnimationTime: number = 0.2;
+        const messageAnimationTime: number = 0.2;
+        const attackAnimationTime: number = 0.2;
         const damageAnimationTime: number = 0.1;
-        const defaultAnimationTime: number = 0.5;
+        const defaultAnimationTime: number = 0.2;
 
         const nextEvent = () => {
 
-            const copy = newTurnLog.slice();
+            let copy = newTurnLog.slice();
             copy.shift();
             setNewTurnLog(copy);
 
             if (copy.length === 0) {
                     onEndOfTurnLog();
             }
-
-
         }
 
         const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); nextEvent(); } });
@@ -302,11 +296,10 @@ function Battle() {
         }
 
         //we need to delay these calls because the state needs to update per animation.
-        const effect = newTurnLog[0]//turnLog.currentTurnLog[eventIndex];
+        const effect = newTurnLog[0];
+        
 
         switch (effect.type) {
-
-
 
 
             case BattleEventType.GenericMessage: {
@@ -509,12 +502,12 @@ function Battle() {
 
         }
         //add 1 second of padding.
-        timeLine.set({}, {}, "+=0.5");
+        timeLine.set({}, {}, "+=0.1");
         timeLine.play();
 
         return;
 
-    }, [onEndOfTurnLog, turnLog, eventIndex, newTurnLog]);
+    }, [onEndOfTurnLog, turnLog, newTurnLog]);
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
