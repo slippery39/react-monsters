@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 
 
-import BattleService, { OnNewTurnLogArgs, OnStateChangeArgs } from "../../game/BattleService";
+import { OnNewTurnLogArgs } from "../../game/Battle";
 import { Player, Pokemon, Status } from '../../game/interfaces';
 import { SwitchPokemonAction, UseItemAction } from "../../game/BattleActions";
 import BattleMenu from "../battlemenu/BattleMenu";
@@ -26,6 +26,7 @@ import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEventType } from '../../game/BattleEvents'
 import { PlayerBuilder } from '../../game/PlayerBuilder';
 import BasicAI from '../../game/AI/AI';
+import BattleService from '../../game/Battle';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -198,6 +199,8 @@ function Battle() {
 
         battleService.onNewTurnLog.on(args => {
             setTurnLog(args);
+            console.warn('new event log has been recieved');
+            console.log(args);
             setMenuState(MenuState.ShowingTurn);
         });
 

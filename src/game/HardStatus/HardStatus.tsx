@@ -1,4 +1,4 @@
-import { Turn } from "../BattleController";
+import { Turn } from "../Turn";
 import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEvent } from "../BattleEvents";
 import { HasElementType } from "../HelperFunctions";
 import { ElementType, Pokemon, Status } from "../interfaces";
@@ -17,16 +17,14 @@ interface HardStatus {
     statusType: Status;
 }
 
+class BurnStatus implements HardStatus, IEndOfTurn, ICanApply {
 
-
-class BurnStatus implements HardStatus, IEndOfTurn,ICanApply{
-    
     statusType = Status.Burned;
-    
-    CanApply(turn:Turn,pokemon:Pokemon){
+
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Fire);
     }
-    EndOfTurn(turn: Turn, pokemon: Pokemon){
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
         const maxHp = pokemon.originalStats.health;
         const burnDamage = Math.ceil(maxHp / 8);
         const burnMessage: GenericMessageEvent = {
@@ -36,18 +34,17 @@ class BurnStatus implements HardStatus, IEndOfTurn,ICanApply{
         turn.AddEvent(burnMessage);
         turn.ApplyDamage(pokemon, burnDamage, {});
     }
-
 }
 
-class FrozenStatus implements HardStatus,IBeforeAttack,ICanApply{
+class FrozenStatus implements HardStatus, IBeforeAttack, ICanApply {
     statusType = Status.Frozen
     private thawChance: number = 25;
 
-    CanApply(turn:Turn,pokemon:Pokemon){
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Ice);
     }
 
-    BeforeAttack(turn:Turn,pokemon:Pokemon){
+    BeforeAttack(turn: Turn, pokemon: Pokemon) {
         const isFrozenEffect: GenericMessageEvent = {
             type: BattleEventType.GenericMessage,
             defaultMessage: `${pokemon.name} is frozen!`
@@ -94,7 +91,7 @@ class SleepStatus implements HardStatus, IBeforeAttack {
             }
             turn.AddEvent(wakeupEffect);
         }
-        else{
+        else {
             pokemon.canAttackThisTurn = false;
         }
     }
@@ -155,7 +152,6 @@ class NoneStatus implements HardStatus {
 }
 
 
-
 function GetHardStatus(status: Status): any {
 
     if (status === Status.Paralyzed) {
@@ -164,16 +160,16 @@ function GetHardStatus(status: Status): any {
     else if (status === Status.Poison) {
         return new PoisonStatus();
     }
-    else if (status === Status.Sleep){
+    else if (status === Status.Sleep) {
         return new SleepStatus();
     }
-    else if (status === Status.Frozen){
+    else if (status === Status.Frozen) {
         return new FrozenStatus();
     }
-    else if (status === Status.Burned){
+    else if (status === Status.Burned) {
         return new BurnStatus();
     }
-    else if (status === Status.None){
+    else if (status === Status.None) {
         return new NoneStatus();
     }
 

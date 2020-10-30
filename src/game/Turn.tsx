@@ -4,12 +4,14 @@ import { GetMoveOrder } from './BattleFunctions';
 import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus from './HardStatus/HardStatus';
+import { TypedEvent } from './TypedEvent/TypedEvent';
+
 
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
 
-enum BattleStepState {
+enum TurnStep {
     PreAction1 = 'pre-action-1',
     Action1 = 'action1',
     PostAction1 = 'post-action-1',
@@ -28,31 +30,53 @@ interface State {
     winningPlayerId?: number
 }
 
+
+type OnTurnStartArgs={
+
+}
+
+type OnTurnEndArgs={
+
+}
+
+type OnSwitchNeededArgs={
+
+}
+
+
 export class Turn {
-    //need to store the state here somehow.
-    initialActions: Array<BattleAction> = [];
-
-    players: Array<Player> = [] //needs to be initial turn state.
-    turnLog: Array<BattleEvent> = [];
     id: Number;
-    eventNum: number = 1; //next id for when we have a new event.
+    players: Array<Player> = [] //needs to be initial turn state.
 
-    faintedPokemonPlayers: Array<Player> = []; //stores players who currenty have a fainted pokemon, players with a fainted pokemon must immediatley put a new one into play.
+    eventLog: Array<BattleEvent> = [];
+    nextEventId: number = 1; //next id for when we have a new event.
 
-    private itemIdCount = 1;
-    private pokemonIdCount = 1;
+    initialActions: Array<BattleAction> = [];    
 
-    private _moveOrder: Array<BattleAction> = [];
+    //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
+    faintedPokemonPlayers: Array<Player> = []; 
 
-    //Pokemon ids at start of the turn, so we know if to skip an action.
+    private nextItemId = 1;
+    private nextPokemonId = 1; 
+
+    //TODO - this is not clean, clean this up, maybe have some sort of Map that maps player to activePokemonId.
     private _activePokemonIdAtStart1 = -1;
     private _activePokemonIdAtStart2 = -1;
 
+    //Cached move order
+    private _moveOrder: Array<BattleAction> = [];
+
+    //Stores the fainted pokemon actions if 
     private _switchFaintedActions: Array<SwitchPokemonAction> = [];
 
-    currentBattleStep = BattleStepState.PreAction1;
-
+    //Turn State Variables
+    currentBattleStep = TurnStep.PreAction1;
     currentState: State = { type: 'awaiting-initial-actions' }
+
+    //NEW - Events
+    OnTurnEnd : TypedEvent<OnTurnEndArgs> = new TypedEvent<OnTurnEndArgs>();
+    OnTurnStart: TypedEvent<OnTurnStartArgs> = new TypedEvent<OnTurnStartArgs>();
+    OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs> = new TypedEvent<OnSwitchNeededArgs>();
 
     constructor(turnId: Number, players: Array<Player>) {
         this.id = turnId;
@@ -62,14 +86,13 @@ export class Turn {
         this.AutoAssignCurrentPokemonIds();
         this.AutoAssignItemIds();
 
-
         //this controls some logic in the turn.
         this._activePokemonIdAtStart1 = players[0].currentPokemonId;
         this._activePokemonIdAtStart2 = players[1].currentPokemonId;
     }
     //NEW: Returning a flattened turn log instead
-    GetTurnLog(): Array<BattleEvent> {
-        return this.turnLog;
+    GetEventLog(): Array<BattleEvent> {
+        return this.eventLog;
     }
 
     SetInitialPlayerAction(action: BattleAction) {
@@ -181,9 +204,7 @@ export class Turn {
             }
         }
         else {
-
             this.faintedPokemonPlayers.push(owner);
-
             this.currentState = { type: 'awaiting-switch-action' }
         }
     }
@@ -218,35 +239,35 @@ export class Turn {
 
         const nextStateLookups = [
             {
-                current: BattleStepState.PreAction1,
-                next: BattleStepState.Action1
+                current: TurnStep.PreAction1,
+                next: TurnStep.Action1
             },
             {
-                current: BattleStepState.Action1,
-                next: BattleStepState.PostAction1
+                current: TurnStep.Action1,
+                next: TurnStep.PostAction1
             },
             {
-                current: BattleStepState.PostAction1,
-                next: BattleStepState.PreAction2
+                current: TurnStep.PostAction1,
+                next: TurnStep.PreAction2
             },
             {
-                current: BattleStepState.PreAction2,
-                next: BattleStepState.Action2
+                current: TurnStep.PreAction2,
+                next: TurnStep.Action2
             },
             {
-                current: BattleStepState.Action2,
-                next: BattleStepState.PostAction2
+                current: TurnStep.Action2,
+                next: TurnStep.PostAction2
             },
             {
-                current: BattleStepState.PostAction2,
-                next: BattleStepState.BeforeEnd
+                current: TurnStep.PostAction2,
+                next: TurnStep.BeforeEnd
             },
             {
-                current: BattleStepState.BeforeEnd,
-                next: BattleStepState.End
+                current: TurnStep.BeforeEnd,
+                next: TurnStep.End
             },
             {
-                current: BattleStepState.End,
+                current: TurnStep.End,
                 next: undefined
             }
         ];
@@ -284,7 +305,7 @@ export class Turn {
             const currentPokemon2 = this.GetActivePokemon(actionOrder[1].playerId);
 
             switch (startStep.current) {
-                case BattleStepState.PreAction1: {
+                case TurnStep.PreAction1: {
                     //don't need to check here because it should be fine.
                     //TODO: need to store some sort of value to see if the pokemon is able to attack or not.
                     if (actionOrder[0].type !== 'use-move-action') {
@@ -293,7 +314,7 @@ export class Turn {
                     this.BeforeAttack(currentPokemon1);
                     break;
                 }
-                case BattleStepState.Action1: {
+                case TurnStep.Action1: {
 
                     if (actionOrder[0].type === 'use-move-action' && !currentPokemon1.canAttackThisTurn) {
                         break;
@@ -303,7 +324,7 @@ export class Turn {
                     }
                     break;
                 }
-                case BattleStepState.PostAction1: {
+                case TurnStep.PostAction1: {
                     if (actionOrder[0].type !== 'use-move-action') {
                         break;
                     }
@@ -312,7 +333,7 @@ export class Turn {
                     }
                     break;
                 }
-                case BattleStepState.PreAction2: {
+                case TurnStep.PreAction2: {
                     if (actionOrder[1].type !== 'use-move-action') {
                         break;
                     }
@@ -321,7 +342,7 @@ export class Turn {
                     }
                     break;
                 }
-                case BattleStepState.Action2: {
+                case TurnStep.Action2: {
                     if (actionOrder[1].type === 'use-move-action' && !currentPokemon2.canAttackThisTurn) {
                         break;
                     }
@@ -330,7 +351,7 @@ export class Turn {
                     }
                     break;
                 }
-                case BattleStepState.PostAction2: {
+                case TurnStep.PostAction2: {
                     if (actionOrder[1].type !== 'use-move-action') {
                         break;
                     }
@@ -339,11 +360,11 @@ export class Turn {
                     }
                     break;
                 }
-                case BattleStepState.BeforeEnd: {
+                case TurnStep.BeforeEnd: {
                     this.BeforeEndOfTurn();
                     break;
                 }
-                case BattleStepState.End: {
+                case TurnStep.End: {
                     this.EndTurn();
                     break;
                 }
@@ -352,10 +373,24 @@ export class Turn {
                 }
             }
 
+
+            
+
             //go to the next state
             if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
             }
+        }
+
+        //loop has finished lets throw some events based on what has happened.
+        //throw events if necessary
+        if (this.currentState.type === 'awaiting-switch-action'){
+            console.warn('emitting on switch needed event');
+            this.OnSwitchNeeded.emit({});
+        }
+        else if (this.currentState.type === 'turn-finished'){
+            console.warn('emitting turn finshed event');
+            this.OnTurnEnd.emit({});
         }
     }
 
@@ -573,8 +608,8 @@ export class Turn {
         return Math.round(Math.random() * 100);
     }
     public AddEvent(effect: BattleEvent) {
-        effect.id = this.eventNum++;
-        this.turnLog.push(effect);
+        effect.id = this.nextEventId++;
+        this.eventLog.push(effect);
     }
     //Sees if you a random chance is successful
 
@@ -619,7 +654,7 @@ export class Turn {
         }).flat().forEach(pokemon => {
             //quick hack here to see if the id for these entities has already been set, this pattern is repeated in the auto assign item ids and auto assign current pokemon ids functions as well.
             if (pokemon.id === -1) {
-                pokemon.id = this.pokemonIdCount++
+                pokemon.id = this.nextPokemonId++
             }
         });
     }
@@ -629,7 +664,7 @@ export class Turn {
             return player.items
         }).flat().forEach(item => {
             if (item.id === -1) {
-                item.id = this.itemIdCount++;
+                item.id = this.nextItemId++;
             }
         });
     }

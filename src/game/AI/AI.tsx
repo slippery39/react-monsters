@@ -1,7 +1,7 @@
 import { shuffle } from "lodash";
 import { servicesVersion } from "typescript";
 import { SwitchPokemonAction, UseItemAction, UseMoveAction } from "../BattleActions";
-import BattleService from "../BattleService";
+import BattleService from "../Battle";
 import { GetActivePokemon, GetPercentageHealth } from "../HelperFunctions";
 import { Player } from "../interfaces";
 

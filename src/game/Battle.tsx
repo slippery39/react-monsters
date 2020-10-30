@@ -1,4 +1,4 @@
-import { Turn, TurnState } from "./BattleController";
+import { Turn, TurnState } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import { BattleEvent } from "./BattleEvents";
 import { Player, Status } from "./interfaces";
@@ -18,10 +18,6 @@ export interface OnStateChangeArgs {
     newState: Array<Player>
 }
 
-
-
-
-
 class BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
@@ -37,7 +33,20 @@ class BattleService {
 
 
     constructor(player1: Player, player2: Player) {
-        this.turns.push(new Turn(1, [player1, player2]))
+         const turn = new Turn(1,[player1,player2]);
+         turn.OnTurnEnd.on((args)=>{
+             console.error('On turn end has fired!');
+         })
+         turn.OnTurnStart.on((args)=>{
+            console.error('On turn start has fired!');
+         });
+         turn.OnSwitchNeeded.on((args)=>{
+             console.error('On switch needed has fired!');
+         })
+         this.turns.push(turn)        
+    }
+
+    NextTurn(){
     }
 
     GetCurrentTurn() {
@@ -81,7 +90,7 @@ class BattleService {
 
         //otherwise send the turn log over
         const args = {
-            currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
+            currentTurnLog: this.GetCurrentTurn().GetEventLog(),
             newState: this.GetPlayers(),
             winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
             currentTurnState: this.GetCurrentTurn().currentState.type,
@@ -91,6 +100,7 @@ class BattleService {
         this.onNewTurnLog.emit(args);
 
         if (this.GetCurrentTurn().currentState.type ==='awaiting-switch-action'){
+            console.log('IS THE ON SWITCH NEEDED EVENT OCCURING?');
             this.OnSwitchNeeded.emit(1);
         }
 
@@ -98,7 +108,7 @@ class BattleService {
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
 
         //cache the turn up to this date.
-        const oldTurnLog = this.GetCurrentTurn().GetTurnLog();
+        const oldTurnLog = this.GetCurrentTurn().GetEventLog();
         const maxId = Math.max(...oldTurnLog.map(tl => {
             if (tl.id === undefined) { throw new Error('NO ID FOUND FOR TURN LOG') }
             return tl.id
@@ -106,7 +116,7 @@ class BattleService {
 
         this.GetCurrentTurn().SetSwitchFaintedPokemonAction(action);
 
-        var newTurnLog = this.GetCurrentTurn().GetTurnLog();
+        var newTurnLog = this.GetCurrentTurn().GetEventLog();
         if (diffLog === undefined || diffLog === true) {
             newTurnLog = newTurnLog.filter(tl => {
                 if (tl.id === undefined) { throw new Error('NO ID FOUND FOR TURN LOG') }
@@ -128,7 +138,7 @@ class BattleService {
         }
 
         const args = {
-            currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
+            currentTurnLog: this.GetCurrentTurn().GetEventLog(),
             newState: this.GetPlayers(),
             winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
             currentTurnState: this.GetCurrentTurn().currentState.type,
@@ -158,7 +168,20 @@ class BattleService {
             console.log(this.GetCurrentTurn());
             const player1 = this.GetCurrentTurn().players[0];
             const player2 = this.GetCurrentTurn().players[1];
-            this.turns.push(new Turn(this.turnIndex++, [player1, player2]));
+
+            const turn = new Turn(this.turnIndex++,[player1,player2]);
+            
+            turn.OnTurnEnd.on((args)=>{
+                console.error('On turn end has fired!');
+            })
+            turn.OnTurnStart.on((args)=>{
+               console.error('On turn start has fired!');
+            });
+            turn.OnSwitchNeeded.on((args)=>{
+                console.error('On switch needed has fired!');
+            })
+            this.turns.push(turn);
+
             this.OnNewTurn.emit(1); //AI would respond to this event.
         }
     }
