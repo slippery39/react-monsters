@@ -1,4 +1,4 @@
-import { Turn, TurnState } from "./BattleController";
+import { Turn, TurnState } from "./Turn"
 import { BattleAction, UseMoveAction, SwitchPokemonAction, UseItemAction } from "./BattleActions";
 import { BattleEvent } from "./BattleEvents";
 import { Player, Status } from "./interfaces";
@@ -137,7 +137,7 @@ class BattleService {
         if (this.OnNewTurnLog !== undefined) {
             this.OnNewTurnLog(
                 {
-                    currentTurnLog: this.GetCurrentTurn().GetTurnLog(),
+                    currentTurnLog: this.GetCurrentTurn().GetEventLog();
                     newState: this.GetPlayers(),
                     winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
                     currentTurnState: this.GetCurrentTurn().currentState.type,
@@ -149,7 +149,7 @@ class BattleService {
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
 
         //cache the turn up to this date.
-        const oldTurnLog = this.GetCurrentTurn().GetTurnLog();
+        const oldTurnLog = this.GetCurrentTurn().GetEventLog();
         const maxId = Math.max(...oldTurnLog.map(tl => {
             if (tl.id === undefined) { throw new Error('NO ID FOUND FOR TURN LOG') }
             return tl.id
@@ -157,7 +157,7 @@ class BattleService {
 
         this.GetCurrentTurn().SetSwitchFaintedPokemonAction(action);
 
-        var newTurnLog = this.GetCurrentTurn().GetTurnLog();
+        var newTurnLog = this.GetCurrentTurn().GetEventLog();
         if (diffLog === undefined || diffLog === true) {
             newTurnLog = newTurnLog.filter(tl => {
                 if (tl.id === undefined) { throw new Error('NO ID FOUND FOR TURN LOG') }

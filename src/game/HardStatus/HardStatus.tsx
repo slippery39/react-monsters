@@ -1,4 +1,4 @@
-import { Turn } from "../BattleController";
+import { Turn } from "../Turn";
 import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEvent } from "../BattleEvents";
 import { HasElementType } from "../HelperFunctions";
 import { ElementType, Pokemon, Status } from "../interfaces";
@@ -34,7 +34,6 @@ class BurnStatus implements HardStatus, IEndOfTurn, ICanApply {
         turn.AddEvent(burnMessage);
         turn.ApplyDamage(pokemon, burnDamage, {});
     }
-
 }
 
 class FrozenStatus implements HardStatus, IBeforeAttack, ICanApply {

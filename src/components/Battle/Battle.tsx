@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 
 
-import BattleService, { OnNewTurnLogArgs, OnStateChangeArgs } from "../../game/BattleService";
+import { OnNewTurnLogArgs } from "../../game/Battle";
 import { Player, Pokemon, Status } from '../../game/interfaces';
 import { SwitchPokemonAction, UseItemAction } from "../../game/BattleActions";
 import BattleMenu from "../battlemenu/BattleMenu";
@@ -24,6 +24,9 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEventType } from '../../game/BattleEvents'
+import { PlayerBuilder } from '../../game/PlayerBuilder';
+import BasicAI from '../../game/AI/AI';
+import BattleService from '../../game/Battle';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -53,7 +56,43 @@ type Action = {
     newStatus?: Status
 }
 
-let battleService = new BattleService();
+const player1: Player = new PlayerBuilder(1)
+    .WithName("Shayne")
+    .WithPokemon("venusaur")
+    .WithPokemon("charizard")
+    .WithPokemon("blastoise")
+    .WithItem("Potion", 1)
+    .WithItem("Super Potion", 2)
+    .WithItem("Hyper Potion", 3)
+    .WithItem("Max Potion", 1)
+    .Build();
+
+const player2: Player = new PlayerBuilder(2)
+    .WithName("Bob")
+    .WithPokemon("blastoise")
+    .WithPokemon("venusaur")
+    .WithPokemon("charizard")
+    .WithItem("Potion", 1)
+    .WithItem("Super Potion", 2)
+    .WithItem("Hyper Potion", 3)
+    .WithItem("Max Potion", 1)
+    .Build();
+
+
+let battleService = new BattleService(player1, player2);
+
+let AIBrain = new BasicAI(player2,battleService);
+
+battleService.OnNewTurn.on((arg)=>{
+    console.log('action has been chosen for ai');
+    AIBrain.ChooseAction();
+})
+battleService.OnSwitchNeeded.on((arg)=>{
+    console.log('fainted pokemon has been switched out for ai');
+    AIBrain.ChooseFaintedPokemonSwitch();
+})
+
+battleService.Start();
 
 const initialState: State = {
     players: battleService.GetPlayers()
@@ -156,18 +195,24 @@ function Battle() {
     const allyPotionNode = useRef(null);
     const enemyPotionNode = useRef(null);
 
-    battleService.OnNewTurnLog = (args: OnNewTurnLogArgs) => {
-        setTurnLog(args);
-        setMenuState(MenuState.ShowingTurn);
-    }
-    battleService.OnStateChange = (args: OnStateChangeArgs) => {
-        dispatch({
-            id: 0,
-            type: 'state-change',
-            newState: _.cloneDeep(args.newState)
-        })
-    }
+    useEffect(() => {
 
+        battleService.onNewTurnLog.on(args => {
+            setTurnLog(args);
+            console.warn('new event log has been recieved');
+            console.log(args);
+            setMenuState(MenuState.ShowingTurn);
+        });
+
+        battleService.onStateChange.on(args => {
+            dispatch({
+                id: 0,
+                type: 'state-change',
+                newState: _.cloneDeep(args.newState)
+            })
+        });
+
+    }, []);
 
     function isAllyPokemon(id: number): boolean {
         return state.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
@@ -194,9 +239,17 @@ function Battle() {
     //this is only used once
     const onEndOfTurnLog = useCallback(() => {
 
+
+
         if (turnLog === undefined) {
             return;
         }
+
+
+        console.log('END OF TURN LOG CALLBACK HAS BEEN REACHED');
+        console.log(turnLog);
+        console.log(eventIndex);
+
         const turnLogCopy = turnLog;
         setTurnLog(undefined);
         setEventIndex(0);
@@ -205,7 +258,8 @@ function Battle() {
             setWinningPlayer(turnLogCopy.winningPlayerId);
             setMenuState(MenuState.GameOver)
         }
-        else if (turnLog.currentTurnState === 'awaiting-switch-action') {
+        else if (turnLog.currentTurnState === 'awaiting-switch-action' && turnLog.waitingForSwitchIds.filter(id=>id===1).length>0) {
+            //should check to see if it is our pokemon
             setMenuState(MenuState.FaintedSwitchMenu);
         }
         //Perhaps this should happen all the time no matter what
@@ -552,7 +606,7 @@ function Battle() {
                         {menuState !== MenuState.ShowingTurn && <Message writeTimeMilliseconds={500} animated={true} message={`${GetMenuMessage()}`} />}
                         {menuState === MenuState.ShowingTurn && <Message
                             animated={false}
-                            message={"banans"}
+                            message={""}
                             messageRef={el => { messageBox.current = el; }} />}
                     </div>
                 </div>

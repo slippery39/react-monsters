@@ -139,7 +139,7 @@ export function GetTech(name:string){
                     description: 'some razory leaves',
                     pp: 35,
                     currentPP: 35,
-                    power:84,
+                    power:500,
                     chance:95,
                     damageType:'physical',
                     elementalType:ElementType.Grass,
