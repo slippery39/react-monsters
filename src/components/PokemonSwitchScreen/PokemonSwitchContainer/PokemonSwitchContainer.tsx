@@ -1,15 +1,16 @@
 import React from 'react';
-import { Pokemon, Status } from "../../../game/interfaces";
+import {Status } from "../../../game/interfaces";
 import "./PokemonSwitchContainer.css";
 
 import PokemonImage from "../../PokemonImage/PokemonImage";
 import AnimatedHealthBar from '../../AnimatedHealthBar/AnimatedHealthBar';
 import Pokeball from "../../Pokeball/Pokeball";
 import PokemonStatus from "../../PokemonStatus/PokemonStatus";
+import { IPokemon } from 'game/Pokemon/Pokemon';
 
 interface Props {
-    pokemon: Pokemon
-    onClick?: (pokemon: Pokemon) => void
+    pokemon: IPokemon
+    onClick?: (pokemon: IPokemon) => void
 }
 
 const PokemonSwitchContainer: React.FunctionComponent<Props> = (props) => {

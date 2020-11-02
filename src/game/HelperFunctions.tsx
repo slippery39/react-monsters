@@ -1,4 +1,5 @@
-import { ElementType, Player, Pokemon } from "./interfaces";
+import { ElementType, Player } from "./interfaces";
+import { IPokemon } from "./Pokemon/Pokemon";
 
 export function GetActivePokemon(player: Player) {
     const pokemon = player.pokemon.find(p => p.id === player.currentPokemonId);
@@ -10,16 +11,16 @@ export function GetActivePokemon(player: Player) {
     return pokemon;
 }
 
-export function GetPercentageHealth(pokemon: Pokemon) {
+export function GetPercentageHealth(pokemon: IPokemon) {
     return (pokemon.currentStats.health / pokemon.originalStats.health) * 100
 }
 
 
-export function IsFainted(pokemon: Pokemon) {
+export function IsFainted(pokemon: IPokemon) {
     return pokemon.currentStats.health <= 0;
 }
 
-export function HasElementType(pokemon: Pokemon, element: ElementType) {
+export function HasElementType(pokemon: IPokemon, element: ElementType) {
     return pokemon.elementalTypes.filter(t => t === element).length > 0;
 }
 

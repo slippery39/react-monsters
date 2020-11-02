@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useReducer, useRef } from 'rea
 
 
 import { OnNewTurnLogArgs } from "game/Battle";
-import { Player, Pokemon, Status } from 'game/interfaces';
+import { Player, Status } from 'game/interfaces';
 import { SwitchPokemonAction, UseItemAction } from "game/BattleActions";
 import BattleMenu from "components/battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "components/BattlePokemonDisplay/BattlePokemonDisplay";
@@ -24,6 +24,7 @@ import { BattleEvent, BattleEventType } from 'game/BattleEvents'
 import { PlayerBuilder } from 'game/PlayerBuilder';
 import BasicAI from 'game/AI/AI';
 import BattleService from 'game/Battle';
+import { IPokemon } from 'game/Pokemon/Pokemon';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -85,7 +86,7 @@ const initialState: State = {
     players: battleService.GetPlayers()
 }
 
-const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: Pokemon } {
+const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: IPokemon } {
     let pokemon;
     const pokemonOwner = state.players.find(p => {
         return p.pokemon.find(p => {
@@ -112,6 +113,7 @@ function Battle() {
         //making a deep copy of the state object for immutable purposes.
         //this is the easiest way to get it working, but if our state object gets huge
         //then we may run into performance issues. but for now it works fine.
+
         var newState = _.cloneDeep(state);
         switch (action.type) {
             //for syncing the state with the server.
@@ -199,7 +201,7 @@ function Battle() {
         return state.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
     }
 
-    function getPokemonById(id: number): Pokemon {
+    function getPokemonById(id: number): IPokemon {
         const pokemon = state.players.map(player => {
             return player.pokemon;
         }).flat().filter(pokemon => pokemon.id === id);
@@ -207,10 +209,10 @@ function Battle() {
         return pokemon[0];
     }
 
-    function getAllyPokemon(): Pokemon {
+    function getAllyPokemon(): IPokemon {
         return GetActivePokemon(state.players[0]);
     }
-    function getEnemyPokemon(): Pokemon {
+    function getEnemyPokemon(): IPokemon {
         return GetActivePokemon(state.players[1]);
     }
 
@@ -283,7 +285,7 @@ function Battle() {
             setNewTurnLog(copy);
 
             if (copy.length === 0) {
-                    onEndOfTurnLog();
+                onEndOfTurnLog();
             }
         }
 
@@ -299,7 +301,7 @@ function Battle() {
 
         //we need to delay these calls because the state needs to update per animation.
         const effect = newTurnLog[0];
-        
+
 
         switch (effect.type) {
 

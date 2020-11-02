@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pokemon,Stats, ElementType,Technique } from './interfaces';
+import {ElementType,Technique } from './interfaces';
 import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './DamageFunctions';
+import { IPokemon, Stats } from './Pokemon/Pokemon';
 
 /*
 Test these functions
@@ -9,7 +10,7 @@ function GetTypeMod(defendingPokemon:Pokemon,techUsed:Technique)
 function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique) 
 */
 
-const createCharizard = function() : Pokemon{
+const createCharizard = function() : IPokemon{
     const charizardStats : Stats = {
         health:360,
         attack:293,
@@ -18,7 +19,7 @@ const createCharizard = function() : Pokemon{
         specialDefence:295,
         speed:328
     }
-    const charizard : Pokemon  = {
+    const charizard : IPokemon  = {
         id:1,
         name:'Charizard',
         currentStats:{...charizardStats},
@@ -32,7 +33,7 @@ const createCharizard = function() : Pokemon{
     return charizard;
 }
 
-const createBlastoise = function(): Pokemon{
+const createBlastoise = function(): IPokemon{
     const blastoiseStats = {
         health:362,
         attack:291,
@@ -41,7 +42,7 @@ const createBlastoise = function(): Pokemon{
         specialDefence:339,
         speed:78
     }
-    const blastoise : Pokemon  = {
+    const blastoise : IPokemon  = {
         id:1,
         name:'Blastoise',
         currentStats:{...blastoiseStats},

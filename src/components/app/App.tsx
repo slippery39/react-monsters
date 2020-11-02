@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import Battle from "../Battle/Battle";
+import Battle from "components/Battle/Battle";
 
 function App() {
   return (

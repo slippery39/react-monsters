@@ -3,10 +3,11 @@ import './BattleHealthDisplay.css';
 import AnimatedHealthBar from 'components/AnimatedHealthBar/AnimatedHealthBar';
 import AnimatedNumber from "components/AnimatedNumber/AnimatedNumber";
 import PokemonStatus from "components/PokemonStatus/PokemonStatus";
-import { Pokemon } from 'game/interfaces';
+import { IPokemon } from 'game/Pokemon/Pokemon';
+
 
 interface Props {
-    pokemon: Pokemon
+    pokemon: IPokemon
     onHealthAnimateComplete?: ()=>void
 }
 

@@ -1,16 +1,17 @@
 import { Turn } from "game/Turn";
 import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEvent } from "game/BattleEvents";
 import { HasElementType } from "game/HelperFunctions";
-import { ElementType, Pokemon, Status } from "game/interfaces";
+import { ElementType, Status } from "game/interfaces";
+import { IPokemon } from "game/Pokemon/Pokemon";
 
 export interface IBeforeAttack {
-    BeforeAttack: (turn: Turn, pokemon: Pokemon) => void
+    BeforeAttack: (turn: Turn, pokemon: IPokemon) => void
 }
 export interface ICanApply {
-    CanApply: (turn: Turn, pokemon: Pokemon) => boolean
+    CanApply: (turn: Turn, pokemon: IPokemon) => boolean
 }
 export interface IEndOfTurn {
-    EndOfTurn: (turn: Turn, pokemon: Pokemon) => void
+    EndOfTurn: (turn: Turn, pokemon: IPokemon) => void
 }
 
 interface HardStatus {
@@ -21,10 +22,10 @@ class BurnStatus implements HardStatus, IEndOfTurn, ICanApply {
 
     statusType = Status.Burned;
 
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Fire);
     }
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(turn: Turn, pokemon: IPokemon) {
         const maxHp = pokemon.originalStats.health;
         const burnDamage = Math.ceil(maxHp / 8);
         const burnMessage: GenericMessageEvent = {
@@ -40,11 +41,11 @@ class FrozenStatus implements HardStatus, IBeforeAttack, ICanApply {
     statusType = Status.Frozen
     private thawChance: number = 25;
 
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Ice);
     }
 
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
+    BeforeAttack(turn: Turn, pokemon: IPokemon) {
         const isFrozenEffect: GenericMessageEvent = {
             type: BattleEventType.GenericMessage,
             defaultMessage: `${pokemon.name} is frozen!`
@@ -73,7 +74,7 @@ class SleepStatus implements HardStatus, IBeforeAttack {
     statusType = Status.Sleep;
     private wakeUpChance: number = 25;
 
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
+    BeforeAttack(turn: Turn, pokemon: IPokemon) {
         const isAsleepEffect: GenericMessageEvent = {
             type: BattleEventType.GenericMessage,
             defaultMessage: `${pokemon.name} is sleeping!`
@@ -103,7 +104,7 @@ class ParalyzeStatus implements HardStatus, IBeforeAttack, ICanApply {
     statusType = Status.Paralyzed;
     private cantMoveChance: number = 25;
 
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
+    BeforeAttack(turn: Turn, pokemon: IPokemon) {
 
         if (turn.Roll(this.cantMoveChance)) {
             const cantAttackEffect: CannotAttackEvent = {
@@ -117,7 +118,7 @@ class ParalyzeStatus implements HardStatus, IBeforeAttack, ICanApply {
         }
         //do the before logic here.
     }
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Electric)
     }
 
@@ -127,7 +128,7 @@ class PoisonStatus implements HardStatus, ICanApply, IEndOfTurn {
 
     statusType = Status.Poison;
 
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(turn: Turn, pokemon: IPokemon) {
         //apply poison damage
         //poison damage is 1/16 of the pokemons max hp
         const maxHp = pokemon.originalStats.health;
@@ -141,7 +142,7 @@ class PoisonStatus implements HardStatus, ICanApply, IEndOfTurn {
         turn.AddEvent(poisonMessage);
         turn.ApplyDamage(pokemon, poisonDamage, {})
     }
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Poison);
     }
 

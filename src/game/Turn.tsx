@@ -1,10 +1,11 @@
-import { Pokemon, Player, Technique, Status, ElementType } from './interfaces';
+import { Player, Technique, Status, ElementType } from './interfaces';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
+import { IPokemon } from './Pokemon/Pokemon';
 
 
 
@@ -153,7 +154,7 @@ export class Turn {
     }
 
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
-    private BeforeAttack(pokemon: Pokemon) {
+    private BeforeAttack(pokemon: IPokemon) {
             pokemon.canAttackThisTurn = true;
 
             const hardStatus = GetHardStatus(pokemon.status || Status.None);
@@ -186,7 +187,7 @@ export class Turn {
         //need some way of notifying the service.
     }
 
-    private PokemonFainted(pokemon: Pokemon) {
+    private PokemonFainted(pokemon: IPokemon) {
         const faintedPokemonEffect: FaintedPokemonEvent = {
             targetPokemonId: pokemon.id,
             type: BattleEventType.PokemonFainted,
@@ -209,7 +210,7 @@ export class Turn {
         }
     }
 
-    ApplyDamage(pokemon: Pokemon, damage: number, damageInfo: any) {
+    ApplyDamage(pokemon: IPokemon, damage: number, damageInfo: any) {
 
         pokemon.currentStats.health -= damage
         pokemon.currentStats.health = Math.max(0, pokemon.currentStats.health);
@@ -231,7 +232,7 @@ export class Turn {
         }
     }
 
-    private AfterAttack(pokemon: Pokemon) {
+    private AfterAttack(pokemon: IPokemon) {
         //we could put burn effects here.
     }
 
@@ -540,11 +541,11 @@ export class Turn {
 
     }
 
-    private DoStatusMove(move: Technique, defendingPokemon: Pokemon, pokemon: Pokemon) {
+    private DoStatusMove(move: Technique, defendingPokemon: IPokemon, pokemon: IPokemon) {
         this.ApplyMoveEffects(move, pokemon, defendingPokemon);
     }
 
-    private ApplyMoveEffects(move: Technique, pokemon: Pokemon, defendingPokemon: Pokemon): void {
+    private ApplyMoveEffects(move: Technique, pokemon: IPokemon, defendingPokemon: IPokemon): void {
         if (!move.effects) {
             return;
         }
@@ -581,7 +582,7 @@ export class Turn {
         });
     }
 
-    private DoDamageMove(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
+    private DoDamageMove(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) {
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
@@ -621,7 +622,7 @@ export class Turn {
         }
         return player;
     }
-    private GetPokemon(pokemonId: number): Pokemon {
+    private GetPokemon(pokemonId: number): IPokemon {
         const pokemon = this.players.map(player => { return player.pokemon }).flat().find(pokemon => pokemon.id === pokemonId);
         if (pokemon === undefined) {
             throw new Error(`Could not find pokemon with id ${pokemonId} `);
@@ -629,7 +630,7 @@ export class Turn {
         return pokemon;
     }
 
-    private GetActivePokemon(playerId: number): Pokemon {
+    private GetActivePokemon(playerId: number): IPokemon {
         const player = this.GetPlayer(playerId);
         const activePokemon = player.pokemon.find(poke => poke.id === player.currentPokemonId);
         if (activePokemon === undefined) {
@@ -637,7 +638,7 @@ export class Turn {
         }
         return activePokemon;
     }
-    private GetPokemonOwner(pokemon: Pokemon) {
+    private GetPokemonOwner(pokemon: IPokemon) {
         const owner = this.players.filter(player => {
             return player.pokemon.find(poke => poke.id === pokemon.id) !== undefined
         })[0];

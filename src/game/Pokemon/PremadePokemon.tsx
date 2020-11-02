@@ -1,13 +1,22 @@
-import {Pokemon,ElementType} from './interfaces';
-
-import {GetTech} from "./PremadeTechniques";
+import {ElementType} from 'game/interfaces';
+import { IPokemon, Stats } from './Pokemon';
+import {GetTech} from "game/PremadeTechniques";
 
 interface PokemonDB {
-    [key:string] : Pokemon
+    [key:string] : IPokemon
+}
+
+interface IPokemonBase {
+    name:string,
+    stats:Stats,
+    elementalTypes:Array<ElementType>,
+    techniques:Array<string>    
 }
 
 
-export function GetPokemon(name:string){
+
+
+export function GetPokemon(name:string): IPokemon{
 
 const pokemons: PokemonDB = {
     "charizard":{

@@ -1,7 +1,8 @@
 import { Item, Player, Status } from "./interfaces";
-import {GetPokemon} from "./PremadePokemon";
+import {GetPokemon} from "./Pokemon/PremadePokemon";
 import {GetItem} from "./PremadeItems";
 import _ from "lodash";
+import { PokemonBuilder } from "./Pokemon/Pokemon";
 
 export class PlayerBuilder{
 
@@ -20,8 +21,9 @@ export class PlayerBuilder{
         this.player.name = name;
         return this;
     }
-    WithPokemon(name:string) : PlayerBuilder{            
-        let pokemon = GetPokemon(name);
+    WithPokemon(name:string) : PlayerBuilder{         
+        const builder = new PokemonBuilder();        
+        let pokemon = builder.OfSpecies(name).Build();
         pokemon.id = -1; //gets a new id from the game
         pokemon.status = Status.None
         this.player.pokemon.push( pokemon );
@@ -35,9 +37,6 @@ export class PlayerBuilder{
         return this;
     }
     Build() : Player {
-        console.log('player has been built');
-        console.log(this.player);
         return _.cloneDeep(this.player);
-
     }
 }

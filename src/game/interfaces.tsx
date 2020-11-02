@@ -1,13 +1,7 @@
+import { IPokemon } from "./Pokemon/Pokemon";
 import { ItemEffect } from "./PremadeItems";
 
-export interface Stats{
-    health:number,
-    attack:number,
-    defence: number,
-    specialAttack:number,
-    specialDefence:number,
-    speed:number
-}
+
 
 //etc.
 export enum TechniqueEffectType{
@@ -60,7 +54,7 @@ export interface Item extends BaseItem {
 
 export interface Player {
     name: string,
-    pokemon: Array<Pokemon>,
+    pokemon: Array<IPokemon>,
     currentPokemonId:number,
     items: Array<Item>
     id:number
@@ -75,16 +69,6 @@ export enum Status{
     None = 'none'
 }
 
-export interface Pokemon {
-    id: number,
-    name: string,
-    originalStats: Stats
-    currentStats: Stats,  
-    techniques:Array<Technique>  ,
-    status?: Status,
-    elementalTypes:Array<ElementType>,
-    canAttackThisTurn?:boolean
-}
 
 export enum ElementType{
     Normal = 'NORMAL',

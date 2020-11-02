@@ -1,7 +1,8 @@
-import { Pokemon, ElementType, Technique, Status } from "./interfaces";
+import {ElementType, Technique, Status } from "./interfaces";
+import { IPokemon } from "./Pokemon/Pokemon";
 
 //Calculates the base damage before any modifiers (type effectiveness, crit etc.)
-export function GetBaseDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique) {
+export function GetBaseDamage(attackingPokemon: IPokemon, defendingPokemon: IPokemon, techUsed: Technique) {
     const level = 100; //constant for level since we aren't dealing with that stuff now.
     const Power = techUsed.power;
     const Attack = techUsed.damageType === 'physical' ? attackingPokemon.currentStats.attack : attackingPokemon.currentStats.specialAttack;
@@ -47,7 +48,7 @@ export function GetTypeMod(defendingElements: Array<ElementType>, elementOfAttac
 
 
 //TODO: test this
-export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique,options?:{autoCrit?:boolean,autoAmt?:boolean}) {
+export function GetDamageModifier(attackingPokemon: IPokemon, defendingPokemon: IPokemon, techUsed: Technique,options?:{autoCrit?:boolean,autoAmt?:boolean}) {
 
     function lerp(v0: number, v1: number, t: number) {
         return (1 - t) * v0 + t * v1;

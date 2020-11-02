@@ -1,14 +1,15 @@
 import React from 'react'
-import { Player, Pokemon } from '../../game/interfaces';
+import { Player} from '../../game/interfaces';
 import './PokemonSwitchScreen.css'
 import PokemonSwitchContainer from './PokemonSwitchContainer/PokemonSwitchContainer';
+import { IPokemon } from 'game/Pokemon/Pokemon';
 
 
 
 
 interface Props {
     player: Player
-    onPokemonClick?: (pokemon: Pokemon) => void
+    onPokemonClick?: (pokemon: IPokemon) => void
     onCancelClick?: () => void
     showCancelButton?: boolean
 }

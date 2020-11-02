@@ -1,12 +1,13 @@
 import React from 'react';
 import BattleService from 'game/Battle';
-import { ElementType, Player, Pokemon, Status } from 'game/interfaces';
+import { ElementType, Player, Status } from 'game/interfaces';
 import ElementIcon from 'components/ElementIcon/ElementIcon';
 import {GetActivePokemon} from 'game/HelperFunctions';
 import './Debug.css'
+import { IPokemon } from 'game/Pokemon/Pokemon';
 
 
-function MakeStatusDropdown(poke: Pokemon,onChange:(evt:any)=>void) {
+function MakeStatusDropdown(poke: IPokemon,onChange:(evt:any)=>void) {
     let statuses = [];
     for (let status in Status) {
         //var myElement: ElementType = ElementType[element as keyof typeof ElementType];
