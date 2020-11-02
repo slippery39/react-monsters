@@ -32,15 +32,15 @@ interface State {
 }
 
 
-type OnTurnStartArgs={
+type OnTurnStartArgs = {
 
 }
 
-type OnTurnEndArgs={
+type OnTurnEndArgs = {
 
 }
 
-type OnSwitchNeededArgs={
+type OnSwitchNeededArgs = {
 
 }
 
@@ -52,13 +52,13 @@ export class Turn {
     eventLog: Array<BattleEvent> = [];
     nextEventId: number = 1; //next id for when we have a new event.
 
-    initialActions: Array<BattleAction> = [];    
+    initialActions: Array<BattleAction> = [];
 
     //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
-    faintedPokemonPlayers: Array<Player> = []; 
+    faintedPokemonPlayers: Array<Player> = [];
 
     private nextItemId = 1;
-    private nextPokemonId = 1; 
+    private nextPokemonId = 1;
 
     //TODO - this is not clean, clean this up, maybe have some sort of Map that maps player to activePokemonId.
     private _activePokemonIdAtStart1 = -1;
@@ -75,7 +75,7 @@ export class Turn {
     currentState: State = { type: 'awaiting-initial-actions' }
 
     //NEW - Events
-    OnTurnEnd : TypedEvent<OnTurnEndArgs> = new TypedEvent<OnTurnEndArgs>();
+    OnTurnEnd: TypedEvent<OnTurnEndArgs> = new TypedEvent<OnTurnEndArgs>();
     OnTurnStart: TypedEvent<OnTurnStartArgs> = new TypedEvent<OnTurnStartArgs>();
     OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs> = new TypedEvent<OnSwitchNeededArgs>();
 
@@ -146,24 +146,22 @@ export class Turn {
         const activePokemon = this.players.map(player => this.GetActivePokemon(player.id));
 
         activePokemon.forEach(pokemon => {
-                const hardStatus = GetHardStatus(pokemon.status || Status.None);
-                if (hardStatus.EndOfTurn!==undefined){
-                    hardStatus.EndOfTurn(this,pokemon);
-                }
+            const hardStatus = GetHardStatus(pokemon.status);
+            hardStatus.EndOfTurn(this, pokemon);
         })
     }
 
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
     private BeforeAttack(pokemon: IPokemon) {
-            pokemon.canAttackThisTurn = true;
+        pokemon.canAttackThisTurn = true;
 
-            const hardStatus = GetHardStatus(pokemon.status || Status.None);
+        const hardStatus = GetHardStatus(pokemon.status);
 
-            if (hardStatus.BeforeAttack!==undefined){
-                hardStatus.BeforeAttack(this,pokemon);
-            }
+        if (hardStatus.BeforeAttack !== undefined) {
+            hardStatus.BeforeAttack(this, pokemon);
+        }
     }
-       
+
     private DoAction(action: BattleAction) {
         switch (action.type) {
             case 'switch-pokemon-action': {
@@ -375,7 +373,7 @@ export class Turn {
             }
 
 
-            
+
 
             //go to the next state
             if (startStep.next !== undefined) {
@@ -385,12 +383,12 @@ export class Turn {
 
         //loop has finished lets throw some events based on what has happened.
         //throw events if necessary
-        
-        if (this.currentState.type === 'awaiting-switch-action'){
+
+        if (this.currentState.type === 'awaiting-switch-action') {
             console.warn('emitting on switch needed event');
             this.OnSwitchNeeded.emit({});
         }
-        else if (this.currentState.type === 'turn-finished'){
+        else if (this.currentState.type === 'turn-finished') {
             console.warn('emitting turn finshed event');
             this.OnTurnEnd.emit({});
         }
@@ -562,11 +560,10 @@ export class Turn {
                     }
 
                     const hardStatus = GetHardStatus(effect.status);
-                    if (hardStatus.CanApply){
-                        if (!hardStatus.CanApply()){
-                            return;
-                        }
+                    if (!hardStatus.CanApply(this, targetPokemon)) {
+                        return;
                     }
+
 
                     targetPokemon.status = effect.status;
 

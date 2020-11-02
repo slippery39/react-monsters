@@ -14,16 +14,21 @@ export interface IEndOfTurn {
     EndOfTurn: (turn: Turn, pokemon: IPokemon) => void
 }
 
-interface HardStatus {
+interface HardStatus extends IBeforeAttack,ICanApply,IEndOfTurn {
     statusType: Status;
+
 }
 
-class BurnStatus implements HardStatus, IEndOfTurn, ICanApply {
+class BurnStatus implements HardStatus{
+    
 
     statusType = Status.Burned;
 
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Fire);
+    }
+    BeforeAttack(turn: Turn, pokemon: IPokemon){
+        return;
     }
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
         const maxHp = pokemon.originalStats.health;
@@ -37,7 +42,8 @@ class BurnStatus implements HardStatus, IEndOfTurn, ICanApply {
     }
 }
 
-class FrozenStatus implements HardStatus, IBeforeAttack, ICanApply {
+class FrozenStatus implements HardStatus{
+   
     statusType = Status.Frozen
     private thawChance: number = 25;
 
@@ -68,12 +74,24 @@ class FrozenStatus implements HardStatus, IBeforeAttack, ICanApply {
             pokemon.canAttackThisTurn = false;
         }
     }
+    EndOfTurn(turn: Turn, pokemon: IPokemon){
+        return;
+    }
 }
 
-class SleepStatus implements HardStatus, IBeforeAttack {
+class SleepStatus implements HardStatus {
+    
+    
     statusType = Status.Sleep;
     private wakeUpChance: number = 25;
 
+    CanApply(turn: Turn, pokemon: IPokemon){
+        return true;
+    }
+
+    EndOfTurn(turn: Turn, pokemon: IPokemon){
+        return;
+    }
     BeforeAttack(turn: Turn, pokemon: IPokemon) {
         const isAsleepEffect: GenericMessageEvent = {
             type: BattleEventType.GenericMessage,
@@ -98,11 +116,15 @@ class SleepStatus implements HardStatus, IBeforeAttack {
     }
 }
 
-class ParalyzeStatus implements HardStatus, IBeforeAttack, ICanApply {
-
+class ParalyzeStatus implements HardStatus {
+  
 
     statusType = Status.Paralyzed;
     private cantMoveChance: number = 25;
+
+    EndOfTurn(turn: Turn, pokemon: IPokemon){
+        return;
+    }
 
     BeforeAttack(turn: Turn, pokemon: IPokemon) {
 
@@ -124,7 +146,8 @@ class ParalyzeStatus implements HardStatus, IBeforeAttack, ICanApply {
 
 }
 
-class PoisonStatus implements HardStatus, ICanApply, IEndOfTurn {
+class PoisonStatus implements HardStatus {
+    
 
     statusType = Status.Poison;
 
@@ -145,14 +168,21 @@ class PoisonStatus implements HardStatus, ICanApply, IEndOfTurn {
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Poison);
     }
+    BeforeAttack(turn: Turn, pokemon: IPokemon){
+        return;
+    }
 
 }
 
 class NoneStatus implements HardStatus {
-    statusType = Status.None
+
+    statusType = Status.None;
+    BeforeAttack  = (turn: Turn, pokemon: IPokemon) => null;
+    CanApply =  (turn: Turn, pokemon: IPokemon) =>  true;
+    EndOfTurn =  (turn: Turn, pokemon: IPokemon) => null;
 }
 
-function GetHardStatus(status: Status): any {
+function GetHardStatus(status: Status): HardStatus {
 
     if (status === Status.Paralyzed) {
         return new ParalyzeStatus();

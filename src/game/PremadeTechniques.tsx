@@ -103,7 +103,7 @@ export function GetTech(name:string){
                     type:'inflict-status',
                     status:Status.Burned,
                     target:'enemy',
-                    chance:15
+                    chance:100
                 }
             ]
         },
@@ -139,7 +139,7 @@ export function GetTech(name:string){
                     description: 'some razory leaves',
                     pp: 35,
                     currentPP: 35,
-                    power:500,
+                    power:65,
                     chance:95,
                     damageType:'physical',
                     elementalType:ElementType.Grass,

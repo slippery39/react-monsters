@@ -130,6 +130,11 @@ function Battle() {
             }
             case 'status-change': {
                 const pokemonData = getPokemonAndOwner(newState, action.id);
+
+                if (action.newStatus === undefined){
+                    action.newStatus = Status.None
+                }
+                
                 pokemonData.pokemon.status = action.newStatus;
                 return newState;
             }

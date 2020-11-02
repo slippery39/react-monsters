@@ -1,7 +1,6 @@
-import React from 'react';
 import {ElementType,Technique } from './interfaces';
 import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './DamageFunctions';
-import { IPokemon, Stats } from './Pokemon/Pokemon';
+import { IPokemon, PokemonBuilder } from './Pokemon/Pokemon';
 
 /*
 Test these functions
@@ -11,49 +10,13 @@ function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: Pokemon,
 */
 
 const createCharizard = function() : IPokemon{
-    const charizardStats : Stats = {
-        health:360,
-        attack:293,
-        defence:280,
-        specialAttack:348,
-        specialDefence:295,
-        speed:328
-    }
-    const charizard : IPokemon  = {
-        id:1,
-        name:'Charizard',
-        currentStats:{...charizardStats},
-        originalStats:{...charizardStats},
-        techniques:[
-
-        ],
-        elementalTypes:[ElementType.Fire,ElementType.Flying]
-    }
-
-    return charizard;
+    return new PokemonBuilder().OfSpecies("charizard").Build();
 }
 
 const createBlastoise = function(): IPokemon{
-    const blastoiseStats = {
-        health:362,
-        attack:291,
-        defence:328,
-        specialAttack:295,
-        specialDefence:339,
-        speed:78
-    }
-    const blastoise : IPokemon  = {
-        id:1,
-        name:'Blastoise',
-        currentStats:{...blastoiseStats},
-        originalStats:{...blastoiseStats},
-        techniques:[
-
-        ],
-        elementalTypes:[ElementType.Water]
-    }
-    return blastoise;
+    return new PokemonBuilder().OfSpecies("charizard").Build();
 }
+
 
 const createFireblast = function() : Technique{
     const fireblast:Technique = {

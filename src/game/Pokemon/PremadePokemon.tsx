@@ -1,9 +1,9 @@
 import {ElementType} from 'game/interfaces';
-import { IPokemon, Stats } from './Pokemon';
-import {GetTech} from "game/PremadeTechniques";
+import { Stats } from './Pokemon';
+
 
 interface PokemonDB {
-    [key:string] : IPokemon
+    [key:string] : IPokemonBase
 }
 
 interface IPokemonBase {
@@ -14,24 +14,13 @@ interface IPokemonBase {
 }
 
 
-
-
-export function GetPokemon(name:string): IPokemon{
+export function GetPokemon(name:string): IPokemonBase{
 
 const pokemons: PokemonDB = {
     "charizard":{
-        id: 1,
         name: 'Charizard',
         elementalTypes:[ElementType.Fire,ElementType.Flying],
-        originalStats: {
-            health: 300,
-            attack: 250,
-            defence: 200,
-            specialAttack: 250,
-            specialDefence: 250,
-            speed: 350
-        },
-        currentStats: {
+        stats: {
             health: 300,
             attack: 250,
             defence: 200,
@@ -40,24 +29,15 @@ const pokemons: PokemonDB = {
             speed: 350
         },
         techniques: [
-            GetTech("Fireblast"),
-            GetTech("Fly"),
-            GetTech("Thunder Wave")
+            "fireblast",
+            "fly",
+            "thunder wave"
         ]
     },
     "blastoise": {
-        id: 2,
         name: 'Blastoise',
         elementalTypes:[ElementType.Water],
-        originalStats: {
-            health: 300,
-            attack: 200,
-            defence: 200,
-            specialAttack: 200,
-            specialDefence: 250,
-            speed: 350
-        },
-        currentStats: {
+        stats: {
             health: 300,
             attack: 200,
             defence: 200,
@@ -66,22 +46,13 @@ const pokemons: PokemonDB = {
             speed: 350
         },
         techniques: [
-            GetTech("Hydro Pump")
+            "hydro pump"
         ]
     },
     "venusaur":{
-        id: 3,
         name: 'Venusaur',
         elementalTypes:[ElementType.Grass,ElementType.Poison],
-        originalStats: {
-            health: 300,
-            attack: 1000,
-            defence: 200,
-            specialAttack: 1000,
-            specialDefence: 250,
-            speed: 350
-        },
-        currentStats: {
+        stats: {
             health: 300,
             attack: 250,
             defence: 200,
@@ -90,7 +61,7 @@ const pokemons: PokemonDB = {
             speed: 350
         },
         techniques: [
-            GetTech("Razor Leaf")
+            'razor leaf'
         ]
     }
 }

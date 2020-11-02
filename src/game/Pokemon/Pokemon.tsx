@@ -2,6 +2,7 @@ import { ElementType, Status, Technique } from "game/interfaces";
 import { Stat } from "game/Stat";
 import { GetPokemon } from "./PremadePokemon";
 import _ from "lodash"
+import { GetTech } from "game/PremadeTechniques";
 
 
 export interface IPokemon {
@@ -9,11 +10,11 @@ export interface IPokemon {
     name: string,
     originalStats: Stats
     currentStats: Stats,  
-    techniques:Array<Technique>  ,
-    status?: Status,
+    techniques:Array<Technique>,
+    status: Status,
     elementalTypes:Array<ElementType>,
-    canAttackThisTurn?:boolean
-    statBoosts?:Record<Stat,number>
+    canAttackThisTurn:boolean
+    statBoosts:Record<Stat,number>
 }
 
 export interface Stats{
@@ -25,19 +26,6 @@ export interface Stats{
     speed:number
 }
 
-/*
-export class Pokemon implements IPokemon{
- 
-    id=-1;
-    name="[POKEMON]"
-    originalStats
-
-    constructor(){
-        
-    }
-}
-*/
-
 
 export class PokemonBuilder{
 
@@ -46,8 +34,8 @@ export class PokemonBuilder{
     constructor(){
         this.pokemon = {
                 id: 1,
-                name: 'unknown',
-                elementalTypes:[ElementType.Fire,ElementType.Flying],
+                name: 'Custom Pokemon',
+                elementalTypes:[],
                 originalStats: {
                     health: 0,
                     attack: 0,
@@ -66,6 +54,8 @@ export class PokemonBuilder{
                 },
                 techniques: [
                 ],
+                status:Status.None,
+                canAttackThisTurn:true,
                 statBoosts:{
                     [Stat.Attack]:0,
                     [Stat.Defense]:0,
@@ -75,12 +65,27 @@ export class PokemonBuilder{
                 }
         }
     }
-    OfSpecies(name:string) : PokemonBuilder{
+    OfSpecies(name:string) : PokemonBuilder{        
         //todo: some warning here that this should be called first?
-        this.pokemon = {...this.pokemon,...GetPokemon(name)};
+        const base = GetPokemon(name);
+        //modify the base pokemon to change it into a regular pokemon.
+        this.pokemon.name = base.name;
+        this.pokemon.currentStats = {...base.stats};
+        this.pokemon.originalStats = {...base.stats};
+        this.pokemon.elementalTypes = [...base.elementalTypes];
+        
+        base.techniques.forEach((techName:string)=>{
+            this.pokemon.techniques.push(GetTech(techName))
+        });
+
         return this;
     }
     Build() : IPokemon{
+        //TODO, some error checking here
+        //check if it has elemental types
+        //check if it has moves
+        //check if it has stats
+        //check if the name has been updated?
         return _.cloneDeep(this.pokemon);
     }
 }
@@ -106,13 +111,7 @@ export function GetStat(pokemon:IPokemon,stat:Stat) : number{
     }
 }
 export function GetPokemonBoostStage(pokemon:IPokemon,stat:Stat) : number{
-
-    if (pokemon.statBoosts!==undefined){
-        return pokemon.statBoosts[stat];
-    }
-    else{
-        return 0;
-    }
+    return pokemon.statBoosts[stat];
 }
 
 export function CalculateStatWithBoost(pokemon:IPokemon,stat:Stat){
@@ -133,6 +132,5 @@ export function CalculateStatWithBoost(pokemon:IPokemon,stat:Stat){
        boostAmount = 1/boostAmount;
    }
 
-   console.log(boostAmount);
    return Math.round(statAmount * boostAmount);   
 }

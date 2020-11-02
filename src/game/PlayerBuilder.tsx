@@ -1,5 +1,4 @@
 import { Item, Player, Status } from "./interfaces";
-import {GetPokemon} from "./Pokemon/PremadePokemon";
 import {GetItem} from "./PremadeItems";
 import _ from "lodash";
 import { PokemonBuilder } from "./Pokemon/Pokemon";
