@@ -61,7 +61,8 @@ const pokemons: PokemonDB = {
             speed: 350
         },
         techniques: [
-            'razor leaf'
+            'razor leaf',
+            'swords dance'
         ]
     }
 }

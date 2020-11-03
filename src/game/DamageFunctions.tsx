@@ -1,12 +1,19 @@
-import {ElementType, Technique, Status } from "./interfaces";
-import { IPokemon } from "./Pokemon/Pokemon";
+import {ElementType, Status } from "./interfaces";
+import { CalculateStatWithBoost, IPokemon } from "./Pokemon/Pokemon";
+import { Stat } from "./Stat";
+import { Technique } from "./Techniques/Technique";
 
 //Calculates the base damage before any modifiers (type effectiveness, crit etc.)
 export function GetBaseDamage(attackingPokemon: IPokemon, defendingPokemon: IPokemon, techUsed: Technique) {
     const level = 100; //constant for level since we aren't dealing with that stuff now.
     const Power = techUsed.power;
-    const Attack = techUsed.damageType === 'physical' ? attackingPokemon.currentStats.attack : attackingPokemon.currentStats.specialAttack;
-    const Defence = techUsed.damageType === 'physical' ? defendingPokemon.currentStats.defence : defendingPokemon.currentStats.specialDefence;
+    const Attack = techUsed.damageType === 'physical' ? CalculateStatWithBoost(attackingPokemon,Stat.Attack) : CalculateStatWithBoost(attackingPokemon,Stat.SpecialAttack);
+
+
+    console.log(`attack power used for ${attackingPokemon.name} : ${Attack}`);    
+
+    const Defence = techUsed.damageType === 'physical' ? CalculateStatWithBoost(defendingPokemon,Stat.Defense): CalculateStatWithBoost(defendingPokemon,Stat.SpecialDefense);
+
 
     //todo: this is a mess, clean this up.
     return Math.ceil(((((((2 * level) / 5) + 2) * Power * (Attack / Defence)) / 50) + 2));

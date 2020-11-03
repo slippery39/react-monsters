@@ -1,8 +1,9 @@
-import { ElementType, Status, Technique } from "game/interfaces";
+import { ElementType, Status} from "game/interfaces";
 import { Stat } from "game/Stat";
 import { GetPokemon } from "./PremadePokemon";
 import _ from "lodash"
-import { GetTech } from "game/PremadeTechniques";
+import { GetTech } from "game/Techniques/PremadeTechniques";
+import { Technique } from "game/Techniques/Technique";
 
 
 export interface IPokemon {
@@ -128,9 +129,20 @@ export function CalculateStatWithBoost(pokemon:IPokemon,stat:Stat){
    var boostAmounts = [3/3,4/3,5/3,6/3,7/3,8/3,9/3];
 
    var boostAmount = (boostAmounts[(Math.abs(boostStage))]);
+
+   console.log(`boost stage for ${pokemon.name} : ${boostStage}`)
+   console.log(`calculated boost amount for ${pokemon.name} : ${boostAmount}`);
+
    if (boostStage <0){
        boostAmount = 1/boostAmount;
    }
 
    return Math.round(statAmount * boostAmount);   
+}
+
+
+export function ApplyStatBoost(pokemon: IPokemon, stat:Stat,amount:number){
+    pokemon.statBoosts[stat] += amount;
+    //clamp it to -6 or 6
+    pokemon.statBoosts[stat] = Math.min(Math.max(pokemon.statBoosts[stat], -6), 6);
 }

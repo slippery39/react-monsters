@@ -1,7 +1,7 @@
 import React from 'react';
-import {Technique} from "../../../game/interfaces";
-import ElementIcon from "../../ElementIcon/ElementIcon";
+import ElementIcon from "components/ElementIcon/ElementIcon";
 import "./AttackContainer.css";
+import { Technique } from 'game/Techniques/Technique';
 
 
 interface Props {

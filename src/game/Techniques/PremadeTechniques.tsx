@@ -1,4 +1,6 @@
-import {ElementType, Status, Technique} from "./interfaces";
+import { Stat } from "game/Stat";
+import {ElementType, Status} from "../interfaces";
+import { Technique } from "./Technique";
 
 
 
@@ -47,6 +49,46 @@ export function GetTech(name:string){
                 }
             ],
             chance:85
+        },
+        "growl":{
+            id:-1,
+            name:"Growl",
+            description:"The user growls at the target",
+            damageType:'status',
+            power:0,
+            chance:100,
+            pp:20,
+            currentPP:20,
+            elementalType:ElementType.Normal,
+            effects:[
+                {
+                    type:'stat-boost',
+                    stat:Stat.Attack,
+                    target:'enemy',
+                    amount:-1,
+                    chance:100
+                }
+            ]
+        },
+        "swords dance":{
+            id:-1,
+            name:"swords dance",
+            description:"The user does a dance and increases its attack",
+            damageType:'status',
+            power:0,
+            chance:100,
+            pp:20,
+            currentPP:20,
+            elementalType:ElementType.Normal,
+            effects:[
+                {
+                    type:'stat-boost',
+                    stat:Stat.Attack,
+                    target:'ally',
+                    amount:2,
+                    chance:100
+                }
+            ]
         },
         "poison powder":{
             id:-1,
@@ -132,8 +174,7 @@ export function GetTech(name:string){
                     damageType:'special',               
                
             },
-            "razor leaf":{
-                
+            "razor leaf":{                
                     id: 5,
                     name: 'Razor Leaf',
                     description: 'some razory leaves',

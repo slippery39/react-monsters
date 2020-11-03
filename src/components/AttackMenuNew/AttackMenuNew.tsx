@@ -1,7 +1,7 @@
 import React from 'react';
 import './AttackMenuNew.css'
-import {Technique} from "../../game/interfaces";
 import AttackContainer from "./AttackContainer/AttackContainer";
+import { Technique } from 'game/Techniques/Technique';
 
 interface Props {
     techniques: Array<Technique>,

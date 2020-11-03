@@ -1,5 +1,5 @@
 import 'core-js'
-import { CalculateStatWithBoost, PokemonBuilder } from './Pokemon';
+import { ApplyStatBoost, CalculateStatWithBoost, PokemonBuilder } from './Pokemon';
 import { Stat } from 'game/Stat';
 
 
@@ -45,6 +45,25 @@ it ('calculates stat correctly with boost of -6', ()=>{
     expect(attackAmount1).toBe(33);
 });
 
+
+it('applies multiple stat boosts correctly', ()=>{
+
+    const pokemon = new PokemonBuilder().OfSpecies("charizard").Build();
+    ApplyStatBoost(pokemon,Stat.Attack,2);
+    
+    expect(pokemon.statBoosts[Stat.Attack]).toBe(2);
+
+    ApplyStatBoost(pokemon,Stat.Attack,2);
+    expect(pokemon.statBoosts[Stat.Attack]).toBe(4);
+
+    ApplyStatBoost(pokemon,Stat.Attack,2);
+    expect(pokemon.statBoosts[Stat.Attack]).toBe(6);
+
+    //should be clamped here.
+    ApplyStatBoost(pokemon,Stat.Attack,2);
+    expect(pokemon.statBoosts[Stat.Attack]).toBe(6);
+
+});
     
 
 

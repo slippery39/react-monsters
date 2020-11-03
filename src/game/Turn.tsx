@@ -1,11 +1,13 @@
-import { Player, Technique, Status, ElementType } from './interfaces';
+import { Player, Status, ElementType } from './interfaces';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent } from "./BattleEvents";
+import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent, GenericMessageEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
-import { IPokemon } from './Pokemon/Pokemon';
+import { ApplyStatBoost, IPokemon } from './Pokemon/Pokemon';
+import { Technique } from './Techniques/Technique';
+import { Stat } from './Stat';
 
 
 
@@ -43,6 +45,8 @@ type OnTurnEndArgs = {
 type OnSwitchNeededArgs = {
 
 }
+
+
 
 
 export class Turn {
@@ -574,6 +578,20 @@ export class Turn {
                         targetPokemonId: targetPokemon.id
                     };
                     this.AddEvent(statusInflictedEffect);
+                }
+                else if (effect.type ==='stat-boost'){
+                    const targetPokemon = effect.target === 'ally' ? pokemon : defendingPokemon;
+                    ApplyStatBoost(targetPokemon,effect.stat,effect.amount);
+
+                    let message = ` ${targetPokemon.name} has had its ${effect.stat} boosted!`
+                    if (effect.amount < 0){
+                        message = ` ${targetPokemon.name} has had its ${effect.stat} decreased!`
+                    }
+                    const statChangeEvent: GenericMessageEvent = {
+                        type:BattleEventType.GenericMessage,
+                        defaultMessage: message
+                    }
+                    this.AddEvent(statChangeEvent);
                 }
             }
         });

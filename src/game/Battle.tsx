@@ -158,9 +158,6 @@ class BattleService {
             this.SetSwitchFaintedPokemonAction(switchAction);
         }
 
-        //This is awkward an unexpected to have this in the player action.
-
-        console.log('this is not undefined though?');
         console.log(this.GetCurrentTurn());
         if (this.GetCurrentTurn().currentState.type === 'turn-finished') {           
             

@@ -1,6 +1,8 @@
-import {ElementType,Technique } from './interfaces';
+import {ElementType} from './interfaces';
 import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './DamageFunctions';
-import { IPokemon, PokemonBuilder } from './Pokemon/Pokemon';
+import { CalculateStatWithBoost, IPokemon, PokemonBuilder } from './Pokemon/Pokemon';
+import { Technique } from './Techniques/Technique';
+import { Stat } from './Stat';
 
 /*
 Test these functions
@@ -52,30 +54,15 @@ const createEarthquake = function(): Technique{
 
 describe('GetBaseDamage tests', ()=>{
     //what do we need to test here
-
-    const blastoiseStats = {
-        health:362,
-        attack:291,
-        defence:328,
-        specialAttack:295,
-        specialDefence:339,
-        speed:78
-    }
-
+    
     it('gets correct base damage',()=>{
 
         const attackingPokemon = createCharizard();
         const defendingPokemon = createBlastoise();
         const techUsed = createFireblast();
-        //42 * [power]* [attack/defence]
-        //a = 42 * 120 * 348/339 (1.026548672566372)
-        //5,173.805309734515
-        //b = (a/50) + 2
-        //base damage should be 105.4761061946903
-        //we should always round up?
-        //should be 106
         const baseDamage = GetBaseDamage(attackingPokemon,defendingPokemon,techUsed);
-        expect(baseDamage).toBe(106);
+
+        expect(baseDamage).toBe(103);
     });
 
     describe('GetTypeMod() tests', ()=>{
