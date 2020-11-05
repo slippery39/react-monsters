@@ -25,6 +25,7 @@ import { PlayerBuilder } from 'game/PlayerBuilder';
 import BasicAI from 'game/AI/AI';
 import BattleService from 'game/Battle';
 import { IPokemon } from 'game/Pokemon/Pokemon';
+import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -38,7 +39,7 @@ enum MenuState {
     SwitchMenu = 'switch-menu',
     FaintedSwitchMenu = 'fainted-switch-menu',
     ShowingTurn = 'showing-turn',
-    GameOver = 'game-over'
+    GameOver = 'game-over',
 }
 
 type State = {
@@ -106,7 +107,13 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
     return { owner: pokemonOwner, pokemon: pokemon }
 }
 
-function Battle() {
+
+interface Props {
+    onEnd: () => void;
+}
+
+const Battle: React.FunctionComponent<Props> = (props) => {
+
 
     const reducer = function (state = initialState, action: Action): State {
 
@@ -131,10 +138,10 @@ function Battle() {
             case 'status-change': {
                 const pokemonData = getPokemonAndOwner(newState, action.id);
 
-                if (action.newStatus === undefined){
+                if (action.newStatus === undefined) {
                     action.newStatus = Status.None
                 }
-                
+
                 pokemonData.pokemon.status = action.newStatus;
                 return newState;
             }
@@ -609,6 +616,7 @@ function Battle() {
                     {menuState === MenuState.SwitchMenu && <PokemonSwitchScreen showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
                     }
                     {menuState === MenuState.FaintedSwitchMenu && <PokemonSwitchScreen onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />}
+                    {menuState === MenuState.GameOver && <GameOverScreen onReturnClick={() => props.onEnd()} />}
 
                 </div>
             </div>

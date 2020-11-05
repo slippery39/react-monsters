@@ -1,25 +1,3 @@
-@font-face {
-    font-family: 'PokemonFont';
-    src: url('/fonts/DiamondPearl/PowerClear.woff2') format('woff2'),
-        url('/fonts/DiamondPearl/PowerClear.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
-
-
-
-.battle-window{
-    text-align: center;
-    width:400px;
-    margin:0 auto;
-    border:2px solid black;    
-
- 
-    font-family:"PokemonFont";
-
-}
-
 
 
 .battle-terrain{

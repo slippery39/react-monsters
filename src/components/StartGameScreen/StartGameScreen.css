@@ -1,0 +1,10 @@
+.start-menu-button{
+    background-color:green;
+    width: 60%;
+    display: inline-block;
+    margin: 0 auto;
+    padding-left: 40px;
+    padding-right: 40px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
