@@ -1,4 +1,5 @@
-import {ElementType, Status } from "./interfaces";
+import { Status } from "./HardStatus/HardStatus";
+import {ElementType} from "./interfaces";
 import { CalculateStatWithBoost, IPokemon } from "./Pokemon/Pokemon";
 import { Stat } from "./Stat";
 import { Technique } from "./Techniques/Technique";
@@ -8,10 +9,6 @@ export function GetBaseDamage(attackingPokemon: IPokemon, defendingPokemon: IPok
     const level = 100; //constant for level since we aren't dealing with that stuff now.
     const Power = techUsed.power;
     const Attack = techUsed.damageType === 'physical' ? CalculateStatWithBoost(attackingPokemon,Stat.Attack) : CalculateStatWithBoost(attackingPokemon,Stat.SpecialAttack);
-
-
-    console.log(`attack power used for ${attackingPokemon.name} : ${Attack}`);    
-
     const Defence = techUsed.damageType === 'physical' ? CalculateStatWithBoost(defendingPokemon,Stat.Defense): CalculateStatWithBoost(defendingPokemon,Stat.SpecialDefense);
 
 

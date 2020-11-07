@@ -1,8 +1,19 @@
 import { Turn } from "game/Turn";
 import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEvent } from "game/BattleEvents";
 import { HasElementType } from "game/HelperFunctions";
-import { ElementType, Status } from "game/interfaces";
+import { ElementType } from "game/interfaces";
 import { IPokemon } from "game/Pokemon/Pokemon";
+
+export enum Status{
+    Poison ='poisoned',
+    Paralyzed ='paralyzed',
+    Sleep='sleep',
+    Burned = 'burned',
+    Frozen = 'frozen',
+    None = 'none'
+}
+
+
 
 export interface IBeforeAttack {
     BeforeAttack: (turn: Turn, pokemon: IPokemon) => void

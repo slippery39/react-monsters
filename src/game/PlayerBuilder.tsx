@@ -1,7 +1,8 @@
-import { Item, Player, Status } from "./interfaces";
+import { Item, Player} from "./interfaces";
 import {GetItem} from "./PremadeItems";
 import _ from "lodash";
 import { PokemonBuilder } from "./Pokemon/Pokemon";
+import { Status } from "./HardStatus/HardStatus";
 
 export class PlayerBuilder{
 

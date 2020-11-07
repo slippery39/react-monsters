@@ -1,4 +1,5 @@
-import { ElementType, Status } from "game/interfaces";
+import { Status } from "game/HardStatus/HardStatus";
+import { ElementType } from "game/interfaces";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 

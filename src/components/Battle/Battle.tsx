@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useReducer, useRef } from 'rea
 
 
 import { OnNewTurnLogArgs } from "game/Battle";
-import { Player, Status } from 'game/interfaces';
+import { Player } from 'game/interfaces';
 import { SwitchPokemonAction, UseItemAction } from "game/BattleActions";
 import BattleMenu from "components/battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "components/BattlePokemonDisplay/BattlePokemonDisplay";
@@ -24,6 +24,7 @@ import { BattleEvent, BattleEventType } from 'game/BattleEvents'
 import BattleService from 'game/Battle';
 import { IPokemon } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
+import { Status } from 'game/HardStatus/HardStatus';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);

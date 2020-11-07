@@ -1,14 +1,14 @@
-import { Player, Status, ElementType } from './interfaces';
+import { Player, ElementType } from './interfaces';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent, GenericMessageEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
-import GetHardStatus from './HardStatus/HardStatus';
+import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { ApplyStatBoost, IPokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
 import _ from "lodash";
-import { ConfusionVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
+import { ConfusionVolatileStatus, GetVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -154,56 +154,12 @@ export class Turn {
     private BeforeAttack(pokemon: IPokemon) {
         pokemon.canAttackThisTurn = true;
 
-
-        //confusion happens here
-        if (pokemon.volatileStatuses.filter(vs=>vs.type==='confusion').length>0){
-            //confusion logic can go here for now, we will branch it out into its own thing, kind of like what we did with HardStatus soon enough. 
-            //I may make Volatile and HardStatus implement the same base class.
-            const unconfuseChance = 33;
-
-            if (this.Roll(unconfuseChance)){
-                //the attacking pokemon is no longer confused
-                _.remove(pokemon.volatileStatuses,(vstatus)=>vstatus.type==='confusion');
-                const unconfuseEvent : GenericMessageEvent  = {
-                    type:BattleEventType.GenericMessage,
-                    defaultMessage:`${pokemon.name} has snapped out of its confusion!`
-                }
-                this.AddEvent(unconfuseEvent);
-            }
-            else{
-                const stillConfusedEvent : GenericMessageEvent  = {
-                    type:BattleEventType.GenericMessage,
-                    defaultMessage:`${pokemon.name} is confused!`
-                }
-                this.AddEvent(stillConfusedEvent);
-
-                //still confused, roll for damage
-                const chanceForDamage = 50;
-                
-                if (this.Roll(chanceForDamage)){
-                    const confusionHurtEvent : GenericMessageEvent  = {
-                        type:BattleEventType.GenericMessage,
-                       
-                        defaultMessage:`${pokemon.name} has hurt itself in its confusion`
-                    }
-                    this.AddEvent(confusionHurtEvent);
-                    this.ApplyDamage(pokemon,40,{});
-
-                    //pokemon skips the turn as well
-                    pokemon.canAttackThisTurn = false;
-                }
-            }
-
-            /*
-                Right rest of confusion chance here.
-
-                if (rolls to be confused, then roll to have a 50 percent chance of damaging itself otherwise the pokemon can attack)
-            */
-        }
-
+        pokemon.volatileStatuses.forEach(vStat=>{
+            vStat.BeforeAttack(this,pokemon);
+        })
+        
         const hardStatus = GetHardStatus(pokemon.status);
-
-        if (hardStatus.BeforeAttack !== undefined) {
+        if (hardStatus.BeforeAttack !== undefined && pokemon.canAttackThisTurn===true) {
             hardStatus.BeforeAttack(this, pokemon);
         }
     }
@@ -670,18 +626,19 @@ export class Turn {
                 else if (effect.type === 'inflict-volatile-status'){
                     const targetPokemon = effect.target === 'ally' ? pokemon : defendingPokemon;
 
-                    //TODO: if the target pokemon already has the volatile status, then the move won't have an effect.
-                    if (effect.status === VolatileStatusType.Confusion){
-                        const confusionStatus : ConfusionVolatileStatus = {
-                            type:'confusion'
-                        }
-                        targetPokemon.volatileStatuses.push(confusionStatus);
-                        const inflictConfusionEvent: GenericMessageEvent = {
-                            type: BattleEventType.GenericMessage,
-                            defaultMessage: `${targetPokemon.name} has been confused!`
-                        }
-                        this.AddEvent(inflictConfusionEvent);
+                    const vStatus = GetVolatileStatus(effect.status);
+
+                    if (!vStatus.CanApply(this,targetPokemon)){
+                        return;
                     }
+
+                    targetPokemon.volatileStatuses.push(vStatus);
+                    const inflictVStatusEvent:GenericMessageEvent ={
+                        type:BattleEventType.GenericMessage,
+                        defaultMessage:vStatus.InflictedMessage(targetPokemon)
+                    }
+
+                    this.AddEvent(inflictVStatusEvent);
                 }
             }
         });

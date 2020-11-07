@@ -1,5 +1,4 @@
 import React from 'react';
-import {Status } from "../../../game/interfaces";
 import "./PokemonSwitchContainer.css";
 
 import PokemonImage from "../../PokemonImage/PokemonImage";
@@ -7,6 +6,7 @@ import AnimatedHealthBar from '../../AnimatedHealthBar/AnimatedHealthBar';
 import Pokeball from "../../Pokeball/Pokeball";
 import PokemonStatus from "../../PokemonStatus/PokemonStatus";
 import { IPokemon } from 'game/Pokemon/Pokemon';
+import { Status } from 'game/HardStatus/HardStatus';
 
 interface Props {
     pokemon: IPokemon

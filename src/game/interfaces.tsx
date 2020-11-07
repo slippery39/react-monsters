@@ -1,15 +1,6 @@
 import { IPokemon } from "./Pokemon/Pokemon";
 import { ItemEffect } from "./PremadeItems";
 
-
-
-
-
-
-
-
-
-
 export interface BaseItem{
     name:string,
     description:string,
@@ -29,16 +20,6 @@ export interface Player {
     items: Array<Item>
     id:number
 }
-
-export enum Status{
-    Poison ='poisoned',
-    Paralyzed ='paralyzed',
-    Sleep='sleep',
-    Burned = 'burned',
-    Frozen = 'frozen',
-    None = 'none'
-}
-
 
 export enum ElementType{
     Normal = 'NORMAL',

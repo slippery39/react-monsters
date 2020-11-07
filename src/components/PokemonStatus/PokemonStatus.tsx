@@ -1,6 +1,7 @@
+import { Status } from 'game/HardStatus/HardStatus';
 import React from 'react';
 import './PokemonStatus.css'
-import {Status} from "game/interfaces";
+
 
 interface Props {
     status : Status

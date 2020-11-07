@@ -1,10 +1,11 @@
-import { ElementType, Status} from "game/interfaces";
+import { ElementType} from "game/interfaces";
 import { Stat } from "game/Stat";
 import { GetPokemon } from "./PremadePokemon";
 import _ from "lodash"
 import { GetTech } from "game/Techniques/PremadeTechniques";
 import { Technique } from "game/Techniques/Technique";
-import { VolatileStatus } from "game/VolatileStatus/VolatileStatus";
+import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
+import { Status } from "game/HardStatus/HardStatus";
 
 
 export interface IPokemon {
@@ -116,6 +117,12 @@ export function GetStat(pokemon:IPokemon,stat:Stat) : number{
 }
 export function GetPokemonBoostStage(pokemon:IPokemon,stat:Stat) : number{
     return pokemon.statBoosts[stat];
+}
+
+export function HasVolatileStatus(pokemon:IPokemon,status:VolatileStatusType): boolean{
+    return pokemon.volatileStatuses.filter(el=>
+        el.type === status
+    ).length >0;
 }
 
 export function CalculateStatWithBoost(pokemon:IPokemon,stat:Stat){

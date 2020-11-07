@@ -2,7 +2,7 @@
 All the different "events" that can happen as a result of a turn
 */
 
-import {Status} from "./interfaces";
+import { Status } from "./HardStatus/HardStatus";
 
 export type BattleEvent = (SwitchOutEvent | SwitchInEvent | DamageEvent | HealEvent | FaintedPokemonEvent | UseMoveEvent | UseItemEvent | StatusChangeEvent | CannotAttackEvent | GenericMessageEvent)
 
