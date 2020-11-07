@@ -1,5 +1,6 @@
 import { ElementType, Status } from "game/interfaces";
 import { Stat } from "game/Stat";
+import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 
 
 //etc.
@@ -40,6 +41,12 @@ interface StatBoostMoveEffect{
     amount:number
     chance:number 
 }
+interface InflictVolatileStatusEffect{
+    type:'inflict-volatile-status',
+    status:VolatileStatusType,
+    target:'ally' | 'enemy'
+    chance:number
+}
 
 
-type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect);
+type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect);

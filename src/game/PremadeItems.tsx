@@ -1,5 +1,6 @@
+import { Status } from "./interfaces";
 
-export type ItemEffect = (HealthRestoreItemEffect)
+export type ItemEffect = (HealthRestoreItemEffect | StatusRestoreEffect)
 
 
 interface ItemEffectBase{
@@ -10,6 +11,13 @@ interface HealthRestoreItemEffect extends ItemEffectBase{
     type:'health-restore'
     amount:number
 }
+
+interface StatusRestoreEffect extends ItemEffectBase{
+    type:'status-restore',
+    forStatus:Status | "any"
+}
+
+
 
 interface ItemBase{
     name:string,
@@ -24,6 +32,25 @@ interface PremadeItems {
 export function GetItem(name:string){
     
     const items : PremadeItems = {
+
+
+        "Antidote":{
+            name:"Antidote",
+            description:'Cures poison',
+            effects:[{
+                type:'status-restore',
+                forStatus:Status.Poison
+            }]
+        },
+        "Full Restore":{
+            name:"Full Restore",
+            description:'Heals to full health and cures any status',
+            effects:[{
+                type:'health-restore',
+                amount:9999
+            },
+            {type:'status-restore',forStatus:'any'}]
+        },
         "Potion": {
             name:'Potion',
             description:'Restores 20 HP',

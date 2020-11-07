@@ -31,7 +31,8 @@ const pokemons: PokemonDB = {
         techniques: [
             "fireblast",
             "fly",
-            "thunder wave"
+            "thunder wave",
+            "confuse ray"
         ]
     },
     "blastoise": {

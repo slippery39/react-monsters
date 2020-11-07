@@ -1,4 +1,5 @@
 import { Stat } from "game/Stat";
+import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import {ElementType, Status} from "../interfaces";
 import { Technique } from "./Technique";
 
@@ -11,6 +12,25 @@ interface PremadeTechniques{
 export function GetTech(name:string){
     
     const techs: PremadeTechniques = {
+        "confuse ray":{
+            id:-1,
+            name:"Confuse Ray",
+            description:"A ray that confuses the opponent",
+            damageType:'status',
+            pp:15,
+            currentPP:15,
+            power:0,
+            elementalType:ElementType.Normal,
+            chance:100,
+            effects:[
+                {
+                    type:'inflict-volatile-status',
+                    status:VolatileStatusType.Confusion,
+                    target:'enemy',
+                    chance:100       
+               }
+            ]
+        },
         "sleep powder":{
             id:-1,
             name:"Sleep Powder",

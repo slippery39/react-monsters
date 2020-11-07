@@ -16,13 +16,14 @@ export interface IEndOfTurn {
 
 interface HardStatus extends IBeforeAttack,ICanApply,IEndOfTurn {
     statusType: Status;
-
+    curedString:string //don't really know what else to call this at the moment but follows the format of  'has been cured of its {status}`
 }
 
 class BurnStatus implements HardStatus{
     
 
     statusType = Status.Burned;
+    curedString= 'has been cured of its burn!'
 
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Fire);
@@ -45,6 +46,7 @@ class BurnStatus implements HardStatus{
 class FrozenStatus implements HardStatus{
    
     statusType = Status.Frozen
+    curedString= 'has been thawed!'
     private thawChance: number = 25;
 
     CanApply(turn: Turn, pokemon: IPokemon) {
@@ -83,6 +85,7 @@ class SleepStatus implements HardStatus {
     
     
     statusType = Status.Sleep;
+    curedString= 'has woken up!'
     private wakeUpChance: number = 25;
 
     CanApply(turn: Turn, pokemon: IPokemon){
@@ -120,6 +123,7 @@ class ParalyzeStatus implements HardStatus {
   
 
     statusType = Status.Paralyzed;
+    curedString= 'has been cured of paralysis!'
     private cantMoveChance: number = 25;
 
     EndOfTurn(turn: Turn, pokemon: IPokemon){
@@ -150,6 +154,7 @@ class PoisonStatus implements HardStatus {
     
 
     statusType = Status.Poison;
+    curedString= 'has been cured of poison!'
 
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
         //apply poison damage
@@ -177,6 +182,7 @@ class PoisonStatus implements HardStatus {
 class NoneStatus implements HardStatus {
 
     statusType = Status.None;
+    curedString= '';
     BeforeAttack  = (turn: Turn, pokemon: IPokemon) => null;
     CanApply =  (turn: Turn, pokemon: IPokemon) =>  true;
     EndOfTurn =  (turn: Turn, pokemon: IPokemon) => null;

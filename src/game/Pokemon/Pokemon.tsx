@@ -4,6 +4,7 @@ import { GetPokemon } from "./PremadePokemon";
 import _ from "lodash"
 import { GetTech } from "game/Techniques/PremadeTechniques";
 import { Technique } from "game/Techniques/Technique";
+import { VolatileStatus } from "game/VolatileStatus/VolatileStatus";
 
 
 export interface IPokemon {
@@ -15,7 +16,8 @@ export interface IPokemon {
     status: Status,
     elementalTypes:Array<ElementType>,
     canAttackThisTurn:boolean
-    statBoosts:Record<Stat,number>
+    statBoosts:Record<Stat,number>,
+    volatileStatuses:Array<VolatileStatus>
 }
 
 export interface Stats{
@@ -55,6 +57,7 @@ export class PokemonBuilder{
                 },
                 techniques: [
                 ],
+                volatileStatuses: [],
                 status:Status.None,
                 canAttackThisTurn:true,
                 statBoosts:{
@@ -127,11 +130,7 @@ export function CalculateStatWithBoost(pokemon:IPokemon,stat:Stat){
 
    //these are the wrong amounts, look these up again.
    var boostAmounts = [3/3,4/3,5/3,6/3,7/3,8/3,9/3];
-
    var boostAmount = (boostAmounts[(Math.abs(boostStage))]);
-
-   console.log(`boost stage for ${pokemon.name} : ${boostStage}`)
-   console.log(`calculated boost amount for ${pokemon.name} : ${boostAmount}`);
 
    if (boostStage <0){
        boostAmount = 1/boostAmount;

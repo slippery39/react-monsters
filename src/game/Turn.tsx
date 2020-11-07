@@ -7,9 +7,8 @@ import GetHardStatus from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { ApplyStatBoost, IPokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
-import { Stat } from './Stat';
-
-
+import _ from "lodash";
+import { ConfusionVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -35,19 +34,13 @@ interface State {
 
 
 type OnTurnStartArgs = {
-
 }
 
 type OnTurnEndArgs = {
-
 }
 
 type OnSwitchNeededArgs = {
-
 }
-
-
-
 
 export class Turn {
     id: Number;
@@ -63,6 +56,7 @@ export class Turn {
 
     private nextItemId = 1;
     private nextPokemonId = 1;
+    private nextTechId = -1;
 
     //TODO - this is not clean, clean this up, maybe have some sort of Map that maps player to activePokemonId.
     private _activePokemonIdAtStart1 = -1;
@@ -90,6 +84,7 @@ export class Turn {
         this.AutoAssignPokemonIds();
         this.AutoAssignCurrentPokemonIds();
         this.AutoAssignItemIds();
+        this.AutoAssignTechniqueIds();
 
         //this controls some logic in the turn.
         this._activePokemonIdAtStart1 = players[0].currentPokemonId;
@@ -158,6 +153,53 @@ export class Turn {
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
     private BeforeAttack(pokemon: IPokemon) {
         pokemon.canAttackThisTurn = true;
+
+
+        //confusion happens here
+        if (pokemon.volatileStatuses.filter(vs=>vs.type==='confusion').length>0){
+            //confusion logic can go here for now, we will branch it out into its own thing, kind of like what we did with HardStatus soon enough. 
+            //I may make Volatile and HardStatus implement the same base class.
+            const unconfuseChance = 33;
+
+            if (this.Roll(unconfuseChance)){
+                //the attacking pokemon is no longer confused
+                _.remove(pokemon.volatileStatuses,(vstatus)=>vstatus.type==='confusion');
+                const unconfuseEvent : GenericMessageEvent  = {
+                    type:BattleEventType.GenericMessage,
+                    defaultMessage:`${pokemon.name} has snapped out of its confusion!`
+                }
+                this.AddEvent(unconfuseEvent);
+            }
+            else{
+                const stillConfusedEvent : GenericMessageEvent  = {
+                    type:BattleEventType.GenericMessage,
+                    defaultMessage:`${pokemon.name} is confused!`
+                }
+                this.AddEvent(stillConfusedEvent);
+
+                //still confused, roll for damage
+                const chanceForDamage = 50;
+                
+                if (this.Roll(chanceForDamage)){
+                    const confusionHurtEvent : GenericMessageEvent  = {
+                        type:BattleEventType.GenericMessage,
+                       
+                        defaultMessage:`${pokemon.name} has hurt itself in its confusion`
+                    }
+                    this.AddEvent(confusionHurtEvent);
+                    this.ApplyDamage(pokemon,40,{});
+
+                    //pokemon skips the turn as well
+                    pokemon.canAttackThisTurn = false;
+                }
+            }
+
+            /*
+                Right rest of confusion chance here.
+
+                if (rolls to be confused, then roll to have a 50 percent chance of damaging itself otherwise the pokemon can attack)
+            */
+        }
 
         const hardStatus = GetHardStatus(pokemon.status);
 
@@ -473,6 +515,38 @@ export class Turn {
                 }
                 this.AddEvent(itemEffect);
             }
+            else if (effect.type === 'status-restore') {
+
+                //if this is the only effect, and the pokemon has no status to cure
+
+                if (effect.forStatus === 'any' && pokemon.status!==Status.None) {
+                    let statusRestoreEffect: StatusChangeEvent = {
+                        type: BattleEventType.StatusChange,
+                        status:Status.None,
+                        targetPokemonId:pokemon.id,
+                        defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
+                    }
+                        this.AddEvent(statusRestoreEffect);
+                        pokemon.status = Status.None;                    
+                }
+                else if (effect.forStatus === pokemon.status){
+                    let statusRestoreEffect: StatusChangeEvent = {
+                        type: BattleEventType.StatusChange,
+                        status:Status.None,
+                        targetPokemonId:pokemon.id,
+                        defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
+                    }
+                    this.AddEvent(statusRestoreEffect);
+                    pokemon.status = Status.None;  
+                }     
+                else if (pokemon.status!= effect.forStatus && item.effects.length === 1){
+                    let noEffect: GenericMessageEvent = {
+                        type: BattleEventType.GenericMessage,
+                        defaultMessage: `It had no effect!`
+                    }
+                    this.AddEvent(noEffect);
+                }           
+            }
         });
 
         item.quantity -= 1;
@@ -579,19 +653,35 @@ export class Turn {
                     };
                     this.AddEvent(statusInflictedEffect);
                 }
-                else if (effect.type ==='stat-boost'){
+                else if (effect.type === 'stat-boost') {
                     const targetPokemon = effect.target === 'ally' ? pokemon : defendingPokemon;
-                    ApplyStatBoost(targetPokemon,effect.stat,effect.amount);
+                    ApplyStatBoost(targetPokemon, effect.stat, effect.amount);
 
                     let message = ` ${targetPokemon.name} has had its ${effect.stat} boosted!`
-                    if (effect.amount < 0){
+                    if (effect.amount < 0) {
                         message = ` ${targetPokemon.name} has had its ${effect.stat} decreased!`
                     }
                     const statChangeEvent: GenericMessageEvent = {
-                        type:BattleEventType.GenericMessage,
+                        type: BattleEventType.GenericMessage,
                         defaultMessage: message
                     }
                     this.AddEvent(statChangeEvent);
+                }
+                else if (effect.type === 'inflict-volatile-status'){
+                    const targetPokemon = effect.target === 'ally' ? pokemon : defendingPokemon;
+
+                    //TODO: if the target pokemon already has the volatile status, then the move won't have an effect.
+                    if (effect.status === VolatileStatusType.Confusion){
+                        const confusionStatus : ConfusionVolatileStatus = {
+                            type:'confusion'
+                        }
+                        targetPokemon.volatileStatuses.push(confusionStatus);
+                        const inflictConfusionEvent: GenericMessageEvent = {
+                            type: BattleEventType.GenericMessage,
+                            defaultMessage: `${targetPokemon.name} has been confused!`
+                        }
+                        this.AddEvent(inflictConfusionEvent);
+                    }
                 }
             }
         });
@@ -694,6 +784,17 @@ export class Turn {
             this.players[1].currentPokemonId = this.players[1].pokemon[0].id;
         }
     }
+
+    private AutoAssignTechniqueIds(): void{
+        this.players.flat().map(player=>{
+            return player.pokemon
+        }).flat().map(pokemon=>{
+            return pokemon.techniques
+        }).flat().forEach(tech=>{
+            tech.id = this.nextTechId++;
+        });
+    }
+    
 
     //this needs to be cached due to potential randomness
     private GetMoveOrder(): Array<BattleAction> {

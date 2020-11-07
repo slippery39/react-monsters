@@ -71,14 +71,11 @@ class BattleService {
 
     //eventually this will run a start event or something.
     Start(){
-        console.log('battle has started!');
         this.OnNewTurn.emit(1);
     }
 
 
     SetInitialAction(action: BattleAction) {
-
-        console.log('are we setting an action in the battle service?');
         this.GetCurrentTurn().SetInitialPlayerAction(action);
 
         //THIS WILL NOT NECESSARILY HAPPEN IMMEDIATLEY, WE NEED TO WAIT UNTIL WE RECIEVE THE GO AHEAD
@@ -100,7 +97,6 @@ class BattleService {
         this.onNewTurnLog.emit(args);
 
         if (this.GetCurrentTurn().currentState.type ==='awaiting-switch-action'){
-            console.log('IS THE ON SWITCH NEEDED EVENT OCCURING?');
             this.OnSwitchNeeded.emit(1);
         }
 
@@ -158,11 +154,7 @@ class BattleService {
             this.SetSwitchFaintedPokemonAction(switchAction);
         }
 
-        console.log(this.GetCurrentTurn());
         if (this.GetCurrentTurn().currentState.type === 'turn-finished') {           
-            
-            console.log('why is his undefined');
-            console.log(this.GetCurrentTurn());
             const player1 = this.GetCurrentTurn().players[0];
             const player2 = this.GetCurrentTurn().players[1];
 
