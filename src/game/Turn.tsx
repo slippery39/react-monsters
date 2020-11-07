@@ -54,10 +54,6 @@ export class Turn {
     //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
     faintedPokemonPlayers: Array<Player> = [];
 
-    private nextItemId = 1;
-    private nextPokemonId = 1;
-    private nextTechId = -1;
-
     //TODO - this is not clean, clean this up, maybe have some sort of Map that maps player to activePokemonId.
     private _activePokemonIdAtStart1 = -1;
     private _activePokemonIdAtStart2 = -1;
@@ -80,11 +76,6 @@ export class Turn {
     constructor(turnId: Number, players: Array<Player>) {
         this.id = turnId;
         this.players = players;
-
-        this.AutoAssignPokemonIds();
-        this.AutoAssignCurrentPokemonIds();
-        this.AutoAssignItemIds();
-        this.AutoAssignTechniqueIds();
 
         //this controls some logic in the turn.
         this._activePokemonIdAtStart1 = players[0].currentPokemonId;
@@ -398,24 +389,23 @@ export class Turn {
 
     private SwitchPokemon(playerId: number, pokemonInId: number) {
         //not yet implemented, just for practice.
-        const player = this.players.find(p => p.id === playerId);
-        const pokemon = player?.pokemon.find(p => p.id === pokemonInId);
-        const switchOutPokemonId = player?.currentPokemonId;
+        const player = this.GetPlayer(playerId);
+        const pokemon = this.GetPokemon(pokemonInId);
+        const switchOutPokemonId = player.currentPokemonId;
+        const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
 
+        //any pokemon switched out should have thier volatile statuses removed
+        switchOutPokemon.volatileStatuses = []; //easy peasy
 
-        if (player === undefined || pokemon === undefined) {
-            console.error('error in switching pokemon');
-            //should never get to this point?
-            return;
-        }
         //current pokemon position is 0
         //find the pokemon to switch in position
         const switchInPokemonPos = player.pokemon.indexOf(player.pokemon.find(p => p.id === pokemonInId)!);
         let pokemonArrCopy = player.pokemon.slice();
 
-        //i don't think we actualy want to switch the pokemon position anymore?
+        //TODO: i don't think we actualy want to switch the pokemon position in the array anymore?
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
         pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
+        
 
         player.pokemon = pokemonArrCopy;
         player.currentPokemonId = pokemonArrCopy[0].id;
@@ -517,6 +507,9 @@ export class Turn {
 
         const player = this.GetPlayer(playerId);
         const pokemon = this.GetPokemon(pokemonId);
+
+        console.log(pokemon);
+
         const move = pokemon.techniques.find(t => t.id === techniqueId);
 
         //This should work as long as it stays 1v1;
@@ -710,46 +703,6 @@ export class Turn {
         }
 
         return owner;
-    }
-
-    private AutoAssignPokemonIds(): void {
-        this.players.flat().map(player => {
-            return player.pokemon
-        }).flat().forEach(pokemon => {
-            //quick hack here to see if the id for these entities has already been set, this pattern is repeated in the auto assign item ids and auto assign current pokemon ids functions as well.
-            if (pokemon.id === -1) {
-                pokemon.id = this.nextPokemonId++
-            }
-        });
-    }
-
-    private AutoAssignItemIds(): void {
-        this.players.flat().map(player => {
-            return player.items
-        }).flat().forEach(item => {
-            if (item.id === -1) {
-                item.id = this.nextItemId++;
-            }
-        });
-    }
-
-    private AutoAssignCurrentPokemonIds(): void {
-        if (this.players[0].currentPokemonId === -1) {
-            this.players[0].currentPokemonId = this.players[0].pokemon[0].id;
-        }
-        if (this.players[1].currentPokemonId === -1) {
-            this.players[1].currentPokemonId = this.players[1].pokemon[0].id;
-        }
-    }
-
-    private AutoAssignTechniqueIds(): void{
-        this.players.flat().map(player=>{
-            return player.pokemon
-        }).flat().map(pokemon=>{
-            return pokemon.techniques
-        }).flat().forEach(tech=>{
-            tech.id = this.nextTechId++;
-        });
     }
     
 

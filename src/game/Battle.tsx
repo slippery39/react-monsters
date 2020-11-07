@@ -34,6 +34,15 @@ class BattleService {
 
 
     constructor(player1: Player, player2: Player) {
+
+
+        //Auto Assign all the ids
+        this.AutoAssignPokemonIds([player1,player2]);
+        this.AutoAssignCurrentPokemonIds([player1,player2]);
+        this.AutoAssignItemIds([player1,player2]);
+        this.AutoAssignTechniqueIds([player1,player2]);
+
+
          const turn = new Turn(1,[player1,player2]);
          turn.OnTurnEnd.on((args)=>{
              console.error('On turn end has fired!');
@@ -179,6 +188,56 @@ class BattleService {
     //gets the player state for the current turn?
     GetPlayers(): Array<Player> {
         return _.cloneDeep(this.GetCurrentTurn().players);
+    }
+
+    
+    private AutoAssignPokemonIds(players:Array<Player>): void {
+
+        let nextPokemonId = 1;
+
+        players.flat().map(player => {
+            return player.pokemon
+        }).flat().forEach(pokemon => {
+            //quick hack here to see if the id for these entities has already been set, this pattern is repeated in the auto assign item ids and auto assign current pokemon ids functions as well.
+            if (pokemon.id === -1) {
+                pokemon.id = nextPokemonId++
+            }
+        });
+    }
+
+    private AutoAssignItemIds(players:Array<Player>): void {
+
+        let nextItemId = 1;
+
+        players.flat().map(player => {
+            return player.items
+        }).flat().forEach(item => {
+            if (item.id === -1) {
+                item.id = nextItemId++;
+            }
+        });
+    }
+
+    private AutoAssignCurrentPokemonIds(players:Array<Player>): void {
+        if (players[0].currentPokemonId === -1) {
+            players[0].currentPokemonId = players[0].pokemon[0].id;
+        }
+        if (players[1].currentPokemonId === -1) {
+            players[1].currentPokemonId = players[1].pokemon[0].id;
+        }
+    }
+
+    private AutoAssignTechniqueIds(players:Array<Player>): void{
+
+        let nextTechId = 1;
+
+        players.flat().map(player=>{
+            return player.pokemon
+        }).flat().map(pokemon=>{
+            return pokemon.techniques
+        }).flat().forEach(tech=>{
+            tech.id = nextTechId++;
+        });
     }
 
 }
