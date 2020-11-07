@@ -7,8 +7,7 @@ import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { ApplyStatBoost, IPokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
-import _ from "lodash";
-import { ConfusionVolatileStatus, GetVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
+import {  GetVolatileStatus} from './VolatileStatus/VolatileStatus';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -136,6 +135,11 @@ export class Turn {
         const activePokemon = this.players.map(player => this.GetActivePokemon(player.id));
 
         activePokemon.forEach(pokemon => {
+
+            pokemon.volatileStatuses.forEach(vStat=>{
+                vStat.EndOfTurn(this,pokemon);
+            })
+
             const hardStatus = GetHardStatus(pokemon.status);
             hardStatus.EndOfTurn(this, pokemon);
         })
@@ -199,6 +203,19 @@ export class Turn {
             this.faintedPokemonPlayers.push(owner);
             this.currentState = { type: 'awaiting-switch-action' }
         }
+    }
+
+    ApplyHealing(pokemon:IPokemon,amount:number){
+        const itemHealAmount = amount;
+        const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
+        pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
+        let itemEffect: HealEvent = {
+            type: BattleEventType.Heal,
+            targetPokemonId: pokemon.id,
+            targetFinalHealth: pokemon.currentStats.health,
+            totalHealing: healing,
+        }
+        this.AddEvent(itemEffect);
     }
 
     ApplyDamage(pokemon: IPokemon, damage: number, damageInfo: any) {
@@ -390,7 +407,7 @@ export class Turn {
     private SwitchPokemon(playerId: number, pokemonInId: number) {
         //not yet implemented, just for practice.
         const player = this.GetPlayer(playerId);
-        const pokemon = this.GetPokemon(pokemonInId);
+        //const pokemon = this.GetPokemon(pokemonInId);
         const switchOutPokemonId = player.currentPokemonId;
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
 
@@ -450,16 +467,7 @@ export class Turn {
 
         item.effects.forEach(effect => {
             if (effect.type === 'health-restore') {
-                const itemHealAmount = effect.amount;
-                const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
-                pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
-                let itemEffect: HealEvent = {
-                    type: BattleEventType.Heal,
-                    targetPokemonId: pokemon.id,
-                    targetFinalHealth: pokemon.currentStats.health,
-                    totalHealing: healing,
-                }
-                this.AddEvent(itemEffect);
+                this.ApplyHealing(pokemon,effect.amount);
             }
             else if (effect.type === 'status-restore') {
 
@@ -485,7 +493,7 @@ export class Turn {
                     this.AddEvent(statusRestoreEffect);
                     pokemon.status = Status.None;  
                 }     
-                else if (pokemon.status!= effect.forStatus && item.effects.length === 1){
+                else if (pokemon.status!== effect.forStatus && item.effects.length === 1){
                     let noEffect: GenericMessageEvent = {
                         type: BattleEventType.GenericMessage,
                         defaultMessage: `It had no effect!`

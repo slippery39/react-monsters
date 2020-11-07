@@ -27,7 +27,7 @@ function App() {
   function initializeBattle(){
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("charizard")
+    .WithPokemon("blastoise")
     .WithPokemon("venusaur")
     .WithPokemon("blastoise")
     .WithItem("Full Restore", 3)
@@ -38,7 +38,7 @@ function App() {
 
 const player2 = new PlayerBuilder(2)
     .WithName("Bob")
-    .WithPokemon("venusaur")
+    .WithPokemon("blastoise")
     .WithPokemon("blastoise")
     .WithPokemon("charizard")
     .WithItem("Potion", 1)

@@ -3,7 +3,7 @@ import {GetItem} from "./PremadeItems";
 import _ from "lodash";
 import { PokemonBuilder } from "./Pokemon/Pokemon";
 import { Status } from "./HardStatus/HardStatus";
-import { ConfusionVolatileStatus } from "./VolatileStatus/VolatileStatus";
+import {  LeechSeedVolatileStatus } from "./VolatileStatus/VolatileStatus";
 
 export class PlayerBuilder{
 
@@ -28,11 +28,6 @@ export class PlayerBuilder{
         pokemon.id = -1; //gets a new id from the game
         pokemon.status = Status.None
         this.player.pokemon.push( pokemon );
-        
-        //remove when done testing
-        pokemon.volatileStatuses.push(new ConfusionVolatileStatus());
-            
-        
         return this;
     }
     WithItem(name:string,quantity:number) : PlayerBuilder{

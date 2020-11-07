@@ -47,7 +47,8 @@ const pokemons: PokemonDB = {
             speed: 350
         },
         techniques: [
-            "hydro pump"
+            "hydro pump",
+            "aqua veil"
         ]
     },
     "venusaur":{

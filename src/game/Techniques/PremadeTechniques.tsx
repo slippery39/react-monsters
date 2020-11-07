@@ -13,6 +13,23 @@ interface PremadeTechniques {
 export function GetTech(name: string) {
 
     const techs: PremadeTechniques = {
+        "aqua veil":{
+            id:-1,
+            name:"Aqua Veil",
+            description:"The pokemon surrounds itself with a veil of water",
+            damageType:'status',
+            pp:15,
+            currentPP:15,
+            power:0,
+            elementalType:ElementType.Water,
+            chance:100,
+            effects:[{
+                type:'inflict-volatile-status',
+                status:VolatileStatusType.AquaRing,
+                target:'ally',
+                chance:100
+            }]
+        },
         "confuse ray": {
             id: -1,
             name: "Confuse Ray",

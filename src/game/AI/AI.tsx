@@ -47,16 +47,14 @@ class BasicAI implements AI {
         }
         else {
 
-            const moveId2 = this._player.pokemon.find(p => p.id === this._player.currentPokemonId)?.techniques[0].id || -1;
+            const moveId2 = shuffle(this._player.pokemon.find(p => p.id === this._player.currentPokemonId)?.techniques)[0].id || -1;
             const action: UseMoveAction = {
                 type: 'use-move-action',
                 playerId: this._player.id,
                 pokemonId: this._player.currentPokemonId,
                 moveId: moveId2
             }
-            console.log('ai brain has chosen an action');
             this._service.SetInitialAction(action);
-
         }
     }
     ChooseFaintedPokemonSwitch() {
