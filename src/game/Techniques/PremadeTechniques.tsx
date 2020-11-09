@@ -2,7 +2,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { ElementType } from "../interfaces";
-import { Technique } from "./Technique";
+import { DamageType, Technique } from "./Technique";
 
 
 
@@ -17,7 +17,7 @@ export function GetTech(name: string) {
             id:-1,
             name:"Aqua Veil",
             description:"The pokemon surrounds itself with a veil of water",
-            damageType:'status',
+            damageType: DamageType.Status,
             pp:15,
             currentPP:15,
             power:0,
@@ -34,7 +34,7 @@ export function GetTech(name: string) {
             id: -1,
             name: "Confuse Ray",
             description: "A ray that confuses the opponent",
-            damageType: 'status',
+            damageType: DamageType.Status,
             pp: 15,
             currentPP: 15,
             power: 0,
@@ -53,7 +53,7 @@ export function GetTech(name: string) {
             id: -1,
             name: "Sleep Powder",
             description: "The user scatters a big cloud of sleep-inducing dust around the target",
-            damageType: 'status',
+            damageType: DamageType.Status,
             pp: 15,
             currentPP: 15,
             power: 0,
@@ -72,7 +72,7 @@ export function GetTech(name: string) {
             id: -1,
             name: "will o wisp",
             description: "The user shoots a sinister, bluish-white flame at the target to inflict a burn",
-            damageType: 'status',
+            damageType: DamageType.Status,
             pp: 15,
             currentPP: 15,
             power: 0,
@@ -92,7 +92,7 @@ export function GetTech(name: string) {
             id: -1,
             name: "Growl",
             description: "The user growls at the target",
-            damageType: 'status',
+            damageType: DamageType.Status,
             power: 0,
             chance: 100,
             pp: 20,
@@ -112,7 +112,7 @@ export function GetTech(name: string) {
             id: -1,
             name: "swords dance",
             description: "The user does a dance and increases its attack",
-            damageType: 'status',
+            damageType: DamageType.Status,
             power: 0,
             chance: 100,
             pp: 20,
@@ -132,7 +132,7 @@ export function GetTech(name: string) {
             id: -1,
             name: "poison powder",
             description: "The user scatters a cloud of poisonous dust that poisons the target",
-            damageType: 'status',
+            damageType: DamageType.Status,
             pp: 15,
             currentPP: 15,
             power: 0,
@@ -152,7 +152,7 @@ export function GetTech(name: string) {
             id: -1,
             name: "thunder wave",
             description: "The user launches a weak jolt of electricity that paralyzes the target",
-            damageType: 'status',
+            damageType: DamageType.Status,
             pp: 20,
             power: 0,
             currentPP: 20,
@@ -175,7 +175,7 @@ export function GetTech(name: string) {
             pp: 10,
             currentPP: 10,
             power: 120,
-            damageType: 'special',
+            damageType: DamageType.Special,
             elementalType: ElementType.Fire,
             chance: 85,
             effects: [
@@ -196,7 +196,7 @@ export function GetTech(name: string) {
             currentPP: 15,
             power: 75,
             chance: 85,
-            damageType: 'physical',
+            damageType: DamageType.Physical,
             elementalType: ElementType.Flying
         },
         "hydro pump": {
@@ -209,7 +209,7 @@ export function GetTech(name: string) {
             power: 120,
             chance: 85,
             elementalType: ElementType.Water,
-            damageType: 'special',
+            damageType: DamageType.Special,
 
         },
         "razor leaf": {
@@ -220,7 +220,7 @@ export function GetTech(name: string) {
             currentPP: 35,
             power: 65,
             chance: 95,
-            damageType: 'physical',
+            damageType: DamageType.Physical,
             elementalType: ElementType.Grass,
 
         }

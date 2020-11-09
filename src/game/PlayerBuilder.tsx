@@ -3,7 +3,6 @@ import {GetItem} from "./PremadeItems";
 import _ from "lodash";
 import { PokemonBuilder } from "./Pokemon/Pokemon";
 import { Status } from "./HardStatus/HardStatus";
-import {  LeechSeedVolatileStatus } from "./VolatileStatus/VolatileStatus";
 
 export class PlayerBuilder{
 

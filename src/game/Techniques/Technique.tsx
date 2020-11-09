@@ -15,6 +15,11 @@ export interface TechniqueEffect{
     chance:number
 }
 
+export enum DamageType{
+    Physical = 'physical',
+    Special = 'special',
+    Status = 'status'
+}
 
 export interface Technique{
  id:number,
@@ -23,7 +28,7 @@ export interface Technique{
  pp:number,
  currentPP:number,
  power:number,
- damageType: 'physical' | 'special' | 'status',
+ damageType: DamageType,
  elementalType:ElementType,
  effects?:Array<MoveEffect>
  chance: number

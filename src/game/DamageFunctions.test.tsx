@@ -1,7 +1,7 @@
 import {ElementType} from './interfaces';
 import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './DamageFunctions';
 import { CalculateStatWithBoost, IPokemon, PokemonBuilder } from './Pokemon/Pokemon';
-import { Technique } from './Techniques/Technique';
+import { DamageType, Technique } from './Techniques/Technique';
 import { Stat } from './Stat';
 
 /*
@@ -29,7 +29,7 @@ const createFireblast = function() : Technique{
         pp:10,
         power:120,
         chance:100,
-        damageType:'special',
+        damageType:DamageType.Special,
         elementalType:ElementType.Fire
     }
 
@@ -45,7 +45,7 @@ const createEarthquake = function(): Technique{
         pp:10,
         power:120,
         chance:100,
-        damageType:'physical',
+        damageType:DamageType.Physical,
         elementalType:ElementType.Ground
     }
     return earthquake
