@@ -21,6 +21,11 @@ export enum DamageType{
     Status = 'status'
 }
 
+export enum TargetType{
+    Self = 'self',
+    Enemy = 'enemy'
+}
+
 export interface Technique{
  id:number,
  name:string,
@@ -37,20 +42,20 @@ export interface Technique{
 interface InflictStatusMoveEffect{
     type:'inflict-status',
     status:Status
-    target:'ally' | 'enemy'
+    target:TargetType,
     chance:number
 }
 interface StatBoostMoveEffect{
     type:'stat-boost',
     stat:Stat
-    target:'ally' | 'enemy'
+    target:TargetType,
     amount:number
     chance:number 
 }
 interface InflictVolatileStatusEffect{
     type:'inflict-volatile-status',
     status:VolatileStatusType,
-    target:'ally' | 'enemy'
+    target:TargetType,
     chance:number
 }
 

@@ -62,7 +62,7 @@ describe('GetBaseDamage tests', ()=>{
         const techUsed = createFireblast();
         const baseDamage = GetBaseDamage(attackingPokemon,defendingPokemon,techUsed);
 
-        expect(baseDamage).toBe(103);
+        expect(baseDamage).toBe(131);
     });
 
     describe('GetTypeMod() tests', ()=>{

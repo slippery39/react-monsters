@@ -146,24 +146,9 @@ export function GetVolatileStatus(type:VolatileStatusType): VolatileStatus{
             return new LeechSeedVolatileStatus();
         }
         default:{
-            throw new Error(`${type} has not been implemtned in GetVolatileStatus`);
+            throw new Error(`${type} has not been implemented in GetVolatileStatus`);
         }
     }
 }
 
-
-
-
-
-
-/*
-export interface ConfusionVolatileStatus extends BaseVolatileStatus{
-    type:'confusion'
-}
-*/
-
-/*
-interface Confusion{
-    type
-}*/
 

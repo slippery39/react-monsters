@@ -18,7 +18,10 @@ export interface IPokemon {
     elementalTypes:Array<ElementType>,
     canAttackThisTurn:boolean
     statBoosts:Record<Stat,number>,
-    volatileStatuses:Array<VolatileStatus>
+    volatileStatuses:Array<VolatileStatus>,
+    baseStats:Stats,
+    ivs:Stats,
+    evs:Stats
 }
 
 export interface Stats{
@@ -40,22 +43,8 @@ export class PokemonBuilder{
                 id: 1,
                 name: 'Custom Pokemon',
                 elementalTypes:[],
-                originalStats: {
-                    health: 0,
-                    attack: 0,
-                    defence: 0,
-                    specialAttack: 0,
-                    specialDefence: 0,
-                    speed: 0
-                },
-                currentStats: {
-                    health: 0,
-                    attack: 0,
-                    defence: 0,
-                    specialAttack: 0,
-                    specialDefence: 0,
-                    speed: 0
-                },
+                originalStats:CreateEmptyStats(),
+                currentStats: CreateEmptyStats(),
                 techniques: [
                 ],
                 volatileStatuses: [],
@@ -67,7 +56,10 @@ export class PokemonBuilder{
                     [Stat.SpecialAttack]:0,
                     [Stat.SpecialDefense]:0,
                     [Stat.Speed]:0
-                }
+                },
+                baseStats:CreateEmptyStats(),
+                ivs:CreateEmptyStats(),
+                evs:CreateEmptyStats()
         }
     }
     OfSpecies(name:string) : PokemonBuilder{        
@@ -75,14 +67,22 @@ export class PokemonBuilder{
         const base = GetPokemon(name);
         //modify the base pokemon to change it into a regular pokemon.
         this.pokemon.name = base.name;
-        this.pokemon.currentStats = {...base.stats};
-        this.pokemon.originalStats = {...base.stats};
+        this.pokemon.baseStats = {...base.baseStats};
         this.pokemon.elementalTypes = [...base.elementalTypes];
+        
         
         base.techniques.forEach((techName:string)=>{
             this.pokemon.techniques.push(GetTech(techName))
         });
 
+        return this;
+    }
+    WithIVs(ivAmounts:Stats):PokemonBuilder{
+        this.pokemon.ivs = {...ivAmounts};
+        return this;
+    }
+    WithEVs(evAmounts:Stats):PokemonBuilder{
+        this.pokemon.evs = {...evAmounts};
         return this;
     }
     Build() : IPokemon{
@@ -91,6 +91,10 @@ export class PokemonBuilder{
         //check if it has moves
         //check if it has stats
         //check if the name has been updated?
+        const calculatedStats = ConvertBaseStatsToRealStats(this.pokemon);
+        this.pokemon.currentStats = {...calculatedStats};
+        this.pokemon.originalStats = {...calculatedStats};
+        //calculate the final stats
         return _.cloneDeep(this.pokemon);
     }
 }
@@ -115,6 +119,55 @@ export function GetStat(pokemon:IPokemon,stat:Stat) : number{
         }
     }
 }
+
+export function CreateEmptyStats():Stats{
+    return {
+        health: 0,
+        attack: 0,
+        defence: 0,
+        specialAttack: 0,
+        specialDefence: 0,
+        speed: 0
+    }
+}
+
+
+export function ConvertBaseStatsToRealStats(pokemon:IPokemon): Stats{
+    //For now we will use an ivValue and evValue of 0.
+    const level = 100;
+    const natureMod = 1; //assuming a neutral nature for now.
+
+    let calculatedStats : any = CreateEmptyStats();
+
+
+
+    const hp1 = (2*pokemon.baseStats.health + pokemon.ivs.health + ( pokemon.evs.health / 4 ) ) * level;
+    const hp2 = hp1/100;
+    const hp3 = hp2+level+10;
+
+    calculatedStats['health'] = hp3;
+
+
+    //calculating other stats
+    const statsToCalculate = ['attack','specialAttack','speed','defence','specialDefence'];
+
+    statsToCalculate.forEach((stat)=>{
+
+        const ivsAsAny = pokemon.ivs as any;
+        const evsAsAny = pokemon.evs as any;
+        const baseStats = pokemon.baseStats as any;
+
+        const ivValue = ivsAsAny[stat];
+        const evValue = evsAsAny[stat];
+
+        const other1 = (2*baseStats[stat]+ivValue+(evValue/4) ) * level
+        const other2 = ( (other1/100) + 5 ) * natureMod
+        calculatedStats[stat] = other2;
+    });
+
+    return calculatedStats as Stats;
+}
+
 export function GetPokemonBoostStage(pokemon:IPokemon,stat:Stat) : number{
     return pokemon.statBoosts[stat];
 }

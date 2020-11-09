@@ -3,6 +3,49 @@ import { ApplyStatBoost, CalculateStatWithBoost, PokemonBuilder } from './Pokemo
 import { Stat } from 'game/Stat';
 
 
+
+describe('Stats are correctly calculated from Base Stats',()=>{
+
+    /*
+    TODO: Figure out stat calculations from some website online
+
+    http://www.psypokes.com/dex/stats.php
+    */
+
+    it('calculates real stats from base stats correctly',()=>{
+        const pokemon = new PokemonBuilder()
+        .OfSpecies("charizard")
+        .WithIVs({
+            health:0,
+            attack:0,
+            defence:0,
+            specialAttack:0,
+            specialDefence:0,
+            speed:0
+        })
+        .WithEVs({
+            health:0,
+            attack:0,
+            defence:0,
+            specialAttack:0,
+            specialDefence:0,
+            speed:0
+        })
+        .Build();
+
+        expect(pokemon.currentStats.health).toBe(266);
+        expect(pokemon.currentStats.attack).toBe(173);
+        expect(pokemon.currentStats.defence).toBe(161);
+        expect(pokemon.currentStats.specialAttack).toBe(223);
+        expect(pokemon.currentStats.specialDefence).toBe(175);
+        expect(pokemon.currentStats.speed).toBe(205);
+
+    });
+
+
+});
+
+
 describe('Stat boosts are correctly implemented', () => {
  
    it ('calculates stat correctly with no boost', ()=>{     

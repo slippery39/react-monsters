@@ -8,7 +8,7 @@ interface PokemonDB {
 
 interface IPokemonBase {
     name:string,
-    stats:Stats,
+    baseStats:Stats,
     elementalTypes:Array<ElementType>,
     techniques:Array<string>    
 }
@@ -20,13 +20,13 @@ const pokemons: PokemonDB = {
     "charizard":{
         name: 'Charizard',
         elementalTypes:[ElementType.Fire,ElementType.Flying],
-        stats: {
-            health: 300,
-            attack: 250,
-            defence: 200,
-            specialAttack: 250,
-            specialDefence: 250,
-            speed: 350
+        baseStats: {
+            health: 78,
+            attack: 84,
+            defence: 78,
+            specialAttack: 109,
+            specialDefence: 85,
+            speed: 100
         },
         techniques: [
             "fireblast",
@@ -38,13 +38,13 @@ const pokemons: PokemonDB = {
     "blastoise": {
         name: 'Blastoise',
         elementalTypes:[ElementType.Water],
-        stats: {
-            health: 300,
-            attack: 200,
-            defence: 200,
-            specialAttack: 200,
-            specialDefence: 250,
-            speed: 350
+        baseStats: {
+            health: 79,
+            attack: 83,
+            defence: 100,
+            specialAttack: 85,
+            specialDefence: 105,
+            speed: 78
         },
         techniques: [
             "hydro pump",
@@ -54,13 +54,13 @@ const pokemons: PokemonDB = {
     "venusaur":{
         name: 'Venusaur',
         elementalTypes:[ElementType.Grass,ElementType.Poison],
-        stats: {
-            health: 300,
-            attack: 250,
-            defence: 200,
-            specialAttack: 250,
-            specialDefence: 250,
-            speed: 350
+        baseStats: {
+            health: 80,
+            attack: 82,
+            defence: 83,
+            specialAttack: 100,
+            specialDefence: 100,
+            speed: 80
         },
         techniques: [
             'razor leaf',

@@ -2,7 +2,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { ElementType } from "../interfaces";
-import { DamageType, Technique } from "./Technique";
+import { DamageType, TargetType, Technique } from "./Technique";
 
 
 
@@ -26,7 +26,7 @@ export function GetTech(name: string) {
             effects:[{
                 type:'inflict-volatile-status',
                 status:VolatileStatusType.AquaRing,
-                target:'ally',
+                target:TargetType.Self,
                 chance:100
             }]
         },
@@ -44,7 +44,7 @@ export function GetTech(name: string) {
                 {
                     type: 'inflict-volatile-status',
                     status: VolatileStatusType.Confusion,
-                    target: 'enemy',
+                    target: TargetType.Enemy,
                     chance: 100
                 }
             ]
@@ -62,7 +62,7 @@ export function GetTech(name: string) {
                 {
                     type: 'inflict-status',
                     status: Status.Sleep,
-                    target: 'enemy',
+                    target: TargetType.Enemy,
                     chance: 100
                 }
             ],
@@ -82,7 +82,7 @@ export function GetTech(name: string) {
 
                     type: 'inflict-status',
                     status: Status.Burned,
-                    target: 'enemy',
+                    target: TargetType.Enemy,
                     chance: 100
                 }
             ],
@@ -102,7 +102,7 @@ export function GetTech(name: string) {
                 {
                     type: 'stat-boost',
                     stat: Stat.Attack,
-                    target: 'enemy',
+                    target: TargetType.Enemy,
                     amount: -1,
                     chance: 100
                 }
@@ -122,7 +122,7 @@ export function GetTech(name: string) {
                 {
                     type: 'stat-boost',
                     stat: Stat.Attack,
-                    target: 'ally',
+                    target: TargetType.Self,
                     amount: 2,
                     chance: 100
                 }
@@ -142,7 +142,7 @@ export function GetTech(name: string) {
 
                     type: 'inflict-status',
                     status: Status.Poison,
-                    target: 'enemy',
+                    target: TargetType.Enemy,
                     chance: 100
                 }
             ],
@@ -162,7 +162,7 @@ export function GetTech(name: string) {
 
                     type: 'inflict-status',
                     status: Status.Paralyzed,
-                    target: 'enemy',
+                    target: TargetType.Enemy,
                     chance: 100
                 }
             ],
@@ -182,7 +182,7 @@ export function GetTech(name: string) {
                 {
                     type: 'inflict-status',
                     status: Status.Burned,
-                    target: 'enemy',
+                    target: TargetType.Enemy,
                     chance: 100
                 }
             ]

@@ -6,7 +6,7 @@ import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { ApplyStatBoost, IPokemon } from './Pokemon/Pokemon';
-import { Technique } from './Techniques/Technique';
+import { TargetType, Technique } from './Techniques/Technique';
 import {  GetVolatileStatus} from './VolatileStatus/VolatileStatus';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
@@ -587,7 +587,7 @@ export class Turn {
             if (this.Roll(effect.chance)) {
                 if (effect.type === 'inflict-status') {
 
-                    const targetPokemon = effect.target === 'ally' ? pokemon : defendingPokemon;
+                    const targetPokemon = effect.target === TargetType.Self ? pokemon : defendingPokemon;
 
                     //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
                     if (targetPokemon.status !== Status.None || targetPokemon.currentStats.health === 0) {
@@ -611,7 +611,7 @@ export class Turn {
                     this.AddEvent(statusInflictedEffect);
                 }
                 else if (effect.type === 'stat-boost') {
-                    const targetPokemon = effect.target === 'ally' ? pokemon : defendingPokemon;
+                    const targetPokemon = effect.target ===  TargetType.Self ? pokemon : defendingPokemon;
                     ApplyStatBoost(targetPokemon, effect.stat, effect.amount);
 
                     let message = ` ${targetPokemon.name} has had its ${effect.stat} boosted!`
@@ -625,7 +625,7 @@ export class Turn {
                     this.AddEvent(statChangeEvent);
                 }
                 else if (effect.type === 'inflict-volatile-status'){
-                    const targetPokemon = effect.target === 'ally' ? pokemon : defendingPokemon;
+                    const targetPokemon = effect.target === TargetType.Self? pokemon : defendingPokemon;
 
                     const vStatus = GetVolatileStatus(effect.status);
 
