@@ -1,8 +1,9 @@
+import PokemonImage from "components/PokemonImage/PokemonImage";
 import { BattleEventType, GenericMessageEvent } from "game/BattleEvents";
 import { IBeforeAttack, ICanApply, IEndOfTurn } from "game/HardStatus/HardStatus"
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/interfaces";
-import { HasVolatileStatus, IPokemon } from "game/Pokemon/Pokemon";
+import { HasVolatileStatus, IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 import _ from "lodash";
 
@@ -11,13 +12,18 @@ export enum VolatileStatusType {
     Confusion = 'confusion',
     AquaRing = 'aqua-ring',
     LeechSeed = 'leech-seed',
+    Flinch = 'flinch',
+    Roosted = 'roosted'
     
 }
 
 export interface VolatileStatus extends IBeforeAttack, IEndOfTurn, ICanApply {
     type: VolatileStatusType,
+    OnApply:(turn:Turn,pokemon:IPokemon)=>void,
     InflictedMessage:(pokemon:IPokemon)=>string
 }
+
+
 
 abstract class AbstractVolatileStatus implements VolatileStatus {
     abstract type: VolatileStatusType   
@@ -30,9 +36,41 @@ abstract class AbstractVolatileStatus implements VolatileStatus {
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
 
     }
+    OnApply(turn:Turn,pokemon:IPokemon){
+
+    }
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasVolatileStatus(pokemon,this.type)
     }
+}
+
+export class RoostedVolatileStatus extends AbstractVolatileStatus{
+    type =  VolatileStatusType.Roosted
+
+    private originalTypes : Array<ElementType> = [];
+
+    InflictedMessage(pokemon:IPokemon){
+        return `${pokemon.name} has roosted!`
+    }
+
+    OnApply(turn:Turn,pokemon:IPokemon){
+
+        this.originalTypes = [...pokemon.elementalTypes];
+        //remove the flying element of the pokemon
+        _.remove(pokemon.elementalTypes,(elType)=>{
+            return elType === ElementType.Flying
+        });
+    }
+
+    EndOfTurn(turn:Turn,pokemon:IPokemon){
+
+        //we will also need to make sure this gets applied whenever the pokemon is switched out as well.
+        pokemon.elementalTypes = this.originalTypes;   
+        _.remove(pokemon.volatileStatuses,(vStat)=>
+        vStat.type === this.type
+        );
+    }   
+
 }
 
 export class AquaRingVolatileStatus extends AbstractVolatileStatus{   
@@ -50,6 +88,37 @@ export class AquaRingVolatileStatus extends AbstractVolatileStatus{
         }
         turn.AddEvent(message);
 
+    }
+}
+
+
+export class FlinchVolatileStatus extends AbstractVolatileStatus{
+    type:VolatileStatusType = VolatileStatusType.Flinch
+
+    InflictedMessage(pokemon:IPokemon):string {
+        //hack here. we may need an "on apply" method
+        return ``;
+    }
+
+    //Not sure if we should apply here or we should apply on attack.
+    OnApply(turn:Turn,pokemon:IPokemon){       
+    }
+
+    BeforeAttack(turn:Turn,pokemon:IPokemon){
+        pokemon.canAttackThisTurn = false;
+
+        const message: GenericMessageEvent ={
+            type:BattleEventType.GenericMessage,
+            defaultMessage:`${pokemon.name} has flinched!`
+        }
+        turn.AddEvent(message);
+    }
+
+    EndOfTurn(turn:Turn,pokemon:IPokemon){
+        //Status gets removed at end of turn.
+        _.remove(pokemon.volatileStatuses,(vStat)=>
+            vStat.type === this.type
+        );
     }
 }
 
@@ -144,6 +213,12 @@ export function GetVolatileStatus(type:VolatileStatusType): VolatileStatus{
         }
         case VolatileStatusType.LeechSeed:{
             return new LeechSeedVolatileStatus();
+        }
+        case VolatileStatusType.Flinch:{
+            return new FlinchVolatileStatus();
+        }
+        case VolatileStatusType.Roosted:{
+            return new RoostedVolatileStatus();
         }
         default:{
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

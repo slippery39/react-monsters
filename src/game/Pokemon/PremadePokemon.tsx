@@ -29,10 +29,10 @@ const pokemons: PokemonDB = {
             speed: 100
         },
         techniques: [
-            "fireblast",
-            "fly",
-            "thunder wave",
-            "confuse ray"
+            "fire blast",
+            "air slash",
+            "focus blast",
+            "roost"
         ]
     },
     "blastoise": {

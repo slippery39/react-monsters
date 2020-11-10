@@ -59,5 +59,17 @@ interface InflictVolatileStatusEffect{
     chance:number
 }
 
+export enum HealthRestoreType{
+    Flat='flat',
+    PercentMaxHealth='percent-max-health'
+}
 
-type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect);
+interface HealthRestoreEffect{
+    type:'health-restore',
+    restoreType:HealthRestoreType
+    amount:number
+    chance:number
+}
+
+
+type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect | HealthRestoreEffect);

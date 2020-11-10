@@ -149,6 +149,7 @@ export function ConvertBaseStatsToRealStats(pokemon:IPokemon): Stats{
 
 
     //calculating other stats
+    //having to do things this way makes me feel like the stats should be a dictionary of the Stat enum type instead.
     const statsToCalculate = ['attack','specialAttack','speed','defence','specialDefence'];
 
     statsToCalculate.forEach((stat)=>{

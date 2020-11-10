@@ -6,8 +6,9 @@ import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { ApplyStatBoost, IPokemon } from './Pokemon/Pokemon';
-import { TargetType, Technique } from './Techniques/Technique';
+import { HealthRestoreType, TargetType, Technique } from './Techniques/Technique';
 import {  GetVolatileStatus} from './VolatileStatus/VolatileStatus';
+import { GetActivePokemon } from './HelperFunctions';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -79,6 +80,10 @@ export class Turn {
         //this controls some logic in the turn.
         this._activePokemonIdAtStart1 = players[0].currentPokemonId;
         this._activePokemonIdAtStart2 = players[1].currentPokemonId;
+
+        //Reset any flags for if the pokemon can attack this turn or not.
+        GetActivePokemon(players[0]).canAttackThisTurn = true;
+        GetActivePokemon(players[1]).canAttackThisTurn = true;
     }
     //NEW: Returning a flattened turn log instead
     GetEventLog(): Array<BattleEvent> {
@@ -146,10 +151,18 @@ export class Turn {
     }
 
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
-    private BeforeAttack(pokemon: IPokemon) {
-        pokemon.canAttackThisTurn = true;
+    private BeforeAttack(pokemon: IPokemon) {     
+        
+        if (!pokemon.canAttackThisTurn){
+            return;
+        }
 
         pokemon.volatileStatuses.forEach(vStat=>{
+            //we need to stop on the first volatile status that makes it so we can't attack.
+            if (!pokemon.canAttackThisTurn){
+                return;
+            }
+
             vStat.BeforeAttack(this,pokemon);
         })
         
@@ -190,6 +203,9 @@ export class Turn {
         this.AddEvent(faintedPokemonEffect);
 
         const owner = this.GetPokemonOwner(pokemon);
+
+        pokemon.status = Status.None;
+        pokemon.volatileStatuses = [];
 
         //game over check.
         if (owner.pokemon.filter(poke => poke.currentStats.health > 0).length === 0) {
@@ -452,11 +468,6 @@ export class Turn {
 
         const pokemon = this.GetActivePokemon(playerId);
 
-        if (pokemon === undefined) {
-            console.error("could not find pokemon to use for use item");
-            return;
-        }
-
         const useItemEffect: UseItemEvent = {
             type: BattleEventType.UseItem,
             itemName: item.name,
@@ -634,12 +645,25 @@ export class Turn {
                     }
 
                     targetPokemon.volatileStatuses.push(vStatus);
+                    vStatus.OnApply(this,targetPokemon);
+
                     const inflictVStatusEvent:GenericMessageEvent ={
                         type:BattleEventType.GenericMessage,
                         defaultMessage:vStatus.InflictedMessage(targetPokemon)
                     }
 
                     this.AddEvent(inflictVStatusEvent);
+                }
+                else if (effect.type ==='health-restore'){
+                    if (effect.restoreType === HealthRestoreType.Flat){
+                        this.ApplyHealing(pokemon,effect.amount);
+                    }
+                    else if (effect.restoreType === HealthRestoreType.PercentMaxHealth){
+                        console.log('attempting percent max health heal');
+                    
+                        const amount = Math.floor(pokemon.originalStats.health / (100/effect.amount));
+                        this.ApplyHealing(pokemon,amount);
+                    }
                 }
             }
         });
@@ -676,7 +700,6 @@ export class Turn {
         effect.id = this.nextEventId++;
         this.eventLog.push(effect);
     }
-    //Sees if you a random chance is successful
 
     private GetPlayer(playerId: number): Player {
         const player = this.players.find(player => player.id === playerId);
