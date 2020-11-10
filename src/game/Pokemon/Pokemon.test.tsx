@@ -12,7 +12,7 @@ describe('Stats are correctly calculated from Base Stats',()=>{
     http://www.psypokes.com/dex/stats.php
     */
 
-    it('calculates real stats from base stats correctly',()=>{
+    it('calculates real stats from base stats correctly with no ivs or evs',()=>{
         const pokemon = new PokemonBuilder()
         .OfSpecies("charizard")
         .WithIVs({
@@ -39,8 +39,9 @@ describe('Stats are correctly calculated from Base Stats',()=>{
         expect(pokemon.currentStats.specialAttack).toBe(223);
         expect(pokemon.currentStats.specialDefence).toBe(175);
         expect(pokemon.currentStats.speed).toBe(205);
-
     });
+
+    //todo: calculate real stats from base stats correctly with ivs and evs
 
 
 });
