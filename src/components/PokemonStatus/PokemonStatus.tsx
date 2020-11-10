@@ -21,6 +21,9 @@ function GetStatusClass(status:Status){
         case Status.Poison:{
             return 'status-poison'
         }
+        case Status.ToxicPoison:{
+            return 'status-poison'
+        }
         case Status.Sleep:{
             return 'status-sleep'
         }    
@@ -46,6 +49,9 @@ function GetStatusAbbreivation(status:Status){
         }
         case Status.Sleep:{
             return 'SLP'
+        }
+        case Status.ToxicPoison:{
+            return 'PSN'
         }
         case Status.None:{
             return ''

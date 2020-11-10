@@ -2,7 +2,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { ElementType } from "../interfaces";
-import { DamageType, HealthRestoreType, TargetType, Technique } from "./Technique";
+import { DamageType, HealthRestoreType, TargetType, Technique, TechniqueEffectType } from "./Technique";
 
 
 
@@ -10,84 +10,128 @@ interface PremadeTechniques {
     [key: string]: Technique
 }
 
+
+
 export function GetTech(name: string) {
 
     const techs: PremadeTechniques = {
-        "roost":{
-            id:-1,
-            name:"Roost",
-            description:'Heals up to 50% max health, user loses flying type until end of turn',
-            pp:10,
-            currentPP:10,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Flying,
+        "toxic": {
+            id: -1,
+            name: "Toxic",
+            description: '',
+            pp: 16,
+            currentPP: 16,
             power:0,
-            chance:100,
-            effects:[{
-                type:'health-restore',
-                restoreType:HealthRestoreType.PercentMaxHealth,
-                amount:50,
-                chance:100
-            },
-            {
-                type:'inflict-volatile-status',
-                status:VolatileStatusType.Roosted,
-                target:TargetType.Self,
-                chance:100
+            damageType: DamageType.Status,
+            elementalType: ElementType.Poison,
+            chance: 90,
+            effects: [{
+                type: 'inflict-status',
+                status: Status.ToxicPoison,
+                target: TargetType.Enemy,
+                chance: 100
             }
             ]
         },
-        "focus blast":{
-            id:-1,
-            name:"Focus Blast",
-            description:"Has a 10% chance to lower the target's Special Defence by 1 stage",
+        "power whip": {
+            id: -1,
+            name: "Power Whip",
+            description: '',
+            pp: 16,
+            currentPP: 16,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Grass,
+            power: 120,
+            chance: 85,
+            effects: [],
+        },
+        "earthquake": {
+            id: -1,
+            name: "Earthquake",
+            description: '',
+            pp: 16,
+            currentPP: 16,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Ground,
+            power: 100,
+            chance: 100,
+            effects: []
+        },
+        "roost": {
+            id: -1,
+            name: "Roost",
+            description: 'Heals up to 50% max health, user loses flying type until end of turn',
+            pp: 10,
+            currentPP: 10,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Flying,
+            power: 0,
+            chance: 100,
+            effects: [{
+                type: 'health-restore',
+                restoreType: HealthRestoreType.PercentMaxHealth,
+                amount: 50,
+                chance: 100
+            },
+            {
+                type: 'inflict-volatile-status',
+                status: VolatileStatusType.Roosted,
+                target: TargetType.Self,
+                chance: 100
+            }
+            ]
+        },
+        "focus blast": {
+            id: -1,
+            name: "Focus Blast",
+            description: "Has a 10% chance to lower the target's Special Defence by 1 stage",
             damageType: DamageType.Special,
-            pp:10,
-            currentPP:10,
-            power:120,
-            elementalType:ElementType.Fighting,
-            chance:70,
-            effects:[{
-                type:'stat-boost',
-                stat:Stat.SpecialDefense,
-                target:TargetType.Enemy,
-                amount:-1,
-                chance:100 //10
+            pp: 10,
+            currentPP: 10,
+            power: 120,
+            elementalType: ElementType.Fighting,
+            chance: 70,
+            effects: [{
+                type: 'stat-boost',
+                stat: Stat.SpecialDefense,
+                target: TargetType.Enemy,
+                amount: -1,
+                chance: 10
             }]
         },
-        "air slash":{
-            id:-1,
-            name:"Air Slash",
-            description:'Has a 30% chance to flinch the target',
-            damageType:DamageType.Special,
-            pp:20,
-            currentPP:20,
-            power:75,
-            elementalType:ElementType.Flying,
-            chance:95,
-            effects:[{
-                type:'inflict-volatile-status',
-                status:VolatileStatusType.Flinch,
-                target:TargetType.Enemy,
-                chance:100 //30
+        "air slash": {
+            id: -1,
+            name: "Air Slash",
+            description: 'Has a 30% chance to flinch the target',
+            damageType: DamageType.Special,
+            pp: 20,
+            currentPP: 20,
+            power: 75,
+            elementalType: ElementType.Flying,
+            chance: 95,
+            effects: [{
+                type: 'inflict-volatile-status',
+                status: VolatileStatusType.Flinch,
+                target: TargetType.Enemy,
+                chance: 30
             }]
         },
 
-        "aqua veil":{
-            id:-1,
-            name:"Aqua Veil",
-            description:"The pokemon surrounds itself with a veil of water",
+        "aqua veil": {
+            id: -1,
+            name: "Aqua Veil",
+            description: "The pokemon surrounds itself with a veil of water",
             damageType: DamageType.Status,
-            pp:15,
-            currentPP:15,
-            power:0,
-            elementalType:ElementType.Water,
-            chance:100,
-            effects:[{
-                type:'inflict-volatile-status',
-                status:VolatileStatusType.AquaRing,
-                target:TargetType.Self,
-                chance:100
+            pp: 15,
+            currentPP: 15,
+            power: 0,
+            elementalType: ElementType.Water,
+            chance: 100,
+            effects: [{
+                type: 'inflict-volatile-status',
+                status: VolatileStatusType.AquaRing,
+                target: TargetType.Self,
+                chance: 100
             }]
         },
         "confuse ray": {
@@ -170,7 +214,7 @@ export function GetTech(name: string) {
         },
         "swords dance": {
             id: -1,
-            name: "swords dance",
+            name: "Swords Dance",
             description: "The user does a dance and increases its attack",
             damageType: DamageType.Status,
             power: 0,

@@ -41,7 +41,11 @@ export function GetItem(name:string){
             effects:[{
                 type:'status-restore',
                 forStatus:Status.Poison
-            }]
+            },
+        {
+         type:'status-restore',
+         forStatus:Status.ToxicPoison   
+        }]
         },
         "Full Restore":{
             name:"Full Restore",

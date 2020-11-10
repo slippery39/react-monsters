@@ -10,7 +10,6 @@ interface IPokemonBase {
     name:string,
     baseStats:Stats,
     elementalTypes:Array<ElementType>,
-    techniques:Array<string>    
 }
 
 
@@ -28,12 +27,6 @@ const pokemons: PokemonDB = {
             specialDefence: 85,
             speed: 100
         },
-        techniques: [
-            "fire blast",
-            "air slash",
-            "focus blast",
-            "roost"
-        ]
     },
     "blastoise": {
         name: 'Blastoise',
@@ -46,10 +39,6 @@ const pokemons: PokemonDB = {
             specialDefence: 105,
             speed: 78
         },
-        techniques: [
-            "hydro pump",
-            "aqua veil"
-        ]
     },
     "venusaur":{
         name: 'Venusaur',
@@ -62,10 +51,6 @@ const pokemons: PokemonDB = {
             specialDefence: 100,
             speed: 80
         },
-        techniques: [
-            'razor leaf',
-            'swords dance'
-        ]
     }
 }
 

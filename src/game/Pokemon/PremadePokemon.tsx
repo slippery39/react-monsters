@@ -63,10 +63,10 @@ const Venusaur = function(){
         .OfSpecies("Venusaur")
         .WithEVs({
             health: 4,
-            attack: 0,
+            attack: 252,
             defence: 0,
             specialDefence: 0,
-            specialAttack: 252,
+            specialAttack:0,
             speed: 252
         })
         .WithIVs({
@@ -78,8 +78,10 @@ const Venusaur = function(){
             speed: 31
         })
         .WithTechniques([
-            "Razor Leaf",
-            "Sleep Powder",
+            "Swords Dance",
+            "Power Whip",
+            "Earthquake",
+            "Sleep Powder"
         ])
         .Build();
 };

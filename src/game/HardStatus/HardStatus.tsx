@@ -10,6 +10,7 @@ export enum Status{
     Sleep='sleep',
     Burned = 'burned',
     Frozen = 'frozen',
+    ToxicPoison = 'toxic-poison',
     None = 'none'
 }
 
@@ -28,6 +29,33 @@ export interface IEndOfTurn {
 interface HardStatus extends IBeforeAttack,ICanApply,IEndOfTurn {
     statusType: Status;
     curedString:string //don't really know what else to call this at the moment but follows the format of  'has been cured of its {status}`
+}
+
+class ToxicStatus implements HardStatus{
+    statusType = Status.Poison;
+    curedString= 'has been cured of poison!'
+
+    CanApply(turn: Turn, pokemon: IPokemon) {
+        return !HasElementType(pokemon, ElementType.Steel);
+    }
+    BeforeAttack(turn: Turn, pokemon: IPokemon){
+        return;
+    }
+    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+                //apply poison damage
+        //poison damage is 1/16 of the pokemons max hp
+        const maxHp = pokemon.originalStats.health;
+        const poisonDamage = pokemon.toxicCount * Math.ceil(maxHp / 16);
+        pokemon.currentStats.health -= poisonDamage;
+        pokemon.toxicCount++;
+
+        const poisonMessage: GenericMessageEvent = {
+            type: BattleEventType.GenericMessage,
+            defaultMessage: `${pokemon.name} is badly hurt by poison.`
+        }
+        turn.AddEvent(poisonMessage);
+        turn.ApplyDamage(pokemon, poisonDamage, {})
+    }
 }
 
 class BurnStatus implements HardStatus{
@@ -216,9 +244,13 @@ function GetHardStatus(status: Status): HardStatus {
     else if (status === Status.Burned) {
         return new BurnStatus();
     }
+    else if (status === Status.ToxicPoison){
+        return new ToxicStatus();
+    }
     else if (status === Status.None) {
         return new NoneStatus();
     }
+ 
 
     throw new Error(`Status ${status} not implemented for GetStatus`);
 }

@@ -21,7 +21,8 @@ export interface IPokemon {
     volatileStatuses:Array<VolatileStatus>,
     baseStats:Stats,
     ivs:Stats,
-    evs:Stats
+    evs:Stats,
+    toxicCount:number
 }
 
 export interface Stats{
@@ -66,6 +67,7 @@ export class PokemonBuilder{
                     specialDefence:31,
                     speed:31
                 },
+                toxicCount:1,
                 evs:CreateEmptyStats()
         }
     }
@@ -78,13 +80,6 @@ export class PokemonBuilder{
         this.pokemon.name = base.name;
         this.pokemon.baseStats = {...base.baseStats};
         this.pokemon.elementalTypes = [...base.elementalTypes];        
-        
-
-        //keep this in here for now, but remove when we don't need anymore.
-        base.techniques.forEach((techName:string)=>{
-            this.pokemon.techniques.push(GetTech(techName))
-        });
-
         return this;
     }
     WithIVs(ivAmounts:Stats):PokemonBuilder{
