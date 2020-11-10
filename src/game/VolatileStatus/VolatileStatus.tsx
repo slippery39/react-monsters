@@ -116,9 +116,11 @@ export class FlinchVolatileStatus extends AbstractVolatileStatus{
 
     EndOfTurn(turn:Turn,pokemon:IPokemon){
         //Status gets removed at end of turn.
+        console.log(JSON.parse(JSON.stringify(pokemon)));
         _.remove(pokemon.volatileStatuses,(vStat)=>
             vStat.type === this.type
         );
+        console.log(JSON.parse(JSON.stringify(pokemon)));
     }
 }
 

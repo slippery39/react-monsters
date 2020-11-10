@@ -1,6 +1,6 @@
 import { ElementType} from "game/interfaces";
 import { Stat } from "game/Stat";
-import { GetPokemon } from "./PremadePokemon";
+import { GetSpecies } from "./Species";
 import _ from "lodash"
 import { GetTech } from "game/Techniques/PremadeTechniques";
 import { Technique } from "game/Techniques/Technique";
@@ -58,19 +58,29 @@ export class PokemonBuilder{
                     [Stat.Speed]:0
                 },
                 baseStats:CreateEmptyStats(),
-                ivs:CreateEmptyStats(),
+                ivs:{
+                    health:31,
+                    attack:31,
+                    defence:31,
+                    specialAttack:31,
+                    specialDefence:31,
+                    speed:31
+                },
                 evs:CreateEmptyStats()
         }
     }
     OfSpecies(name:string) : PokemonBuilder{        
         //todo: some warning here that this should be called first?
-        const base = GetPokemon(name);
+        const base = GetSpecies(name);
         //modify the base pokemon to change it into a regular pokemon.
+
+        console.log(base);
         this.pokemon.name = base.name;
         this.pokemon.baseStats = {...base.baseStats};
-        this.pokemon.elementalTypes = [...base.elementalTypes];
+        this.pokemon.elementalTypes = [...base.elementalTypes];        
         
-        
+
+        //keep this in here for now, but remove when we don't need anymore.
         base.techniques.forEach((techName:string)=>{
             this.pokemon.techniques.push(GetTech(techName))
         });
@@ -83,6 +93,13 @@ export class PokemonBuilder{
     }
     WithEVs(evAmounts:Stats):PokemonBuilder{
         this.pokemon.evs = {...evAmounts};
+        return this;
+    }
+    WithTechniques(techNames:Array<string>) : PokemonBuilder{
+        this.pokemon.techniques = [];
+        techNames.forEach((techName:string)=>{
+            this.pokemon.techniques.push(GetTech(techName))
+        });
         return this;
     }
     Build() : IPokemon{
