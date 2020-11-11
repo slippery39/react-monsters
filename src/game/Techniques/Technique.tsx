@@ -79,4 +79,4 @@ interface StatusRestoreEffect{
 }
 
 
-type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect);
+export type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect);

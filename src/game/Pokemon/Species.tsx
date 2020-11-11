@@ -2,20 +2,20 @@ import {ElementType} from 'game/interfaces';
 import { Stats } from './Pokemon';
 
 
-interface PokemonDB {
-    [key:string] : IPokemonBase
+interface SpeciesDB {
+    [key:string] : ISpecies
 }
 
-interface IPokemonBase {
+interface ISpecies {
     name:string,
     baseStats:Stats,
     elementalTypes:Array<ElementType>,
 }
 
 
-export function GetSpecies(name:string): IPokemonBase{
+export function GetSpecies(name:string): ISpecies{
 
-const pokemons: PokemonDB = {
+const pokemons: SpeciesDB = {
     "charizard":{
         name: 'Charizard',
         elementalTypes:[ElementType.Fire,ElementType.Flying],
