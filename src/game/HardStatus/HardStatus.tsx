@@ -4,6 +4,7 @@ import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/interfaces";
 import { IPokemon } from "game/Pokemon/Pokemon";
 
+
 export enum Status{
     Poison ='poisoned',
     Paralyzed ='paralyzed',
@@ -11,6 +12,7 @@ export enum Status{
     Burned = 'burned',
     Frozen = 'frozen',
     ToxicPoison = 'toxic-poison',
+    Resting = 'sleep-rest',
     None = 'none'
 }
 
@@ -29,6 +31,43 @@ export interface IEndOfTurn {
 interface HardStatus extends IBeforeAttack,ICanApply,IEndOfTurn {
     statusType: Status;
     curedString:string //don't really know what else to call this at the moment but follows the format of  'has been cured of its {status}`
+}
+
+class RestingStatus implements HardStatus{
+    statusType = Status.Sleep;
+    curedString = 'has woken up!'
+
+    CanApply(){
+        return true;
+    }
+
+    BeforeAttack(turn: Turn, pokemon: IPokemon) {
+        const isAsleepEffect: GenericMessageEvent = {
+            type: BattleEventType.GenericMessage,
+            defaultMessage: `${pokemon.name} is sleeping!`
+        }
+        turn.AddEvent(isAsleepEffect);
+        if (pokemon.restTurnCount >= 2) {
+            //Pokemon Wakes Up
+            pokemon.restTurnCount = 0;
+            pokemon.status = Status.None;
+
+            const wakeupEffect: StatusChangeEvent = {
+                type: BattleEventType.StatusChange,
+                targetPokemonId: pokemon.id,
+                status: Status.None,
+                defaultMessage: `${pokemon.name} has woken up!`
+            }
+            turn.AddEvent(wakeupEffect);
+        }
+        else {
+            pokemon.canAttackThisTurn = false;
+            pokemon.restTurnCount++;
+        }
+    }
+    EndOfTurn(turn:Turn, pokemon:IPokemon){
+        
+    }
 }
 
 class ToxicStatus implements HardStatus{
@@ -246,6 +285,10 @@ function GetHardStatus(status: Status): HardStatus {
     }
     else if (status === Status.ToxicPoison){
         return new ToxicStatus();
+    }
+    else if (status === Status.Resting){
+        return new RestingStatus();
+
     }
     else if (status === Status.None) {
         return new NoneStatus();

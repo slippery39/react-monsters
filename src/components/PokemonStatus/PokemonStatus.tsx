@@ -53,6 +53,9 @@ function GetStatusAbbreivation(status:Status){
         case Status.ToxicPoison:{
             return 'PSN'
         }
+        case Status.Resting:{
+            return 'SLP'
+        }
         case Status.None:{
             return ''
         }

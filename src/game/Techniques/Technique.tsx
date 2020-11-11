@@ -71,5 +71,12 @@ interface HealthRestoreEffect{
     chance:number
 }
 
+interface StatusRestoreEffect{
+    type:'status-restore',
+    forStatus:Status | 'any',
+    target:TargetType,
+    chance:number
+}
 
-type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect | HealthRestoreEffect);
+
+type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect);

@@ -22,7 +22,8 @@ export interface IPokemon {
     baseStats:Stats,
     ivs:Stats,
     evs:Stats,
-    toxicCount:number
+    toxicCount:number, //temporarily placing this and the rest turn count here until i can figure out a better way to structure this.
+    restTurnCount:number,
 }
 
 export interface Stats{
@@ -68,6 +69,7 @@ export class PokemonBuilder{
                     speed:31
                 },
                 toxicCount:1,
+                restTurnCount:0,
                 evs:CreateEmptyStats()
         }
     }

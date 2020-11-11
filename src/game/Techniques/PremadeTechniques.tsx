@@ -15,13 +15,73 @@ interface PremadeTechniques {
 export function GetTech(name: string) {
 
     const techs: PremadeTechniques = {
+        "ice beam": {
+            id: -1,
+            name: "Ice Beam",
+            description: '',
+            pp: 16,
+            currentPP: 16,
+            power: 90,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Ice,
+            chance: 100,
+            effects: [{
+                type: 'inflict-status',
+                status: Status.Frozen,
+                chance: 10,
+                target: TargetType.Enemy
+            }
+            ]
+        },
+        "surf": {
+            id: -1,
+            name: "Surf",
+            description: '',
+            pp: 16,
+            currentPP: 16,
+            power: 90,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Water,
+            chance: 100,
+            effects: [],
+        },
+        "rest": {
+            id: -1,
+            name: "Rest",
+            description: '',
+            pp: 16,
+            currentPP: 16,
+            power: 0,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Normal,
+            chance: 100,
+            effects: [{
+                type: 'status-restore',
+                forStatus: 'any',
+                target: TargetType.Self,
+                chance: 100
+            },
+            {
+                type: 'health-restore',
+                restoreType: HealthRestoreType.PercentMaxHealth,
+                amount: 100,
+                chance: 100
+            },
+            {
+                type: 'inflict-status',
+                status: Status.Resting,
+                chance: 100,
+                target: TargetType.Self
+            }
+            ]
+        },
         "toxic": {
             id: -1,
             name: "Toxic",
             description: '',
             pp: 16,
             currentPP: 16,
-            power:0,
+            power: 0,
             damageType: DamageType.Status,
             elementalType: ElementType.Poison,
             chance: 90,

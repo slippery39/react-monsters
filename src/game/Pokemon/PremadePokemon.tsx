@@ -51,8 +51,10 @@ const Blastoise = function(){
             speed: 31
         })
         .WithTechniques([
-            "Hydro Pump",
-            "Aqua Veil",
+            "Surf",
+            "Ice Beam",
+            "Rest",
+            "Toxic"
         ])
         .Build();
 }
