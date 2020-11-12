@@ -1,4 +1,4 @@
-import {ElementType} from './interfaces';
+import {ElementType} from './ElementType';
 import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './DamageFunctions';
 import { CalculateStatWithBoost, IPokemon, PokemonBuilder } from './Pokemon/Pokemon';
 import { DamageType, Technique } from './Techniques/Technique';

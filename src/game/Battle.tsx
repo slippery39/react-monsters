@@ -1,11 +1,11 @@
 import { Turn, TurnState } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import { BattleEvent } from "./BattleEvents";
-import { Player } from "./interfaces";
 import _ from "lodash";
 
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
+import { Player } from "./Player/PlayerBuilder";
 
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>

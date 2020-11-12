@@ -2,7 +2,8 @@ import { shuffle } from "lodash";
 import { BattleAction } from "./BattleActions";
 import { Status } from "./HardStatus/HardStatus";
 import { GetActivePokemon } from "./HelperFunctions";
-import { Player } from "./interfaces";
+import { Player } from "./Player/PlayerBuilder";
+
 
 export function  GetActionPriority(action: BattleAction) {
 

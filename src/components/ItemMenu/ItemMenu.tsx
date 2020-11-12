@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Item } from 'game/interfaces';
 import './ItemMenu.css'
 import ItemMenuTabs, { ItemTabName } from './ItemMenuTabs/ItemMenuTabs';
 import ItemContainer from "./ItemContainer/ItemContainer"
+import { Item } from 'game/Items/Item';
 
 
 interface Props {

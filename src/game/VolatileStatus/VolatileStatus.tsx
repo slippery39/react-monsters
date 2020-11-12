@@ -2,7 +2,7 @@ import PokemonImage from "components/PokemonImage/PokemonImage";
 import { BattleEventType, GenericMessageEvent } from "game/BattleEvents";
 import { IBeforeAttack, ICanApply, IEndOfTurn } from "game/HardStatus/HardStatus"
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
-import { ElementType } from "game/interfaces";
+import { ElementType } from "game/ElementType";
 import { HasVolatileStatus, IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 import _ from "lodash";

@@ -1,7 +1,6 @@
 import React from 'react';
-import { Player } from './interfaces';
 import { Turn } from './Turn';
-import { PlayerBuilder } from './PlayerBuilder';
+import { Player, PlayerBuilder } from './Player/PlayerBuilder';
 import 'core-js'
 
 

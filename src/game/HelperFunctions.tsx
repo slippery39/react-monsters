@@ -1,4 +1,5 @@
-import { ElementType, Player } from "./interfaces";
+import { ElementType } from "./ElementType";
+import { Player } from "./Player/PlayerBuilder";
 import { IPokemon } from "./Pokemon/Pokemon";
 
 export function GetActivePokemon(player: Player) {

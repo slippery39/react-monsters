@@ -1,7 +1,7 @@
 import { Turn } from "game/Turn";
 import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEvent } from "game/BattleEvents";
 import { HasElementType } from "game/HelperFunctions";
-import { ElementType } from "game/interfaces";
+import { ElementType } from "game/ElementType";
 import { IPokemon } from "game/Pokemon/Pokemon";
 
 

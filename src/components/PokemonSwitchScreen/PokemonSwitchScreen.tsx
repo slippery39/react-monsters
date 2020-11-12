@@ -1,8 +1,8 @@
 import React from 'react'
-import { Player} from '../../game/interfaces';
 import './PokemonSwitchScreen.css'
 import PokemonSwitchContainer from './PokemonSwitchContainer/PokemonSwitchContainer';
 import { IPokemon } from 'game/Pokemon/Pokemon';
+import { Player } from 'game/Player/PlayerBuilder';
 
 
 

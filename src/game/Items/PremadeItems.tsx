@@ -1,22 +1,5 @@
-import { Status } from "./HardStatus/HardStatus";
-
-
-export type ItemEffect = (HealthRestoreItemEffect | StatusRestoreEffect)
-
-
-interface ItemEffectBase{
-    type:string
-}
-
-interface HealthRestoreItemEffect extends ItemEffectBase{
-    type:'health-restore'
-    amount:number
-}
-
-interface StatusRestoreEffect extends ItemEffectBase{
-    type:'status-restore',
-    forStatus:Status | "any"
-}
+import { Status } from "../HardStatus/HardStatus";
+import { ItemEffect } from "./Item";
 
 
 
@@ -30,7 +13,7 @@ interface PremadeItems {
     [key:string] : ItemBase
 }
 
-export function GetItem(name:string){
+export function GetItem(name:string): ItemBase{
     
     const items : PremadeItems = {
 
@@ -40,7 +23,7 @@ export function GetItem(name:string){
             description:'Cures poison',
             effects:[{
                 type:'status-restore',
-                forStatus:Status.Poison
+                forStatus:Status.Poison,
             },
         {
          type:'status-restore',

@@ -1,5 +1,5 @@
 import { Status } from "./HardStatus/HardStatus";
-import {ElementType} from "./interfaces";
+import {ElementType} from "./ElementType";
 import { CalculateStatWithBoost, IPokemon } from "./Pokemon/Pokemon";
 import { Stat } from "./Stat";
 import { Technique } from "./Techniques/Technique";

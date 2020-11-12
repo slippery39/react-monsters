@@ -2,7 +2,8 @@ import { shuffle } from "lodash";
 import { SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
 import BattleService from "game/Battle";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
-import { Player } from "game/interfaces";
+import { Player } from "game/Player/PlayerBuilder";
+
 
 interface AI {
     ChooseAction: () => void

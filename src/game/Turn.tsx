@@ -1,4 +1,4 @@
-import { Player, ElementType } from './interfaces';
+import {ElementType } from './ElementType';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent, GenericMessageEvent } from "./BattleEvents";
@@ -9,6 +9,7 @@ import { ApplyStatBoost, IPokemon } from './Pokemon/Pokemon';
 import { HealthRestoreType, TargetType, Technique } from './Techniques/Technique';
 import { GetVolatileStatus } from './VolatileStatus/VolatileStatus';
 import { GetActivePokemon } from './HelperFunctions';
+import { Player } from './Player/PlayerBuilder';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 

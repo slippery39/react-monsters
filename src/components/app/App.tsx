@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import Battle from "components/Battle/Battle";
 import StartGameScreen from 'components/StartGameScreen/StartGameScreen';
-import { PlayerBuilder } from 'game/PlayerBuilder';
+import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/Battle';
 import BasicAI from 'game/AI/AI';
 

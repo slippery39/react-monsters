@@ -1,4 +1,4 @@
-import {ElementType} from 'game/interfaces';
+import {ElementType} from 'game/ElementType';
 import { Stats } from './Pokemon';
 
 

@@ -1,19 +1,8 @@
 import { Status } from "game/HardStatus/HardStatus";
-import { ElementType } from "game/interfaces";
+import { ElementType } from "game/ElementType";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 
-
-//etc.
-export enum TechniqueEffectType{
-    Poison='poison',
-    Burn='burn',
-    SkipTurn='skip-turn'
-}
-export interface TechniqueEffect{
-    effectType:TechniqueEffectType,
-    chance:number
-}
 
 export enum DamageType{
     Physical = 'physical',
@@ -35,7 +24,7 @@ export interface Technique{
  power:number,
  damageType: DamageType,
  elementalType:ElementType,
- effects?:Array<MoveEffect>
+ effects?:Array<TechniqueEffect>
  chance: number
 }
 
@@ -79,4 +68,4 @@ interface StatusRestoreEffect{
 }
 
 
-export type MoveEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect);
+export type TechniqueEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect);

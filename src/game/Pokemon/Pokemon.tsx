@@ -1,4 +1,4 @@
-import { ElementType} from "game/interfaces";
+import { ElementType} from "game/ElementType";
 import { Stat } from "game/Stat";
 import { GetSpecies } from "./Species";
 import _ from "lodash"

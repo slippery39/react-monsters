@@ -1,8 +1,18 @@
-import { Item, Player} from "./interfaces";
-import {GetItem} from "./PremadeItems";
+import {GetItem} from "../Items/PremadeItems";
 import _ from "lodash";
-import { Status } from "./HardStatus/HardStatus";
-import GetPokemon from "./Pokemon/PremadePokemon";
+import { Status } from "../HardStatus/HardStatus";
+import GetPokemon from "../Pokemon/PremadePokemon";
+import { Item } from "game/Items/Item";
+import { IPokemon } from "game/Pokemon/Pokemon";
+
+export interface Player {
+    name: string,
+    pokemon: Array<IPokemon>,
+    currentPokemonId:number,
+    items: Array<Item>
+    id:number
+}
+
 
 export class PlayerBuilder{
 
