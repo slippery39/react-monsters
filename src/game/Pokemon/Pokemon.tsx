@@ -6,6 +6,7 @@ import { GetTech } from "game/Techniques/PremadeTechniques";
 import { Technique } from "game/Techniques/Technique";
 import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { Status } from "game/HardStatus/HardStatus";
+import { timeStamp } from "console";
 
 
 export interface IPokemon {
@@ -22,6 +23,7 @@ export interface IPokemon {
     baseStats:Stats,
     ivs:Stats,
     evs:Stats,
+    ability:string,
     toxicCount:number, //temporarily placing this and the rest turn count here until i can figure out a better way to structure this.
     restTurnCount:number,
 }
@@ -70,6 +72,7 @@ export class PokemonBuilder{
                 },
                 toxicCount:1,
                 restTurnCount:0,
+                ability:"",
                 evs:CreateEmptyStats()
         }
     }
@@ -77,11 +80,10 @@ export class PokemonBuilder{
         //todo: some warning here that this should be called first?
         const base = GetSpecies(name);
         //modify the base pokemon to change it into a regular pokemon.
-
-        console.log(base);
         this.pokemon.name = base.name;
         this.pokemon.baseStats = {...base.baseStats};
-        this.pokemon.elementalTypes = [...base.elementalTypes];        
+        this.pokemon.elementalTypes = [...base.elementalTypes];     
+        this.pokemon.ability = base.ability;   
         return this;
     }
     WithIVs(ivAmounts:Stats):PokemonBuilder{
@@ -97,6 +99,10 @@ export class PokemonBuilder{
         techNames.forEach((techName:string)=>{
             this.pokemon.techniques.push(GetTech(techName))
         });
+        return this;
+    }
+    WithAbility(abilityName:string):PokemonBuilder{
+        this.pokemon.ability = abilityName;
         return this;
     }
     Build() : IPokemon{

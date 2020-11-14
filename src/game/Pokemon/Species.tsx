@@ -10,6 +10,7 @@ interface ISpecies {
     name:string,
     baseStats:Stats,
     elementalTypes:Array<ElementType>,
+    ability:string
 }
 
 
@@ -27,6 +28,7 @@ const pokemons: SpeciesDB = {
             specialDefence: 85,
             speed: 100
         },
+        ability:"Blaze"
     },
     "blastoise": {
         name: 'Blastoise',
@@ -39,6 +41,7 @@ const pokemons: SpeciesDB = {
             specialDefence: 105,
             speed: 78
         },
+        ability:"Torrent"
     },
     "venusaur":{
         name: 'Venusaur',
@@ -51,6 +54,7 @@ const pokemons: SpeciesDB = {
             specialDefence: 100,
             speed: 80
         },
+        ability:"Overgrowth"
     }
 }
 

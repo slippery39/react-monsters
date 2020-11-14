@@ -10,6 +10,7 @@ import { HealthRestoreType, TargetType, Technique } from './Techniques/Technique
 import { GetVolatileStatus } from './VolatileStatus/VolatileStatus';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
+import GetAbility from './Ability/Ability';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -694,7 +695,15 @@ export class Turn {
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
-        this.ApplyDamage(defendingPokemon, totalDamage, damageModifierInfo);
+
+        //right here is where we need to do the after damage calculated function
+        const ability = GetAbility(pokemon.ability);
+        //any modified after the damage has been calculated can go here.
+        const newDamage = ability.OnAfterDamageCalculated(pokemon,move,defendingPokemon,totalDamage,damageModifierInfo);
+        //we can also do the same for status effects or what not like our burn status - OnAfterDamageCalculated - check if the move used is physical and if so then half it.
+
+
+        this.ApplyDamage(defendingPokemon, newDamage, damageModifierInfo);
     }
 
     private EndTurn() {
