@@ -1,11 +1,12 @@
 import PokemonImage from "components/PokemonImage/PokemonImage";
 import { BattleEventType, GenericMessageEvent } from "game/BattleEvents";
-import { IBeforeAttack, ICanApply, IEndOfTurn } from "game/HardStatus/HardStatus"
+import { ICanApply } from "game/HardStatus/HardStatus"
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { HasVolatileStatus, IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 import _ from "lodash";
+import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 
 
 export enum VolatileStatusType {
@@ -17,7 +18,7 @@ export enum VolatileStatusType {
     
 }
 
-export interface VolatileStatus extends IBeforeAttack, IEndOfTurn, ICanApply {
+export interface VolatileStatus extends ICanApply {
     type: VolatileStatusType,
     OnApply:(turn:Turn,pokemon:IPokemon)=>void,
     InflictedMessage:(pokemon:IPokemon)=>string
@@ -25,17 +26,11 @@ export interface VolatileStatus extends IBeforeAttack, IEndOfTurn, ICanApply {
 
 
 
-abstract class AbstractVolatileStatus implements VolatileStatus {
+abstract class AbstractVolatileStatus extends BattleBehaviour implements VolatileStatus {
     abstract type: VolatileStatusType   
 
     abstract InflictedMessage(pokemon:IPokemon):string
-    
-    BeforeAttack(turn: Turn, pokemon: IPokemon) {
 
-    }
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
-
-    }
     OnApply(turn:Turn,pokemon:IPokemon){
 
     }

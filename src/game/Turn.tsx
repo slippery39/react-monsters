@@ -11,6 +11,7 @@ import { GetVolatileStatus } from './VolatileStatus/VolatileStatus';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
+import BattleBehaviour from './BattleBehaviour/BattleBehavior';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -144,11 +145,14 @@ export class Turn {
         activePokemon.forEach(pokemon => {
 
             pokemon.volatileStatuses.forEach(vStat => {
-                vStat.EndOfTurn(this, pokemon);
+
+                //temporary way to get this working
+                const vStatTemp = vStat as unknown as BattleBehaviour;
+                 vStatTemp.EndOfTurn(this, pokemon);
             })
 
             const hardStatus = GetHardStatus(pokemon.status);
-            hardStatus.EndOfTurn(this, pokemon);
+            (hardStatus as unknown as BattleBehaviour).EndOfTurn(this, pokemon);
         })
     }
 
@@ -164,13 +168,14 @@ export class Turn {
             if (!pokemon.canAttackThisTurn) {
                 return;
             }
-
-            vStat.BeforeAttack(this, pokemon);
+            //todo: this is temporary garbage code to just check if it works
+            (vStat as unknown as BattleBehaviour).BeforeAttack(this, pokemon);
         })
 
         const hardStatus = GetHardStatus(pokemon.status);
-        if (hardStatus.BeforeAttack !== undefined && pokemon.canAttackThisTurn === true) {
-            hardStatus.BeforeAttack(this, pokemon);
+        if (pokemon.canAttackThisTurn === true) {
+            //todo: this is temporary garbage code to check if it works.
+            (hardStatus as unknown as BattleBehaviour).BeforeAttack(this, pokemon);
         }
     }
 

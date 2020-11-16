@@ -8,8 +8,7 @@ interface Ability{
     OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any):any
 }
 
-abstract class AbstractAbility implements Ability{
- 
+abstract class AbstractAbility implements Ability{ 
     OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
         //default is to just return the same damage that gets put in.
         return damage;

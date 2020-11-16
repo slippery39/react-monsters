@@ -3,6 +3,7 @@ import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEv
 import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { IPokemon } from "game/Pokemon/Pokemon";
+import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 
 
 export enum Status{
@@ -17,23 +18,17 @@ export enum Status{
 }
 
 
-
-export interface IBeforeAttack {
-    BeforeAttack: (turn: Turn, pokemon: IPokemon) => void
-}
 export interface ICanApply {
     CanApply: (turn: Turn, pokemon: IPokemon) => boolean
 }
-export interface IEndOfTurn {
-    EndOfTurn: (turn: Turn, pokemon: IPokemon) => void
-}
 
-interface HardStatus extends IBeforeAttack,ICanApply,IEndOfTurn {
+
+interface HardStatus extends ICanApply {
     statusType: Status;
     curedString:string //don't really know what else to call this at the moment but follows the format of  'has been cured of its {status}`
 }
 
-class RestingStatus implements HardStatus{
+class RestingStatus extends BattleBehaviour implements HardStatus{
     statusType = Status.Sleep;
     curedString = 'has woken up!'
 
@@ -70,7 +65,7 @@ class RestingStatus implements HardStatus{
     }
 }
 
-class ToxicStatus implements HardStatus{
+class ToxicStatus extends BattleBehaviour implements HardStatus{
     statusType = Status.Poison;
     curedString= 'has been cured of poison!'
 
@@ -97,7 +92,7 @@ class ToxicStatus implements HardStatus{
     }
 }
 
-class BurnStatus implements HardStatus{
+class BurnStatus  extends BattleBehaviour implements HardStatus{
     
 
     statusType = Status.Burned;
@@ -121,7 +116,7 @@ class BurnStatus implements HardStatus{
     }
 }
 
-class FrozenStatus implements HardStatus{
+class FrozenStatus extends BattleBehaviour implements HardStatus{
    
     statusType = Status.Frozen
     curedString= 'has been thawed!'
@@ -159,7 +154,7 @@ class FrozenStatus implements HardStatus{
     }
 }
 
-class SleepStatus implements HardStatus {
+class SleepStatus extends BattleBehaviour implements HardStatus {
     
     
     statusType = Status.Sleep;
@@ -197,7 +192,7 @@ class SleepStatus implements HardStatus {
     }
 }
 
-class ParalyzeStatus implements HardStatus {
+class ParalyzeStatus extends BattleBehaviour implements HardStatus {
   
 
     statusType = Status.Paralyzed;
@@ -228,7 +223,7 @@ class ParalyzeStatus implements HardStatus {
 
 }
 
-class PoisonStatus implements HardStatus {
+class PoisonStatus extends BattleBehaviour implements HardStatus {
     
 
     statusType = Status.Poison;
@@ -257,7 +252,7 @@ class PoisonStatus implements HardStatus {
 
 }
 
-class NoneStatus implements HardStatus {
+class NoneStatus extends BattleBehaviour implements HardStatus {
 
     statusType = Status.None;
     curedString= '';
