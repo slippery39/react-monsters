@@ -621,7 +621,8 @@ export class Turn {
                         type: BattleEventType.StatusChange,
                         status: effect.status,
                         attackerPokemonId: pokemon.id,
-                        targetPokemonId: targetPokemon.id
+                        targetPokemonId: targetPokemon.id,
+                        defaultMessage:`${targetPokemon.name} ${hardStatus.inflictedMessage}`
                     };
                     this.AddEvent(statusInflictedEffect);
                 }

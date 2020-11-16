@@ -20,6 +20,7 @@ export enum Status{
 export abstract class HardStatus extends BattleBehaviour {
     abstract statusType: Status
     abstract curedString:String
+    abstract inflictedMessage:String
 
     OnApply(turn:Turn,pokemon:IPokemon){
     }
@@ -32,6 +33,7 @@ export abstract class HardStatus extends BattleBehaviour {
 class RestingStatus extends HardStatus{
     statusType = Status.Sleep;
     curedString = 'has woken up!'
+    inflictedMessage = 'is taking a rest!'
 
     CanApply(){
         return true;
@@ -69,6 +71,7 @@ class RestingStatus extends HardStatus{
 class ToxicStatus extends HardStatus{
     statusType = Status.Poison;
     curedString= 'has been cured of poison!'
+    inflictedMessage = 'has been badly poisoned!'
 
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Steel);
@@ -98,6 +101,7 @@ class BurnStatus extends HardStatus{
 
     statusType = Status.Burned;
     curedString= 'has been cured of its burn!'
+    inflictedMessage = 'has been burned!'
 
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Fire);
@@ -121,6 +125,7 @@ class FrozenStatus extends HardStatus{
    
     statusType = Status.Frozen
     curedString= 'has been thawed!'
+    inflictedMessage = 'is frozen!'
     private thawChance: number = 25;
 
     CanApply(turn: Turn, pokemon: IPokemon) {
@@ -160,6 +165,7 @@ class SleepStatus extends HardStatus{
     
     statusType = Status.Sleep;
     curedString= 'has woken up!'
+    inflictedMessage = 'has fallen asleep!'
     private wakeUpChance: number = 25;
 
     CanApply(turn: Turn, pokemon: IPokemon){
@@ -198,6 +204,7 @@ class ParalyzeStatus extends HardStatus{
 
     statusType = Status.Paralyzed;
     curedString= 'has been cured of paralysis!'
+    inflictedMessage = 'is now paralyzed!'
     private cantMoveChance: number = 25;
 
     EndOfTurn(turn: Turn, pokemon: IPokemon){
@@ -229,6 +236,7 @@ class PoisonStatus extends HardStatus {
 
     statusType = Status.Poison;
     curedString= 'has been cured of poison!'
+    inflictedMessage = ' has been poisoned!'
 
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
         //apply poison damage
@@ -256,6 +264,7 @@ class PoisonStatus extends HardStatus {
 class NoneStatus extends HardStatus {
 
     statusType = Status.None;
+    inflictedMessage = '';
     curedString= '';
     BeforeAttack  = (turn: Turn, pokemon: IPokemon) => null;
     CanApply =  (turn: Turn, pokemon: IPokemon) =>  true;
@@ -265,7 +274,7 @@ class NoneStatus extends HardStatus {
 function GetHardStatus(status: Status): HardStatus {
 
     if (status === Status.Paralyzed) {
-        return new ParalyzeStatus();
+        return new ParalyzeStatus()
     }
     else if (status === Status.Poison) {
         return new PoisonStatus();
