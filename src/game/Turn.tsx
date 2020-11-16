@@ -145,10 +145,7 @@ export class Turn {
         activePokemon.forEach(pokemon => {
 
             pokemon.volatileStatuses.forEach(vStat => {
-
-                //temporary way to get this working
-                const vStatTemp = vStat as unknown as BattleBehaviour;
-                 vStatTemp.EndOfTurn(this, pokemon);
+                 vStat.EndOfTurn(this, pokemon);
             })
 
             const hardStatus = GetHardStatus(pokemon.status);
@@ -169,7 +166,7 @@ export class Turn {
                 return;
             }
             //todo: this is temporary garbage code to just check if it works
-            (vStat as unknown as BattleBehaviour).BeforeAttack(this, pokemon);
+            vStat.BeforeAttack(this, pokemon);
         })
 
         const hardStatus = GetHardStatus(pokemon.status);
@@ -700,13 +697,10 @@ export class Turn {
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
-
-        //right here is where we need to do the after damage calculated function
+        
+        //Abilities/Statuses/VolatileStatuses might be able to modify damage
         const ability = GetAbility(pokemon.ability);
-        //any modified after the damage has been calculated can go here.
         const newDamage = ability.OnAfterDamageCalculated(pokemon,move,defendingPokemon,totalDamage,damageModifierInfo);
-        //we can also do the same for status effects or what not like our burn status - OnAfterDamageCalculated - check if the move used is physical and if so then half it.
-
 
         this.ApplyDamage(defendingPokemon, newDamage, damageModifierInfo);
     }

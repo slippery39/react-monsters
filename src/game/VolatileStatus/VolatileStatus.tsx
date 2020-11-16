@@ -1,9 +1,7 @@
-import PokemonImage from "components/PokemonImage/PokemonImage";
 import { BattleEventType, GenericMessageEvent } from "game/BattleEvents";
-import { ICanApply } from "game/HardStatus/HardStatus"
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
-import { HasVolatileStatus, IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
+import { HasVolatileStatus, IPokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 import _ from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
@@ -18,15 +16,7 @@ export enum VolatileStatusType {
     
 }
 
-export interface VolatileStatus extends ICanApply {
-    type: VolatileStatusType,
-    OnApply:(turn:Turn,pokemon:IPokemon)=>void,
-    InflictedMessage:(pokemon:IPokemon)=>string
-}
-
-
-
-abstract class AbstractVolatileStatus extends BattleBehaviour implements VolatileStatus {
+export abstract class VolatileStatus extends BattleBehaviour {
     abstract type: VolatileStatusType   
 
     abstract InflictedMessage(pokemon:IPokemon):string
@@ -39,7 +29,7 @@ abstract class AbstractVolatileStatus extends BattleBehaviour implements Volatil
     }
 }
 
-export class RoostedVolatileStatus extends AbstractVolatileStatus{
+export class RoostedVolatileStatus extends VolatileStatus{
     type =  VolatileStatusType.Roosted
 
     private originalTypes : Array<ElementType> = [];
@@ -68,7 +58,7 @@ export class RoostedVolatileStatus extends AbstractVolatileStatus{
 
 }
 
-export class AquaRingVolatileStatus extends AbstractVolatileStatus{   
+export class AquaRingVolatileStatus extends VolatileStatus{   
     type:VolatileStatusType = VolatileStatusType.AquaRing;
 
     InflictedMessage(pokemon: IPokemon): string {
@@ -87,7 +77,7 @@ export class AquaRingVolatileStatus extends AbstractVolatileStatus{
 }
 
 
-export class FlinchVolatileStatus extends AbstractVolatileStatus{
+export class FlinchVolatileStatus extends VolatileStatus{
     type:VolatileStatusType = VolatileStatusType.Flinch
 
     InflictedMessage(pokemon:IPokemon):string {
@@ -120,7 +110,7 @@ export class FlinchVolatileStatus extends AbstractVolatileStatus{
     }
 }
 
-export class LeechSeedVolatileStatus extends AbstractVolatileStatus{
+export class LeechSeedVolatileStatus extends VolatileStatus{
     type: VolatileStatusType = VolatileStatusType.LeechSeed;
 
     InflictedMessage(pokemon: IPokemon): string {
@@ -152,7 +142,7 @@ export class LeechSeedVolatileStatus extends AbstractVolatileStatus{
 }
 
 
-export class ConfusionVolatileStatus extends AbstractVolatileStatus {
+export class ConfusionVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.Confusion;
 
     private unconfuseChance: number = 25;

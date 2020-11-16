@@ -1,14 +1,11 @@
+import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { ElementType } from "game/ElementType";
-import { GetPercentageHealth, HasElementType } from "game/HelperFunctions";
+import { GetPercentageHealth} from "game/HelperFunctions";
 import { IPokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
 
-interface Ability{
-    //TODO: return a damage info type or something.
-    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any):any
-}
 
-abstract class AbstractAbility implements Ability{ 
+abstract class AbstractAbility extends BattleBehaviour{ 
     OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
         //default is to just return the same damage that gets put in.
         return damage;
@@ -25,7 +22,7 @@ class BlazeAbility extends AbstractAbility{
     }
 }
 
-class TorrenAbility extends AbstractAbility{
+class TorrentAbility extends AbstractAbility{
     OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
         if (move.elementalType === ElementType.Water && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
@@ -55,7 +52,7 @@ function GetAbility(name:String){
             return new BlazeAbility();
         }
         case 'torrent':{
-            return new TorrenAbility();
+            return new TorrentAbility();
         }
         case 'overgrowth':{
             return new OverGrowthAbility();
