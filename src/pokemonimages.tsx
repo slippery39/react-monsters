@@ -19,7 +19,7 @@ const images = names.map((el)=>{
     return {
         frontImageSrc:'./images/pokemon/front/' + el+ '.png',
         backImageSrc:'./images/pokemon/back/' + el + '.png',
-        smallImageSrc:'./images/pokemon/small/' + el + '.gif',
+        smallImageSrc:'./images/pokemon/small/' + el + '.png',
         name:el
     }
 });
