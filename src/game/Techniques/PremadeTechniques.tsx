@@ -453,7 +453,7 @@ export function GetTech(name: string) {
             power: 90,
             chance: 100,
             pp: 20,
-            elementalType: ElementType.Psychic,
+            elementalType: ElementType.Ghost,
             effects: [
                 {
                     type: 'stat-boost',
