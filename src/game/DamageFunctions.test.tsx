@@ -94,6 +94,11 @@ describe('GetBaseDamage tests', ()=>{
             expect(reallyNotEffective).toBe(0.25);
         });
 
+        it ('is not effective at all', ()=>{
+            const notEffectiveAtAll = GetTypeMod([ElementType.Fire,ElementType.Flying],ElementType.Ground);
+            expect(notEffectiveAtAll).toBe(0);
+        });
+
     });
 
     describe('GetDamageModifier() Tests', ()=>{
