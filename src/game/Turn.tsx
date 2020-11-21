@@ -438,13 +438,10 @@ export class Turn {
         //find the pokemon to switch in position
         const switchInPokemonPos = player.pokemon.indexOf(player.pokemon.find(p => p.id === pokemonInId)!);
         let pokemonArrCopy = player.pokemon.slice();
-
-        //TODO: i don't think we actualy want to switch the pokemon position in the array anymore?
+        
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
         pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
 
-
-        player.pokemon = pokemonArrCopy;
         player.currentPokemonId = pokemonArrCopy[0].id;
 
         const switchOutEffect: SwitchOutEvent = {
