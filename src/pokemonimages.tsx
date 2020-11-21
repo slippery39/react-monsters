@@ -1,6 +1,5 @@
 // images.js
 interface PokemonImageData {
-    id:number,
     name:string,
     frontImageSrc:string,
     backImageSrc:string,
@@ -8,18 +7,20 @@ interface PokemonImageData {
 };
 
 //we should be able to get this from some database or something somewhere?
-const idsAndNames = [
-    {id:3,name:'venusaur'},
-    {id:6,name:'charizard'},
-    {id:9, name:'blastoise'}
+const names = [
+    'venusaur',
+    'charizard',
+    'blastoise',
+    'alakazam',
+    'raichu'
 ]
 
-const images = idsAndNames.map((el)=>{
+const images = names.map((el)=>{
     return {
-        frontImageSrc:'./images/pokemon/front/' + el.id + '.png',
-        backImageSrc:'./images/pokemon/back/' + el.id + '.png',
-        smallImageSrc:'./images/pokemon/small/' + el.id + '.gif',
-        ...el
+        frontImageSrc:'./images/pokemon/front/' + el+ '.png',
+        backImageSrc:'./images/pokemon/back/' + el + '.png',
+        smallImageSrc:'./images/pokemon/small/' + el + '.gif',
+        name:el
     }
 });
 

@@ -363,6 +363,108 @@ export function GetTech(name: string) {
             damageType: DamageType.Physical,
             elementalType: ElementType.Grass,
 
+        },
+        "thunderbolt":{
+            name:"Thunderbolt",
+            description:'thunderbolt',
+            pp:24,
+            power:90,
+            chance:100,
+            elementalType:ElementType.Electric,
+            damageType:DamageType.Special,
+            effects:[
+                {
+                    type:'inflict-status',
+                    status:Status.Paralyzed,
+                    chance:10,
+                    target:TargetType.Enemy
+                }
+            ]
+
+        },
+        //should be nasty plot.
+        "nasty plot": {
+            name: "Nasty Plot",
+            description: "The user stimulates its brain by thinking bad thoughts. This sharply raises the user's Sp. Atk stat.",
+            damageType: DamageType.Status,
+            power: 0,
+            chance: 100,
+            pp: 20,
+            elementalType: ElementType.Dark,
+            effects: [
+                {
+                    type: 'stat-boost',
+                    stat: Stat.SpecialAttack,
+                    target: TargetType.Self,
+                    amount: 2,
+                    chance: 100
+                }
+            ]
+        },
+        "calm mind":{
+            name: "Calm Mind",
+            description: "The user quietly focuses its mind and calms its spirit to raise its Sp. Atk and Sp. Def stats.",
+            damageType: DamageType.Status,
+            power: 0,
+            chance: 100,
+            pp: 20,
+            elementalType: ElementType.Dark,
+            effects: [
+                {
+                    type: 'stat-boost',
+                    stat: Stat.SpecialAttack,
+                    target: TargetType.Self,
+                    amount: 1,
+                    chance: 100
+                },
+                {
+                    type:'stat-boost',
+                    stat:Stat.SpecialDefense,
+                    target:TargetType.Self,
+                    amount:1,
+                    chance:100
+                }
+            ]
+        },
+        "psychic":{
+            name:"Psychic",
+            description:"The target is hit by a strong telekinetic force. This may also lower the target's Sp. Def stat",
+            damageType: DamageType.Special,
+            power: 90,
+            chance: 100,
+            pp: 20,
+            elementalType: ElementType.Psychic,
+            effects: [
+                {
+                    type: 'stat-boost',
+                    stat: Stat.SpecialDefense,
+                    target: TargetType.Enemy,
+                    amount: 1,
+                    chance: 10
+                },
+
+            ]
+            
+        },
+        "shadow ball":{
+            name:"Shadow Ball",
+            description:"The target is hit by a strong telekinetic force. This may also lower the target's Sp. Def stat",
+            damageType: DamageType.Special,
+            power: 90,
+            chance: 100,
+            pp: 20,
+            elementalType: ElementType.Psychic,
+            effects: [
+                {
+                    type: 'stat-boost',
+                    stat: Stat.SpecialDefense,
+                    target: TargetType.Enemy,
+                    amount: 1,
+                    chance: 10
+                },
+
+            ]
+            
         }
 
     }

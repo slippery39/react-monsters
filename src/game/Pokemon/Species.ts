@@ -55,7 +55,33 @@ const pokemons: SpeciesDB = {
             speed: 80
         },
         ability:"Overgrowth"
-    }
+    },
+    "raichu":{
+        name:"Raichu",
+        elementalTypes:[ElementType.Electric],
+        baseStats:{
+            health:60,
+            attack:90,
+            defence:55,
+            specialAttack:90,
+            specialDefence:80,
+            speed:100
+        },
+        ability:"Lightning Rod"
+    },
+    "alakazam":{
+        name:"Alakazam",
+        elementalTypes:[ElementType.Psychic],
+        baseStats:{
+            health:55,
+            attack:50,
+            defence:45,
+            specialAttack:135,
+            specialDefence:85,
+            speed:120
+        },
+        ability:"Magic Guard"
+    },
 }
 
 

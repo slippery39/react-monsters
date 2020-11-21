@@ -13,14 +13,6 @@ const Charizard = function () {
             specialAttack: 252,
             speed: 252
         })
-        .WithIVs({
-            health: 31,
-            attack: 31,
-            defence: 31,
-            specialDefence: 31,
-            specialAttack: 31,
-            speed: 31
-        })
         .WithTechniques([
             "Fire Blast",
             "Air Slash",
@@ -41,14 +33,6 @@ const Blastoise = function(){
             specialDefence: 0,
             specialAttack: 4,
             speed: 0
-        })
-        .WithIVs({
-            health: 31,
-            attack: 31,
-            defence: 31,
-            specialDefence: 31,
-            specialAttack: 31,
-            speed: 31
         })
         .WithTechniques([
             "Surf",
@@ -71,14 +55,6 @@ const Venusaur = function(){
             specialAttack:0,
             speed: 252
         })
-        .WithIVs({
-            health: 31,
-            attack: 31,
-            defence: 31,
-            specialDefence: 31,
-            specialAttack: 31,
-            speed: 31
-        })
         .WithTechniques([
             "Swords Dance",
             "Power Whip",
@@ -89,12 +65,57 @@ const Venusaur = function(){
 };
 
 
+const Raichu = function(){
+    const builder = new PokemonBuilder();
+    return builder
+    .OfSpecies("Raichu")
+    .WithEVs({
+        health: 0,
+        attack: 0,
+        defence: 0,
+        specialDefence: 4,
+        specialAttack:252,
+        speed: 252
+    })
+    .WithTechniques([
+        "Thunderbolt",
+        "Surf",
+        "Nasty Plot",
+        "Focus Blast"
+    ])
+    .Build();
+}
+
+const Alakazam = function(){
+    const builder = new PokemonBuilder();
+    return builder
+    .OfSpecies("Alakazam")
+    .WithEVs({
+        health: 4,
+        attack:0,
+        defence: 0,
+        specialDefence: 0,
+        specialAttack:252,
+        speed: 252
+    })
+    .WithTechniques([
+        "Calm Mind",
+        "Psychic",
+        "Focus Blast",
+        "Shadow Ball"
+    ])
+    .Build();
+}
+
+
 const GetPokemon = function(name:string):IPokemon{
 
     var pokemons : Array<IPokemon> = [
         Charizard(),
         Blastoise(),
-        Venusaur()        
+        Venusaur(),
+        Raichu(),
+        Alakazam()      
     ]
 
 
