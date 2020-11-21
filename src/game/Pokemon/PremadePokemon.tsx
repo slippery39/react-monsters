@@ -19,6 +19,7 @@ const Charizard = function () {
             "Focus Blast",
             "Roost"
         ])
+        .WithHeldItem("Life Orb")
         .Build();
 }
 
@@ -40,6 +41,7 @@ const Blastoise = function(){
             "Rest",
             "Toxic"
         ])
+        .WithHeldItem("Leftovers")
         .Build();
 }
 
@@ -61,6 +63,7 @@ const Venusaur = function(){
             "Earthquake",
             "Sleep Powder"
         ])
+        .WithHeldItem("Life Orb")
         .Build();
 };
 
@@ -83,6 +86,7 @@ const Raichu = function(){
         "Nasty Plot",
         "Focus Blast"
     ])
+    .WithHeldItem("Leftovers")
     .Build();
 }
 
@@ -104,6 +108,7 @@ const Alakazam = function(){
         "Focus Blast",
         "Shadow Ball"
     ])
+    .WithHeldItem("Life Orb")
     .Build();
 }
 

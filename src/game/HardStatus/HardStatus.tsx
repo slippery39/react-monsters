@@ -92,7 +92,7 @@ class ToxicStatus extends HardStatus{
             defaultMessage: `${pokemon.name} is badly hurt by poison.`
         }
         turn.AddEvent(poisonMessage);
-        turn.ApplyDamage(pokemon, poisonDamage, {})
+        turn.ApplyIndirectDamage(pokemon, poisonDamage)
     }
 }
 
@@ -117,7 +117,7 @@ class BurnStatus extends HardStatus{
             defaultMessage: `${pokemon.name} is hurt by its burn`
         }
         turn.AddEvent(burnMessage);
-        turn.ApplyDamage(pokemon, burnDamage, {});
+        turn.ApplyIndirectDamage(pokemon, burnDamage);
     }
 }
 
@@ -250,7 +250,7 @@ class PoisonStatus extends HardStatus {
             defaultMessage: `${pokemon.name} is hurt by poison`
         }
         turn.AddEvent(poisonMessage);
-        turn.ApplyDamage(pokemon, poisonDamage, {})
+        turn.ApplyIndirectDamage(pokemon, poisonDamage)
     }
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasElementType(pokemon, ElementType.Poison);

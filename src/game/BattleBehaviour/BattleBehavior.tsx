@@ -21,6 +21,9 @@ abstract class BattleBehaviour{
     OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any):number{
         return damage;
     }
+    OnDamageDealt(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,damageDealt:number){
+
+    }
 
 }
 

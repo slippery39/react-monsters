@@ -1,4 +1,4 @@
-import {ElementType } from './ElementType';
+import { ElementType } from './ElementType';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent, GenericMessageEvent } from "./BattleEvents";
@@ -138,6 +138,13 @@ export class Turn {
             this.CalculateTurn();
         }
     }
+    ApplyMessage(message: string) {
+        this.AddEvent({
+            type: BattleEventType.GenericMessage,
+            defaultMessage: message
+        }
+        );
+    }
 
     private BeforeEndOfTurn() {
         const activePokemon = this.players.map(player => this.GetActivePokemon(player.id));
@@ -145,11 +152,14 @@ export class Turn {
         activePokemon.forEach(pokemon => {
 
             pokemon.volatileStatuses.forEach(vStat => {
-                 vStat.EndOfTurn(this, pokemon);
-            })
+                vStat.EndOfTurn(this, pokemon);
+            });
+
+            GetAbility(pokemon.ability).EndOfTurn(this,pokemon);
+            pokemon.heldItem.EndOfTurn(this,pokemon);
 
             const hardStatus = GetHardStatus(pokemon.status);
-            (hardStatus as unknown as BattleBehaviour).EndOfTurn(this, pokemon);
+            hardStatus.EndOfTurn(this, pokemon);
         })
     }
 
@@ -238,9 +248,8 @@ export class Turn {
         this.AddEvent(itemEffect);
     }
 
-    ApplyDamage(pokemon: IPokemon, damage: number, damageInfo: any) {
-
-        pokemon.currentStats.health -= damage
+    ApplyIndirectDamage(pokemon:IPokemon,damage:number){
+        pokemon.currentStats.health -=damage;
         pokemon.currentStats.health = Math.max(0, pokemon.currentStats.health);
 
         const damageEffect: DamageEvent = {
@@ -249,15 +258,44 @@ export class Turn {
             attackerPokemonId: pokemon.id, //this is wrong, we need a way to pass this into this function 
             targetFinalHealth: pokemon.currentStats.health,
             targetDamageTaken: damage,
+            didCritical: false,
+            effectivenessAmt: 1
+        }
+        this.AddEvent(damageEffect);
+        if (pokemon.currentStats.health <= 0) {
+            this.PokemonFainted(pokemon);
+        }
+    }
+
+    ApplyDamage(attackingPokemon: IPokemon,defendingPokemon:IPokemon, damage: number, damageInfo: any) {
+
+ 
+        defendingPokemon.currentStats.health -= damage
+        defendingPokemon.currentStats.health = Math.max(0, defendingPokemon.currentStats.health);
+
+        const damageEffect: DamageEvent = {
+            type: BattleEventType.Damage,
+            targetPokemonId: defendingPokemon.id,
+            attackerPokemonId: attackingPokemon.id, //this is wrong, we need a way to pass this into this function 
+            targetFinalHealth: defendingPokemon.currentStats.health,
+            targetDamageTaken: damage,
             didCritical: damageInfo.critStrike === undefined ? false : damageInfo.critStrike,
             effectivenessAmt: damageInfo.typeEffectivenessBonus === undefined ? 1 : damageInfo.typeEffectivenessBonus
         };
 
         this.AddEvent(damageEffect);
 
-        if (pokemon.currentStats.health <= 0) {
-            this.PokemonFainted(pokemon)
-        }
+        GetHardStatus(defendingPokemon.status).OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+        defendingPokemon.volatileStatuses.forEach(vStat=>{
+            vStat.OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+        })
+        defendingPokemon.heldItem.OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+        GetAbility(defendingPokemon.ability).OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+
+
+        if (defendingPokemon.currentStats.health <= 0) {
+            this.PokemonFainted(defendingPokemon)
+        }       
     }
 
     private AfterAttack(pokemon: IPokemon) {
@@ -438,7 +476,7 @@ export class Turn {
         //find the pokemon to switch in position
         const switchInPokemonPos = player.pokemon.indexOf(player.pokemon.find(p => p.id === pokemonInId)!);
         let pokemonArrCopy = player.pokemon.slice();
-        
+
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
         pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
 
@@ -619,7 +657,7 @@ export class Turn {
                         status: effect.status,
                         attackerPokemonId: pokemon.id,
                         targetPokemonId: targetPokemon.id,
-                        defaultMessage:`${targetPokemon.name} ${hardStatus.inflictedMessage}`
+                        defaultMessage: `${targetPokemon.name} ${hardStatus.inflictedMessage}`
                     };
                     this.AddEvent(statusInflictedEffect);
                 }
@@ -695,12 +733,12 @@ export class Turn {
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
-        
+
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
         const ability = GetAbility(pokemon.ability);
-        const newDamage = ability.OnAfterDamageCalculated(pokemon,move,defendingPokemon,totalDamage,damageModifierInfo);
+        const newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
 
-        this.ApplyDamage(defendingPokemon, newDamage, damageModifierInfo);
+        this.ApplyDamage(pokemon,defendingPokemon, newDamage, damageModifierInfo);
     }
 
     private EndTurn() {

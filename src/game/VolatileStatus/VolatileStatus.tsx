@@ -131,7 +131,7 @@ export class LeechSeedVolatileStatus extends VolatileStatus{
         }
 
         const opponentPokemon = GetActivePokemon(opponentPlayer);
-        turn.ApplyDamage(pokemon,leechSeedDamage,{});
+        turn.ApplyIndirectDamage(pokemon,leechSeedDamage);
         turn.ApplyHealing(opponentPokemon,leechSeedDamage);
         const message: GenericMessageEvent ={
             type:BattleEventType.GenericMessage,
@@ -177,7 +177,7 @@ export class ConfusionVolatileStatus extends VolatileStatus {
                     defaultMessage: `${pokemon.name} has hurt itself in its confusion`
                 }
                 turn.AddEvent(confusionHurtEvent);
-                turn.ApplyDamage(pokemon, 40, {});
+                turn.ApplyIndirectDamage(pokemon, 40);
 
                 //pokemon skips the turn as well
                 pokemon.canAttackThisTurn = false;

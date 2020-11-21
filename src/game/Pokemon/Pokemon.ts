@@ -6,7 +6,7 @@ import { GetTech } from "game/Techniques/PremadeTechniques";
 import { Technique } from "game/Techniques/Technique";
 import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { Status } from "game/HardStatus/HardStatus";
-import { timeStamp } from "console";
+import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
 
 
 export interface IPokemon {
@@ -20,6 +20,7 @@ export interface IPokemon {
     canAttackThisTurn:boolean
     statBoosts:Record<Stat,number>,
     volatileStatuses:Array<VolatileStatus>,
+    heldItem:HeldItem,
     baseStats:Stats,
     ivs:Stats,
     evs:Stats,
@@ -73,6 +74,7 @@ export class PokemonBuilder{
                 toxicCount:1,
                 restTurnCount:0,
                 ability:"",
+                heldItem:GetHeldItem("none"),
                 evs:CreateEmptyStats()
         }
     }
@@ -103,6 +105,10 @@ export class PokemonBuilder{
     }
     WithAbility(abilityName:string):PokemonBuilder{
         this.pokemon.ability = abilityName;
+        return this;
+    }
+    WithHeldItem(heldItemName:string):PokemonBuilder{
+        this.pokemon.heldItem = GetHeldItem(heldItemName);
         return this;
     }
     Build() : IPokemon{
