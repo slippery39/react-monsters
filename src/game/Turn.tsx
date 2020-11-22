@@ -1,7 +1,7 @@
 import { ElementType } from './ElementType';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent, GenericMessageEvent } from "./BattleEvents";
+import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent} from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
@@ -544,11 +544,7 @@ export class Turn {
                     pokemon.status = Status.None;
                 }
                 else if (pokemon.status !== effect.forStatus && item.effects.length === 1) {
-                    let noEffect: GenericMessageEvent = {
-                        type: BattleEventType.GenericMessage,
-                        defaultMessage: `It had no effect!`
-                    }
-                    this.AddEvent(noEffect);
+                    this.ApplyMessage(`It had no effect!`);
                 }
             }
         });
@@ -669,30 +665,18 @@ export class Turn {
                     if (effect.amount < 0) {
                         message = ` ${targetPokemon.name} has had its ${effect.stat} decreased!`
                     }
-                    const statChangeEvent: GenericMessageEvent = {
-                        type: BattleEventType.GenericMessage,
-                        defaultMessage: message
-                    }
-                    this.AddEvent(statChangeEvent);
+                    this.ApplyMessage(message);
                 }
                 else if (effect.type === 'inflict-volatile-status') {
                     const targetPokemon = effect.target === TargetType.Self ? pokemon : defendingPokemon;
-
                     const vStatus = GetVolatileStatus(effect.status);
 
                     if (!vStatus.CanApply(this, targetPokemon)) {
                         return;
                     }
-
                     targetPokemon.volatileStatuses.push(vStatus);
                     vStatus.OnApply(this, targetPokemon);
-
-                    const inflictVStatusEvent: GenericMessageEvent = {
-                        type: BattleEventType.GenericMessage,
-                        defaultMessage: vStatus.InflictedMessage(targetPokemon)
-                    }
-
-                    this.AddEvent(inflictVStatusEvent);
+                    this.ApplyMessage(vStatus.InflictedMessage(targetPokemon));
                 }
                 else if (effect.type === 'health-restore') {
                     if (effect.restoreType === HealthRestoreType.Flat) {

@@ -1,5 +1,5 @@
 import { Turn } from "game/Turn";
-import { BattleEventType, CannotAttackEvent, GenericMessageEvent, StatusChangeEvent } from "game/BattleEvents";
+import { BattleEventType, CannotAttackEvent,StatusChangeEvent } from "game/BattleEvents";
 import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { IPokemon } from "game/Pokemon/Pokemon";
@@ -40,11 +40,8 @@ class RestingStatus extends HardStatus{
     }
 
     BeforeAttack(turn: Turn, pokemon: IPokemon) {
-        const isAsleepEffect: GenericMessageEvent = {
-            type: BattleEventType.GenericMessage,
-            defaultMessage: `${pokemon.name} is sleeping!`
-        }
-        turn.AddEvent(isAsleepEffect);
+        turn.ApplyMessage(`${pokemon.name} is sleeping!`);
+
         if (pokemon.restTurnCount >= 2) {
             //Pokemon Wakes Up
             pokemon.restTurnCount = 0;
@@ -86,12 +83,7 @@ class ToxicStatus extends HardStatus{
         const poisonDamage = pokemon.toxicCount * Math.ceil(maxHp / 16);
         pokemon.currentStats.health -= poisonDamage;
         pokemon.toxicCount++;
-
-        const poisonMessage: GenericMessageEvent = {
-            type: BattleEventType.GenericMessage,
-            defaultMessage: `${pokemon.name} is badly hurt by poison.`
-        }
-        turn.AddEvent(poisonMessage);
+        turn.ApplyMessage(`${pokemon.name} is badly hurt by poison.`);
         turn.ApplyIndirectDamage(pokemon, poisonDamage)
     }
 }
@@ -112,11 +104,7 @@ class BurnStatus extends HardStatus{
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
         const maxHp = pokemon.originalStats.health;
         const burnDamage = Math.ceil(maxHp / 8);
-        const burnMessage: GenericMessageEvent = {
-            type: BattleEventType.GenericMessage,
-            defaultMessage: `${pokemon.name} is hurt by its burn`
-        }
-        turn.AddEvent(burnMessage);
+        turn.ApplyMessage(`${pokemon.name} is hurt by its burn`);
         turn.ApplyIndirectDamage(pokemon, burnDamage);
     }
 }
@@ -133,12 +121,7 @@ class FrozenStatus extends HardStatus{
     }
 
     BeforeAttack(turn: Turn, pokemon: IPokemon) {
-        const isFrozenEffect: GenericMessageEvent = {
-            type: BattleEventType.GenericMessage,
-            defaultMessage: `${pokemon.name} is frozen!`
-        }
-        turn.AddEvent(isFrozenEffect);
-
+        turn.ApplyMessage(`${pokemon.name} is frozen!`);
         if (turn.Roll(this.thawChance)) {
             //Pokemon Wakes Up
             pokemon.status = Status.None;
@@ -176,11 +159,7 @@ class SleepStatus extends HardStatus{
         return;
     }
     BeforeAttack(turn: Turn, pokemon: IPokemon) {
-        const isAsleepEffect: GenericMessageEvent = {
-            type: BattleEventType.GenericMessage,
-            defaultMessage: `${pokemon.name} is sleeping!`
-        }
-        turn.AddEvent(isAsleepEffect);
+        turn.ApplyMessage(`${pokemon.name} is sleeping!`);
         if (turn.Roll(this.wakeUpChance)) {
             //Pokemon Wakes Up
             pokemon.status = Status.None;
@@ -212,7 +191,6 @@ class ParalyzeStatus extends HardStatus{
     }
 
     BeforeAttack(turn: Turn, pokemon: IPokemon) {
-
         if (turn.Roll(this.cantMoveChance)) {
             const cantAttackEffect: CannotAttackEvent = {
                 type: BattleEventType.CantAttack,
@@ -244,12 +222,8 @@ class PoisonStatus extends HardStatus {
         const maxHp = pokemon.originalStats.health;
         const poisonDamage = Math.ceil(maxHp / 8);
         pokemon.currentStats.health -= poisonDamage;
+        turn.ApplyMessage(`${pokemon.name} is hurt by poison`);
 
-        const poisonMessage: GenericMessageEvent = {
-            type: BattleEventType.GenericMessage,
-            defaultMessage: `${pokemon.name} is hurt by poison`
-        }
-        turn.AddEvent(poisonMessage);
         turn.ApplyIndirectDamage(pokemon, poisonDamage)
     }
     CanApply(turn: Turn, pokemon: IPokemon) {

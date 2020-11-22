@@ -1,0 +1,313 @@
+TypeError: Cannot read property 'id' of undefined
+Turn.SwitchPokemon
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/game/Turn.tsx:483
+  480 |        pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
+  481 |        pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
+  482 | 
+> 483 |        player.currentPokemonId = pokemonArrCopy[0].id;
+      | ^  484 | 
+  485 |        const switchOutEffect: SwitchOutEvent = {
+  486 |            type: BattleEventType.SwitchOut,
+View compiled
+(anonymous function)
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/game/Turn.tsx:131
+  128 | 
+  129 |        if (this.faintedPokemonPlayers.length === 0) {
+  130 |            this._switchFaintedActions.forEach(act => {
+> 131 |                this.SwitchPokemon(act.playerId, act.switchPokemonId);
+      | ^  132 |            });
+  133 | 
+  134 |            this.currentState = {
+View compiled
+Turn.SetSwitchFaintedPokemonAction
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/game/Turn.tsx:130
+  127 |        this.faintedPokemonPlayers.splice(index, 1);
+  128 | 
+  129 |        if (this.faintedPokemonPlayers.length === 0) {
+> 130 |            this._switchFaintedActions.forEach(act => {
+      | ^  131 |                this.SwitchPokemon(act.playerId, act.switchPokemonId);
+  132 |            });
+  133 | 
+View compiled
+BattleService.SetSwitchFaintedPokemonAction
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/game/Battle.tsx:123
+  120 |            return tl.id
+  121 |        }));
+  122 | 
+> 123 |        this.GetCurrentTurn().SetSwitchFaintedPokemonAction(action);
+      | ^  124 | 
+  125 |        var newTurnLog = this.GetCurrentTurn().GetEventLog();
+  126 |        if (diffLog === undefined || diffLog === true) {
+View compiled
+BattleService.SetPlayerAction
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/game/Battle.tsx:164
+  161 |        }
+  162 |        else if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
+  163 |            let switchAction = (action as SwitchPokemonAction);
+> 164 |            this.SetSwitchFaintedPokemonAction(switchAction);
+      | ^  165 |        }
+  166 | 
+  167 |        if (this.GetCurrentTurn().currentState.type === 'turn-finished') {           
+View compiled
+SetBattleAction
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/components/Battle/Battle.tsx:502
+  499 |    /* eslint-enable */
+  500 | 
+  501 |    function SetBattleAction(techniqueId: number) {
+> 502 |        battleService.SetPlayerAction({
+      | ^  503 |            playerId: 1, //todo : get player id
+  504 |            pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
+  505 |            moveId: techniqueId,
+View compiled
+onAttackClick
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/components/Battle/Battle.tsx:586
+  583 |         onMenuAttackClick={(evt) => { setMenuState(MenuState.AttackMenu) }}
+  584 |         onMenuItemClick={(evt) => { setMenuState(MenuState.ItemMenu) }}
+  585 |         onMenuSwitchClick={(evt) => { setMenuState(MenuState.SwitchMenu) }} />}
+> 586 | {menuState === MenuState.AttackMenu && <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)} onAttackClick={(tech: any) => { console.log(tech); SetBattleAction(tech.id); }} techniques={getAllyPokemon().techniques} />}
+      | ^  587 | {menuState === MenuState.ItemMenu && <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} onItemClick={(item: any) => { SetUseItemAction(item.id) }} items={state.players[0].items} />}
+  588 | {menuState === MenuState.SwitchMenu && <PokemonSwitchScreen showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
+  589 | }
+View compiled
+onAttackClick
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/components/AttackMenuNew/AttackMenuNew.tsx:16
+  13 | 
+  14 |    const techniques = props.techniques.map((el, index) => {
+  15 |        return (
+> 16 |            <AttackContainer onAttackClick={(ev)=>props.onAttackClick(el)} technique={el} key={el.id} />
+     | ^  17 |        )
+  18 |    });
+  19 | 
+View compiled
+onClick
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/src/components/AttackMenuNew/AttackContainer/AttackContainer.tsx:17
+  14 | 
+  15 |    const outerContainerClass = `outer-attack-container element-${props.technique.elementalType.toString().toLowerCase()}`
+  16 |    return (
+> 17 |        <div className={outerContainerClass} onClick={(ev)=>{ if (props.onAttackClick!==undefined) props.onAttackClick(props.technique); }}>
+     | ^  18 |        <div className="attack-container">
+  19 |            <div className="attack-name">{props.technique.name}</div>
+  20 |            <div style={{display: "flex","justifyContent": "space-between","alignItems":"baseline"}}
+View compiled
+HTMLUnknownElement.callCallback
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:188
+  185 |     window.event = windowEvent;
+  186 |   }
+  187 | 
+> 188 |   func.apply(context, funcArgs);
+      | ^  189 |   didError = false;
+  190 | } // Create a global error event handler. We use this to capture the value
+  191 | // that was thrown. It's possible that this error handler will fire more
+View compiled
+invokeGuardedCallbackDev
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:237
+  234 | // errors, it will trigger our global error handler.
+  235 | 
+  236 | evt.initEvent(evtType, false, false);
+> 237 | fakeNode.dispatchEvent(evt);
+      | ^  238 | 
+  239 | if (windowEventDescriptor) {
+  240 |   Object.defineProperty(window, 'event', windowEventDescriptor);
+View compiled
+invokeGuardedCallback
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:292
+  289 | function invokeGuardedCallback(name, func, context, a, b, c, d, e, f) {
+  290 |   hasError = false;
+  291 |   caughtError = null;
+> 292 |   invokeGuardedCallbackImpl$1.apply(reporter, arguments);
+  293 | }
+  294 | /**
+  295 |  * Same as invokeGuardedCallback, but instead of returning an error, it stores
+View compiled
+invokeGuardedCallbackAndCatchFirstError
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:306
+  303 |  */
+  304 | 
+  305 | function invokeGuardedCallbackAndCatchFirstError(name, func, context, a, b, c, d, e, f) {
+> 306 |   invokeGuardedCallback.apply(this, arguments);
+  307 | 
+  308 |   if (hasError) {
+  309 |     var error = clearCaughtError();
+View compiled
+executeDispatch
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:389
+  386 | function executeDispatch(event, listener, inst) {
+  387 |   var type = event.type || 'unknown-event';
+  388 |   event.currentTarget = getNodeFromInstance(inst);
+> 389 |   invokeGuardedCallbackAndCatchFirstError(type, listener, undefined, event);
+  390 |   event.currentTarget = null;
+  391 | }
+  392 | /**
+View compiled
+executeDispatchesInOrder
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:414
+  411 |     executeDispatch(event, dispatchListeners[i], dispatchInstances[i]);
+  412 |   }
+  413 | } else if (dispatchListeners) {
+> 414 |   executeDispatch(event, dispatchListeners, dispatchInstances);
+      | ^  415 | }
+  416 | 
+  417 | event._dispatchListeners = null;
+View compiled
+executeDispatchesAndRelease
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:3278
+  3275 | 
+  3276 | var executeDispatchesAndRelease = function (event) {
+  3277 |   if (event) {
+> 3278 |     executeDispatchesInOrder(event);
+  3279 | 
+  3280 |     if (!event.isPersistent()) {
+  3281 |       event.constructor.release(event);
+View compiled
+executeDispatchesAndReleaseTopLevel
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:3287
+  3284 | };
+  3285 | 
+  3286 | var executeDispatchesAndReleaseTopLevel = function (e) {
+> 3287 |   return executeDispatchesAndRelease(e);
+  3288 | };
+  3289 | 
+  3290 | function runEventsInBatch(events) {
+View compiled
+forEachAccumulated
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:3259
+  3256 |   if (Array.isArray(arr)) {
+  3257 |     arr.forEach(cb, scope);
+  3258 |   } else if (arr) {
+> 3259 |     cb.call(scope, arr);
+  3260 |   }
+  3261 | }
+  3262 | 
+View compiled
+runEventsInBatch
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:3304
+  3301 |   return;
+  3302 | }
+  3303 | 
+> 3304 | forEachAccumulated(processingEventQueue, executeDispatchesAndReleaseTopLevel);
+       | ^  3305 | 
+  3306 | if (!!eventQueue) {
+  3307 |   {
+View compiled
+runExtractedPluginEventsInBatch
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:3514
+  3511 | 
+  3512 | function runExtractedPluginEventsInBatch(topLevelType, targetInst, nativeEvent, nativeEventTarget, eventSystemFlags) {
+  3513 |   var events = extractPluginEvents(topLevelType, targetInst, nativeEvent, nativeEventTarget, eventSystemFlags);
+> 3514 |   runEventsInBatch(events);
+  3515 | }
+  3516 | 
+  3517 | function handleTopLevel(bookKeeping) {
+View compiled
+handleTopLevel
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:3558
+  3555 |       eventSystemFlags |= IS_FIRST_ANCESTOR;
+  3556 |     }
+  3557 | 
+> 3558 |     runExtractedPluginEventsInBatch(topLevelType, targetInst, nativeEvent, eventTarget, eventSystemFlags);
+  3559 |   }
+  3560 | }
+  3561 | 
+View compiled
+batchedEventUpdates$1
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:21871
+  21868 | executionContext |= EventContext;
+  21869 | 
+  21870 | try {
+> 21871 |   return fn(a);
+        | ^  21872 | } finally {
+  21873 |   executionContext = prevExecutionContext;
+  21874 | 
+View compiled
+batchedEventUpdates
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:795
+  792 | isBatchingEventUpdates = true;
+  793 | 
+  794 | try {
+> 795 |   return batchedEventUpdatesImpl(fn, a, b);
+      | ^  796 | } finally {
+  797 |   isBatchingEventUpdates = false;
+  798 |   finishEventHandler();
+View compiled
+dispatchEventForLegacyPluginEventSystem
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:3568
+  3565 | try {
+  3566 |   // Event queue being processed in the same cycle allows
+  3567 |   // `preventDefault`.
+> 3568 |   batchedEventUpdates(handleTopLevel, bookKeeping);
+       | ^  3569 | } finally {
+  3570 |   releaseTopLevelCallbackBookKeeping(bookKeeping);
+  3571 | }
+View compiled
+attemptToDispatchEvent
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:4267
+  4264 | }
+  4265 | 
+  4266 | {
+> 4267 |   dispatchEventForLegacyPluginEventSystem(topLevelType, eventSystemFlags, nativeEvent, targetInst);
+       | ^  4268 | } // We're not blocked on anything.
+  4269 | 
+  4270 | 
+View compiled
+dispatchEvent
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:4189
+  4186 |   return;
+  4187 | }
+  4188 | 
+> 4189 | var blockedOn = attemptToDispatchEvent(topLevelType, eventSystemFlags, container, nativeEvent);
+       | ^  4190 | 
+  4191 | if (blockedOn === null) {
+  4192 |   // We successfully dispatched this event.
+View compiled
+unstable_runWithPriority
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/scheduler/cjs/scheduler.development.js:653
+  650 | currentPriorityLevel = priorityLevel;
+  651 | 
+  652 | try {
+> 653 |   return eventHandler();
+      | ^  654 | } finally {
+  655 |   currentPriorityLevel = previousPriorityLevel;
+  656 | }
+View compiled
+runWithPriority$1
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:11039
+  11036 | 
+  11037 | function runWithPriority$1(reactPriorityLevel, fn) {
+  11038 |   var priorityLevel = reactPriorityToSchedulerPriority(reactPriorityLevel);
+> 11039 |   return Scheduler_runWithPriority(priorityLevel, fn);
+  11040 | }
+  11041 | function scheduleCallback(reactPriorityLevel, callback, options) {
+  11042 |   var priorityLevel = reactPriorityToSchedulerPriority(reactPriorityLevel);
+View compiled
+discreteUpdates$1
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:21887
+  21884 | 
+  21885 | try {
+  21886 |   // Should this
+> 21887 |   return runWithPriority$1(UserBlockingPriority$1, fn.bind(null, a, b, c, d));
+        | ^  21888 | } finally {
+  21889 |   executionContext = prevExecutionContext;
+  21890 | 
+View compiled
+discreteUpdates
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:806
+  803 | isInsideEventHandler = true;
+  804 | 
+  805 | try {
+> 806 |   return discreteUpdatesImpl(fn, a, b, c, d);
+      | ^  807 | } finally {
+  808 |   isInsideEventHandler = prevIsInsideEventHandler;
+  809 | 
+View compiled
+dispatchDiscreteEvent
+C:/Users/shayn/Desktop/Job Hunting/Projects/react-monsters/node_modules/react-dom/cjs/react-dom.development.js:4168
+  4165 | 
+  4166 | function dispatchDiscreteEvent(topLevelType, eventSystemFlags, container, nativeEvent) {
+  4167 |   flushDiscreteUpdatesIfNeeded(nativeEvent.timeStamp);
+> 4168 |   discreteUpdates(dispatchEvent, topLevelType, eventSystemFlags, container, nativeEvent);
+  4169 | }
+  4170 | 
+  4171 | function dispatchUserBlockingUpdate(topLevelType, eventSystemFlags, container, nativeEvent) {
+View compiled
+This screen is visible only in development. It will not appear if the app crashes in production.
+Open your browser’s developer console to further inspect this error.  Click the 'X' or hit ESC to dismiss this message.

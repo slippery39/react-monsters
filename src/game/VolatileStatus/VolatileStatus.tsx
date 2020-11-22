@@ -1,4 +1,3 @@
-import { BattleEventType, GenericMessageEvent } from "game/BattleEvents";
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { HasVolatileStatus, IPokemon } from "game/Pokemon/Pokemon";
@@ -67,12 +66,7 @@ export class AquaRingVolatileStatus extends VolatileStatus{
     EndOfTurn(turn:Turn,pokemon:IPokemon){
         //heal 1/16 of hp
         turn.ApplyHealing(pokemon,pokemon.originalStats.health/16);
-        const message: GenericMessageEvent ={
-            type:BattleEventType.GenericMessage,
-            defaultMessage:`${pokemon.name} restored a little health due to aqua veil!`
-        }
-        turn.AddEvent(message);
-
+        turn.ApplyMessage(`${pokemon.name} restored a little health due to aqua veil!`);
     }
 }
 
@@ -91,12 +85,7 @@ export class FlinchVolatileStatus extends VolatileStatus{
 
     BeforeAttack(turn:Turn,pokemon:IPokemon){
         pokemon.canAttackThisTurn = false;
-
-        const message: GenericMessageEvent ={
-            type:BattleEventType.GenericMessage,
-            defaultMessage:`${pokemon.name} has flinched!`
-        }
-        turn.AddEvent(message);
+        turn.ApplyMessage(`${pokemon.name} has flinched`);
     }
 
     EndOfTurn(turn:Turn,pokemon:IPokemon){
@@ -133,11 +122,7 @@ export class LeechSeedVolatileStatus extends VolatileStatus{
         const opponentPokemon = GetActivePokemon(opponentPlayer);
         turn.ApplyIndirectDamage(pokemon,leechSeedDamage);
         turn.ApplyHealing(opponentPokemon,leechSeedDamage);
-        const message: GenericMessageEvent ={
-            type:BattleEventType.GenericMessage,
-            defaultMessage:`${pokemon.name} had its health drained a little due to leech seed!`
-        }
-        turn.AddEvent(message);
+        turn.ApplyMessage(`${pokemon.name} had its health drained a little due to leech seed!`);
     }
 }
 
@@ -157,28 +142,13 @@ export class ConfusionVolatileStatus extends VolatileStatus {
         if (turn.Roll(this.unconfuseChance)) {
             //the attacking pokemon is no longer confused
             _.remove(pokemon.volatileStatuses, (vstatus) => vstatus.type === 'confusion');
-            const unconfuseEvent: GenericMessageEvent = {
-                type: BattleEventType.GenericMessage,
-                defaultMessage: `${pokemon.name} has snapped out of its confusion!`
-            }
-            turn.AddEvent(unconfuseEvent);
+            turn.ApplyMessage(`${pokemon.name} has snapped out of its confusion!`);
         }
         else {
-            const stillConfusedEvent: GenericMessageEvent = {
-                type: BattleEventType.GenericMessage,
-                defaultMessage: `${pokemon.name} is confused!`
-            }
-            turn.AddEvent(stillConfusedEvent);
-
+            turn.ApplyMessage(`${pokemon.name} is confused!`);
             if (turn.Roll(this.damageSelfChance)) {
-                const confusionHurtEvent: GenericMessageEvent = {
-                    type: BattleEventType.GenericMessage,
-
-                    defaultMessage: `${pokemon.name} has hurt itself in its confusion`
-                }
-                turn.AddEvent(confusionHurtEvent);
+                turn.ApplyMessage(`${pokemon.name} has hurt itself in its confusion`);
                 turn.ApplyIndirectDamage(pokemon, 40);
-
                 //pokemon skips the turn as well
                 pokemon.canAttackThisTurn = false;
             }
