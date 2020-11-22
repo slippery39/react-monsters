@@ -285,12 +285,12 @@ export class Turn {
 
         this.AddEvent(damageEffect);
 
-        GetHardStatus(defendingPokemon.status).OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
-        defendingPokemon.volatileStatuses.forEach(vStat=>{
+        GetHardStatus(attackingPokemon.status).OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+        attackingPokemon.volatileStatuses.forEach(vStat=>{
             vStat.OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
         })
-        defendingPokemon.heldItem.OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
-        GetAbility(defendingPokemon.ability).OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+        attackingPokemon.heldItem.OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+        GetAbility(attackingPokemon.ability).OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
 
 
         if (defendingPokemon.currentStats.health <= 0) {
@@ -465,16 +465,32 @@ export class Turn {
     private SwitchPokemon(playerId: number, pokemonInId: number) {
         //not yet implemented, just for practice.
         const player = this.GetPlayer(playerId);
+
+        alert(`Player switching out : ${player.name}`);
         //const pokemon = this.GetPokemon(pokemonInId);
         const switchOutPokemonId = player.currentPokemonId;
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
+
+        alert(`Pokemon switching in : ${pokemonInId}`)
+        alert(`Pokemon switching Out : ${switchOutPokemonId}`);
+
+        console.log(this.players);
 
         //any pokemon switched out should have thier volatile statuses removed
         switchOutPokemon.volatileStatuses = []; //easy peasy
 
         //current pokemon position is 0
         //find the pokemon to switch in position
-        const switchInPokemonPos = player.pokemon.indexOf(player.pokemon.find(p => p.id === pokemonInId)!);
+
+        //ACTUALLY RIGHT HERE. WE CAN'T FIND THE POKEMON IN ID?
+        const pokemonIn = this.GetPokemon(pokemonInId);
+
+        const switchInPokemonPos = player.pokemon.indexOf(pokemonIn);
+        if (switchInPokemonPos<0){
+            console.log(this.players);
+            throw new Error(`Could not find pokemon ${pokemonInId} for player ${playerId}`);
+        }
+
         let pokemonArrCopy = player.pokemon.slice();
 
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
