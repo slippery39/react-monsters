@@ -198,10 +198,7 @@ class BattleService {
         players.flat().map(player => {
             return player.pokemon
         }).flat().forEach(pokemon => {
-            //quick hack here to see if the id for these entities has already been set, this pattern is repeated in the auto assign item ids and auto assign current pokemon ids functions as well.
-            if (pokemon.id === -1) {
                 pokemon.id = nextPokemonId++
-            }
         });
     }
 

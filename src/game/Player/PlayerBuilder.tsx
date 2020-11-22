@@ -46,6 +46,10 @@ export class PlayerBuilder{
         this.player.items.push(newItem)
         return this;
     }
+    WithCustomPokemon(pokemon:IPokemon):PlayerBuilder{
+        this.player.pokemon.push(pokemon);
+        return this;
+    }
     Build() : Player {
         return _.cloneDeep(this.player);
     }

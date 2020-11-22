@@ -564,7 +564,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
-                        <div className="enemy-party-pokeballs">{state.players[1].pokemon.map(p => (<span style={{ width: "15px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.health === 0} /></span>))}</div>
+                        <div className="enemy-party-pokeballs">{state.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.health === 0} /></span>))}</div>
                         {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay potionRef={el => enemyPotionNode.current = el} imageRef={el => { enemyPokemonImage.current = el; }} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
                         {getAllyPokemon().id !== -1 && <BattlePokemonDisplay potionRef={el => allyPotionNode.current = el} imageRef={el => { allyPokemonImage.current = el; }} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
                     </div>
@@ -577,7 +577,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     </div>
                 </div>
                 <div className="bottom-screen">
-                    {menuState === MenuState.MainMenu && <div className="pokemon-party-pokeballs">{state.players[0].pokemon.map(p => (<span style={{ width: "30px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.health === 0} /></span>))}</div>}
+                    {menuState === MenuState.MainMenu && <div className="pokemon-party-pokeballs">{state.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.health === 0} /></span>))}</div>}
                     {menuState === MenuState.MainMenu &&
                         <BattleMenu
                             onMenuAttackClick={(evt) => { setMenuState(MenuState.AttackMenu) }}

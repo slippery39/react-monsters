@@ -111,6 +111,10 @@ export class PokemonBuilder{
         this.pokemon.heldItem = GetHeldItem(heldItemName);
         return this;
     }
+    WithBaseStats(baseStats:Stats):PokemonBuilder{
+        this.pokemon.baseStats = baseStats;
+        return this;
+    }
     Build() : IPokemon{
         //TODO, some error checking here
         //check if it has elemental types
