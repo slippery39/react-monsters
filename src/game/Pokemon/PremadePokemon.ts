@@ -126,7 +126,7 @@ const GetPokemon = function(name:string):IPokemon{
         Venusaur(),
         Raichu(),
         Alakazam(),
-        Gengar()      
+        //Gengar()      
     ]
 
 

@@ -5,13 +5,13 @@ import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEv
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
-import { ApplyStatBoost, IPokemon } from './Pokemon/Pokemon';
-import { HealthRestoreType, TargetType, Technique } from './Techniques/Technique';
-import { GetVolatileStatus } from './VolatileStatus/VolatileStatus';
+import { IPokemon } from './Pokemon/Pokemon';
+import { TargetType, Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
 import BattleBehaviour from './BattleBehaviour/BattleBehavior';
+import { DoEffect } from './Effects/Effects';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -646,85 +646,25 @@ export class Turn {
         }
 
         move.effects.forEach((effect) => {
-            if (this.Roll(effect.chance)) {
+            if (this.Roll(effect.chance)) {                
                 if (effect.type === 'inflict-status') {
-
                     const targetPokemon = effect.target === TargetType.Self ? pokemon : defendingPokemon;
-
-                    //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
-                    if (targetPokemon.status !== Status.None || targetPokemon.currentStats.health === 0) {
-                        return;
-                    }
-
-                    const hardStatus = GetHardStatus(effect.status);
-                    if (!hardStatus.CanApply(this, targetPokemon)) {
-                        return;
-                    }
-
-
-                    targetPokemon.status = effect.status;
-
-                    const statusInflictedEffect: StatusChangeEvent = {
-                        type: BattleEventType.StatusChange,
-                        status: effect.status,
-                        attackerPokemonId: pokemon.id,
-                        targetPokemonId: targetPokemon.id,
-                        defaultMessage: `${targetPokemon.name} ${hardStatus.inflictedMessage}`
-                    };
-                    this.AddEvent(statusInflictedEffect);
+                    DoEffect(this,targetPokemon,effect);
                 }
                 else if (effect.type === 'stat-boost') {
                     const targetPokemon = effect.target === TargetType.Self ? pokemon : defendingPokemon;
-                    ApplyStatBoost(targetPokemon, effect.stat, effect.amount);
-
-                    let message = ` ${targetPokemon.name} has had its ${effect.stat} boosted!`
-                    if (effect.amount < 0) {
-                        message = ` ${targetPokemon.name} has had its ${effect.stat} decreased!`
-                    }
-                    this.ApplyMessage(message);
+                    DoEffect(this,targetPokemon,effect);
                 }
                 else if (effect.type === 'inflict-volatile-status') {
                     const targetPokemon = effect.target === TargetType.Self ? pokemon : defendingPokemon;
-                    const vStatus = GetVolatileStatus(effect.status);
-
-                    if (!vStatus.CanApply(this, targetPokemon)) {
-                        return;
-                    }
-                    targetPokemon.volatileStatuses.push(vStatus);
-                    vStatus.OnApply(this, targetPokemon);
-                    this.ApplyMessage(vStatus.InflictedMessage(targetPokemon));
+                    DoEffect(this,targetPokemon,effect);
                 }
                 else if (effect.type === 'health-restore') {
-                    if (effect.restoreType === HealthRestoreType.Flat) {
-                        this.ApplyHealing(pokemon, effect.amount);
-                    }
-                    else if (effect.restoreType === HealthRestoreType.PercentMaxHealth) {
-                        const amount = Math.floor(pokemon.originalStats.health / (100 / effect.amount));
-                        this.ApplyHealing(pokemon, amount);
-                    }
+                    //this is the outlier here, does not have a target type.
+                    DoEffect(this,pokemon,effect);
                 }
                 else if (effect.type === 'status-restore') {
-                    if (effect.forStatus === 'any' && pokemon.status !== Status.None) {
-                        let statusRestoreEffect: StatusChangeEvent = {
-                            type: BattleEventType.StatusChange,
-                            status: Status.None,
-                            targetPokemonId: pokemon.id,
-                            defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
-                        }
-                        this.AddEvent(statusRestoreEffect);
-                        pokemon.status = Status.None;
-                    }
-                    else if (effect.forStatus === pokemon.status) {
-                        let statusRestoreEffect: StatusChangeEvent = {
-                            type: BattleEventType.StatusChange,
-                            status: Status.None,
-                            targetPokemonId: pokemon.id,
-                            defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
-                        }
-                        this.AddEvent(statusRestoreEffect);
-                        pokemon.status = Status.None;
-                    }
-                    
+                    DoEffect(this,pokemon,effect);                    
                 }
             }
         });

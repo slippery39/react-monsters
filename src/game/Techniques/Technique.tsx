@@ -28,20 +28,20 @@ export interface Technique{
  chance: number
 }
 
-interface InflictStatusMoveEffect{
+export interface InflictStatusMoveEffect{
     type:'inflict-status',
     status:Status
     target:TargetType,
     chance:number
 }
-interface StatBoostMoveEffect{
+export interface StatBoostMoveEffect{
     type:'stat-boost',
     stat:Stat
     target:TargetType,
     amount:number
     chance:number 
 }
-interface InflictVolatileStatusEffect{
+export interface InflictVolatileStatusEffect{
     type:'inflict-volatile-status',
     status:VolatileStatusType,
     target:TargetType,
@@ -53,14 +53,14 @@ export enum HealthRestoreType{
     PercentMaxHealth='percent-max-health'
 }
 
-interface HealthRestoreEffect{
+export interface HealthRestoreEffect{
     type:'health-restore',
     restoreType:HealthRestoreType
     amount:number
     chance:number
 }
 
-interface StatusRestoreEffect{
+export interface StatusRestoreEffect{
     type:'status-restore',
     forStatus:Status | 'any',
     target:TargetType,

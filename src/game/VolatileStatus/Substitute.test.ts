@@ -3,6 +3,7 @@ TODO - write tests for how substitute works.
 
 */
 
+import { Status } from "game/HardStatus/HardStatus";
 import { IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, SubstituteVolatileStatus, VolatileStatusType } from "./VolatileStatus";
@@ -67,15 +68,28 @@ describe('substitute tests',()=>{
         expect(substitute2.CanApply(turn,pokemon)).toBe(false);
     });
 
-    it('cannot have enemy status effects applied to the pokemon when under substitute',()=>{
-
+    it('cannot have enemy hard status effects applied to the pokemon when under substitute',()=>{
         const pokemon:IPokemon = CreatePokemonWithSubstitute();
-
-        //try to apply an enemy status move to the pokemon.
-        //use thunder wave, it should fail
-
+        const enemyPokemon :IPokemon = CreatePokemonWithSubstitute();
+        //try to apply a status to the pokemon from an enemy move.
+        //i.e. thunder wave should fail      
         //May need to expose the use move field..
-        const turn = new Turn(1,[]);
+        
+        const applyStatusResult = ApplyStatus(pokemon,enemyPokemon,Status.Paralyzed);
+        expect(applyStatusResult.wasSuccess).toBe(false);
+        //try with a few more statuses
+
+        //no enemy statuses should be able to be applied
+
+        const statuses = [Status.Paralyzed,Status.Burned,Status.ToxicPoison,Status.Sleep,Status.Poison];
+
+        statuses.forEach((status)=>{
+            const applyStatusResult2 = ApplyStatus(pokemon,enemyPokemon,status);
+            expect(applyStatusResult.wasSuccess).toBe(false);
+        });
+        
+
+        
 
         
         
