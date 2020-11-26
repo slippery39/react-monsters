@@ -724,6 +724,7 @@ export class Turn {
                         this.AddEvent(statusRestoreEffect);
                         pokemon.status = Status.None;
                     }
+                    
                 }
             }
         });
@@ -737,7 +738,8 @@ export class Turn {
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
         const ability = GetAbility(pokemon.ability);
         const newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
-
+        
+        //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
         this.ApplyDamage(pokemon,defendingPokemon, newDamage, damageModifierInfo);
     }
 

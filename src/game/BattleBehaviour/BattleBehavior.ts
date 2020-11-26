@@ -24,7 +24,6 @@ abstract class BattleBehaviour{
     OnDamageDealt(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,damageDealt:number){
 
     }
-
 }
 
 export default BattleBehaviour;

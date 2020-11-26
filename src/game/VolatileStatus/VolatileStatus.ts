@@ -11,7 +11,8 @@ export enum VolatileStatusType {
     AquaRing = 'aqua-ring',
     LeechSeed = 'leech-seed',
     Flinch = 'flinch',
-    Roosted = 'roosted'
+    Roosted = 'roosted',
+    Substitute = 'substitute'
     
 }
 
@@ -25,6 +26,49 @@ export abstract class VolatileStatus extends BattleBehaviour {
     }
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasVolatileStatus(pokemon,this.type)
+    }
+    Remove(turn:Turn,pokemon:IPokemon){
+        _.remove(pokemon.volatileStatuses,(vStat)=>
+        vStat.type === this.type
+        );
+        this.OnRemoved(turn,pokemon);
+    }
+    OnRemoved(turn:Turn,pokemon:IPokemon){
+
+    }
+}
+
+export class SubstituteVolatileStatus extends VolatileStatus{
+    type = VolatileStatusType.Substitute
+
+
+    private substituteHealth: number = 999;
+
+    InflictedMessage(pokemon: IPokemon){
+        return `${pokemon}.name has created a substitute`
+    }
+
+    HealthForSubstitute(pokemon:IPokemon){
+        return Math.ceil(pokemon.originalStats.health/4);
+    }
+
+    CanApply(turn:Turn,pokemon:IPokemon){
+        return super.CanApply(turn,pokemon) && (pokemon.currentStats.health <= this.HealthForSubstitute(pokemon));  
+    }
+
+    OnRemoved(turn:Turn,pokemon:IPokemon){
+        pokemon.hasSubstitute = false;
+    }
+
+    OnApply(turn:Turn,pokemon:IPokemon){
+        /*
+            Create a substitute that has 1/4 the pokemon's health
+            //all damage should go to the substiute until it breaks.
+        */  
+
+        this.substituteHealth = this.HealthForSubstitute(pokemon);
+        pokemon.currentStats.health-= this.HealthForSubstitute(pokemon);
+        pokemon.hasSubstitute = true;
     }
 }
 
@@ -46,13 +90,12 @@ export class RoostedVolatileStatus extends VolatileStatus{
         });
     }
 
-    EndOfTurn(turn:Turn,pokemon:IPokemon){
-
-        //we will also need to make sure this gets applied whenever the pokemon is switched out as well.
+    OnRemoved(turn:Turn,pokemon:IPokemon){
         pokemon.elementalTypes = this.originalTypes;   
-        _.remove(pokemon.volatileStatuses,(vStat)=>
-        vStat.type === this.type
-        );
+    }
+
+    EndOfTurn(turn:Turn,pokemon:IPokemon){
+        this.Remove(turn,pokemon);        
     }   
 
 }
@@ -177,6 +220,9 @@ export function GetVolatileStatus(type:VolatileStatusType): VolatileStatus{
         }
         case VolatileStatusType.Roosted:{
             return new RoostedVolatileStatus();
+        }
+        case VolatileStatusType.Substitute:{
+            return new SubstituteVolatileStatus();
         }
         default:{
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

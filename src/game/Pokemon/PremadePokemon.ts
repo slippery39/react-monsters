@@ -6,10 +6,7 @@ const Charizard = function () {
     return builder
         .OfSpecies("Charizard")
         .WithEVs({
-            health: 0,
-            attack: 0,
             defence: 4,
-            specialDefence: 0,
             specialAttack: 252,
             speed: 252
         })
@@ -29,11 +26,8 @@ const Blastoise = function(){
         .OfSpecies("Blastoise")
         .WithEVs({
             health: 252,
-            attack: 0,
             defence: 252,
-            specialDefence: 0,
             specialAttack: 4,
-            speed: 0
         })
         .WithTechniques([
             "Surf",
@@ -52,9 +46,6 @@ const Venusaur = function(){
         .WithEVs({
             health: 4,
             attack: 252,
-            defence: 0,
-            specialDefence: 0,
-            specialAttack:0,
             speed: 252
         })
         .WithTechniques([
@@ -73,9 +64,6 @@ const Raichu = function(){
     return builder
     .OfSpecies("Raichu")
     .WithEVs({
-        health: 0,
-        attack: 0,
-        defence: 0,
         specialDefence: 4,
         specialAttack:252,
         speed: 252
@@ -96,9 +84,6 @@ const Alakazam = function(){
     .OfSpecies("Alakazam")
     .WithEVs({
         health: 4,
-        attack:0,
-        defence: 0,
-        specialDefence: 0,
         specialAttack:252,
         speed: 252
     })
@@ -113,6 +98,26 @@ const Alakazam = function(){
 }
 
 
+const Gengar = function(){
+    const builder = new PokemonBuilder();
+    return builder
+    .OfSpecies("Gengar")
+    .WithEVs({
+        specialAttack:252,
+        specialDefence:4,
+        speed:252
+    })
+    .WithTechniques([
+        "Substitute",
+        "Shadow Ball",
+        "Sludge Wave",
+        "Focus Blast"
+    ])
+    .WithHeldItem("Life Orb")
+    .Build()
+}
+
+
 const GetPokemon = function(name:string):IPokemon{
 
     var pokemons : Array<IPokemon> = [
@@ -120,7 +125,8 @@ const GetPokemon = function(name:string):IPokemon{
         Blastoise(),
         Venusaur(),
         Raichu(),
-        Alakazam()      
+        Alakazam(),
+        Gengar()      
     ]
 
 

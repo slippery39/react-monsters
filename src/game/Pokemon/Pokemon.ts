@@ -25,8 +25,12 @@ export interface IPokemon {
     ivs:Stats,
     evs:Stats,
     ability:string,
+    /*
+    These variables below are temporary until i can figure out a better way to encapsulate these.
+    */
     toxicCount:number, //temporarily placing this and the rest turn count here until i can figure out a better way to structure this.
     restTurnCount:number,
+    hasSubstitute:boolean
 }
 
 export interface Stats{
@@ -36,6 +40,15 @@ export interface Stats{
     specialAttack:number,
     specialDefence:number,
     speed:number
+}
+
+export interface PartialStats{
+    health?:number,
+    attack?:number,
+    defence?: number,
+    specialAttack?:number,
+    specialDefence?:number,
+    speed?:number
 }
 
 
@@ -73,6 +86,7 @@ export class PokemonBuilder{
                 },
                 toxicCount:1,
                 restTurnCount:0,
+                hasSubstitute:false,
                 ability:"",
                 heldItem:GetHeldItem("none"),
                 evs:CreateEmptyStats()
@@ -92,8 +106,8 @@ export class PokemonBuilder{
         this.pokemon.ivs = {...ivAmounts};
         return this;
     }
-    WithEVs(evAmounts:Stats):PokemonBuilder{
-        this.pokemon.evs = {...evAmounts};
+    WithEVs(evAmounts:PartialStats):PokemonBuilder{
+        this.pokemon.evs = {...CreateEmptyStats(),...evAmounts};
         return this;
     }
     WithTechniques(techNames:Array<string>) : PokemonBuilder{

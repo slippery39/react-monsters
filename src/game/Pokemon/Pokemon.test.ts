@@ -3,7 +3,6 @@ import { ApplyStatBoost, CalculateStatWithBoost, PokemonBuilder } from './Pokemo
 import { Stat } from 'game/Stat';
 
 
-
 describe('Stats are correctly calculated from Base Stats',()=>{
 
     /*

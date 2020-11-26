@@ -68,4 +68,5 @@ interface StatusRestoreEffect{
 }
 
 
+
 export type TechniqueEffect = (InflictStatusMoveEffect | StatBoostMoveEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect);

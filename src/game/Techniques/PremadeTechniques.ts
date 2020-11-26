@@ -465,6 +465,23 @@ export function GetTech(name: string) {
 
             ]
             
+        },
+        "substitute":{
+            name:"Substitute",
+            description:"The user creates a substitute for itself using some of its HP. The substitute serves as the user's decoy.",
+            damageType:DamageType.Status,
+            power:0,
+            chance:100,
+            pp:20,
+            elementalType: ElementType.Normal,
+            effects:[
+                {
+                    type:'inflict-volatile-status',
+                    status:VolatileStatusType.Substitute,
+                    target:TargetType.Self,
+                    chance:100
+                }
+            ]
         }
 
     }
