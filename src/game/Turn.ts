@@ -1,17 +1,16 @@
 import { ElementType } from './ElementType';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent} from "./BattleEvents";
+import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { IPokemon } from './Pokemon/Pokemon';
-import { TargetType, Technique } from './Techniques/Technique';
+import { Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
-import BattleBehaviour from './BattleBehaviour/BattleBehavior';
-import { DoEffect } from './Effects/Effects';
+import { BattleEffect, DoEffect, TargetType } from './Effects/Effects';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -155,8 +154,8 @@ export class Turn {
                 vStat.EndOfTurn(this, pokemon);
             });
 
-            GetAbility(pokemon.ability).EndOfTurn(this,pokemon);
-            pokemon.heldItem.EndOfTurn(this,pokemon);
+            GetAbility(pokemon.ability).EndOfTurn(this, pokemon);
+            pokemon.heldItem.EndOfTurn(this, pokemon);
 
             const hardStatus = GetHardStatus(pokemon.status);
             hardStatus.EndOfTurn(this, pokemon);
@@ -181,8 +180,7 @@ export class Turn {
 
         const hardStatus = GetHardStatus(pokemon.status);
         if (pokemon.canAttackThisTurn === true) {
-            //todo: this is temporary garbage code to check if it works.
-            (hardStatus as unknown as BattleBehaviour).BeforeAttack(this, pokemon);
+            hardStatus.BeforeAttack(this, pokemon);
         }
     }
 
@@ -248,8 +246,8 @@ export class Turn {
         this.AddEvent(itemEffect);
     }
 
-    ApplyIndirectDamage(pokemon:IPokemon,damage:number){
-        pokemon.currentStats.health -=damage;
+    ApplyIndirectDamage(pokemon: IPokemon, damage: number) {
+        pokemon.currentStats.health -= damage;
         pokemon.currentStats.health = Math.max(0, pokemon.currentStats.health);
 
         const damageEffect: DamageEvent = {
@@ -267,9 +265,9 @@ export class Turn {
         }
     }
 
-    ApplyDamage(attackingPokemon: IPokemon,defendingPokemon:IPokemon, damage: number, damageInfo: any) {
+    ApplyDamage(attackingPokemon: IPokemon, defendingPokemon: IPokemon, damage: number, damageInfo: any) {
 
- 
+
         defendingPokemon.currentStats.health -= damage
         defendingPokemon.currentStats.health = Math.max(0, defendingPokemon.currentStats.health);
 
@@ -285,17 +283,17 @@ export class Turn {
 
         this.AddEvent(damageEffect);
 
-        GetHardStatus(attackingPokemon.status).OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
-        attackingPokemon.volatileStatuses.forEach(vStat=>{
-            vStat.OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+        GetHardStatus(attackingPokemon.status).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+        attackingPokemon.volatileStatuses.forEach(vStat => {
+            vStat.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
         })
-        attackingPokemon.heldItem.OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
-        GetAbility(attackingPokemon.ability).OnDamageDealt(this,attackingPokemon,defendingPokemon,damage);
+        attackingPokemon.heldItem.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+        GetAbility(attackingPokemon.ability).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
 
 
         if (defendingPokemon.currentStats.health <= 0) {
             this.PokemonFainted(defendingPokemon)
-        }       
+        }
     }
 
     private AfterAttack(pokemon: IPokemon) {
@@ -440,9 +438,6 @@ export class Turn {
                 }
             }
 
-
-
-
             //go to the next state
             if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
@@ -486,7 +481,7 @@ export class Turn {
         const pokemonIn = this.GetPokemon(pokemonInId);
 
         const switchInPokemonPos = player.pokemon.indexOf(pokemonIn);
-        if (switchInPokemonPos<0){
+        if (switchInPokemonPos < 0) {
             console.log(this.players);
             throw new Error(`Could not find pokemon ${pokemonInId} for player ${playerId}`);
         }
@@ -531,39 +526,10 @@ export class Turn {
         }
         this.AddEvent(useItemEffect);
 
-        item.effects.forEach(effect => {
-            if (effect.type === 'health-restore') {
-                this.ApplyHealing(pokemon, effect.amount);
-            }
-            else if (effect.type === 'status-restore') {
-
-                //if this is the only effect, and the pokemon has no status to cure
-
-                if (effect.forStatus === 'any' && pokemon.status !== Status.None) {
-                    let statusRestoreEffect: StatusChangeEvent = {
-                        type: BattleEventType.StatusChange,
-                        status: Status.None,
-                        targetPokemonId: pokemon.id,
-                        defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
-                    }
-                    this.AddEvent(statusRestoreEffect);
-                    pokemon.status = Status.None;
-                }
-                else if (effect.forStatus === pokemon.status) {
-                    let statusRestoreEffect: StatusChangeEvent = {
-                        type: BattleEventType.StatusChange,
-                        status: Status.None,
-                        targetPokemonId: pokemon.id,
-                        defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
-                    }
-                    this.AddEvent(statusRestoreEffect);
-                    pokemon.status = Status.None;
-                }
-                else if (pokemon.status !== effect.forStatus && item.effects.length === 1) {
-                    this.ApplyMessage(`It had no effect!`);
-                }
-            }
-        });
+        item.effects.forEach((effect: BattleEffect) => {
+            DoEffect(this, pokemon, effect);
+        }
+        );
 
         item.quantity -= 1;
         //remove item from inventory.
@@ -644,28 +610,12 @@ export class Turn {
         if (!move.effects) {
             return;
         }
-
         move.effects.forEach((effect) => {
-            if (this.Roll(effect.chance)) {                
-                if (effect.type === 'inflict-status') {
-                    const targetPokemon = effect.target === TargetType.Self ? pokemon : defendingPokemon;
-                    DoEffect(this,targetPokemon,effect);
-                }
-                else if (effect.type === 'stat-boost') {
-                    const targetPokemon = effect.target === TargetType.Self ? pokemon : defendingPokemon;
-                    DoEffect(this,targetPokemon,effect);
-                }
-                else if (effect.type === 'inflict-volatile-status') {
-                    const targetPokemon = effect.target === TargetType.Self ? pokemon : defendingPokemon;
-                    DoEffect(this,targetPokemon,effect);
-                }
-                else if (effect.type === 'health-restore') {
-                    //this is the outlier here, does not have a target type.
-                    DoEffect(this,pokemon,effect);
-                }
-                else if (effect.type === 'status-restore') {
-                    DoEffect(this,pokemon,effect);                    
-                }
+            const chance = effect.chance === undefined ? 100 : effect.chance;
+            const targetType = effect.target === undefined ? TargetType.Enemy : effect.target;
+            const targetPokemon = targetType == TargetType.Self ? pokemon : defendingPokemon;
+            if (this.Roll(chance)) {
+                DoEffect(this, targetPokemon, effect);
             }
         });
     }
@@ -678,9 +628,9 @@ export class Turn {
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
         const ability = GetAbility(pokemon.ability);
         const newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
-        
+
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
-        this.ApplyDamage(pokemon,defendingPokemon, newDamage, damageModifierInfo);
+        this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
     }
 
     private EndTurn() {

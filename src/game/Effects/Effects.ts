@@ -1,13 +1,59 @@
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { ApplyStatBoost, IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
-import { HealthRestoreEffect, HealthRestoreType, InflictStatusMoveEffect, InflictVolatileStatusEffect, StatBoostMoveEffect, StatusRestoreEffect, TargetType, TechniqueEffect } from "game/Techniques/Technique";
+import { Stat } from "game/Stat";
 import { Turn } from "game/Turn";
-import { GetVolatileStatus } from "game/VolatileStatus/VolatileStatus";
+import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
+
+export enum TargetType{
+    Self = 'self',
+    Enemy = 'enemy'
+}
+
+export interface InflictStatusEffect{
+    type:'inflict-status',
+    status:Status
+    target:TargetType,
+    chance:number
+}
+export interface StatBoostEffect{
+    type:'stat-boost',
+    stat:Stat
+    target:TargetType,
+    amount:number
+    chance:number 
+}
+export interface InflictVolatileStatusEffect{
+    type:'inflict-volatile-status',
+    status:VolatileStatusType,
+    target:TargetType,
+    chance:number
+}
+
+export enum HealthRestoreType{
+    Flat='flat',
+    PercentMaxHealth='percent-max-health'
+}
+
+export interface HealthRestoreEffect{
+    type:'health-restore',
+    restoreType:HealthRestoreType,
+    amount:number
+}
+
+export interface StatusRestoreEffect{
+    type:'status-restore',
+    forStatus:Status | 'any',
+}
 
 
 
-function InflictStatus(turn:Turn,pokemon:IPokemon,effect:InflictStatusMoveEffect){
+export type BattleEffect = {target?:TargetType,chance?:number} & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect);
+
+
+
+
+function InflictStatus(turn:Turn,pokemon:IPokemon,effect:InflictStatusEffect){
         const targetPokemon = pokemon;
         //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
         if (targetPokemon.status !== Status.None || targetPokemon.currentStats.health === 0) {
@@ -31,7 +77,7 @@ function InflictStatus(turn:Turn,pokemon:IPokemon,effect:InflictStatusMoveEffect
         turn.AddEvent(statusInflictedEffect);
 }
 
-function DoStatBoost(turn:Turn,pokemon:IPokemon,effect:StatBoostMoveEffect){
+function DoStatBoost(turn:Turn,pokemon:IPokemon,effect:StatBoostEffect){
     const targetPokemon = pokemon;
     ApplyStatBoost(targetPokemon,effect.stat,effect.amount);
 
@@ -89,7 +135,7 @@ function ApplyStatusRestoreEffect(turn:Turn,pokemon:IPokemon,effect:StatusRestor
 
 
 
-export function DoEffect(turn:Turn,pokemon:IPokemon,effect:TechniqueEffect){
+export function DoEffect(turn:Turn,pokemon:IPokemon,effect:BattleEffect){
     switch(effect.type){
         case 'inflict-status':{
             InflictStatus(turn,pokemon,effect);

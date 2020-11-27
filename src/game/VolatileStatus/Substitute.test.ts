@@ -6,7 +6,7 @@ TODO - write tests for how substitute works.
 import { Status } from "game/HardStatus/HardStatus";
 import { IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
-import { GetVolatileStatus, SubstituteVolatileStatus, VolatileStatusType } from "./VolatileStatus";
+import { GetVolatileStatus, VolatileStatusType } from "./VolatileStatus";
 
 
 

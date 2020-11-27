@@ -1,8 +1,9 @@
+import { BattleEffect, TargetType, HealthRestoreType } from "game/Effects/Effects";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { ElementType } from "../ElementType";
-import { DamageType, HealthRestoreType, TechniqueEffect, TargetType } from "./Technique";
+import { DamageType} from "./Technique";
 
 
 
@@ -19,7 +20,7 @@ interface BaseTechnique {
     damageType: DamageType,
     elementalType: ElementType,
     chance: number,
-    effects?: Array<TechniqueEffect>,
+    effects?: Array<BattleEffect>,
 }
 
 /*

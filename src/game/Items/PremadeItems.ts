@@ -1,12 +1,11 @@
+import { BattleEffect, HealthRestoreType } from "game/Effects/Effects";
 import { Status } from "../HardStatus/HardStatus";
-import { ItemEffect } from "./Item";
-
 
 
 interface ItemBase{
     name:string,
     description:string,
-    effects:Array<ItemEffect>
+    effects:Array<BattleEffect>
 }
 
 interface PremadeItems {
@@ -35,7 +34,8 @@ export function GetItem(name:string): ItemBase{
             description:'Heals to full health and cures any status',
             effects:[{
                 type:'health-restore',
-                amount:9999
+                restoreType:HealthRestoreType.PercentMaxHealth,
+                amount:100
             },
             {type:'status-restore',forStatus:'any'}]
         },
@@ -44,6 +44,7 @@ export function GetItem(name:string): ItemBase{
             description:'Restores 20 HP',
             effects:[{
                 type:'health-restore',
+                restoreType:HealthRestoreType.Flat,
                 amount:20
                 }
             ]
@@ -54,6 +55,7 @@ export function GetItem(name:string): ItemBase{
             effects:[
                 {
                 type:'health-restore',
+                restoreType:HealthRestoreType.Flat,
                 amount:60
                 }
             ]
@@ -64,6 +66,7 @@ export function GetItem(name:string): ItemBase{
             effects:[
                 {
                 type:'health-restore',
+                restoreType:HealthRestoreType.Flat,
                 amount:120
                 }
             ]
@@ -74,7 +77,8 @@ export function GetItem(name:string): ItemBase{
             effects:[
                 {
                 type:'health-restore',
-                amount:9999
+                restoreType:HealthRestoreType.PercentMaxHealth,
+                amount:100
                 }
             ]
         }
