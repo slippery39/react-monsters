@@ -1,5 +1,5 @@
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
-import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
+import GetHardStatus, { HardStatus, Status } from "game/HardStatus/HardStatus";
 import { ApplyStatBoost, IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Turn } from "game/Turn";
@@ -53,23 +53,27 @@ export type BattleEffect = {target?:TargetType,chance?:number} & (InflictStatusE
 
 
 
-function InflictStatus(turn:Turn,pokemon:IPokemon,effect:InflictStatusEffect){
+export function InflictStatus(turn:Turn,pokemon:IPokemon,status:Status){
         const targetPokemon = pokemon;
         //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
         if (targetPokemon.status !== Status.None || targetPokemon.currentStats.health === 0) {
             return;
         }
 
-        const hardStatus = GetHardStatus(effect.status);
+        if (targetPokemon.hasSubstitute){
+            return;
+        }
+
+        const hardStatus = GetHardStatus(status);
         if (!hardStatus.CanApply(turn, targetPokemon)) {
             return;
         }
 
-        targetPokemon.status = effect.status;
+        targetPokemon.status = status;
 
         const statusInflictedEffect: StatusChangeEvent = {
             type: BattleEventType.StatusChange,
-            status: effect.status,
+            status: status,
             attackerPokemonId: pokemon.id,
             targetPokemonId: targetPokemon.id,
             defaultMessage: `${targetPokemon.name} ${hardStatus.inflictedMessage}`
@@ -77,20 +81,45 @@ function InflictStatus(turn:Turn,pokemon:IPokemon,effect:InflictStatusEffect){
         turn.AddEvent(statusInflictedEffect);
 }
 
-function DoStatBoost(turn:Turn,pokemon:IPokemon,effect:StatBoostEffect){
+function DoStatBoost(turn:Turn,pokemon:IPokemon,stat:Stat,amount:number){
     const targetPokemon = pokemon;
-    ApplyStatBoost(targetPokemon,effect.stat,effect.amount);
+    ApplyStatBoost(targetPokemon,stat,amount);
 
-    let message = ` ${targetPokemon.name} has had its ${effect.stat} boosted!`
-    if (effect.amount < 0) {
-        message = ` ${targetPokemon.name} has had its ${effect.stat} decreased!`
+    let statString = "";
+
+    switch(stat){
+        case Stat.Attack:{
+            statString = "attack";
+            break;
+        }
+        case Stat.Defense:{
+            statString = "defence";
+            break;
+        }
+        case Stat.SpecialAttack:{
+            statString = "special attack";
+            break;
+        }
+        case Stat.SpecialDefense:{
+            statString = "special defense";
+            break;
+        }
+        case Stat.Speed:{
+            statString = "speed";
+            break;
+        }        
+    }
+
+    let message = ` ${targetPokemon.name} has had its ${statString} boosted!`
+    if (amount < 0) {
+        message = ` ${targetPokemon.name} has had its ${statString} decreased!`
     }
     turn.ApplyMessage(message);
 }
 
-function InflictVolatileStatus(turn:Turn,pokemon:IPokemon,effect:InflictVolatileStatusEffect){
+export function InflictVolatileStatus(turn:Turn,pokemon:IPokemon,status:VolatileStatusType){
     const targetPokemon = pokemon;
-    const vStatus = GetVolatileStatus(effect.status);
+    const vStatus = GetVolatileStatus(status);
 
     if (!vStatus.CanApply(turn, targetPokemon)) {
         return;
@@ -134,19 +163,18 @@ function ApplyStatusRestoreEffect(turn:Turn,pokemon:IPokemon,effect:StatusRestor
 }
 
 
-
 export function DoEffect(turn:Turn,pokemon:IPokemon,effect:BattleEffect){
     switch(effect.type){
         case 'inflict-status':{
-            InflictStatus(turn,pokemon,effect);
+            InflictStatus(turn,pokemon,effect.status);
             break;
         }
         case 'stat-boost':{
-            DoStatBoost(turn,pokemon,effect);
+            DoStatBoost(turn,pokemon,effect.stat,effect.amount);
             break;
         }
         case 'inflict-volatile-status':{
-            InflictVolatileStatus(turn,pokemon,effect);
+            InflictVolatileStatus(turn,pokemon,effect.status);
             break;
         }
         case 'health-restore':{

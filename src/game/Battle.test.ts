@@ -85,8 +85,8 @@ describe('nothing breaks when both players have to switch at the same time', () 
         type: 'use-move-action'
     });
 
-    console.log(player1.pokemon.map((poke) => poke.id));
-    console.log(player2.pokemon.map((poke) => poke.id));
+    //console.log(player1.pokemon.map((poke) => poke.id));
+    //console.log(player2.pokemon.map((poke) => poke.id));
 
 
     battle.SetPlayerAction({

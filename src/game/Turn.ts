@@ -544,7 +544,7 @@ export class Turn {
         const player = this.GetPlayer(playerId);
         const pokemon = this.GetPokemon(pokemonId);
 
-        console.log(pokemon);
+        //console.log(pokemon);
 
         const move = pokemon.techniques.find(t => t.id === techniqueId);
 

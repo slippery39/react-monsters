@@ -42,7 +42,7 @@ export class SubstituteVolatileStatus extends VolatileStatus{
     type = VolatileStatusType.Substitute
 
 
-    private substituteHealth: number = 999;
+    public substituteHealth: number = 999;
 
     InflictedMessage(pokemon: IPokemon){
         return `${pokemon}.name has created a substitute`
@@ -53,7 +53,7 @@ export class SubstituteVolatileStatus extends VolatileStatus{
     }
 
     CanApply(turn:Turn,pokemon:IPokemon){
-        return super.CanApply(turn,pokemon) && (pokemon.currentStats.health <= this.HealthForSubstitute(pokemon));  
+        return super.CanApply(turn,pokemon) && (pokemon.currentStats.health >= this.HealthForSubstitute(pokemon));  
     }
 
     OnRemoved(turn:Turn,pokemon:IPokemon){
