@@ -11,6 +11,7 @@ import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
 import { BattleEffect, DoEffect, TargetType } from './Effects/Effects';
+import { SubstituteVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -267,6 +268,19 @@ export class Turn {
 
     ApplyDamage(attackingPokemon: IPokemon, defendingPokemon: IPokemon, damage: number, damageInfo: any) {
 
+        if (defendingPokemon.hasSubstitute) {
+            const substitute = defendingPokemon.volatileStatuses.find(vStat => {
+                return vStat.type === VolatileStatusType.Substitute
+            }) as SubstituteVolatileStatus;
+            substitute.Damage(this, defendingPokemon, damage);
+            GetHardStatus(attackingPokemon.status).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+            attackingPokemon.volatileStatuses.forEach(vStat => {
+                vStat.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+            })
+            attackingPokemon.heldItem.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+            GetAbility(attackingPokemon.ability).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+            return;
+        }
 
         defendingPokemon.currentStats.health -= damage
         defendingPokemon.currentStats.health = Math.max(0, defendingPokemon.currentStats.health);
@@ -527,7 +541,9 @@ export class Turn {
         this.AddEvent(useItemEffect);
 
         item.effects.forEach((effect: BattleEffect) => {
-            DoEffect(this, pokemon, effect);
+
+            //we could do a little bit of a hack here, have the source here be the pokemon as well, so that this will always apply?
+            DoEffect(this, pokemon, effect, pokemon);
         }
         );
 
@@ -615,7 +631,8 @@ export class Turn {
             const targetType = effect.target === undefined ? TargetType.Enemy : effect.target;
             const targetPokemon = targetType == TargetType.Self ? pokemon : defendingPokemon;
             if (this.Roll(chance)) {
-                DoEffect(this, targetPokemon, effect);
+                //Added source as 4th argument
+                DoEffect(this, targetPokemon, effect, pokemon);
             }
         });
     }

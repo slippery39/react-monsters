@@ -93,13 +93,15 @@ describe('substitute tests', () => {
         const pokemon: IPokemon = new PokemonBuilder()
             .OfSpecies("charizard")
             .Build();
+
+        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
         //need a dummy turn object here.
         const turn = CreateMockTurn();
         const substitute = GetVolatileStatus(VolatileStatusType.Substitute);
         //first substitute should be able to be applied to the pokemon
         expect(substitute.CanApply(turn, pokemon)).toBe(true);
 
-        InflictVolatileStatus(turn, pokemon, VolatileStatusType.Substitute);
+        InflictVolatileStatus(turn, pokemon, VolatileStatusType.Substitute, enemyPokemon);
 
 
         const substitute2 = GetVolatileStatus(VolatileStatusType.Substitute);
@@ -113,36 +115,87 @@ describe('substitute tests', () => {
         //i.e. thunder wave should fail      
         //May need to expose the use move field..
 
-        InflictStatus(CreateMockTurn(), pokemon, Status.Paralyzed);
+        InflictStatus(CreateMockTurn(), pokemon, Status.Paralyzed, enemyPokemon);
         expect(pokemon.status).toBe(Status.None);
         //try with a few more statuses
 
         //no enemy statuses should be able to be applied
 
-        const statuses = [Status.Paralyzed, Status.Burned, Status.ToxicPoison, Status.Sleep, Status.Poison];
+        const statuses = [Status.Paralyzed, Status.ToxicPoison, Status.Sleep, Status.Poison];
 
         statuses.forEach((status) => {
-            const applyStatusResult2 = InflictStatus(CreateMockTurn(), pokemon, status);
+
+            InflictStatus(CreateMockTurn(), pokemon, status, enemyPokemon);
             expect(pokemon.status).toBe(Status.None);
         });
+    });
 
 
-        it('can have its self-inflicted statuses applied when under substitute', () => {
+    it('can have its self-inflicted statuses applied when under substitute', () => {
+        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        //try to apply a status to the pokemon from an enemy move.
+        //i.e. thunder wave should fail      
+        //May need to expose the use move field..
 
-            //we need to refactor our code to allow having a "source" for each effect. if the source is the same as the target pokemon than the status effect should go through.
-            expect(0).toBe(100);
-        });
+        InflictStatus(CreateMockTurn(), pokemon, Status.Paralyzed, pokemon);
+        expect(pokemon.status).toBe(Status.Paralyzed);
+        //try with a few more statuses
 
-        it('cannot have enemy volatile statuses applied when under substitute', () => {
-            expect(0).toBe(100);
-        });
+        //no enemy statuses should be able to be applied
 
+        const statuses = [Status.Paralyzed, Status.ToxicPoison, Status.Sleep, Status.Poison];
 
-        it('can have self inflicted volatile statuses under substitute', () => {
-            expect(0).toBe(100);
+        statuses.forEach((status) => {
+            pokemon.status = Status.None;
+            InflictStatus(CreateMockTurn(), pokemon, status, pokemon);
+            expect(pokemon.status).toBe(status);
         });
 
     });
 
+    it('cannot have enemy volatile statuses applied when under substitute', () => {
+        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon:IPokemon = CreatePokemonWithSubstitute();
+        InflictVolatileStatus(CreateMockTurn(),pokemon,VolatileStatusType.Flinch,enemyPokemon);
+
+        //should not find the volatile status here
+        const hasFlinch = pokemon.volatileStatuses.find((vStat)=>{
+            return vStat.type === VolatileStatusType.Flinch
+        })!==undefined;
+
+        expect(hasFlinch).toBe(false);
+        
+        
+    });
+
+
+    it('can have self inflicted volatile statuses under substitute', () => {
+        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        InflictVolatileStatus(CreateMockTurn(),pokemon,VolatileStatusType.Flinch,pokemon);
+
+        //should not find the volatile status here
+        const hasFlinch = pokemon.volatileStatuses.find((vStat)=>{
+            return vStat.type === VolatileStatusType.Flinch
+        })!==undefined;
+
+        expect(hasFlinch).toBe(true);
+    });
+
+    it('takes technique damage instead of the pokemon',()=>{
+        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon:IPokemon = CreatePokemonWithSubstitute();
+        const turn = CreateMockTurn();
+        turn.ApplyDamage(enemyPokemon,pokemon,10,{});
+        expect(pokemon.currentStats.health).toBe(75);
+        expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(15);
+    });
+
+    it('still takes indirect damage (poison,burn)',()=>{
+        const pokemon:IPokemon = CreatePokemonWithSubstitute();
+        const turn = CreateMockTurn();
+        turn.ApplyIndirectDamage(pokemon,25);
+        expect(pokemon.currentStats.health).toBe(50);
+        expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(25);
+    })
 
 });
