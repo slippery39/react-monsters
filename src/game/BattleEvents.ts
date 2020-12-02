@@ -4,7 +4,7 @@ All the different "events" that can happen as a result of a turn
 
 import { Status } from "./HardStatus/HardStatus";
 
-export type BattleEvent = (SwitchOutEvent | SwitchInEvent | DamageEvent | HealEvent | FaintedPokemonEvent | UseMoveEvent | UseItemEvent | StatusChangeEvent | CannotAttackEvent | GenericMessageEvent)
+export type BattleEvent = (SwitchOutEvent | SwitchInEvent | DamageEvent | HealEvent | FaintedPokemonEvent | UseMoveEvent | UseItemEvent | StatusChangeEvent | CannotAttackEvent | GenericMessageEvent | SubstituteBrokenEvent |SubstituteCreatedEvent)
 
 export enum BattleEventType {
     Damage = 'damage',
@@ -20,6 +20,8 @@ export enum BattleEventType {
     MissedMove = 'missed-move',
     UseItem = 'use-item',
     CantAttack = `can't attack`,
+    SubstituteBroken = "substitute-broken",
+    SubstituteCreated = 'substitute-created',
     GenericMessage = 'generic-message', //if we want to display a generic message from the backend, we can use this ()
     None = 'none' //used in cases where nothing happaned (i.e an attack missed or something)
 }
@@ -94,4 +96,13 @@ export interface HealEvent extends BaseBattleEvent {
 export interface FaintedPokemonEvent extends BaseBattleEvent{
     type: BattleEventType.PokemonFainted,
     targetPokemonId: number,
+}
+
+export interface SubstituteBrokenEvent extends BaseBattleEvent{
+    type:BattleEventType.SubstituteBroken,
+    targetPokemonId:number,
+}
+export interface SubstituteCreatedEvent extends BaseBattleEvent{
+    type:BattleEventType.SubstituteCreated,
+    targetPokemonId:number
 }

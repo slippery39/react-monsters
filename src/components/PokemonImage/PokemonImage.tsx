@@ -14,6 +14,7 @@ const PokemonImage: React.FunctionComponent<Props> = (props) => {
     }));
 
     let imageToUse;
+
     switch(props.type){
         case 'back':{
             imageToUse = imageData?.backImageSrc;

@@ -170,6 +170,9 @@ function ApplyStatusRestoreEffect(turn:Turn,pokemon:IPokemon,effect:StatusRestor
 
 //need someting more abstract for the source, but for now just having the pokemon will do.
 export function DoEffect(turn:Turn,pokemon:IPokemon,effect:BattleEffect,source:IPokemon){
+
+    console.log("which effect are we doing?");
+    console.log(effect.type);
     switch(effect.type){
         case 'inflict-status':{
             InflictStatus(turn,pokemon,effect.status,source);
@@ -184,6 +187,8 @@ export function DoEffect(turn:Turn,pokemon:IPokemon,effect:BattleEffect,source:I
             break;
         }
         case 'health-restore':{
+            console.log('which pokemon are we targeting?');
+            console.log(pokemon);
             ApplyHealingEffect(turn,pokemon,effect);
             break;
         }

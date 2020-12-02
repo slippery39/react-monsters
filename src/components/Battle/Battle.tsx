@@ -46,7 +46,7 @@ type State = {
 }
 
 type Action = {
-    type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique'
+    type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique' |'substitute-broken' | 'substitute-created'
     id: number,
     targetId?: number | undefined,
     newHealth?: number | undefined
@@ -116,6 +116,16 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 }
 
                 pokemonData.pokemon.status = action.newStatus;
+                return newState;
+            }
+            case 'substitute-broken':{
+                const pokemonData = getPokemonAndOwner(newState, action.id);          
+                pokemonData.pokemon.hasSubstitute = false;
+                return newState;
+            }
+            case `substitute-created`:{
+                const pokemonData = getPokemonAndOwner(newState, action.id);          
+                pokemonData.pokemon.hasSubstitute = true;
                 return newState;
             }
             case 'switch-in': {
@@ -449,6 +459,20 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     timeLine.to(enemyPokemonImage.current, { delay: defaultDelayTime, left: "220px", duration: attackAnimationTime })
                     timeLine.to(enemyPokemonImage.current, { left: "240px", duration: attackAnimationTime })
                 }
+                break;
+            }
+            case BattleEventType.SubstituteBroken:{
+                dispatch({
+                    type:'substitute-broken',
+                    id:effect.targetPokemonId
+                })
+                break;
+            }
+            case BattleEventType.SubstituteCreated:{
+                dispatch({
+                    type:'substitute-created',
+                    id:effect.targetPokemonId
+                })
                 break;
             }
             case BattleEventType.Damage: {

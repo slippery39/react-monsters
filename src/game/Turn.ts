@@ -555,7 +555,7 @@ export class Turn {
         }
     }
 
-    private UseTechnique(playerId: number, pokemonId: number, techniqueId: number) {
+    UseTechnique(playerId: number, pokemonId: number, techniqueId: number) {
 
         const player = this.GetPlayer(playerId);
         const pokemon = this.GetPokemon(pokemonId);
@@ -597,7 +597,7 @@ export class Turn {
                 On Frozen Pokemon Damaged by Fire Move
                     -UNTHAW THE POKEMON
             */
-            //move this into 
+            //TODO: move this into the "frozen status?";
             if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
                 defendingPokemon.status = Status.None;
                 const thawEffect: StatusChangeEvent = {
@@ -613,6 +613,7 @@ export class Turn {
             this.ApplyMoveEffects(move, pokemon, defendingPokemon);
         }
         else {
+            console.log("attempting a status move");
             this.DoStatusMove(move, defendingPokemon, pokemon);
         }
 
@@ -632,6 +633,7 @@ export class Turn {
             const targetPokemon = targetType == TargetType.Self ? pokemon : defendingPokemon;
             if (this.Roll(chance)) {
                 //Added source as 4th argument
+                console.log("are we doing an effect?");
                 DoEffect(this, targetPokemon, effect, pokemon);
             }
         });

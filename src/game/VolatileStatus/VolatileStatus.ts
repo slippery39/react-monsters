@@ -4,6 +4,7 @@ import { HasVolatileStatus, IPokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 import _ from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
+import { BattleEventType } from "game/BattleEvents";
 
 
 export enum VolatileStatusType {
@@ -46,12 +47,14 @@ export class SubstituteVolatileStatus extends VolatileStatus {
 
     Damage(turn: Turn, pokemon: IPokemon, amount: number) {
         this.substituteHealth -= amount;
+        //This is a quick hack to be able to apply the damage animation to the substitute.
+        turn.ApplyIndirectDamage(pokemon,0);
         if (this.substituteHealth <= 0) {
             this.Remove(turn, pokemon);
         }
     }
     InflictedMessage(pokemon: IPokemon) {
-        return `${pokemon}.name has created a substitute`
+        return `${pokemon.name} has created a substitute`
     }
 
     HealthForSubstitute(pokemon: IPokemon) {
@@ -64,6 +67,14 @@ export class SubstituteVolatileStatus extends VolatileStatus {
 
     OnRemoved(turn: Turn, pokemon: IPokemon) {
         pokemon.hasSubstitute = false;
+        turn.AddEvent({
+            type:BattleEventType.SubstituteBroken,
+            targetPokemonId:pokemon.id            
+        });
+        turn.AddEvent({
+            type:BattleEventType.GenericMessage,
+            defaultMessage:`${pokemon.name}'s substitute has broken!`
+        })
     }
 
     OnApply(turn: Turn, pokemon: IPokemon) {
@@ -75,6 +86,11 @@ export class SubstituteVolatileStatus extends VolatileStatus {
         this.substituteHealth = this.HealthForSubstitute(pokemon);
         pokemon.currentStats.health -= this.HealthForSubstitute(pokemon);
         pokemon.hasSubstitute = true;
+        turn.AddEvent({
+            type:BattleEventType.SubstituteCreated,
+            targetPokemonId:pokemon.id
+        });
+
     }
 }
 

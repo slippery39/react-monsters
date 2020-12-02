@@ -13,7 +13,8 @@ const Charizard = function () {
         .WithTechniques([
             "Fire Blast",
             "Air Slash",
-            "Focus Blast",
+            "Substitute",
+            //"Focus Blast",
             "Roost"
         ])
         .WithHeldItem("Life Orb")

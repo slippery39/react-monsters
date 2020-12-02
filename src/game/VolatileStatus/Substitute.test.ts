@@ -155,45 +155,43 @@ describe('substitute tests', () => {
 
     it('cannot have enemy volatile statuses applied when under substitute', () => {
         const pokemon: IPokemon = CreatePokemonWithSubstitute();
-        const enemyPokemon:IPokemon = CreatePokemonWithSubstitute();
-        InflictVolatileStatus(CreateMockTurn(),pokemon,VolatileStatusType.Flinch,enemyPokemon);
+        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
+        InflictVolatileStatus(CreateMockTurn(), pokemon, VolatileStatusType.Flinch, enemyPokemon);
 
         //should not find the volatile status here
-        const hasFlinch = pokemon.volatileStatuses.find((vStat)=>{
+        const hasFlinch = pokemon.volatileStatuses.find((vStat) => {
             return vStat.type === VolatileStatusType.Flinch
-        })!==undefined;
+        }) !== undefined;
 
         expect(hasFlinch).toBe(false);
-        
-        
     });
 
 
     it('can have self inflicted volatile statuses under substitute', () => {
         const pokemon: IPokemon = CreatePokemonWithSubstitute();
-        InflictVolatileStatus(CreateMockTurn(),pokemon,VolatileStatusType.Flinch,pokemon);
+        InflictVolatileStatus(CreateMockTurn(), pokemon, VolatileStatusType.Flinch, pokemon);
 
         //should not find the volatile status here
-        const hasFlinch = pokemon.volatileStatuses.find((vStat)=>{
+        const hasFlinch = pokemon.volatileStatuses.find((vStat) => {
             return vStat.type === VolatileStatusType.Flinch
-        })!==undefined;
+        }) !== undefined;
 
         expect(hasFlinch).toBe(true);
     });
 
-    it('takes technique damage instead of the pokemon',()=>{
+    it('takes technique damage instead of the pokemon', () => {
         const pokemon: IPokemon = CreatePokemonWithSubstitute();
-        const enemyPokemon:IPokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
         const turn = CreateMockTurn();
-        turn.ApplyDamage(enemyPokemon,pokemon,10,{});
+        turn.ApplyDamage(enemyPokemon, pokemon, 10, {});
         expect(pokemon.currentStats.health).toBe(75);
         expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(15);
     });
 
-    it('still takes indirect damage (poison,burn)',()=>{
-        const pokemon:IPokemon = CreatePokemonWithSubstitute();
+    it('still takes indirect damage (poison,burn)', () => {
+        const pokemon: IPokemon = CreatePokemonWithSubstitute();
         const turn = CreateMockTurn();
-        turn.ApplyIndirectDamage(pokemon,25);
+        turn.ApplyIndirectDamage(pokemon, 25);
         expect(pokemon.currentStats.health).toBe(50);
         expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(25);
     })

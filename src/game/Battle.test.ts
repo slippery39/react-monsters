@@ -5,6 +5,7 @@ import 'core-js'
 import { PokemonBuilder } from './Pokemon/Pokemon';
 import BattleService from './Battle';
 import { Status } from './HardStatus/HardStatus';
+import { triggerAsyncId } from 'async_hooks';
 
 
 /*
@@ -17,7 +18,7 @@ function SetupBattle(): BattleService {
     const pokemon1 = new PokemonBuilder().
         OfSpecies("Charizard")
         .WithBaseStats({ health: 1, attack: 1, specialAttack: 1, defence: 1, specialDefence: 1, speed: 1 })
-        .WithTechniques(["roost"])
+        .WithTechniques(["roost", "fire blast"])
         .Build();
 
     pokemon1.status = Status.Poison
@@ -26,7 +27,7 @@ function SetupBattle(): BattleService {
     const pokemon2 = new PokemonBuilder()
         .OfSpecies("Charizard")
         .WithBaseStats({ health: 1, attack: 1, specialAttack: 1, defence: 1, specialDefence: 1, speed: 1 })
-        .WithTechniques(["roost"])
+        .WithTechniques(["roost", "fire blast"])
         .Build();
 
     pokemon2.status = Status.Poison;
@@ -51,16 +52,104 @@ function SetupBattle(): BattleService {
     return battle;
 }
 
-describe('ids are assined to pokemon with no overlap', () => {
+
+function SetupTurn(): Turn {
+
+    const pokemon1 = new PokemonBuilder().
+        OfSpecies("Charizard")
+        .WithBaseStats({ health: 200, attack: 1, specialAttack: 1, defence: 1, specialDefence: 1, speed: 1 })
+        .WithTechniques(["roost", "fire blast"])
+        .Build();
+
+    pokemon1.status = Status.Poison
+
+
+    const pokemon2 = new PokemonBuilder()
+        .OfSpecies("Charizard")
+        .WithBaseStats({ health: 200, attack: 1, specialAttack: 1, defence: 1, specialDefence: 1, speed: 1 })
+        .WithTechniques(["roost", "fire blast"])
+        .Build();
+
+    pokemon2.status = Status.Poison;
+
+
+    const player1: Player = new PlayerBuilder(1)
+        .WithCustomPokemon(pokemon1)
+        .WithPokemon("blastoise")
+        .WithPokemon("venusaur")
+        .Build();
+
+
+    const player2: Player = new PlayerBuilder(2)
+        .WithCustomPokemon(pokemon2)
+        .WithPokemon("blastoise")
+        .WithPokemon("venusaur")
+        .Build();
+
+
+    const players: Array<Player> = [player1, player2];
+
+    const turn = new Turn(1, players);
+
+    return turn;
+
+}
+
+
+describe('Roost heals the proper pokemon', () => {
+
+    const turn = SetupTurn();
+
+    turn.players.forEach(player=>{
+        player.pokemon.forEach(poke=>{
+            poke.currentStats.health=100;
+        })
+    })
+
+    const player1 = turn.players[0];
+    const player2 = turn.players[1];
+
+
+    turn.SetInitialPlayerAction({
+        playerId: 1, //todo : get player id
+        pokemonId: player1.currentPokemonId, //todo: get proper pokemon id
+        moveId: player1.pokemon[0].techniques[0].id,
+        type: 'use-move-action'
+    });
+
+    turn.SetInitialPlayerAction({
+        playerId: 2, //todo : get player id
+        pokemonId: player2.currentPokemonId, //todo: get proper pokemon id
+        moveId: player2.pokemon[0].techniques[0].id,
+        type: 'use-move-action'
+    })
+
+   console.log(turn.GetEventLog());
+
+    expect(player1.pokemon[0].currentStats.health).toBeGreaterThan(100);
+    expect(player2.pokemon[0].currentStats.health).toBeGreaterThan(100);
+    
 
     
+
+
+    
+
+
+
+
+});
+
+describe('ids are assined to pokemon with no overlap', () => {
+
+
     let battle = SetupBattle();
 
-    const pokemon = battle.GetPlayers().map((player)=>{
+    const pokemon = battle.GetPlayers().map((player) => {
         return player.pokemon;
-    }).flat().map((pokemon)=>pokemon.id);
+    }).flat().map((pokemon) => pokemon.id);
 
-    function onlyUnique(value: any,index: any,self: string | any[]){
+    function onlyUnique(value: any, index: any, self: string | any[]) {
         return self.indexOf(value) === index;
     }
     var uniquePokemon = pokemon.filter(onlyUnique);

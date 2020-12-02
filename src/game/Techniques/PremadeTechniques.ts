@@ -134,6 +134,7 @@ export function GetTech(name: string) {
             chance: 100,
             effects: [{
                 type: 'health-restore',
+                target:TargetType.Self,
                 restoreType: HealthRestoreType.PercentMaxHealth,
                 amount: 50,
                 chance: 100
