@@ -475,15 +475,13 @@ export class Turn {
         //not yet implemented, just for practice.
         const player = this.GetPlayer(playerId);
 
-        alert(`Player switching out : ${player.name}`);
+        console.log(`Player switching out : ${player.name}`);
         //const pokemon = this.GetPokemon(pokemonInId);
         const switchOutPokemonId = player.currentPokemonId;
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
 
-        alert(`Pokemon switching in : ${pokemonInId}`)
-        alert(`Pokemon switching Out : ${switchOutPokemonId}`);
-
-        console.log(this.players);
+        console.log(`Pokemon switching in : ${pokemonInId}`)
+        console.log(`Pokemon switching Out : ${switchOutPokemonId}`);
 
         //any pokemon switched out should have thier volatile statuses removed
         switchOutPokemon.volatileStatuses = []; //easy peasy
