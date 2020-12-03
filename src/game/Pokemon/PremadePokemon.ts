@@ -13,8 +13,7 @@ const Charizard = function () {
         .WithTechniques([
             "Fire Blast",
             "Air Slash",
-            "Substitute",
-            //"Focus Blast",
+            "Focus Blast",
             "Roost"
         ])
         .WithHeldItem("Life Orb")
@@ -127,7 +126,7 @@ const GetPokemon = function(name:string):IPokemon{
         Venusaur(),
         Raichu(),
         Alakazam(),
-        //Gengar()      
+        Gengar()      
     ]
 
 

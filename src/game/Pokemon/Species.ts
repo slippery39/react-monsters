@@ -82,6 +82,19 @@ const pokemons: SpeciesDB = {
         },
         ability:"Magic Guard"
     },
+    "gengar":{
+        name:"Gengar",
+        elementalTypes:[ElementType.Ghost,ElementType.Poison],
+        baseStats:{
+            health:60,
+            attack:65,
+            defence:60,
+            specialAttack:130,
+            specialDefence:75,
+            speed:110
+        },
+        ability:"Levitate"
+    }
 }
 
 

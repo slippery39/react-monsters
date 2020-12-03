@@ -448,6 +448,24 @@ export function GetTech(name: string) {
             ]
             
         },
+        "sludge wave":{
+            name:"Sludge Wave",
+            description:"The user strikes everything around it by swamping the area with a giant sludge wave. This may also poison those hit.",
+            damageType:DamageType.Special,
+            power:95,
+            chance:100,
+            elementalType:ElementType.Poison,
+            pp:16,
+            effects:[
+                {
+                    type:'inflict-status',
+                    status:Status.Poison,
+                    target:TargetType.Enemy,
+                    chance:10
+                }
+            ]
+
+        },
         "shadow ball":{
             name:"Shadow Ball",
             description:"The target is hit by a strong telekinetic force. This may also lower the target's Sp. Def stat",

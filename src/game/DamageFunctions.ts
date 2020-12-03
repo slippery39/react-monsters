@@ -61,7 +61,17 @@ export function GetTypeMod(defendingElements: Array<ElementType>, elementOfAttac
 
 
 //TODO: test this
-export function GetDamageModifier(attackingPokemon: IPokemon, defendingPokemon: IPokemon, techUsed: Technique,options?:{autoCrit?:boolean,autoAmt?:boolean}) {
+
+export interface DamageModifierInfo{
+    critStrike: boolean,
+    critAmt:number,
+    stabBonus: number,
+    typeEffectivenessBonus: number,
+    randomDamageMod:number,
+    modValue:number
+}
+
+export function GetDamageModifier(attackingPokemon: IPokemon, defendingPokemon: IPokemon, techUsed: Technique,options?:{autoCrit?:boolean,autoAmt?:boolean}) :DamageModifierInfo {
 
     function lerp(v0: number, v1: number, t: number) {
         return (1 - t) * v0 + t * v1;
@@ -118,7 +128,7 @@ export function GetDamageModifier(attackingPokemon: IPokemon, defendingPokemon: 
     const burnDecrease = attackingPokemon.status === Status.Burned && techUsed.damageType === 'physical' ? 0.5 : 1
    
 
-    const modInfoObj = {
+    const modInfoObj : DamageModifierInfo = {
         critStrike: critStrike,
         critAmt:critAmt,
         stabBonus: stabBonus,

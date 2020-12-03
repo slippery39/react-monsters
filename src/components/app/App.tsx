@@ -28,6 +28,7 @@ function App() {
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
     .WithPokemon("charizard")
+    .WithPokemon("charizard")
     .WithPokemon("venusaur")
     .WithPokemon("blastoise")
     .WithPokemon("raichu")
@@ -40,6 +41,7 @@ function App() {
 
 const player2 = new PlayerBuilder(2)
     .WithName("Bob")
+    .WithPokemon("gengar")
     .WithPokemon("venusaur")
     .WithPokemon("venusaur")
     .WithPokemon("blastoise")

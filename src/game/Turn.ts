@@ -268,6 +268,9 @@ export class Turn {
 
     ApplyDamage(attackingPokemon: IPokemon, defendingPokemon: IPokemon, damage: number, damageInfo: any) {
 
+        //TODO: Ability Replacement Damage Logic.
+
+        //damage info will be the same
         if (defendingPokemon.hasSubstitute) {
             const substitute = defendingPokemon.volatileStatuses.find(vStat => {
                 return vStat.type === VolatileStatusType.Substitute
@@ -646,6 +649,12 @@ export class Turn {
         const ability = GetAbility(pokemon.ability);
         const newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
 
+        //
+        const defendingAbility = GetAbility(defendingPokemon.ability);
+        if (defendingAbility.NegateDamage(this,move) === true){
+            //no damage will be applied, any messages why will be handled by the ability itslef.
+            return;
+        }   
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
     }
