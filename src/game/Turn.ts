@@ -196,7 +196,17 @@ export class Turn {
                 break;
             }
             case 'use-move-action': {
-                this.UseTechnique(action.playerId, action.pokemonId, action.moveId);
+
+                const player = this.GetPlayer(action.playerId);
+                const pokemon = this.GetPokemon(action.pokemonId);
+                const defendingPokemon = this.GetDefendingPokemon(player);
+                const move = pokemon.techniques.find(move=>move.id === action.moveId);
+
+                if (move ===undefined){
+                    throw new Error('Could not find move to use in DoAction')
+                }
+
+                this.UseTechniqueForTesting(pokemon,defendingPokemon,move);
                 break;
             }
         }
@@ -556,23 +566,57 @@ export class Turn {
         }
     }
 
+    //temporary, i want to see how easier this makes testing
+    UseTechniqueForTesting(pokemon:IPokemon,defendingPokemon:IPokemon,move:Technique){
+        const useMoveEffect: UseMoveEvent = {
+            type: BattleEventType.UseMove,
+            userId: pokemon.id,
+            targetId: defendingPokemon.id,
+            didMoveHit: true,
+            moveName: move.name,
+        }
+        this.AddEvent(useMoveEffect);
+
+        if (!this.Roll(move.chance)) {
+            useMoveEffect.didMoveHit = false;
+            return;
+        }
+
+        if (move.damageType === 'physical' || move.damageType === 'special') {
+            //this method was extracted by using "extract method" and needs to be refactored. we should probably just return a partial event log.
+            this.DoDamageMove(pokemon, defendingPokemon, move);
+            /*
+                On Frozen Pokemon Damaged by Fire Move
+                    -UNTHAW THE POKEMON
+            */
+            //TODO: move this into the "frozen status?";
+            if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
+                defendingPokemon.status = Status.None;
+                const thawEffect: StatusChangeEvent = {
+                    type: BattleEventType.StatusChange,
+                    status: Status.None,
+                    targetPokemonId: defendingPokemon.id,
+                    attackerPokemonId: pokemon.id,
+                    defaultMessage: `${defendingPokemon.name} is not frozen anymore!`
+                }
+                this.AddEvent(thawEffect);
+            }
+
+            this.ApplyMoveEffects(move, pokemon, defendingPokemon);
+        }
+        else {
+            this.DoStatusMove(move, defendingPokemon, pokemon);
+        }
+
+    }
+
     UseTechnique(playerId: number, pokemonId: number, techniqueId: number) {
 
         const player = this.GetPlayer(playerId);
         const pokemon = this.GetPokemon(pokemonId);
-
-        //console.log(pokemon);
-
         const move = pokemon.techniques.find(t => t.id === techniqueId);
-
         //This should work as long as it stays 1v1;
-
-        const defendingPlayer = this.players.find(p => p !== player);
-        if (defendingPlayer === undefined) {
-            throw new Error(`Could not find defending player`);
-        }
-
-        const defendingPokemon = this.GetPokemon(defendingPlayer.currentPokemonId);
+        const defendingPokemon = this.GetDefendingPokemon(player);
 
         if (move === undefined) {
             throw new Error(`Error in using technique, could not find technique with id ${techniqueId} `);
@@ -682,6 +726,16 @@ export class Turn {
     public AddEvent(effect: BattleEvent) {
         effect.id = this.nextEventId++;
         this.eventLog.push(effect);
+    }
+
+    private GetDefendingPokemon(attackingPlayer:Player) :IPokemon{
+        const defendingPlayer = this.players.find(p => p !== attackingPlayer);
+        if (defendingPlayer === undefined) {
+            throw new Error(`Could not find defending player`);
+        }
+
+        const defendingPokemon = this.GetPokemon(defendingPlayer.currentPokemonId);
+        return defendingPokemon;
     }
 
     private GetPlayer(playerId: number): Player {

@@ -12,7 +12,8 @@ const names = [
     'charizard',
     'blastoise',
     'alakazam',
-    'raichu'
+    'raichu',
+    'gengar'
 ]
 
 const images = names.map((el)=>{

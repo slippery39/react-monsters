@@ -14,7 +14,7 @@ const Charizard = function () {
             "Fire Blast",
             "Air Slash",
             "Focus Blast",
-            "Roost"
+            "Substitute"
         ])
         .WithHeldItem("Life Orb")
         .Build();

@@ -62,7 +62,13 @@ export class SubstituteVolatileStatus extends VolatileStatus {
     }
 
     CanApply(turn: Turn, pokemon: IPokemon) {
-        return super.CanApply(turn, pokemon) && (pokemon.currentStats.health > this.HealthForSubstitute(pokemon));
+        const canApply = super.CanApply(turn, pokemon) && (pokemon.currentStats.health > this.HealthForSubstitute(pokemon));
+
+        //Not ideal here, but works for now. 
+        if (!canApply){
+            turn.ApplyMessage('But it failed!');
+        }
+        return canApply;
     }
 
     OnRemoved(turn: Turn, pokemon: IPokemon) {

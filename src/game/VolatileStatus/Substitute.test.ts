@@ -196,4 +196,13 @@ describe('substitute tests', () => {
         expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(25);
     })
 
+    it('can break',()=>{
+        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
+        const turn = CreateMockTurn();
+        turn.ApplyDamage(enemyPokemon, pokemon, 100, {});
+        expect(pokemon.currentStats.health).toBe(75);
+        expect(pokemon.hasSubstitute).toBe(false);
+        expect(pokemon.volatileStatuses.find(vStat=>vStat.type === VolatileStatusType.Substitute)).toBe(undefined);
+    });
 });

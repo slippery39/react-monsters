@@ -1,8 +1,35 @@
 import 'core-js'
+import { Player, PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { GetTech } from 'game/Techniques/PremadeTechniques';
+import { CreateMockTurn } from 'game/Testing/TestingFunctions';
+import { Turn } from 'game/Turn';
 import GetAbility from './Ability';
 
+
+
+describe('Levitate Ability Tests',()=>{
+
+    it('does not get hit by ground moves',()=>{
+        const pokemon = new PokemonBuilder()
+        .OfSpecies("gengar")
+        .WithAbility("levitate")
+        .Build();
+
+        const turn = CreateMockTurn();
+
+        const pokemon2 = new PokemonBuilder().
+        OfSpecies("Charizard")
+        .WithBaseStats({ health: 200, attack: 1, specialAttack: 1, defence: 1, specialDefence: 1, speed: 1 })
+        .Build();
+
+        const earthquake = GetTech("earthquake");
+        const gengarHealth = pokemon.currentStats.health;
+        turn.UseTechniqueForTesting(pokemon2,pokemon,earthquake);
+        expect(pokemon.currentStats.health).toBe(gengarHealth);
+    });
+
+});
 
 
 describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
