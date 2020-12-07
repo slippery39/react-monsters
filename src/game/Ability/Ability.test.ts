@@ -25,7 +25,7 @@ describe('Levitate Ability Tests',()=>{
 
         const earthquake = GetTech("earthquake");
         const gengarHealth = pokemon.currentStats.health;
-        turn.UseTechniqueForTesting(pokemon2,pokemon,earthquake);
+        turn.UseTechnique(pokemon2,pokemon,earthquake);
         expect(pokemon.currentStats.health).toBe(gengarHealth);
     });
 

@@ -124,7 +124,7 @@ describe('Roost heals the proper pokemon', () => {
     .WithTechniques(["roost", "fire blast"])
     .Build();
 
-    turn.UseTechniqueForTesting(pokemon,pokemon2,technique);
+    turn.UseTechnique(pokemon,pokemon2,technique);
     expect(pokemon.currentStats.health).toBeGreaterThan(100);
    
 });
