@@ -1,17 +1,26 @@
 import React from 'react';
-import images from "pokemonimages";
 
 interface Props {
     name:string,
     type: 'back' | 'front' | 'small'
 }
 
+function getImages(name:string){
+
+    return   {
+
+       frontImageSrc:'./images/pokemon/front/' + name+ '.png',
+        backImageSrc:'./images/pokemon/back/' + name+ '.png',
+        smallImageSrc:'./images/pokemon/small/' + name + '.png',
+    }
+
+}
+
 const PokemonImage: React.FunctionComponent<Props> = (props) => {
 
-    //search for the image
-    const imageData = images.find((el =>{
-       return el.name.toLowerCase() === props.name.toLowerCase()
-    }));
+
+
+    let imageData = getImages(props.name.toLowerCase());
 
     let imageToUse;
 

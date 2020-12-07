@@ -176,6 +176,8 @@ export function CreateEmptyStats():Stats{
 }
 
 
+
+//FOUND THE PROBLEM!
 export function ConvertBaseStatsToRealStats(pokemon:IPokemon): Stats{
     //For now we will use an ivValue and evValue of 0.
     const level = 100;
