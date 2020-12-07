@@ -129,7 +129,9 @@ export class Turn {
 
         if (this.faintedPokemonPlayers.length === 0) {
             this._switchFaintedActions.forEach(act => {
-                this.SwitchPokemon(act.playerId, act.switchPokemonId);
+                const player = this.GetPlayer(act.playerId);
+                const pokemon = this.GetPokemon(act.switchPokemonId);
+                this.SwitchPokemon(player,pokemon);
             });
 
             this.currentState = {
@@ -189,8 +191,12 @@ export class Turn {
     private DoAction(action: BattleAction) {
         switch (action.type) {
             case 'switch-pokemon-action': {
-                this.SwitchPokemon(action.playerId, action.switchPokemonId);
-                break;
+
+                const player = this.GetPlayer(action.playerId);
+                const pokemonToSwitchIn = this.GetPokemon(action.switchPokemonId);
+
+                this.SwitchPokemon(player,pokemonToSwitchIn);
+                 break;
             }
             case 'use-item-action': {
 
@@ -495,31 +501,15 @@ export class Turn {
         }
     }
 
-    private SwitchPokemon(playerId: number, pokemonInId: number) {
-        //not yet implemented, just for practice.
-        const player = this.GetPlayer(playerId);
-
-        console.log(`Player switching out : ${player.name}`);
-        //const pokemon = this.GetPokemon(pokemonInId);
+    SwitchPokemon(player:Player,pokemonIn:IPokemon){
         const switchOutPokemonId = player.currentPokemonId;
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
-
-        console.log(`Pokemon switching in : ${pokemonInId}`)
-        console.log(`Pokemon switching Out : ${switchOutPokemonId}`);
-
-        //any pokemon switched out should have thier volatile statuses removed
         switchOutPokemon.volatileStatuses = []; //easy peasy
-
-        //current pokemon position is 0
-        //find the pokemon to switch in position
-
-        //ACTUALLY RIGHT HERE. WE CAN'T FIND THE POKEMON IN ID?
-        const pokemonIn = this.GetPokemon(pokemonInId);
 
         const switchInPokemonPos = player.pokemon.indexOf(pokemonIn);
         if (switchInPokemonPos < 0) {
             console.log(this.players);
-            throw new Error(`Could not find pokemon ${pokemonInId} for player ${playerId}`);
+            throw new Error(`Could not find pokemon ${pokemonIn.id} for player ${player.id}`);
         }
 
         let pokemonArrCopy = player.pokemon.slice();
@@ -532,13 +522,13 @@ export class Turn {
         const switchOutEffect: SwitchOutEvent = {
             type: BattleEventType.SwitchOut,
             switchOutPokemonId: switchOutPokemonId!,
-            switchInPokemonId: pokemonInId,
+            switchInPokemonId: pokemonIn.id,
         }
         this.AddEvent(switchOutEffect);
         const switchInEffect: SwitchInEvent = {
             type: BattleEventType.SwitchIn,
             switchOutPokemonId: switchOutPokemonId!,
-            switchInPokemonId: pokemonInId,
+            switchInPokemonId: pokemonIn.id,
         }
         this.AddEvent(switchInEffect);
     }
