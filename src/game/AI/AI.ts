@@ -63,7 +63,7 @@ class BasicAI implements AI {
                 if (this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action' && this._service.GetCurrentTurn().faintedPokemonPlayers.filter(p => p.id === this._player.id).length > 0) {
 
                     console.log('ai brain is choosing a pokemon to switch');
-                    const unfaintedPokemon = this._player.pokemon.filter(poke => poke.currentStats.health !== 0)[0];
+                    const unfaintedPokemon = this._player.pokemon.filter(poke => poke.currentStats.hp !== 0)[0];
         
                     if (unfaintedPokemon !== undefined) {
                         const switchPokemonAction: SwitchPokemonAction = {

@@ -101,11 +101,13 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return { players: action.newState! };
             }
             case 'health-change': {
+                console.log('health change triggered');
+                console.log(action.newHealth);
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (action.newHealth === undefined) {
                     return state;
                 }
-                pokemonData.pokemon.currentStats.health = action.newHealth;
+                pokemonData.pokemon.currentStats.hp = action.newHealth;
                 return newState;
             }
             case 'status-change': {
@@ -318,13 +320,13 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                         isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
                     },
                     delay: defaultDelayTime,
-                    health: effect.targetFinalHealth,
+                    hp: effect.targetFinalHealth,
                     duration: healthAnimationTime,
-                    onUpdate: (val) => {
+                    onUpdate: (val:any) => {
                         dispatch({
                             type: 'health-change',
                             id: val.id,
-                            newHealth: val.currentStats.health
+                            newHealth: val.currentStats.hp
                         });
                     },
                     onUpdateParams: [animObj]
@@ -489,13 +491,13 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 timeLine.to(pokemonNode, { filter: "brightness(1)", duration: damageAnimationTime });
                 timeLine.to(
                     pokemonObj.currentStats, {
-                    health: effect.targetFinalHealth,
+                    hp: effect.targetFinalHealth,
                     duration: healthAnimationTime,
-                    onUpdate: (val) => {
+                    onUpdate: (val:any) => {
                         dispatch({
                             type: 'health-change',
                             id: val.id,
-                            newHealth: val.currentStats.health
+                            newHealth: val.currentStats.hp
                         });
                     },
                     onUpdateParams: [pokemonObj]
@@ -588,7 +590,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
-                        <div className="enemy-party-pokeballs">{state.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.health === 0} /></span>))}</div>
+                        <div className="enemy-party-pokeballs">{state.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.hp === 0} /></span>))}</div>
                         {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay potionRef={el => enemyPotionNode.current = el} imageRef={el => { enemyPokemonImage.current = el; }} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
                         {getAllyPokemon().id !== -1 && <BattlePokemonDisplay potionRef={el => allyPotionNode.current = el} imageRef={el => { allyPokemonImage.current = el; }} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
                     </div>
@@ -601,7 +603,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     </div>
                 </div>
                 <div className="bottom-screen">
-                    {menuState === MenuState.MainMenu && <div className="pokemon-party-pokeballs">{state.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.health === 0} /></span>))}</div>}
+                    {menuState === MenuState.MainMenu && <div className="pokemon-party-pokeballs">{state.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.hp === 0} /></span>))}</div>}
                     {menuState === MenuState.MainMenu &&
                         <BattleMenu
                             onMenuAttackClick={(evt) => { setMenuState(MenuState.AttackMenu) }}

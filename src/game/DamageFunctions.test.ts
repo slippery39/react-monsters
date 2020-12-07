@@ -28,7 +28,7 @@ const createFireblast = function() : Technique{
         currentPP:10,
         pp:10,
         power:120,
-        chance:100,
+        accuracy:100,
         damageType:DamageType.Special,
         elementalType:ElementType.Fire
     }
@@ -44,7 +44,7 @@ const createEarthquake = function(): Technique{
         currentPP:10,
         pp:10,
         power:120,
-        chance:100,
+        accuracy:100,
         damageType:DamageType.Physical,
         elementalType:ElementType.Ground
     }

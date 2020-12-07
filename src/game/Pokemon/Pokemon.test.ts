@@ -15,28 +15,28 @@ describe('Stats are correctly calculated from Base Stats',()=>{
         const pokemon = new PokemonBuilder()
         .OfSpecies("charizard")
         .WithIVs({
-            health:0,
+            hp:0,
             attack:0,
-            defence:0,
-            specialAttack:0,
-            specialDefence:0,
+            defense:0,
+            spAttack:0,
+            spDefense:0,
             speed:0
         })
         .WithEVs({
-            health:0,
+            hp:0,
             attack:0,
-            defence:0,
-            specialAttack:0,
-            specialDefence:0,
+            defense:0,
+            spAttack:0,
+            spDefense:0,
             speed:0
         })
         .Build();
 
-        expect(pokemon.currentStats.health).toBe(266);
+        expect(pokemon.currentStats.hp).toBe(266);
         expect(pokemon.currentStats.attack).toBe(173);
-        expect(pokemon.currentStats.defence).toBe(161);
-        expect(pokemon.currentStats.specialAttack).toBe(223);
-        expect(pokemon.currentStats.specialDefence).toBe(175);
+        expect(pokemon.currentStats.defense).toBe(161);
+        expect(pokemon.currentStats.spAttack).toBe(223);
+        expect(pokemon.currentStats.spDefense).toBe(175);
         expect(pokemon.currentStats.speed).toBe(205);
     });
 

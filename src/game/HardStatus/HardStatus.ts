@@ -79,9 +79,9 @@ class ToxicStatus extends HardStatus{
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
                 //apply poison damage
         //poison damage is 1/16 of the pokemons max hp
-        const maxHp = pokemon.originalStats.health;
+        const maxHp = pokemon.originalStats.hp;
         const poisonDamage = pokemon.toxicCount * Math.ceil(maxHp / 16);
-        pokemon.currentStats.health -= poisonDamage;
+        pokemon.currentStats.hp -= poisonDamage;
         pokemon.toxicCount++;
         turn.ApplyMessage(`${pokemon.name} is badly hurt by poison.`);
         turn.ApplyIndirectDamage(pokemon, poisonDamage)
@@ -102,7 +102,7 @@ class BurnStatus extends HardStatus{
         return;
     }
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
-        const maxHp = pokemon.originalStats.health;
+        const maxHp = pokemon.originalStats.hp;
         const burnDamage = Math.ceil(maxHp / 8);
         turn.ApplyMessage(`${pokemon.name} is hurt by its burn`);
         turn.ApplyIndirectDamage(pokemon, burnDamage);
@@ -219,9 +219,9 @@ class PoisonStatus extends HardStatus {
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
         //apply poison damage
         //poison damage is 1/16 of the pokemons max hp
-        const maxHp = pokemon.originalStats.health;
+        const maxHp = pokemon.originalStats.hp;
         const poisonDamage = Math.ceil(maxHp / 8);
-        pokemon.currentStats.health -= poisonDamage;
+        pokemon.currentStats.hp -= poisonDamage;
         turn.ApplyMessage(`${pokemon.name} is hurt by poison`);
 
         turn.ApplyIndirectDamage(pokemon, poisonDamage)

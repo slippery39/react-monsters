@@ -10,7 +10,7 @@ export abstract class HeldItem extends BattleBehaviour{
 export class LeftoversHeldItem extends HeldItem{
 
     EndOfTurn(turn: Turn, pokemon:IPokemon){
-        const healing = Math.ceil(pokemon.originalStats.health / 16);
+        const healing = Math.ceil(pokemon.originalStats.hp / 16);
         turn.ApplyHealing(pokemon,healing);
         turn.ApplyMessage(`${pokemon.name} has healed due to its leftovers!`);
     }
@@ -23,7 +23,7 @@ export class LifeOrbHeldItem extends HeldItem{
     }
     OnDamageDealt(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,damageDealt:number){
         //take recoil damage
-        const recoilDamage = attackingPokemon.originalStats.health/10;
+        const recoilDamage = attackingPokemon.originalStats.hp/10;
         turn.ApplyIndirectDamage(attackingPokemon,recoilDamage);
         turn.ApplyMessage(`${attackingPokemon.name} suffered recoil damage due to its Life Orb`);
         

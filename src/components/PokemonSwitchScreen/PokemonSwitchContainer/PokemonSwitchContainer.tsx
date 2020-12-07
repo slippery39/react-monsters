@@ -17,7 +17,7 @@ const PokemonSwitchContainer: React.FunctionComponent<Props> = (props) => {
 
     let className = "pokemon-switch-container"
 
-    if (props.pokemon.currentStats.health <= 0){
+    if (props.pokemon.currentStats.hp <= 0){
         className+= " pokemon-switch-fainted";
     }
 
@@ -32,8 +32,8 @@ const PokemonSwitchContainer: React.FunctionComponent<Props> = (props) => {
                 <div className="pokemon-switch-name">{props.pokemon.name} <PokemonStatus status={props.pokemon.status || Status.None} /></div>
                 
                 <div>
-                    <div className="pokemon-switch-healthbar"><AnimatedHealthBar animate={false} value={(props.pokemon.currentStats.health / props.pokemon.originalStats.health) * 100} /></div>
-                    <div className="pokemon-switch-healthbar-text"> {props.pokemon.currentStats.health} / {props.pokemon.originalStats.health} </div>
+                    <div className="pokemon-switch-healthbar"><AnimatedHealthBar animate={false} value={(props.pokemon.currentStats.hp / props.pokemon.originalStats.hp) * 100} /></div>
+                    <div className="pokemon-switch-healthbar-text"> {props.pokemon.currentStats.hp} / {props.pokemon.originalStats.hp} </div>
                 </div>
             </div>
         </div>

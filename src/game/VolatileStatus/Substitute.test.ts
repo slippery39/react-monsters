@@ -46,8 +46,8 @@ function CreatePokemonWithSubstitute(): IPokemon {
         .OfSpecies("charizard")
         .Build();
 
-    pokemon.currentStats.health = 100;
-    pokemon.originalStats.health = 100;
+    pokemon.currentStats.hp = 100;
+    pokemon.originalStats.hp = 100;
     const substitute = GetVolatileStatus(VolatileStatusType.Substitute);
     pokemon.volatileStatuses.push(substitute);
     substitute.OnApply(CreateMockTurn(), pokemon);
@@ -83,7 +83,7 @@ describe('substitute tests', () => {
 
     it('applies and takes 25% of the pokemons health', () => {
         const pokemon: IPokemon = CreatePokemonWithSubstitute();
-        expect(pokemon.currentStats.health).toBe(75);
+        expect(pokemon.currentStats.hp).toBe(75);
         expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(25);
     });
 
@@ -184,7 +184,7 @@ describe('substitute tests', () => {
         const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
         const turn = CreateMockTurn();
         turn.ApplyDamage(enemyPokemon, pokemon, 10, {});
-        expect(pokemon.currentStats.health).toBe(75);
+        expect(pokemon.currentStats.hp).toBe(75);
         expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(15);
     });
 
@@ -192,7 +192,7 @@ describe('substitute tests', () => {
         const pokemon: IPokemon = CreatePokemonWithSubstitute();
         const turn = CreateMockTurn();
         turn.ApplyIndirectDamage(pokemon, 25);
-        expect(pokemon.currentStats.health).toBe(50);
+        expect(pokemon.currentStats.hp).toBe(50);
         expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(25);
     })
 
@@ -201,7 +201,7 @@ describe('substitute tests', () => {
         const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
         const turn = CreateMockTurn();
         turn.ApplyDamage(enemyPokemon, pokemon, 100, {});
-        expect(pokemon.currentStats.health).toBe(75);
+        expect(pokemon.currentStats.hp).toBe(75);
         expect(pokemon.hasSubstitute).toBe(false);
         expect(pokemon.volatileStatuses.find(vStat=>vStat.type === VolatileStatusType.Substitute)).toBe(undefined);
     });

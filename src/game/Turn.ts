@@ -248,7 +248,7 @@ export class Turn {
         pokemon.volatileStatuses = [];
 
         //game over check.
-        if (owner.pokemon.filter(poke => poke.currentStats.health > 0).length === 0) {
+        if (owner.pokemon.filter(poke => poke.currentStats.hp > 0).length === 0) {
             const winningPlayer = this.players.filter(player => player.id !== owner.id)[0];
             this.currentState = {
                 type: 'game-over',
@@ -263,32 +263,32 @@ export class Turn {
 
     ApplyHealing(pokemon: IPokemon, amount: number) {
         const itemHealAmount = amount;
-        const healing = Math.min(pokemon.originalStats.health - pokemon.currentStats.health, itemHealAmount);
-        pokemon.currentStats.health = Math.min(pokemon.originalStats.health, pokemon.currentStats.health + itemHealAmount);
+        const healing = Math.min(pokemon.originalStats.hp - pokemon.currentStats.hp, itemHealAmount);
+        pokemon.currentStats.hp = Math.min(pokemon.originalStats.hp, pokemon.currentStats.hp + itemHealAmount);
         let itemEffect: HealEvent = {
             type: BattleEventType.Heal,
             targetPokemonId: pokemon.id,
-            targetFinalHealth: pokemon.currentStats.health,
+            targetFinalHealth: pokemon.currentStats.hp,
             totalHealing: healing,
         }
         this.AddEvent(itemEffect);
     }
 
     ApplyIndirectDamage(pokemon: IPokemon, damage: number) {
-        pokemon.currentStats.health -= damage;
-        pokemon.currentStats.health = Math.max(0, pokemon.currentStats.health);
+        pokemon.currentStats.hp -= damage;
+        pokemon.currentStats.hp = Math.max(0, pokemon.currentStats.hp);
 
         const damageEffect: DamageEvent = {
             type: BattleEventType.Damage,
             targetPokemonId: pokemon.id,
             attackerPokemonId: pokemon.id, //this is wrong, we need a way to pass this into this function 
-            targetFinalHealth: pokemon.currentStats.health,
+            targetFinalHealth: pokemon.currentStats.hp,
             targetDamageTaken: damage,
             didCritical: false,
             effectivenessAmt: 1
         }
         this.AddEvent(damageEffect);
-        if (pokemon.currentStats.health <= 0) {
+        if (pokemon.currentStats.hp <= 0) {
             this.PokemonFainted(pokemon);
         }
     }
@@ -312,14 +312,14 @@ export class Turn {
             return;
         }
 
-        defendingPokemon.currentStats.health -= damage
-        defendingPokemon.currentStats.health = Math.max(0, defendingPokemon.currentStats.health);
+        defendingPokemon.currentStats.hp -= damage
+        defendingPokemon.currentStats.hp = Math.max(0, defendingPokemon.currentStats.hp);
 
         const damageEffect: DamageEvent = {
             type: BattleEventType.Damage,
             targetPokemonId: defendingPokemon.id,
             attackerPokemonId: attackingPokemon.id, //this is wrong, we need a way to pass this into this function 
-            targetFinalHealth: defendingPokemon.currentStats.health,
+            targetFinalHealth: defendingPokemon.currentStats.hp,
             targetDamageTaken: damage,
             didCritical: damageInfo.critStrike === undefined ? false : damageInfo.critStrike,
             effectivenessAmt: damageInfo.typeEffectivenessBonus === undefined ? 1 : damageInfo.typeEffectivenessBonus
@@ -335,7 +335,7 @@ export class Turn {
         GetAbility(attackingPokemon.ability).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
 
 
-        if (defendingPokemon.currentStats.health <= 0) {
+        if (defendingPokemon.currentStats.hp <= 0) {
             this.PokemonFainted(defendingPokemon)
         }
     }
@@ -572,7 +572,7 @@ export class Turn {
         }
         this.AddEvent(useMoveEffect);
 
-        if (!this.Roll(move.chance)) {
+        if (!this.Roll(move.accuracy)) {
             useMoveEffect.didMoveHit = false;
             return;
         }

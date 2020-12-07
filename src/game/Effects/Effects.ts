@@ -56,7 +56,7 @@ export type BattleEffect = {target?:TargetType,chance?:number} & (InflictStatusE
 export function InflictStatus(turn:Turn,pokemon:IPokemon,status:Status,source:IPokemon){
         const targetPokemon = pokemon;
         //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
-        if (targetPokemon.status !== Status.None || targetPokemon.currentStats.health === 0) {
+        if (targetPokemon.status !== Status.None || targetPokemon.currentStats.hp === 0) {
             return;
         }
 
@@ -139,7 +139,7 @@ function ApplyHealingEffect(turn:Turn,pokemon:IPokemon,effect:HealthRestoreEffec
         turn.ApplyHealing(pokemon, effect.amount);
     }
     else if (effect.restoreType === HealthRestoreType.PercentMaxHealth) {
-        const amount = Math.floor(pokemon.originalStats.health / (100 / effect.amount));
+        const amount = Math.floor(pokemon.originalStats.hp / (100 / effect.amount));
         turn.ApplyHealing(pokemon, amount);
     }
 }

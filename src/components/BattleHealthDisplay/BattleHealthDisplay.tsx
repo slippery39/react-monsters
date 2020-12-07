@@ -32,10 +32,10 @@ const BattleHealthDisplay: React.FunctionComponent<Props> = (props) => {
                 }
             </div>
             <div className='battle-health-bar'>
-                <AnimatedHealthBar animate={false} value={ (props.pokemon.currentStats.health/props.pokemon.originalStats.health) * 100} onComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()} } } />
+                <AnimatedHealthBar animate={false} value={ (props.pokemon.currentStats.hp/props.pokemon.originalStats.hp) * 100} onComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()} } } />
             </div>
             <div className='battle-health-text'>
-                <AnimatedNumber animate={false} number={props.pokemon.currentStats.health}/> / {props.pokemon.originalStats.health}
+                <AnimatedNumber animate={false} number={props.pokemon.currentStats.hp}/> / {props.pokemon.originalStats.hp}
             </div>
         </div>
     );

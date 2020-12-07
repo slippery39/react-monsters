@@ -6,8 +6,8 @@ const Charizard = function () {
     return builder
         .OfSpecies("Charizard")
         .WithEVs({
-            defence: 4,
-            specialAttack: 252,
+            defense: 4,
+            spAttack: 252,
             speed: 252
         })
         .WithTechniques([
@@ -25,9 +25,9 @@ const Blastoise = function(){
     return  builder
         .OfSpecies("Blastoise")
         .WithEVs({
-            health: 252,
-            defence: 252,
-            specialAttack: 4,
+            hp: 252,
+            defense: 252,
+            spAttack: 4,
         })
         .WithTechniques([
             "Surf",
@@ -44,7 +44,7 @@ const Venusaur = function(){
     return builder
         .OfSpecies("Venusaur")
         .WithEVs({
-            health: 4,
+            hp: 4,
             attack: 252,
             speed: 252
         })
@@ -64,8 +64,8 @@ const Raichu = function(){
     return builder
     .OfSpecies("Raichu")
     .WithEVs({
-        specialDefence: 4,
-        specialAttack:252,
+        spDefense: 4,
+        spAttack:252,
         speed: 252
     })
     .WithTechniques([
@@ -83,8 +83,8 @@ const Alakazam = function(){
     return builder
     .OfSpecies("Alakazam")
     .WithEVs({
-        health: 4,
-        specialAttack:252,
+        hp: 4,
+        spAttack:252,
         speed: 252
     })
     .WithTechniques([
@@ -103,8 +103,8 @@ const Gengar = function(){
     return builder
     .OfSpecies("Gengar")
     .WithEVs({
-        specialAttack:252,
-        specialDefence:4,
+        spAttack:252,
+        spDefense:4,
         speed:252
     })
     .WithTechniques([

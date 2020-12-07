@@ -7,6 +7,7 @@ import { Technique } from "game/Techniques/Technique";
 import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { Status } from "game/HardStatus/HardStatus";
 import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
+import { stat } from "fs";
 
 
 export interface IPokemon {
@@ -34,20 +35,20 @@ export interface IPokemon {
 }
 
 export interface Stats{
-    health:number,
+    hp:number,
     attack:number,
-    defence: number,
-    specialAttack:number,
-    specialDefence:number,
+    defense: number,
+    spAttack:number,
+    spDefense:number,
     speed:number
 }
 
 export interface PartialStats{
-    health?:number,
+    hp?:number,
     attack?:number,
-    defence?: number,
-    specialAttack?:number,
-    specialDefence?:number,
+    defense?: number,
+    spAttack?:number,
+    spDefense?:number,
     speed?:number
 }
 
@@ -77,11 +78,11 @@ export class PokemonBuilder{
                 },
                 baseStats:CreateEmptyStats(),
                 ivs:{
-                    health:31,
+                    hp:31,
                     attack:31,
-                    defence:31,
-                    specialAttack:31,
-                    specialDefence:31,
+                    defense:31,
+                    spAttack:31,
+                    spDefense:31,
                     speed:31
                 },
                 toxicCount:1,
@@ -150,13 +151,13 @@ export function GetStat(pokemon:IPokemon,stat:Stat) : number{
             return pokemon.currentStats.attack
         }
         case Stat.Defense:{
-            return pokemon.currentStats.defence
+            return pokemon.currentStats.defense
         }
         case Stat.SpecialAttack:{
-            return pokemon.currentStats.specialAttack
+            return pokemon.currentStats.spAttack
         }
         case Stat.SpecialDefense:{
-            return pokemon.currentStats.specialDefence
+            return pokemon.currentStats.spDefense
         }
         case Stat.Speed:{
             return pokemon.currentStats.speed
@@ -166,11 +167,11 @@ export function GetStat(pokemon:IPokemon,stat:Stat) : number{
 
 export function CreateEmptyStats():Stats{
     return {
-        health: 0,
+        hp: 0,
         attack: 0,
-        defence: 0,
-        specialAttack: 0,
-        specialDefence: 0,
+        defense: 0,
+        spAttack: 0,
+        spDefense: 0,
         speed: 0
     }
 }
@@ -183,36 +184,27 @@ export function ConvertBaseStatsToRealStats(pokemon:IPokemon): Stats{
     const level = 100;
     const natureMod = 1; //assuming a neutral nature for now.
 
-    let calculatedStats : any = CreateEmptyStats();
+    let calculatedStats : Stats = CreateEmptyStats();
 
-
-
-    const hp1 = (2*pokemon.baseStats.health + pokemon.ivs.health + ( pokemon.evs.health / 4 ) ) * level;
+    const hp1 = (2*pokemon.baseStats.hp + pokemon.ivs.hp + ( pokemon.evs.hp / 4 ) ) * level;
     const hp2 = hp1/100;
     const hp3 = hp2+level+10;
 
-    calculatedStats['health'] = hp3;
+    calculatedStats.hp = hp3;
 
+    function CalculateStat(iv:number,ev:number,base:number) : number{
+        const calc1 = (2*base+iv+(ev/4) ) * level
+        const calc2 = ( (calc1/100) + 5 ) * natureMod
+        return calc2;
+    }
 
-    //calculating other stats
-    //having to do things this way makes me feel like the stats should be a dictionary of the Stat enum type instead.
-    const statsToCalculate = ['attack','specialAttack','speed','defence','specialDefence'];
+    calculatedStats.attack = CalculateStat(pokemon.ivs.attack,pokemon.evs.attack,pokemon.baseStats.attack);
+    calculatedStats.spAttack= CalculateStat(pokemon.ivs.spAttack,pokemon.evs.spAttack,pokemon.baseStats.spAttack);
+    calculatedStats.speed= CalculateStat(pokemon.ivs.speed,pokemon.evs.speed,pokemon.baseStats.speed);
+    calculatedStats.defense= CalculateStat(pokemon.ivs.defense,pokemon.evs.defense,pokemon.baseStats.defense);
+    calculatedStats.spDefense= CalculateStat(pokemon.ivs.spDefense,pokemon.evs.spDefense,pokemon.baseStats.spDefense);
 
-    statsToCalculate.forEach((stat)=>{
-
-        const ivsAsAny = pokemon.ivs as any;
-        const evsAsAny = pokemon.evs as any;
-        const baseStats = pokemon.baseStats as any;
-
-        const ivValue = ivsAsAny[stat];
-        const evValue = evsAsAny[stat];
-
-        const other1 = (2*baseStats[stat]+ivValue+(evValue/4) ) * level
-        const other2 = ( (other1/100) + 5 ) * natureMod
-        calculatedStats[stat] = other2;
-    });
-
-    return calculatedStats as Stats;
+    return calculatedStats;
 }
 
 export function GetPokemonBoostStage(pokemon:IPokemon,stat:Stat) : number{

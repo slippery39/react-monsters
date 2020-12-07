@@ -58,11 +58,11 @@ export class SubstituteVolatileStatus extends VolatileStatus {
     }
 
     HealthForSubstitute(pokemon: IPokemon) {
-        return Math.ceil(pokemon.originalStats.health / 4);
+        return Math.ceil(pokemon.originalStats.hp / 4);
     }
 
     CanApply(turn: Turn, pokemon: IPokemon) {
-        const canApply = super.CanApply(turn, pokemon) && (pokemon.currentStats.health > this.HealthForSubstitute(pokemon));
+        const canApply = super.CanApply(turn, pokemon) && (pokemon.currentStats.hp > this.HealthForSubstitute(pokemon));
 
         //Not ideal here, but works for now. 
         if (!canApply){
@@ -90,8 +90,19 @@ export class SubstituteVolatileStatus extends VolatileStatus {
         */
 
         this.substituteHealth = this.HealthForSubstitute(pokemon);
-        pokemon.currentStats.health -= this.HealthForSubstitute(pokemon);
+        pokemon.currentStats.hp -= this.HealthForSubstitute(pokemon);
         pokemon.hasSubstitute = true;
+
+        //temporary, to show the damage animtion in the ui.
+        turn.AddEvent({
+            type:BattleEventType.Damage,
+            targetPokemonId:pokemon.id,
+            attackerPokemonId:pokemon.id,
+            targetDamageTaken:this.HealthForSubstitute(pokemon),
+            didCritical:false,
+            targetFinalHealth:pokemon.currentStats.hp,
+            effectivenessAmt:1
+        })
         turn.AddEvent({
             type:BattleEventType.SubstituteCreated,
             targetPokemonId:pokemon.id
@@ -136,7 +147,7 @@ export class AquaRingVolatileStatus extends VolatileStatus {
     }
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
         //heal 1/16 of hp
-        turn.ApplyHealing(pokemon, pokemon.originalStats.health / 16);
+        turn.ApplyHealing(pokemon, pokemon.originalStats.hp / 16);
         turn.ApplyMessage(`${pokemon.name} restored a little health due to aqua veil!`);
     }
 }
@@ -178,7 +189,7 @@ export class LeechSeedVolatileStatus extends VolatileStatus {
     }
 
     EndOfTurn(turn: Turn, pokemon: IPokemon) {
-        const leechSeedDamage = pokemon.originalStats.health / 16;
+        const leechSeedDamage = pokemon.originalStats.hp / 16;
         //deal the leech seed damage to the pokemon
         //heal the opponent pokemon
         const opponentPlayer = turn.players.find(player => player.currentPokemonId !== pokemon.id);

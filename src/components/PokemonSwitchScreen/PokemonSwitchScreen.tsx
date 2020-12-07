@@ -19,7 +19,7 @@ const PokemonSwitchScreen: React.FunctionComponent<Props> = (props) => {
     const items = props.player.pokemon.map((pokemon, index) =>
         (
             <PokemonSwitchContainer key={pokemon.id} pokemon={pokemon} onClick={() => {
-                if (props.onPokemonClick !== undefined && pokemon.currentStats.health > 0) {
+                if (props.onPokemonClick !== undefined && pokemon.currentStats.hp > 0) {
                     props.onPokemonClick(pokemon)
                 }
             }

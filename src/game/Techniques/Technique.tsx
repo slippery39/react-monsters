@@ -19,5 +19,5 @@ export interface Technique{
  damageType: DamageType,
  elementalType:ElementType,
  effects?:Array<BattleEffect>
- chance: number
+ accuracy: number
 }

@@ -20,13 +20,13 @@ describe('Levitate Ability Tests',()=>{
 
         const pokemon2 = new PokemonBuilder().
         OfSpecies("Charizard")
-        .WithBaseStats({ health: 200, attack: 1, specialAttack: 1, defence: 1, specialDefence: 1, speed: 1 })
+        .WithBaseStats({ hp: 200, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
         .Build();
 
         const earthquake = GetTech("earthquake");
-        const gengarHealth = pokemon.currentStats.health;
+        const gengarHealth = pokemon.currentStats.hp;
         turn.UseTechnique(pokemon2,pokemon,earthquake);
-        expect(pokemon.currentStats.health).toBe(gengarHealth);
+        expect(pokemon.currentStats.hp).toBe(gengarHealth);
     });
 
 });
@@ -48,8 +48,8 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     //get the ability
     const blazeAbility = GetAbility(pokemon.ability);
 
-    pokemon.originalStats.health = 100;
-    pokemon.currentStats.health = 34;
+    pokemon.originalStats.hp = 100;
+    pokemon.currentStats.hp = 34;
 
     const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{});
 
@@ -70,8 +70,8 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     //get the ability
     const blazeAbility = GetAbility(pokemon.ability);
 
-    pokemon.originalStats.health = 100;
-    pokemon.currentStats.health = 33;
+    pokemon.originalStats.hp = 100;
+    pokemon.currentStats.hp = 33;
 
     const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{});
 
@@ -90,8 +90,8 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     //get the ability
     const blazeAbility = GetAbility(pokemon.ability);
 
-    pokemon.originalStats.health = 100;
-    pokemon.currentStats.health = 33;
+    pokemon.originalStats.hp = 100;
+    pokemon.currentStats.hp = 33;
 
     const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Earthquake"),pokemon,100,{});
 

@@ -21,11 +21,11 @@ const pokemons: SpeciesDB = {
         name: 'Charizard',
         elementalTypes:[ElementType.Fire,ElementType.Flying],
         baseStats: {
-            health: 78,
+            hp: 78,
             attack: 84,
-            defence: 78,
-            specialAttack: 109,
-            specialDefence: 85,
+            defense: 78,
+            spAttack: 109,
+            spDefense: 85,
             speed: 100
         },
         ability:"Blaze"
@@ -34,11 +34,11 @@ const pokemons: SpeciesDB = {
         name: 'Blastoise',
         elementalTypes:[ElementType.Water],
         baseStats: {
-            health: 79,
+            hp: 79,
             attack: 83,
-            defence: 100,
-            specialAttack: 85,
-            specialDefence: 105,
+            defense: 100,
+            spAttack: 85,
+            spDefense: 105,
             speed: 78
         },
         ability:"Torrent"
@@ -47,11 +47,11 @@ const pokemons: SpeciesDB = {
         name: 'Venusaur',
         elementalTypes:[ElementType.Grass,ElementType.Poison],
         baseStats: {
-            health: 80,
+            hp: 80,
             attack: 82,
-            defence: 83,
-            specialAttack: 100,
-            specialDefence: 100,
+            defense: 83,
+            spAttack: 100,
+            spDefense: 100,
             speed: 80
         },
         ability:"Overgrowth"
@@ -60,11 +60,11 @@ const pokemons: SpeciesDB = {
         name:"Raichu",
         elementalTypes:[ElementType.Electric],
         baseStats:{
-            health:60,
+            hp:60,
             attack:90,
-            defence:55,
-            specialAttack:90,
-            specialDefence:80,
+            defense:55,
+            spAttack:90,
+            spDefense:80,
             speed:100
         },
         ability:"Lightning Rod"
@@ -73,11 +73,11 @@ const pokemons: SpeciesDB = {
         name:"Alakazam",
         elementalTypes:[ElementType.Psychic],
         baseStats:{
-            health:55,
+            hp:55,
             attack:50,
-            defence:45,
-            specialAttack:135,
-            specialDefence:85,
+            defense:45,
+            spAttack:135,
+            spDefense:85,
             speed:120
         },
         ability:"Magic Guard"
@@ -86,11 +86,11 @@ const pokemons: SpeciesDB = {
         name:"Gengar",
         elementalTypes:[ElementType.Ghost,ElementType.Poison],
         baseStats:{
-            health:60,
+            hp:60,
             attack:65,
-            defence:60,
-            specialAttack:130,
-            specialDefence:75,
+            defense:60,
+            spAttack:130,
+            spDefense:75,
             speed:110
         },
         ability:"Levitate"

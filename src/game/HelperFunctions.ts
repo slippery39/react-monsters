@@ -13,12 +13,12 @@ export function GetActivePokemon(player: Player) {
 }
 
 export function GetPercentageHealth(pokemon: IPokemon) {
-    return (pokemon.currentStats.health / pokemon.originalStats.health) * 100
+    return (pokemon.currentStats.hp / pokemon.originalStats.hp) * 100
 }
 
 
 export function IsFainted(pokemon: IPokemon) {
-    return pokemon.currentStats.health <= 0;
+    return pokemon.currentStats.hp <= 0;
 }
 
 export function HasElementType(pokemon: IPokemon, element: ElementType) {

@@ -8,16 +8,11 @@ interface ItemBase{
     effects:Array<BattleEffect>
 }
 
-interface PremadeItems {
-    [key:string] : ItemBase
-}
 
 export function GetItem(name:string): ItemBase{
     
-    const items : PremadeItems = {
-
-
-        "Antidote":{
+    const items : Array<ItemBase>= [
+        {
             name:"Antidote",
             description:'Cures poison',
             effects:[{
@@ -29,7 +24,7 @@ export function GetItem(name:string): ItemBase{
          forStatus:Status.ToxicPoison   
         }]
         },
-        "Full Restore":{
+        {
             name:"Full Restore",
             description:'Heals to full health and cures any status',
             effects:[{
@@ -39,7 +34,7 @@ export function GetItem(name:string): ItemBase{
             },
             {type:'status-restore',forStatus:'any'}]
         },
-        "Potion": {
+        {
             name:'Potion',
             description:'Restores 20 HP',
             effects:[{
@@ -49,7 +44,7 @@ export function GetItem(name:string): ItemBase{
                 }
             ]
         },
-        "Super Potion":{
+        {
             name:'Super Potion',
             description:'Restores 60 HP',
             effects:[
@@ -60,7 +55,7 @@ export function GetItem(name:string): ItemBase{
                 }
             ]
         },
-        "Hyper Potion":{
+        {
             name:'Hyper Potion',
             description:'Restores 120 HP',
             effects:[
@@ -71,7 +66,7 @@ export function GetItem(name:string): ItemBase{
                 }
             ]
         },
-        "Max Potion":{
+        {
             name:"Max Potion",
             description:'Fully restores HP',
             effects:[
@@ -82,8 +77,16 @@ export function GetItem(name:string): ItemBase{
                 }
             ]
         }
+    ]
+
+    const item = items.find(i=>{
+        return i.name.toLowerCase().trim() === name.toLowerCase().trim();
+    })
+
+    if (item === undefined){
+        throw new Error (`Could not locate premade item with name ${name}`);
     }
 
-    return items[name];
+    return item;
 }
 
