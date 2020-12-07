@@ -12,6 +12,7 @@ import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
 import { BattleEffect, DoEffect, TargetType } from './Effects/Effects';
 import { SubstituteVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
+import { Item } from './Items/Item';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -192,7 +193,17 @@ export class Turn {
                 break;
             }
             case 'use-item-action': {
-                this.UseItem(action.playerId, action.itemId);
+
+                const player = this.GetPlayer(action.playerId);
+                const item = player.items.find(item=>{
+                    return item.id === action.itemId
+                })
+                if (item === undefined){
+                    throw new Error('Could not find item to use for use-item-action');
+                }
+
+                this.UseItem(player,item);
+  
                 break;
             }
             case 'use-move-action': {
@@ -532,17 +543,8 @@ export class Turn {
         this.AddEvent(switchInEffect);
     }
 
-    private UseItem(playerId: number, itemId: number) {
-        const player = this.GetPlayer(playerId);
-        const item = player?.items.find(item => item.id === itemId);
-
-        if (item === undefined) {
-            console.error("could not find item to use for use item");
-            return;
-        }
-
-        const pokemon = this.GetActivePokemon(playerId);
-
+    UseItem(player:Player,item:Item){
+        const pokemon = this.GetActivePokemon(player.id);
         const useItemEffect: UseItemEvent = {
             type: BattleEventType.UseItem,
             itemName: item.name,
@@ -564,7 +566,10 @@ export class Turn {
             const itemIndex = player.items.indexOf(item);
             player.items.splice(itemIndex, 1);
         }
+
     }
+
+ 
 
     //temporary, i want to see how easier this makes testing
     UseTechnique(pokemon:IPokemon,defendingPokemon:IPokemon,move:Technique){
