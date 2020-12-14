@@ -11,10 +11,13 @@ const Charizard = function () {
             speed: 252
         })
         .WithTechniques([
+            "Giga Drain"
+            /*
             "Fire Blast",
             "Air Slash",
             "Focus Blast",
             "Substitute"
+            */
         ])
         .WithHeldItem("Life Orb")
         .Build();
@@ -116,6 +119,26 @@ const Gengar = function(){
     .WithHeldItem("Life Orb")
     .Build()
 }
+/*
+const Meganium = function(){
+    const builder = new PokemonBuilder();
+    return builder
+    .OfSpecies("Meganium")
+    .WithEVs({
+        hp:252,
+        defense:4,
+        spDefense:252
+    })
+    .WithTechniques([
+        "Aromatherapy",
+        "Synthesis",
+        "Giga Drain",
+        "Toxic"
+    ])
+    .WithHeldItem("Leftovers")
+    .Build();
+}
+*/
 
 
 const GetPokemon = function(name:string):IPokemon{
@@ -126,7 +149,7 @@ const GetPokemon = function(name:string):IPokemon{
         Venusaur(),
         Raichu(),
         Alakazam(),
-        Gengar()      
+        Gengar(), 
     ]
 
 

@@ -1,7 +1,9 @@
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
 import GetHardStatus, { HardStatus, Status } from "game/HardStatus/HardStatus";
+import { Item } from "game/Items/Item";
 import { ApplyStatBoost, IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
+import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 
@@ -46,9 +48,14 @@ export interface StatusRestoreEffect{
     forStatus:Status | 'any',
 }
 
+export interface DrainEffect{
+    type:'drain',
+    amount:number
+}
 
 
-export type BattleEffect = {target?:TargetType,chance?:number} & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect);
+
+export type BattleEffect = {target?:TargetType,chance?:number} & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect);
 
 
 
@@ -167,15 +174,33 @@ function ApplyStatusRestoreEffect(turn:Turn,pokemon:IPokemon,effect:StatusRestor
     }
 }
 
+function DrainEffect(turn:Turn,pokemonToHeal:IPokemon,effect:DrainEffect,damage:number){
+   const drainAmount = damage * (effect.amount*0.01);
+   turn.ApplyHealing(pokemonToHeal,drainAmount);
+   turn.ApplyMessage(`${pokemonToHeal.name} drained some energy.`)
+}
+
+interface EffectSource{
+    sourcePokemon?:IPokemon,
+    sourceTechnique?:Technique,
+    sourceDamage?:number,
+    sourceItem?:Item 
+}
+
 
 //need someting more abstract for the source, but for now just having the pokemon will do.
-export function DoEffect(turn:Turn,pokemon:IPokemon,effect:BattleEffect,source:IPokemon){
+export function DoEffect(turn:Turn,pokemon:IPokemon,effect:BattleEffect,source:EffectSource){
 
-    console.log("which effect are we doing?");
-    console.log(effect.type);
+
+    //TODO: We need a sourceInfo object,
+    //This object could contain many different source info things.
+    //like the pokemon, the technique, the hazard the item etc.
     switch(effect.type){
         case 'inflict-status':{
-            InflictStatus(turn,pokemon,effect.status,source);
+            if (source.sourcePokemon===undefined){
+                throw new Error("Need a source pokemon to DoEffect - inflict-status");
+            }
+            InflictStatus(turn,pokemon,effect.status,source.sourcePokemon);
             break;
         }
         case 'stat-boost':{
@@ -183,12 +208,13 @@ export function DoEffect(turn:Turn,pokemon:IPokemon,effect:BattleEffect,source:I
             break;
         }
         case 'inflict-volatile-status':{
-            InflictVolatileStatus(turn,pokemon,effect.status,source);
+            if (source.sourcePokemon===undefined){
+                throw new Error("Need a source pokemon to DoEffect - inflict-volatile-status");
+            }
+            InflictVolatileStatus(turn,pokemon,effect.status,source.sourcePokemon);
             break;
         }
         case 'health-restore':{
-            console.log('which pokemon are we targeting?');
-            console.log(pokemon);
             ApplyHealingEffect(turn,pokemon,effect);
             break;
         }
@@ -196,8 +222,15 @@ export function DoEffect(turn:Turn,pokemon:IPokemon,effect:BattleEffect,source:I
             ApplyStatusRestoreEffect(turn,pokemon,effect);
             break;
         }
+        case 'drain':{
+            if (source.sourceDamage===undefined){
+                throw new Error("Need a source damage to DoEffect - drain");
+            }
+            DrainEffect(turn,pokemon,effect,source.sourceDamage);
+            break;
+        }
         default:{
-            throw new Error(`Effect type ${effect} is not defined in DoEffect()`);
+            throw new Error(`Effect type ${effect['type']} is not defined in DoEffect()`);
         }
     }
 }

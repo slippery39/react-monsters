@@ -20,6 +20,19 @@ export function GetTech(name: string) {
 
     const techs: Array<BaseTechnique>= [
         {
+            name:"Giga Drain",
+            description:"A nutrient-draining attack. The user's HP is restored by half the damage taken by the target.",
+            pp:16,
+            power:75,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Grass,
+            accuracy:100,
+            effects:[{
+                type:'drain',
+                amount:50,
+            }]
+        },
+        {
             name: "Ice Beam",
             description: '',
             pp: 16,

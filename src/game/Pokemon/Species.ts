@@ -94,6 +94,19 @@ const pokemons: SpeciesDB = {
             speed:110
         },
         ability:"Levitate"
+    },
+    "meganium":{
+        name:"Meganium",
+        elementalTypes:[ElementType.Grass],
+        baseStats:{
+            hp:80,
+            attack:82,
+            defense:100,
+            spAttack:83,
+            spDefense:100,
+            speed:100
+        },
+        ability:"Overgrowth"
     }
 }
 

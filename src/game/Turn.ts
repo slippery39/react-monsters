@@ -544,9 +544,8 @@ export class Turn {
         this.AddEvent(useItemEffect);
 
         item.effects.forEach((effect: BattleEffect) => {
-
             //we could do a little bit of a hack here, have the source here be the pokemon as well, so that this will always apply?
-            DoEffect(this, pokemon, effect, pokemon);
+            DoEffect(this, pokemon, effect,{sourceItem:item});
         }
         );
 
@@ -579,7 +578,7 @@ export class Turn {
 
         if (move.damageType === 'physical' || move.damageType === 'special') {
             //this method was extracted by using "extract method" and needs to be refactored. we should probably just return a partial event log.
-            this.DoDamageMove(pokemon, defendingPokemon, move);
+            let damage:number = this.DoDamageMove(pokemon, defendingPokemon, move);
             /*
                 On Frozen Pokemon Damaged by Fire Move
                     -UNTHAW THE POKEMON
@@ -597,7 +596,7 @@ export class Turn {
                 this.AddEvent(thawEffect);
             }
 
-            this.ApplyMoveEffects(move, pokemon, defendingPokemon);
+            this.ApplyMoveEffects(move, pokemon, defendingPokemon,damage);
         }
         else {
             this.DoStatusMove(move, defendingPokemon, pokemon);
@@ -609,23 +608,29 @@ export class Turn {
         this.ApplyMoveEffects(move, pokemon, defendingPokemon);
     }
 
-    private ApplyMoveEffects(move: Technique, pokemon: IPokemon, defendingPokemon: IPokemon): void {
+    private ApplyMoveEffects(move: Technique, pokemon: IPokemon, defendingPokemon: IPokemon,moveDamage?:number): void {
         if (!move.effects) {
             return;
         }
         move.effects.forEach((effect) => {
             const chance = effect.chance === undefined ? 100 : effect.chance;
             const targetType = effect.target === undefined ? TargetType.Enemy : effect.target;
-            const targetPokemon = targetType == TargetType.Self ? pokemon : defendingPokemon;
+            var targetPokemon = targetType == TargetType.Self ? pokemon : defendingPokemon;
+
+            
+            //quick override for drain effects while we think about the best way to handle this type of effect.
+            if (effect.type === 'drain'){
+                targetPokemon = pokemon;
+            }
+
             if (this.Roll(chance)) {
-                //Added source as 4th argument
-                console.log("are we doing an effect?");
-                DoEffect(this, targetPokemon, effect, pokemon);
+                DoEffect(this, targetPokemon, effect, {sourcePokemon:pokemon,sourceTechnique:move,sourceDamage:moveDamage});
             }
         });
     }
 
-    private DoDamageMove(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) {
+    //passing the damage dealt for now,
+    private DoDamageMove(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) : number {
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
@@ -638,10 +643,11 @@ export class Turn {
         const defendingAbility = GetAbility(defendingPokemon.ability);
         if (defendingAbility.NegateDamage(this,move) === true){
             //no damage will be applied, any messages why will be handled by the ability itslef.
-            return;
+            return 0;
         }   
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
+        return newDamage;
     }
 
     private EndTurn() {
