@@ -20,6 +20,18 @@ export function GetTech(name: string) {
 
     const techs: Array<BaseTechnique>= [
         {
+            name:"Aromatherapy",
+            description:"The user releases a soothing scent that heals all status conditions affecting the user's party.",
+            pp:8,
+            power:0,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Grass,
+            accuracy:100,
+            effects:[{
+                type:"aromatherapy"
+            }]
+        },
+        {
             name:"Giga Drain",
             description:"A nutrient-draining attack. The user's HP is restored by half the damage taken by the target.",
             pp:16,

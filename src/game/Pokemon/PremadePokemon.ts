@@ -11,7 +11,8 @@ const Charizard = function () {
             speed: 252
         })
         .WithTechniques([
-            "Giga Drain"
+            "Giga Drain",
+            "Aromatherapy"
             /*
             "Fire Blast",
             "Air Slash",
