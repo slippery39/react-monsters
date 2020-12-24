@@ -1,5 +1,4 @@
-import { BattleEffect } from "game/Effects/Effects";
-import { ElementType } from "game/ElementType";
+import { BaseTechnique } from "./PremadeTechniques";
 
 
 
@@ -9,15 +8,7 @@ export enum DamageType{
     Status = 'status'
 }
 
-export interface Technique{
+export interface Technique extends BaseTechnique{
  id:number,
- name:string,
- description:string,
- pp:number,
  currentPP:number,
- power:number,
- damageType: DamageType,
- elementalType:ElementType,
- effects?:Array<BattleEffect>
- accuracy: number
 }

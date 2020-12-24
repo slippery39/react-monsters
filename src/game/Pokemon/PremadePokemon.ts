@@ -11,14 +11,10 @@ const Charizard = function () {
             speed: 252
         })
         .WithTechniques([
-            "Giga Drain",
-            "Aromatherapy"
-            /*
-            "Fire Blast",
+             "Eruption",
             "Air Slash",
             "Focus Blast",
             "Substitute"
-            */
         ])
         .WithHeldItem("Life Orb")
         .Build();
@@ -120,7 +116,7 @@ const Gengar = function(){
     .WithHeldItem("Life Orb")
     .Build()
 }
-/*
+
 const Meganium = function(){
     const builder = new PokemonBuilder();
     return builder
@@ -139,7 +135,29 @@ const Meganium = function(){
     .WithHeldItem("Leftovers")
     .Build();
 }
-*/
+
+/*
+const Typlosion = function(){
+    
+    const builder = new PokemonBuilder();
+    return builder
+    .OfSpecies("Typhlosion")
+    .WithEVs({
+        speed:252,
+        defense:4,
+        spAttack:252
+    })
+    .WithTechniques([
+        "Eruption",
+        "Hidden Power (Grass)",
+        "Focus Blast",
+        "Fireblast"
+    ])
+    .WithHeldItem("Leftovers")
+    .Build();
+    
+}*/
+
 
 
 const GetPokemon = function(name:string):IPokemon{
@@ -151,6 +169,7 @@ const GetPokemon = function(name:string):IPokemon{
         Raichu(),
         Alakazam(),
         Gengar(), 
+        Meganium(),
     ]
 
 

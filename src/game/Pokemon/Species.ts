@@ -107,7 +107,21 @@ const pokemons: SpeciesDB = {
             speed:100
         },
         ability:"Overgrowth"
+    },
+    "typhlosion":{
+        name:"Typhlosion",
+        elementalTypes:[ElementType.Fire],
+        baseStats:{
+            hp:74,
+             attack:84,
+            defense:78,
+            spAttack:109,
+            spDefense:85,
+            speed:100
+        },
+        ability:"Flash Fire"
     }
+
 }
 
 

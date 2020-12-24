@@ -13,6 +13,8 @@ import GetAbility from './Ability/Ability';
 import { BattleEffect, DoEffect, TargetType } from './Effects/Effects';
 import { SubstituteVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
 import { Item } from './Items/Item';
+import _ from 'lodash';
+import { GetDamageEffect } from './DamageEffects/DamageEffects';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -578,7 +580,11 @@ export class Turn {
 
         if (move.damageType === 'physical' || move.damageType === 'special') {
             //this method was extracted by using "extract method" and needs to be refactored. we should probably just return a partial event log.
+
+
             let damage:number = this.DoDamageMove(pokemon, defendingPokemon, move);
+
+            
             /*
                 On Frozen Pokemon Damaged by Fire Move
                     -UNTHAW THE POKEMON
@@ -630,11 +636,21 @@ export class Turn {
     }
 
     //passing the damage dealt for now,
-    private DoDamageMove(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) : number {
+    private DoDamageMove(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) : number {        
+
+        //Easy quick hack for handling eruption, but we need to think of a way to do this non hacky.
+        //perhaps we should revamp our whole damage system?
+        if (move.damageEffect){
+            const damageEffect = GetDamageEffect(move.damageEffect.type);
+            move = damageEffect.ModifyTechnique(pokemon,move);
+            console.warn('move changed?');
+            console.warn(move);
+        }
+
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
-
+    
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
         const ability = GetAbility(pokemon.ability);
         const newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);

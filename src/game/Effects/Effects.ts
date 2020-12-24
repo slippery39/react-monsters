@@ -1,8 +1,7 @@
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
-import GetHardStatus, { HardStatus, Status } from "game/HardStatus/HardStatus";
+import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { Item } from "game/Items/Item";
-import { Player } from "game/Player/PlayerBuilder";
-import { ApplyStatBoost, IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
+import { ApplyStatBoost, IPokemon} from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";

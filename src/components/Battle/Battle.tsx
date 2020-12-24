@@ -101,8 +101,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return { players: action.newState! };
             }
             case 'health-change': {
-                console.log('health change triggered');
-                console.log(action.newHealth);
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (action.newHealth === undefined) {
                     return state;

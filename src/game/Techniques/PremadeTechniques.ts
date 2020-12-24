@@ -1,11 +1,13 @@
+import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
 import { BattleEffect, TargetType, HealthRestoreType } from "game/Effects/Effects";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { ElementType } from "../ElementType";
-import { DamageType} from "./Technique";
+import { DamageType, Technique } from "./Technique";
 
-interface BaseTechnique {
+
+export interface BaseTechnique {
     name: string,
     description: string,
     pp: number,
@@ -13,35 +15,64 @@ interface BaseTechnique {
     damageType: DamageType,
     elementalType: ElementType,
     accuracy: number,
+    damageEffect?: DamageEffect,
     effects?: Array<BattleEffect>,
 }
 
-export function GetTech(name: string) {
+export function GetTech(name: string):Technique {
 
-    const techs: Array<BaseTechnique>= [
+    const techs: Array<BaseTechnique> = [
         {
-            name:"Aromatherapy",
-            description:"The user releases a soothing scent that heals all status conditions affecting the user's party.",
+            name:"Eruption",
+            description:"The user attacks opposing Pokémon with explosive fury. The lower the user's HP, the lower the move's power.",
             pp:8,
-            power:0,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Grass,
+            power:150,
             accuracy:100,
-            effects:[{
-                type:"aromatherapy"
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Fire,
+            damageEffect:{
+                type:DamageEffectTypes.Eruption
+            }
+        },
+        {
+            name: "Synthesis",
+            description: "The user restores its own HP. The amount of HP regained varies with the weather.",
+            pp: 8,
+            power: 0,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Grass,
+            accuracy: 100,
+            effects: [{
+                type: 'health-restore',
+                target: TargetType.Self,
+                restoreType: HealthRestoreType.PercentMaxHealth,
+                amount: 50,
+                chance: 100
             }]
         },
         {
-            name:"Giga Drain",
-            description:"A nutrient-draining attack. The user's HP is restored by half the damage taken by the target.",
-            pp:16,
-            power:75,
-            damageType:DamageType.Special,
-            elementalType:ElementType.Grass,
-            accuracy:100,
-            effects:[{
-                type:'drain',
-                amount:50,
+            name: "Aromatherapy",
+            description: "The user releases a soothing scent that heals all status conditions affecting the user's party.",
+            pp: 8,
+            power: 0,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Grass,
+            accuracy: 100,
+            effects: [{
+                type: "aromatherapy"
+            }]
+        },
+        {
+            name: "Giga Drain",
+            description: "A nutrient-draining attack. The user's HP is restored by half the damage taken by the target.",
+            pp: 16,
+            power: 75,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Grass,
+            accuracy: 100,
+            effects: [{
+                type: 'drain',
+                amount: 50,
             }]
         },
         {
@@ -60,7 +91,7 @@ export function GetTech(name: string) {
             }
             ]
         },
-         {
+        {
             name: "Surf",
             description: '',
             pp: 16,
@@ -114,7 +145,7 @@ export function GetTech(name: string) {
             }
             ]
         },
-       {
+        {
             name: "Power Whip",
             description: '',
             pp: 16,
@@ -124,7 +155,7 @@ export function GetTech(name: string) {
             accuracy: 85,
             effects: [],
         },
-         {
+        {
             name: "Earthquake",
             description: '',
             pp: 16,
@@ -144,7 +175,7 @@ export function GetTech(name: string) {
             accuracy: 100,
             effects: [{
                 type: 'health-restore',
-                target:TargetType.Self,
+                target: TargetType.Self,
                 restoreType: HealthRestoreType.PercentMaxHealth,
                 amount: 50,
                 chance: 100
@@ -173,7 +204,7 @@ export function GetTech(name: string) {
                 chance: 10
             }]
         },
-       {
+        {
             name: "Air Slash",
             description: 'Has a 30% chance to flinch the target',
             damageType: DamageType.Special,
@@ -204,7 +235,7 @@ export function GetTech(name: string) {
                 chance: 100
             }]
         },
-         {
+        {
             name: "Confuse Ray",
             description: "A ray that confuses the opponent",
             damageType: DamageType.Status,
@@ -221,7 +252,7 @@ export function GetTech(name: string) {
                 }
             ]
         },
-         {
+        {
             name: "Sleep Powder",
             description: "The user scatters a big cloud of sleep-inducing dust around the target",
             damageType: DamageType.Status,
@@ -256,7 +287,7 @@ export function GetTech(name: string) {
             ],
             accuracy: 85
         },
-         {
+        {
             name: "Growl",
             description: "The user growls at the target",
             damageType: DamageType.Status,
@@ -310,7 +341,7 @@ export function GetTech(name: string) {
             ],
             accuracy: 75
         },
-       {
+        {
             name: "thunder wave",
             description: "The user launches a weak jolt of electricity that paralyzes the target",
             damageType: DamageType.Status,
@@ -328,7 +359,7 @@ export function GetTech(name: string) {
             ],
             accuracy: 85
         },
-         {
+        {
             name: 'Fire blast',
             description: 'Has a 10% chance to burn the target',
             pp: 10,
@@ -345,7 +376,7 @@ export function GetTech(name: string) {
                 }
             ]
         },
-       
+
         {
             name: 'Fly',
             description: 'a flying attack',
@@ -355,7 +386,7 @@ export function GetTech(name: string) {
             damageType: DamageType.Physical,
             elementalType: ElementType.Flying
         },
-         {
+        {
 
             name: 'Hydro Pump',
             pp: 10,
@@ -366,7 +397,7 @@ export function GetTech(name: string) {
             damageType: DamageType.Special,
 
         },
-         {
+        {
             name: 'Razor Leaf',
             description: 'some razory leaves',
             pp: 35,
@@ -377,25 +408,25 @@ export function GetTech(name: string) {
 
         },
         {
-            name:"Thunderbolt",
-            description:'thunderbolt',
-            pp:24,
-            power:90,
-            accuracy:100,
-            elementalType:ElementType.Electric,
-            damageType:DamageType.Special,
-            effects:[
+            name: "Thunderbolt",
+            description: 'thunderbolt',
+            pp: 24,
+            power: 90,
+            accuracy: 100,
+            elementalType: ElementType.Electric,
+            damageType: DamageType.Special,
+            effects: [
                 {
-                    type:'inflict-status',
-                    status:Status.Paralyzed,
-                    chance:10,
-                    target:TargetType.Enemy
+                    type: 'inflict-status',
+                    status: Status.Paralyzed,
+                    chance: 10,
+                    target: TargetType.Enemy
                 }
             ]
 
         },
         //should be nasty plot.
-         {
+        {
             name: "Nasty Plot",
             description: "The user stimulates its brain by thinking bad thoughts. This sharply raises the user's Sp. Atk stat.",
             damageType: DamageType.Status,
@@ -430,17 +461,17 @@ export function GetTech(name: string) {
                     chance: 100
                 },
                 {
-                    type:'stat-boost',
-                    stat:Stat.SpecialDefense,
-                    target:TargetType.Self,
-                    amount:1,
-                    chance:100
+                    type: 'stat-boost',
+                    stat: Stat.SpecialDefense,
+                    target: TargetType.Self,
+                    amount: 1,
+                    chance: 100
                 }
             ]
         },
         {
-            name:"Psychic",
-            description:"The target is hit by a strong telekinetic force. This may also lower the target's Sp. Def stat",
+            name: "Psychic",
+            description: "The target is hit by a strong telekinetic force. This may also lower the target's Sp. Def stat",
             damageType: DamageType.Special,
             power: 90,
             accuracy: 100,
@@ -456,29 +487,29 @@ export function GetTech(name: string) {
                 },
 
             ]
-            
+
         },
         {
-            name:"Sludge Wave",
-            description:"The user strikes everything around it by swamping the area with a giant sludge wave. This may also poison those hit.",
-            damageType:DamageType.Special,
-            power:95,
-            accuracy:100,
-            elementalType:ElementType.Poison,
-            pp:16,
-            effects:[
+            name: "Sludge Wave",
+            description: "The user strikes everything around it by swamping the area with a giant sludge wave. This may also poison those hit.",
+            damageType: DamageType.Special,
+            power: 95,
+            accuracy: 100,
+            elementalType: ElementType.Poison,
+            pp: 16,
+            effects: [
                 {
-                    type:'inflict-status',
-                    status:Status.Poison,
-                    target:TargetType.Enemy,
-                    chance:10
+                    type: 'inflict-status',
+                    status: Status.Poison,
+                    target: TargetType.Enemy,
+                    chance: 10
                 }
             ]
 
         },
         {
-            name:"Shadow Ball",
-            description:"The target is hit by a strong telekinetic force. This may also lower the target's Sp. Def stat",
+            name: "Shadow Ball",
+            description: "The target is hit by a strong telekinetic force. This may also lower the target's Sp. Def stat",
             damageType: DamageType.Special,
             power: 90,
             accuracy: 100,
@@ -494,35 +525,35 @@ export function GetTech(name: string) {
                 },
 
             ]
-            
+
         },
         {
-            name:"Substitute",
-            description:"The user creates a substitute for itself using some of its HP. The substitute serves as the user's decoy.",
-            damageType:DamageType.Status,
-            power:0,
-            accuracy:100,
-            pp:20,
+            name: "Substitute",
+            description: "The user creates a substitute for itself using some of its HP. The substitute serves as the user's decoy.",
+            damageType: DamageType.Status,
+            power: 0,
+            accuracy: 100,
+            pp: 20,
             elementalType: ElementType.Normal,
-            effects:[
+            effects: [
                 {
-                    type:'inflict-volatile-status',
-                    status:VolatileStatusType.Substitute,
-                    target:TargetType.Self,
-                    chance:100
+                    type: 'inflict-volatile-status',
+                    status: VolatileStatusType.Substitute,
+                    target: TargetType.Self,
+                    chance: 100
                 }
             ]
         }
 
     ]
 
-    const tech = techs.find(t=>t.name.toLowerCase().trim() === name.toLowerCase().trim())
+    const tech = techs.find(t => t.name.toLowerCase().trim() === name.toLowerCase().trim())
 
     if (tech === undefined) {
         throw new Error(`Could not find technique for name ${name}`)
     }
 
     //convert to conform to the technique interface.
-    return {...tech,...{id:-1,currentPP:tech.pp}};
+    return { ...tech, ...{ id: -1, currentPP: tech.pp } };
 }
 
