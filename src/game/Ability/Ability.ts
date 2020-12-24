@@ -1,10 +1,11 @@
+import PokemonImage from "components/PokemonImage/PokemonImage";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { ElementType } from "game/ElementType";
 import { GetPercentageHealth} from "game/HelperFunctions";
 import { IPokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
-import { isConstructorDeclaration } from "typescript";
+
 
 
 abstract class AbstractAbility extends BattleBehaviour{ 
@@ -12,14 +13,14 @@ abstract class AbstractAbility extends BattleBehaviour{
         //default is to just return the same damage that gets put in.
         return damage;
     }
-    NegateDamage(turn:Turn,move:Technique):boolean{
+    NegateDamage(turn:Turn,move:Technique,pokemon:IPokemon):boolean{
         return false; //by default no abilities should negate damage unless we say so.
     }
 }
 
 
 class LevitateAbility extends AbstractAbility{
-    NegateDamage(turn:Turn,move:Technique):boolean{
+    NegateDamage(turn:Turn,move:Technique,pokemon:IPokemon):boolean{
         if (move.elementalType === ElementType.Ground){
             //no damage taken, maybe write a message
             turn.ApplyMessage(`It had no effect due to the pokemon's levitate!`);
@@ -57,6 +58,28 @@ class OverGrowthAbility extends AbstractAbility{
     }
 }
 
+class FlashFireAbility extends AbstractAbility{
+    NegateDamage(turn:Turn,move:Technique,pokemon:IPokemon):boolean{
+        if (move.elementalType === ElementType.Fire){
+            //no damage taken, maybe write a message
+                turn.ApplyMessage(`It had no effect due to the pokemon's flash fire ability!`);
+            if (pokemon.flashFireActivated === false){
+                turn.ApplyMessage(`${pokemon.name}'s fire moves have been bposted due to flash fire!`);
+            }
+            //activate flash fire
+            pokemon.flashFireActivated = true;
+            return true;
+        }
+        return false;
+    }
+    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
+        if (move.elementalType === ElementType.Fire && attackingPokemon.flashFireActivated){
+            return damage*1.5;
+        }
+        return damage;
+    }
+}
+
 class NoAbility extends AbstractAbility{
 
 }
@@ -76,6 +99,9 @@ function GetAbility(name:String){
         }
         case 'levitate':{
             return new LevitateAbility();
+        }
+        case 'flash fire':{
+            return new FlashFireAbility();
         }
         default:{
             console.error(`ERROR: Could not find passive ability for ${name} - using no ability instead`)

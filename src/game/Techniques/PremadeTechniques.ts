@@ -23,6 +23,15 @@ export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
         {
+            name:"Hidden Power (Grass)",
+            description:"A unique attack that varies in type depending on the Pokémon using it",
+            pp:24,
+            power:60,
+            accuracy:100,
+            damageType:DamageType.Special,    
+            elementalType:ElementType.Grass  
+        },
+        {
             name:"Eruption",
             description:"The user attacks opposing Pokémon with explosive fury. The lower the user's HP, the lower the move's power.",
             pp:8,

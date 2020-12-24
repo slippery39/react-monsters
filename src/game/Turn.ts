@@ -643,8 +643,6 @@ export class Turn {
         if (move.damageEffect){
             const damageEffect = GetDamageEffect(move.damageEffect.type);
             move = damageEffect.ModifyTechnique(pokemon,move);
-            console.warn('move changed?');
-            console.warn(move);
         }
 
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
@@ -657,7 +655,7 @@ export class Turn {
 
         //
         const defendingAbility = GetAbility(defendingPokemon.ability);
-        if (defendingAbility.NegateDamage(this,move) === true){
+        if (defendingAbility.NegateDamage(this,move,defendingPokemon) === true){
             //no damage will be applied, any messages why will be handled by the ability itslef.
             return 0;
         }   

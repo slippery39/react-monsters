@@ -7,7 +7,7 @@ import { Technique } from "game/Techniques/Technique";
 import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { Status } from "game/HardStatus/HardStatus";
 import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
-import { stat } from "fs";
+
 
 
 export interface IPokemon {
@@ -31,7 +31,8 @@ export interface IPokemon {
     */
     toxicCount:number, //temporarily placing this and the rest turn count here until i can figure out a better way to structure this.
     restTurnCount:number,
-    hasSubstitute:boolean
+    hasSubstitute:boolean,
+    flashFireActivated:boolean,
 }
 
 export interface Stats{
@@ -88,6 +89,7 @@ export class PokemonBuilder{
                 toxicCount:1,
                 restTurnCount:0,
                 hasSubstitute:false,
+                flashFireActivated:false,
                 ability:"",
                 heldItem:GetHeldItem("none"),
                 evs:CreateEmptyStats()

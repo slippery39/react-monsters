@@ -11,7 +11,7 @@ const Charizard = function () {
             speed: 252
         })
         .WithTechniques([
-             "Eruption",
+             "Fire Blast",
             "Air Slash",
             "Focus Blast",
             "Substitute"
@@ -136,8 +136,8 @@ const Meganium = function(){
     .Build();
 }
 
-/*
-const Typlosion = function(){
+
+const Typhlosion = function(){
     
     const builder = new PokemonBuilder();
     return builder
@@ -151,12 +151,12 @@ const Typlosion = function(){
         "Eruption",
         "Hidden Power (Grass)",
         "Focus Blast",
-        "Fireblast"
+        "Fire Blast"
     ])
     .WithHeldItem("Leftovers")
     .Build();
     
-}*/
+}
 
 
 
@@ -170,6 +170,7 @@ const GetPokemon = function(name:string):IPokemon{
         Alakazam(),
         Gengar(), 
         Meganium(),
+        Typhlosion(),
     ]
 
 
