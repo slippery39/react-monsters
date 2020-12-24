@@ -158,6 +158,25 @@ const Typhlosion = function(){
     
 }
 
+const Feraligatr = function(){
+    const builder = new PokemonBuilder();
+    return builder
+    .OfSpecies("Feraligatr")
+    .WithEVs({
+        attack:252,
+        speed:252,
+        spDefense:4
+    })
+    .WithTechniques([
+        "Dragon Dance",
+        "Waterfall",
+        "Crunch",
+        "Ice Punch"
+    ])
+    .WithHeldItem("Leftovers")
+    .Build();
+}
+
 
 
 const GetPokemon = function(name:string):IPokemon{
@@ -171,6 +190,7 @@ const GetPokemon = function(name:string):IPokemon{
         Gengar(), 
         Meganium(),
         Typhlosion(),
+        Feraligatr(),
     ]
 
 

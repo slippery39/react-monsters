@@ -1,3 +1,4 @@
+import { stat } from "fs";
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
 import { BattleEffect, TargetType, HealthRestoreType } from "game/Effects/Effects";
 import { Status } from "game/HardStatus/HardStatus";
@@ -22,6 +23,77 @@ export interface BaseTechnique {
 export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Ice Punch",
+            description:"The target is punched with an icy fist. It may also leave the target frozen.",
+            pp:24,
+            power:75,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Ice,
+            effects:[{
+                type:'inflict-status',
+                status:Status.Frozen,
+                target:TargetType.Enemy,
+                chance:10
+            }]
+        },
+        {
+            name:"Crunch",
+            description:"The user crunches up the target with sharp fangs. It may also lower the target's Defense stat.",
+            pp:24,
+            power:80,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Dark,
+            effects:[{
+                type:'stat-boost',
+                target:TargetType.Enemy,
+                stat:Stat.Defense,
+                amount:-1,
+                chance:20
+            }]
+        },
+        {
+            name:"Waterfall",
+            description:"The user charges at the target and may make it flinch. This can also be used to climb a waterfall.",
+            pp:24,
+            power:80,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Water,
+            effects: [{
+                type: 'inflict-volatile-status',
+                status: VolatileStatusType.Flinch,
+                target: TargetType.Enemy,
+                chance: 20
+            }]  
+        },
+        {
+            name:"Dragon Dance",
+            description:"The user vigorously performs a mystic, powerful dance that boosts its Attack and Speed stats.",
+            pp:32,
+            power:0,
+            accuracy:100,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Dragon,
+            effects:[
+                {
+                    type: 'stat-boost',
+                    stat: Stat.Attack,
+                    target: TargetType.Self,
+                    amount: 1,
+                    chance: 100
+                },
+                {
+                    type: 'stat-boost',
+                    stat: Stat.Speed,
+                    target: TargetType.Self,
+                    amount: 1,
+                    chance: 100
+                }
+            ]
+        },
         {
             name:"Hidden Power (Grass)",
             description:"A unique attack that varies in type depending on the Pokémon using it",

@@ -27,7 +27,7 @@ function App() {
   function initializeBattle(){
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("charizard")
+    .WithPokemon("feraligatr")
     .WithPokemon("gengar")
     .WithPokemon("venusaur")
     .WithPokemon("blastoise")

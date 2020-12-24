@@ -104,7 +104,8 @@ function GetAbility(name:String){
             return new FlashFireAbility();
         }
         default:{
-            console.error(`ERROR: Could not find passive ability for ${name} - using no ability instead`)
+            alert(`ERROR: Could not find passive ability for ${name} - using no ability instead`);
+            console.error(`ERROR: Could not find passive ability for ${name} - using no ability instead`);
             return new NoAbility();
         }
     }

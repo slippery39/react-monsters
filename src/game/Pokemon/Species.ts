@@ -120,6 +120,19 @@ const pokemons: SpeciesDB = {
             speed:100
         },
         ability:"Flash Fire"
+    },
+    "feraligatr":{
+        name:"Feraligatr",
+        elementalTypes:[ElementType.Water],
+        baseStats:{
+            hp:85,
+            attack:105,
+            defense:100,
+            spAttack:79,
+            spDefense:83,
+            speed:78
+        },
+        ability:"Sheer Force"
     }
 
 }
