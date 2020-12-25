@@ -133,6 +133,19 @@ const pokemons: SpeciesDB = {
             speed:78
         },
         ability:"Sheer Force"
+    },
+    "ampharos":{
+        name:"Ampharos",
+        elementalTypes:[ElementType.Electric],
+        baseStats:{
+            hp:90,
+            attack:75,
+            defense:85,
+            spAttack:115,
+            spDefense:90,
+            speed:55
+        },
+        ability:"Static"
     }
 
 }

@@ -23,6 +23,20 @@ export interface BaseTechnique {
 export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
+
+        {
+            name: "Heal Bell",
+            description: "The user makes a soothing bell chime to heal the status problems of all the party Pokémon.",
+            pp: 8,
+            power: 0,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Normal,
+            accuracy: 100,
+            effects: [{
+                type: "aromatherapy"
+            }]
+        },
+        
         {
             name:"Ice Punch",
             description:"The target is punched with an icy fist. It may also leave the target frozen.",

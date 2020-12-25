@@ -177,6 +177,25 @@ const Feraligatr = function(){
     .Build();
 }
 
+const Ampharos = function(){
+    const builder = new PokemonBuilder();
+    return builder.OfSpecies("Ampharos")
+    .WithEVs({
+        hp:248,
+        spAttack:252,
+        spDefense:8
+    })
+    .WithTechniques([
+        "Heal Bell",
+        "Volt Switch",
+        "Thunderbolt",
+        "Focus Blast"
+
+    ])
+    .WithHeldItem("Leftovers")
+    .Build();
+}
+
 
 
 const GetPokemon = function(name:string):IPokemon{
