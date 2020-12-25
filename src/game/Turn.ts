@@ -640,6 +640,10 @@ export class Turn {
 
         //Easy quick hack for handling eruption, but we need to think of a way to do this non hacky.
         //perhaps we should revamp our whole damage system?
+        const ability = GetAbility(pokemon.ability);
+        move = ability.ModifyTechnique(pokemon,move);
+       
+
         if (move.damageEffect){
             const damageEffect = GetDamageEffect(move.damageEffect.type);
             move = damageEffect.ModifyTechnique(pokemon,move);
@@ -650,7 +654,6 @@ export class Turn {
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
     
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
-        const ability = GetAbility(pokemon.ability);
         const newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
 
         //

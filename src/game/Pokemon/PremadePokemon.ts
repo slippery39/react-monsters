@@ -173,7 +173,7 @@ const Feraligatr = function(){
         "Crunch",
         "Ice Punch"
     ])
-    .WithHeldItem("Leftovers")
+    .WithHeldItem("Life Orb")
     .Build();
 }
 

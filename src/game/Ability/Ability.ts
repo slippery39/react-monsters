@@ -1,10 +1,12 @@
 import PokemonImage from "components/PokemonImage/PokemonImage";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
+import { TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { GetPercentageHealth} from "game/HelperFunctions";
 import { IPokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
+import _ from "lodash";
 
 
 
@@ -80,6 +82,26 @@ class FlashFireAbility extends AbstractAbility{
     }
 }
 
+class SheerForceAbility extends AbstractAbility{
+    ModifyTechnique(pokemon:IPokemon,technique:Technique){        
+
+        if (!technique.effects){
+            return technique;
+        }
+        const hasEFfect = technique.effects.filter(eff=>eff.target && eff.target === TargetType.Enemy);
+        if (!hasEFfect){
+            return technique;
+        }
+        const newTechnique = _.cloneDeep(technique);
+        //from bulbapedia
+        //Sheer Force raises the base power of all damaging moves that have any additional effects by 30%, but their additional effects are ignored.
+        newTechnique.power = newTechnique.power *1.3;
+        newTechnique.effects = []; //all effects are gone muaahahaha       
+
+        return newTechnique;
+    }
+}
+
 class NoAbility extends AbstractAbility{
 
 }
@@ -102,6 +124,9 @@ function GetAbility(name:String){
         }
         case 'flash fire':{
             return new FlashFireAbility();
+        }
+        case 'sheer force':{
+            return new SheerForceAbility();
         }
         default:{
             alert(`ERROR: Could not find passive ability for ${name} - using no ability instead`);
