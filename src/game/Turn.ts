@@ -58,7 +58,7 @@ export class Turn {
     initialActions: Array<BattleAction> = [];
 
     //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
-    faintedPokemonPlayers: Array<Player> = [];
+    switchPromptedPlayers: Array<Player> = [];
 
     //TODO - this is not clean, clean this up, maybe have some sort of Map that maps player to activePokemonId.
     private _activePokemonIdAtStart1 = -1;
@@ -110,8 +110,8 @@ export class Turn {
     }
     //Special Action for when a pokemon faints in the middle of the turn.
     
-    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction) {
-        if (this.faintedPokemonPlayers.filter(p => p.id === action.playerId).length === 0) {
+    SetSwitchPromptAction(action: SwitchPokemonAction) {
+        if (this.switchPromptedPlayers.filter(p => p.id === action.playerId).length === 0) {
             throw new Error("Invalid command in SetSwitchFaintedPokemonAction, this player should not be switching a fainted pokemon");
         }
 
@@ -123,14 +123,14 @@ export class Turn {
         }
         this._switchFaintedActions.push(action);
 
-        const player = this.faintedPokemonPlayers.find(p => p.id === action.playerId);
+        const player = this.switchPromptedPlayers.find(p => p.id === action.playerId);
         if (player === undefined) {
             throw new Error('could not find player');
         }
-        const index = this.faintedPokemonPlayers.indexOf(player);
-        this.faintedPokemonPlayers.splice(index, 1);
+        const index = this.switchPromptedPlayers.indexOf(player);
+        this.switchPromptedPlayers.splice(index, 1);
 
-        if (this.faintedPokemonPlayers.length === 0) {
+        if (this.switchPromptedPlayers.length === 0) {
             this._switchFaintedActions.forEach(act => {
                 const player = this.GetPlayer(act.playerId);
                 const pokemon = this.GetPokemon(act.switchPokemonId);
@@ -241,7 +241,7 @@ export class Turn {
     PromptForSwitch(pokemon:IPokemon){
         const owner = this.GetPokemonOwner(pokemon);
         //TODO - This needs to be a prompt now, not just for fainted pokemon.
-        this.faintedPokemonPlayers.push(owner);
+        this.switchPromptedPlayers.push(owner);
         this.currentState = { type: 'awaiting-switch-action' }
     }
 
@@ -266,8 +266,7 @@ export class Turn {
             }
         }
         else {
-            this.faintedPokemonPlayers.push(owner);
-            this.currentState = { type: 'awaiting-switch-action' }
+            this.PromptForSwitch(pokemon);
         }
     }
 

@@ -101,7 +101,7 @@ class BattleService {
             newState: this.GetPlayers(),
             winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
             currentTurnState: this.GetCurrentTurn().currentState.type,
-            waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
+            waitingForSwitchIds: this.GetCurrentTurn().switchPromptedPlayers.map(p => p.id)
         }
 
         this.onNewTurnLog.emit(args);
@@ -120,7 +120,7 @@ class BattleService {
             return tl.id
         }));
 
-        this.GetCurrentTurn().SetSwitchFaintedPokemonAction(action);
+        this.GetCurrentTurn().SetSwitchPromptAction(action);
 
         var newTurnLog = this.GetCurrentTurn().GetEventLog();
         if (diffLog === undefined || diffLog === true) {
@@ -148,7 +148,7 @@ class BattleService {
             newState: this.GetPlayers(),
             winningPlayerId: this.GetCurrentTurn().currentState.winningPlayerId,
             currentTurnState: this.GetCurrentTurn().currentState.type,
-            waitingForSwitchIds: this.GetCurrentTurn().faintedPokemonPlayers.map(p => p.id)
+            waitingForSwitchIds: this.GetCurrentTurn().switchPromptedPlayers.map(p => p.id)
         }
 
         this.onNewTurnLog.emit(args);
