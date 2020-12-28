@@ -25,6 +25,22 @@ export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
         {
+            name:"Iron Head",
+            description:"The user slams the target with its steel-hard head. This may also make the target flinch.",
+            accuracy:100,
+            pp:24,
+            power:80,
+            elementalType:ElementType.Steel,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            effects:[{
+                type:'inflict-volatile-status',
+                status:VolatileStatusType.Flinch,
+                target:TargetType.Enemy,
+                chance:30
+            }]
+        },
+        {
             name:"Volt Switch",
             description:"[Description Needed]",
             accuracy:100,

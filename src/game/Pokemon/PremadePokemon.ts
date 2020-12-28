@@ -23,7 +23,8 @@ const Charizard = function () {
             "Substitute"
             */
         ])
-        .WithHeldItem("Life Orb")
+        .WithHeldItem("Leftovers")
+        //.WithHeldItem("Life Orb")
         .Build();
 }
 
@@ -198,6 +199,24 @@ const Ampharos = function(){
         "Thunderbolt",
         "Focus Blast"
 
+    ])
+    .WithHeldItem("Leftovers")
+    .Build();
+}
+
+const Skarmory = function(){
+    const builder = new PokemonBuilder();
+    return builder.OfSpecies("Skarmory")
+    .WithEVs({
+        hp:252,
+        defense:252,
+        speed:4,
+    })
+    .WithTechniques([
+        "Iron Head",
+        "Spikes",
+        "Roost",
+        "Whirlwind"
     ])
     .WithHeldItem("Leftovers")
     .Build();

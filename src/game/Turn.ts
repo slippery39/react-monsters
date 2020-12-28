@@ -660,17 +660,19 @@ export class Turn {
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
     
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
-        const newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
+        let newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
 
         //
         const defendingAbility = GetAbility(defendingPokemon.ability);
         if (defendingAbility.NegateDamage(this,move,defendingPokemon) === true){
             //no damage will be applied, any messages why will be handled by the ability itslef.
             return 0;
-        }   
+        }
+
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
+        newDamage =  defendingAbility.ModifyDamageTaken(this,pokemon,defendingPokemon,move,newDamage)
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
-        GetAbility(defendingPokemon.ability).OnDamageTakenFromTechnique(this,pokemon,defendingPokemon,move);
+        defendingAbility.OnDamageTakenFromTechnique(this,pokemon,defendingPokemon,move,newDamage);
         return newDamage;
     }
 

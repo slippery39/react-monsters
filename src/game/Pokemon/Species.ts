@@ -28,7 +28,8 @@ const pokemons: SpeciesDB = {
             spDefense: 85,
             speed: 100
         },
-        ability:"Blaze"
+        ability:"Sturdy"
+        //ability:"Blaze"
     },
     "blastoise": {
         name: 'Blastoise',
@@ -37,7 +38,8 @@ const pokemons: SpeciesDB = {
             hp: 79,
             attack: 83,
             defense: 100,
-            spAttack: 85,
+            //spAttack: 85,
+            spAttack:400,
             spDefense: 105,
             speed: 78
         },
@@ -146,6 +148,19 @@ const pokemons: SpeciesDB = {
             speed:55
         },
         ability:"Static"
+    },
+    "skarmory":{
+        name:"Skarmory",
+        elementalTypes:[ElementType.Steel],
+        baseStats:{
+            hp:65,
+            attack:80,
+            defense:140,
+            spAttack:40,
+            spDefense:70,
+            speed:70
+        },
+        ability:"Sturdy"
     }
 
 }

@@ -1,4 +1,3 @@
-import PokemonImage from "components/PokemonImage/PokemonImage";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
@@ -18,6 +17,9 @@ abstract class AbstractAbility extends BattleBehaviour{
     }
     NegateDamage(turn:Turn,move:Technique,pokemon:IPokemon):boolean{
         return false; //by default no abilities should negate damage unless we say so.
+    }
+    ModifyDamageTaken(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,originalDamage:number){
+        return originalDamage;
     }
 }
 
@@ -104,8 +106,7 @@ class SheerForceAbility extends AbstractAbility{
 }
 
 class StaticAbility extends AbstractAbility{
-    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique){
-
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,damage:number){
         console.warn('on damage taken from technique is firing');
         console.warn(move);
         if (move.makesContact){
@@ -113,6 +114,22 @@ class StaticAbility extends AbstractAbility{
             if (shouldParalyze){
                 InflictStatus(turn,attackingPokemon,Status.Paralyzed,defendingPokemon) 
             }
+        }
+    }
+}
+
+class SturdyAbility extends AbstractAbility{
+    ModifyDamageTaken(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,originalDamage:number){
+        let modifiedDamage = originalDamage;
+        if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp && originalDamage>=defendingPokemon.currentStats.hp){
+            modifiedDamage = defendingPokemon.originalStats.hp -1;
+        }
+        return modifiedDamage;
+    }
+    //Little hacky but will work for now.
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,damage:number){
+          if (defendingPokemon.currentStats.hp === 1 && damage === defendingPokemon.originalStats.hp -1){
+            turn.ApplyMessage(`${defendingPokemon.name} has survived due to its Sturdy ability!`);
         }
     }
 }
@@ -145,6 +162,9 @@ function GetAbility(name:String){
         }
         case 'static':{
             return new StaticAbility();
+        }
+        case 'sturdy':{
+            return new SturdyAbility();
         }
         default:{
             alert(`ERROR: Could not find passive ability for ${name} - using no ability instead`);
