@@ -235,7 +235,6 @@ export class Turn {
     //For testing only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
         this.GetPokemon(pokemonId).status = status;
-        //need some way of notifying the service.
     }
 
     PromptForSwitch(pokemon:IPokemon){
@@ -671,6 +670,7 @@ export class Turn {
         }   
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
+        GetAbility(defendingPokemon.ability).OnDamageTakenFromTechnique(this,pokemon,defendingPokemon,move);
         return newDamage;
     }
 

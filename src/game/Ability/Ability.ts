@@ -1,7 +1,8 @@
 import PokemonImage from "components/PokemonImage/PokemonImage";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
-import { TargetType } from "game/Effects/Effects";
+import { InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
+import { Status } from "game/HardStatus/HardStatus";
 import { GetPercentageHealth} from "game/HelperFunctions";
 import { IPokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
@@ -102,6 +103,20 @@ class SheerForceAbility extends AbstractAbility{
     }
 }
 
+class StaticAbility extends AbstractAbility{
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique){
+
+        console.warn('on damage taken from technique is firing');
+        console.warn(move);
+        if (move.makesContact){
+            const shouldParalyze = turn.Roll(30);
+            if (shouldParalyze){
+                InflictStatus(turn,attackingPokemon,Status.Paralyzed,defendingPokemon) 
+            }
+        }
+    }
+}
+
 class NoAbility extends AbstractAbility{
 
 }
@@ -127,6 +142,9 @@ function GetAbility(name:String){
         }
         case 'sheer force':{
             return new SheerForceAbility();
+        }
+        case 'static':{
+            return new StaticAbility();
         }
         default:{
             alert(`ERROR: Could not find passive ability for ${name} - using no ability instead`);

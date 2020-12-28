@@ -12,10 +12,16 @@ const Charizard = function () {
         })
         .WithTechniques([
             //"Fire Blast",
+            "Ice Punch",
+            "Ice Punch",
+            "Ice Punch",
+            "Ice Punch",
+            /*
             "Volt Switch",
             "Air Slash",
             "Focus Blast",
             "Substitute"
+            */
         ])
         .WithHeldItem("Life Orb")
         .Build();

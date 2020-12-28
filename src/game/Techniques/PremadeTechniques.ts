@@ -17,6 +17,7 @@ export interface BaseTechnique {
     elementalType: ElementType,
     accuracy: number,
     damageEffect?: DamageEffect,
+    makesContact?:boolean,
     effects?: Array<BattleEffect>,
 }
 
@@ -58,6 +59,7 @@ export function GetTech(name: string):Technique {
             accuracy:100,
             damageType:DamageType.Physical,
             elementalType:ElementType.Ice,
+            makesContact:true,
             effects:[{
                 type:'inflict-status',
                 status:Status.Frozen,
@@ -73,6 +75,7 @@ export function GetTech(name: string):Technique {
             accuracy:100,
             damageType:DamageType.Physical,
             elementalType:ElementType.Dark,
+            makesContact:true,
             effects:[{
                 type:'stat-boost',
                 target:TargetType.Enemy,
@@ -89,6 +92,7 @@ export function GetTech(name: string):Technique {
             accuracy:100,
             damageType:DamageType.Physical,
             elementalType:ElementType.Water,
+            makesContact:true,
             effects: [{
                 type: 'inflict-volatile-status',
                 status: VolatileStatusType.Flinch,
@@ -261,7 +265,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Grass,
             power: 120,
             accuracy: 85,
-            effects: [],
+            makesContact:true
         },
         {
             name: "Earthquake",
@@ -271,8 +275,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Ground,
             power: 100,
             accuracy: 100,
-            effects: []
-        },
+          },
         {
             name: "Roost",
             description: 'Heals up to 50% max health, user loses flying type until end of turn',
@@ -491,6 +494,7 @@ export function GetTech(name: string):Technique {
             pp: 15,
             power: 75,
             accuracy: 85,
+            makesContact:true,
             damageType: DamageType.Physical,
             elementalType: ElementType.Flying
         },

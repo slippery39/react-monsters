@@ -24,7 +24,9 @@ abstract class BattleBehaviour{
     OnDamageDealt(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,damageDealt:number){
 
     }
-
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique){
+        
+    }
     ModifyTechnique(pokemon:IPokemon,technique:Technique){
         return technique;
     }
