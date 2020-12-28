@@ -215,8 +215,7 @@ function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: IPokemon) {
 }
 
 function SwitchPokemonEffect(turn:Turn,sourcePokemon:IPokemon){
-    
-    
+    turn.PromptForSwitch(sourcePokemon);
 }
 
 interface EffectSource {
@@ -276,7 +275,10 @@ export function DoEffect(turn: Turn, pokemon: IPokemon, effect: BattleEffect, so
             break;
         }
         case 'switch-pokemon':{
-            throw new Error('Switch pokemon effect has not been implemented yet.')
+            if (source.sourcePokemon === undefined){
+                throw new Error("Need a source pokemon to DoEffect - aromatherapy");
+            }
+            SwitchPokemonEffect(turn,source.sourcePokemon);
             break;
         }
         default: {

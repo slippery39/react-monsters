@@ -11,7 +11,8 @@ const Charizard = function () {
             speed: 252
         })
         .WithTechniques([
-             "Fire Blast",
+            //"Fire Blast",
+            "Volt Switch",
             "Air Slash",
             "Focus Blast",
             "Substitute"

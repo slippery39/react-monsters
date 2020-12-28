@@ -238,6 +238,13 @@ export class Turn {
         //need some way of notifying the service.
     }
 
+    PromptForSwitch(pokemon:IPokemon){
+        const owner = this.GetPokemonOwner(pokemon);
+        //TODO - This needs to be a prompt now, not just for fainted pokemon.
+        this.faintedPokemonPlayers.push(owner);
+        this.currentState = { type: 'awaiting-switch-action' }
+    }
+
     private PokemonFainted(pokemon: IPokemon) {
         const faintedPokemonEffect: FaintedPokemonEvent = {
             targetPokemonId: pokemon.id,
