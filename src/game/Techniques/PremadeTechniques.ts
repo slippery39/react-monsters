@@ -1,4 +1,4 @@
-import { stat } from "fs";
+
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
 import { BattleEffect, TargetType, HealthRestoreType } from "game/Effects/Effects";
 import { Status } from "game/HardStatus/HardStatus";
@@ -23,6 +23,19 @@ export interface BaseTechnique {
 export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Volt Switch",
+            description:"[Description Needed]",
+            accuracy:100,
+            pp:24,
+            power:70,
+            elementalType:ElementType.Electric,
+            damageType:DamageType.Special,
+            effects:[{
+                type: 'switch-pokemon',
+                chance:100
+            }]
+        },       
 
         {
             name: "Heal Bell",

@@ -1,6 +1,7 @@
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { Item } from "game/Items/Item";
+import { Player } from "game/Player/PlayerBuilder";
 import { ApplyStatBoost, IPokemon} from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
@@ -57,9 +58,12 @@ export interface AromatherapyEffect {
     type: 'aromatherapy'
 }
 
+export interface SwitchPokemonEffect{
+    type:'switch-pokemon'
+}
 
 
-export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect);
+export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect | SwitchPokemonEffect);
 
 
 
@@ -208,8 +212,11 @@ function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: IPokemon) {
         }
 
     });
+}
 
-
+function SwitchPokemonEffect(turn:Turn,sourcePokemon:IPokemon){
+    
+    
 }
 
 interface EffectSource {
@@ -266,6 +273,10 @@ export function DoEffect(turn: Turn, pokemon: IPokemon, effect: BattleEffect, so
                 throw new Error("Need a source pokemon to DoEffect - aromatherapy");
             }
             ApplyAromatherapyEffect(turn,source.sourcePokemon);
+            break;
+        }
+        case 'switch-pokemon':{
+            throw new Error('Switch pokemon effect has not been implemented yet.')
             break;
         }
         default: {

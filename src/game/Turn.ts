@@ -109,6 +109,7 @@ export class Turn {
         }
     }
     //Special Action for when a pokemon faints in the middle of the turn.
+    
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction) {
         if (this.faintedPokemonPlayers.filter(p => p.id === action.playerId).length === 0) {
             throw new Error("Invalid command in SetSwitchFaintedPokemonAction, this player should not be switching a fainted pokemon");

@@ -210,6 +210,7 @@ const GetPokemon = function(name:string):IPokemon{
         Meganium(),
         Typhlosion(),
         Feraligatr(),
+        Ampharos(),
     ]
 
 
