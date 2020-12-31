@@ -43,7 +43,7 @@ export abstract class EntryHazard{
     player?:Player = undefined;
 
     constructor(player:Player){
-
+        this.player = player;
     }
 
     CanApply(turn:Turn,player:Player){

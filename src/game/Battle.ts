@@ -171,9 +171,6 @@ class BattleService {
             const player1 = this.GetCurrentTurn().GetPlayers()[0];
             const player2 = this.GetCurrentTurn().GetPlayers()[1];
 
-            const currentEntryHazards = this.GetCurrentTurn().GetEntryHazards();
-
-
             const initialState = {
                 players:[player1,player2],
                 entryHazards:this.GetCurrentTurn().GetEntryHazards()

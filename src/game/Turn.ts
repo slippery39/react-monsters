@@ -659,7 +659,7 @@ export class Turn {
         move.effects.forEach((effect) => {
             const chance = effect.chance === undefined ? 100 : effect.chance;
             const targetType = effect.target === undefined ? TargetType.Enemy : effect.target;
-            var targetPokemon = targetType == TargetType.Self ? pokemon : defendingPokemon;
+            var targetPokemon = targetType === TargetType.Self ? pokemon : defendingPokemon;
 
 
             //quick override for drain effects while we think about the best way to handle this type of effect.

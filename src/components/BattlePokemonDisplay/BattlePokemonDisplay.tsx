@@ -43,7 +43,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
     const allyDisplay = (<div className="ally-display" style={{ position: "relative" }}>
         <div ref={props.imageRef} style={styles}>
             <div ref={props.potionRef} className="potion-healing">+++</div>
-            {props.pokemon.hasSubstitute? <img src='./images/misc/substitute_back.png'/> : <PokemonImage type="back" name={props.pokemon.name} />}
+            {props.pokemon.hasSubstitute? <img alt="substitute" src='./images/misc/substitute_back.png'/> : <PokemonImage type="back" name={props.pokemon.name} />}
         </div>
         <div className="pokemon-health-display" style={{ left: "20px", position: 'absolute', top: "70px" }}>
             <BattleHealthDisplay onHealthAnimateComplete={() => { if (props.onHealthAnimateComplete) { props.onHealthAnimateComplete() } }} pokemon={props.pokemon} />
@@ -56,7 +56,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
         </div>
         <div  ref={props.imageRef} style={styles}>
             <div ref={props.potionRef} className="potion-healing">+++</div>
-            {props.pokemon.hasSubstitute? <img src='./images/misc/substitute_front.png'/>:<PokemonImage type="front" name={props.pokemon.name} />}
+            {props.pokemon.hasSubstitute? <img alt="substitute" src='./images/misc/substitute_front.png'/>:<PokemonImage type="front" name={props.pokemon.name} />}
         </div>
     </div>)
 

@@ -154,7 +154,7 @@ export function InflictVolatileStatus(turn: Turn, pokemon: IPokemon, status: Vol
     const vStatus = GetVolatileStatus(status);
 
 
-    if (pokemon.hasSubstitute && pokemon != source) {
+    if (pokemon.hasSubstitute && pokemon !== source) {
         return;
     }
 
