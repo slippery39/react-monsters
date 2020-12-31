@@ -21,9 +21,9 @@ export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 
 
 
 
-export interface GameState{
-    players:Array<Player>,
-    entryHazards?:Array<EntryHazard>  
+export interface GameState {
+    players: Array<Player>,
+    entryHazards?: Array<EntryHazard>
 }
 
 
@@ -58,25 +58,19 @@ type OnSwitchNeededArgs = {
 
 export class Turn {
     id: Number;
-    private players: Array<Player> = [] //needs to be initial turn state.
+    private initialGameState: GameState;
+    private currentGameState: GameState;
 
     eventLog: Array<BattleEvent> = [];
     nextEventId: number = 1; //next id for when we have a new event.
-
     initialActions: Array<BattleAction> = [];
-
     //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
     switchPromptedPlayers: Array<Player> = [];
-
     //TODO - this is not clean, clean this up, maybe have some sort of Map that maps player to activePokemonId.
     private _activePokemonIdAtStart1 = -1;
     private _activePokemonIdAtStart2 = -1;
-
     //Cached move order
     private _moveOrder: Array<BattleAction> = [];
-
-    //Entry Hazards
-    private entryHazards : Array<EntryHazard> =  [];
 
     //Stores the fainted pokemon actions if 
     private _switchFaintedActions: Array<SwitchPokemonAction> = [];
@@ -90,26 +84,24 @@ export class Turn {
     OnTurnStart: TypedEvent<OnTurnStartArgs> = new TypedEvent<OnTurnStartArgs>();
     OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs> = new TypedEvent<OnSwitchNeededArgs>();
 
-    constructor(turnId: Number, initialState:GameState) {
+    constructor(turnId: Number, initialState: GameState) {
+
         this.id = turnId;
-        this.players = initialState.players;
 
-        //Having the entry hazards in the constructor is temporary until we figure out what we want in our battle state object.
-        if (initialState.entryHazards === undefined){
-            this.entryHazards = [];
-        }
-        else{
-            this.entryHazards = initialState.entryHazards;
+        if (initialState.entryHazards === undefined) {
+            initialState.entryHazards = [];
         }
 
+        this.initialGameState = _.cloneDeep(initialState);
+        this.currentGameState = _.cloneDeep(initialState);
 
         //this controls some logic in the turn.
-        this._activePokemonIdAtStart1 = initialState.players[0].currentPokemonId;
-        this._activePokemonIdAtStart2 = initialState.players[1].currentPokemonId;
+        this._activePokemonIdAtStart1 = this.initialGameState.players[0].currentPokemonId;
+        this._activePokemonIdAtStart2 = this.initialGameState.players[1].currentPokemonId;
 
         //Reset any flags for if the pokemon can attack this turn or not.
-        GetActivePokemon(initialState.players[0]).canAttackThisTurn = true;
-        GetActivePokemon(initialState.players[1]).canAttackThisTurn = true;
+        GetActivePokemon(this.initialGameState.players[0]).canAttackThisTurn = true;
+        GetActivePokemon(this.initialGameState.players[1]).canAttackThisTurn = true;
     }
     //NEW: Returning a flattened turn log instead
     GetEventLog(): Array<BattleEvent> {
@@ -129,7 +121,7 @@ export class Turn {
         }
     }
     //Special Action for when a pokemon faints in the middle of the turn.
-    
+
     SetSwitchPromptAction(action: SwitchPokemonAction) {
         if (this.switchPromptedPlayers.filter(p => p.id === action.playerId).length === 0) {
             throw new Error("Invalid command in SetSwitchFaintedPokemonAction, this player should not be switching a fainted pokemon");
@@ -154,7 +146,7 @@ export class Turn {
             this._switchFaintedActions.forEach(act => {
                 const player = this.GetPlayer(act.playerId);
                 const pokemon = this.GetPokemon(act.switchPokemonId);
-                this.SwitchPokemon(player,pokemon);
+                this.SwitchPokemon(player, pokemon);
             });
 
             this.currentState = {
@@ -172,16 +164,15 @@ export class Turn {
         );
     }
 
-
-    GetEntryHazards(){
-        return this.entryHazards;
+    GetEntryHazards(): Array<EntryHazard> {
+        return this.currentGameState.entryHazards === undefined ? [] : this.currentGameState.entryHazards
     }
-    GetPlayers(){
-        return this.players;
+    GetPlayers() {
+        return this.currentGameState.players;
     }
 
     private BeforeEndOfTurn() {
-        const activePokemon = this.players.map(player => this.GetActivePokemon(player.id));
+        const activePokemon = this.GetPlayers().map(player => this.GetActivePokemon(player.id));
 
         activePokemon.forEach(pokemon => {
 
@@ -226,21 +217,21 @@ export class Turn {
                 const player = this.GetPlayer(action.playerId);
                 const pokemonToSwitchIn = this.GetPokemon(action.switchPokemonId);
 
-                this.SwitchPokemon(player,pokemonToSwitchIn);
-                 break;
+                this.SwitchPokemon(player, pokemonToSwitchIn);
+                break;
             }
             case 'use-item-action': {
 
                 const player = this.GetPlayer(action.playerId);
-                const item = player.items.find(item=>{
+                const item = player.items.find(item => {
                     return item.id === action.itemId
                 })
-                if (item === undefined){
+                if (item === undefined) {
                     throw new Error('Could not find item to use for use-item-action');
                 }
 
-                this.UseItem(player,item);
-  
+                this.UseItem(player, item);
+
                 break;
             }
             case 'use-move-action': {
@@ -248,13 +239,13 @@ export class Turn {
                 const player = this.GetPlayer(action.playerId);
                 const pokemon = this.GetPokemon(action.pokemonId);
                 const defendingPokemon = this.GetDefendingPokemon(player);
-                const move = pokemon.techniques.find(move=>move.id === action.moveId);
+                const move = pokemon.techniques.find(move => move.id === action.moveId);
 
-                if (move ===undefined){
+                if (move === undefined) {
                     throw new Error('Could not find move to use in DoAction')
                 }
 
-                this.UseTechnique(pokemon,defendingPokemon,move);
+                this.UseTechnique(pokemon, defendingPokemon, move);
                 break;
             }
         }
@@ -265,7 +256,7 @@ export class Turn {
         this.GetPokemon(pokemonId).status = status;
     }
 
-    PromptForSwitch(pokemon:IPokemon){
+    PromptForSwitch(pokemon: IPokemon) {
         const owner = this.GetPokemonOwner(pokemon);
         //TODO - This needs to be a prompt now, not just for fainted pokemon.
         this.switchPromptedPlayers.push(owner);
@@ -286,7 +277,7 @@ export class Turn {
 
         //game over check.
         if (owner.pokemon.filter(poke => poke.currentStats.hp > 0).length === 0) {
-            const winningPlayer = this.players.filter(player => player.id !== owner.id)[0];
+            const winningPlayer = this.GetPlayers().filter(player => player.id !== owner.id)[0];
             this.currentState = {
                 type: 'game-over',
                 winningPlayerId: winningPlayer.id
@@ -436,7 +427,7 @@ export class Turn {
 
             //get the proper starting pokeon based on the action order.
 
-            if (actionOrder[0].playerId === this.players[0].id) {
+            if (actionOrder[0].playerId === this.GetPlayers()[0].id) {
                 pokemonAtStart1 = this._activePokemonIdAtStart1;
                 pokemonAtStart2 = this._activePokemonIdAtStart2;
             }
@@ -537,21 +528,30 @@ export class Turn {
         }
     }
 
-    SwitchPokemon(player:Player,pokemonIn:IPokemon){
+    SwitchPokemon(player: Player, pokemonIn: IPokemon) {
         const switchOutPokemonId = player.currentPokemonId;
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
         switchOutPokemon.volatileStatuses = []; //easy peasy
 
         const switchInPokemonPos = player.pokemon.indexOf(pokemonIn);
         if (switchInPokemonPos < 0) {
-            console.log(this.players);
+            console.log(this.GetPlayers());
             throw new Error(`Could not find pokemon ${pokemonIn.id} for player ${player.id}`);
         }
 
         let pokemonArrCopy = player.pokemon.slice();
 
+        const switchInPokemon = pokemonArrCopy[switchInPokemonPos];
+        //check to make sure the pokemon can actually be switched in
+        if (switchInPokemon.currentStats.hp === 0 ){
+            throw new Error(`Error tried to switch in pokemon, but it has no health : ${switchInPokemon.name}. Check the UI code or the AI code for most likely reason.`);
+        }
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
         pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
+
+
+        
+
 
         player.currentPokemonId = pokemonArrCopy[0].id;
 
@@ -568,12 +568,12 @@ export class Turn {
         }
         this.AddEvent(switchInEffect);
 
-        this.entryHazards.forEach(hazard=>{
-            hazard.OnPokemonEntry(this,this.GetPokemon(pokemonIn.id));
+        this.GetEntryHazards().forEach(hazard => {
+            hazard.OnPokemonEntry(this, this.GetPokemon(pokemonIn.id));
         })
     }
 
-    UseItem(player:Player,item:Item){
+    UseItem(player: Player, item: Item) {
         const pokemon = this.GetActivePokemon(player.id);
         const useItemEffect: UseItemEvent = {
             type: BattleEventType.UseItem,
@@ -585,7 +585,7 @@ export class Turn {
 
         item.effects.forEach((effect: BattleEffect) => {
             //we could do a little bit of a hack here, have the source here be the pokemon as well, so that this will always apply?
-            DoEffect(this, pokemon, effect,{sourceItem:item});
+            DoEffect(this, pokemon, effect, { sourceItem: item });
         }
         );
 
@@ -598,10 +598,10 @@ export class Turn {
 
     }
 
- 
+
 
     //temporary, i want to see how easier this makes testing
-    UseTechnique(pokemon:IPokemon,defendingPokemon:IPokemon,move:Technique){
+    UseTechnique(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) {
         const useMoveEffect: UseMoveEvent = {
             type: BattleEventType.UseMove,
             userId: pokemon.id,
@@ -620,9 +620,9 @@ export class Turn {
             //this method was extracted by using "extract method" and needs to be refactored. we should probably just return a partial event log.
 
 
-            let damage:number = this.DoDamageMove(pokemon, defendingPokemon, move);
+            let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
 
-            
+
             /*
                 On Frozen Pokemon Damaged by Fire Move
                     -UNTHAW THE POKEMON
@@ -640,7 +640,7 @@ export class Turn {
                 this.AddEvent(thawEffect);
             }
 
-            this.ApplyMoveEffects(move, pokemon, defendingPokemon,damage);
+            this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
         }
         else {
             this.DoStatusMove(move, defendingPokemon, pokemon);
@@ -652,7 +652,7 @@ export class Turn {
         this.ApplyMoveEffects(move, pokemon, defendingPokemon);
     }
 
-    private ApplyMoveEffects(move: Technique, pokemon: IPokemon, defendingPokemon: IPokemon,moveDamage?:number): void {
+    private ApplyMoveEffects(move: Technique, pokemon: IPokemon, defendingPokemon: IPokemon, moveDamage?: number): void {
         if (!move.effects) {
             return;
         }
@@ -661,50 +661,50 @@ export class Turn {
             const targetType = effect.target === undefined ? TargetType.Enemy : effect.target;
             var targetPokemon = targetType == TargetType.Self ? pokemon : defendingPokemon;
 
-            
+
             //quick override for drain effects while we think about the best way to handle this type of effect.
-            if (effect.type === 'drain'){
+            if (effect.type === 'drain') {
                 targetPokemon = pokemon;
             }
 
             if (this.Roll(chance)) {
-                DoEffect(this, targetPokemon, effect, {sourcePokemon:pokemon,sourceTechnique:move,sourceDamage:moveDamage});
+                DoEffect(this, targetPokemon, effect, { sourcePokemon: pokemon, sourceTechnique: move, sourceDamage: moveDamage });
             }
         });
     }
 
     //passing the damage dealt for now,
-    private DoDamageMove(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) : number {        
+    private DoDamageMove(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique): number {
 
         //Easy quick hack for handling eruption, but we need to think of a way to do this non hacky.
         //perhaps we should revamp our whole damage system?
         const ability = GetAbility(pokemon.ability);
-        move = ability.ModifyTechnique(pokemon,move);
-       
+        move = ability.ModifyTechnique(pokemon, move);
 
-        if (move.damageEffect){
+
+        if (move.damageEffect) {
             const damageEffect = GetDamageEffect(move.damageEffect.type);
-            move = damageEffect.ModifyTechnique(pokemon,move);
+            move = damageEffect.ModifyTechnique(pokemon, move);
         }
 
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
         const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
-    
+
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
         let newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
 
         //
         const defendingAbility = GetAbility(defendingPokemon.ability);
-        if (defendingAbility.NegateDamage(this,move,defendingPokemon) === true){
+        if (defendingAbility.NegateDamage(this, move, defendingPokemon) === true) {
             //no damage will be applied, any messages why will be handled by the ability itslef.
             return 0;
         }
 
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
-        newDamage =  defendingAbility.ModifyDamageTaken(this,pokemon,defendingPokemon,move,newDamage)
+        newDamage = defendingAbility.ModifyDamageTaken(this, pokemon, defendingPokemon, move, newDamage)
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
-        defendingAbility.OnDamageTakenFromTechnique(this,pokemon,defendingPokemon,move,newDamage);
+        defendingAbility.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, move, newDamage);
         return newDamage;
     }
 
@@ -733,8 +733,8 @@ export class Turn {
         this.eventLog.push(effect);
     }
 
-    private GetDefendingPokemon(attackingPlayer:Player) :IPokemon{
-        const defendingPlayer = this.players.find(p => p !== attackingPlayer);
+    private GetDefendingPokemon(attackingPlayer: Player): IPokemon {
+        const defendingPlayer = this.GetPlayers().find(p => p !== attackingPlayer);
         if (defendingPlayer === undefined) {
             throw new Error(`Could not find defending player`);
         }
@@ -744,14 +744,14 @@ export class Turn {
     }
 
     private GetPlayer(playerId: number): Player {
-        const player = this.players.find(player => player.id === playerId);
+        const player = this.GetPlayers().find(player => player.id === playerId);
         if (player === undefined) {
             throw new Error(`Could not find player with id ${playerId} `);
         }
         return player;
     }
     private GetPokemon(pokemonId: number): IPokemon {
-        const pokemon = this.players.map(player => { return player.pokemon }).flat().find(pokemon => pokemon.id === pokemonId);
+        const pokemon = this.GetPlayers().map(player => { return player.pokemon }).flat().find(pokemon => pokemon.id === pokemonId);
         if (pokemon === undefined) {
             throw new Error(`Could not find pokemon with id ${pokemonId} `);
         }
@@ -766,8 +766,8 @@ export class Turn {
         }
         return activePokemon;
     }
-     GetPokemonOwner(pokemon: IPokemon) {
-        const owner = this.players.filter(player => {
+    GetPokemonOwner(pokemon: IPokemon) {
+        const owner = this.GetPlayers().filter(player => {
             return player.pokemon.find(poke => poke.id === pokemon.id) !== undefined
         })[0];
 
@@ -783,7 +783,7 @@ export class Turn {
     private GetMoveOrder(): Array<BattleAction> {
 
         if (this._moveOrder.length === 0) {
-            this._moveOrder = GetMoveOrder(this.players, this.initialActions)
+            this._moveOrder = GetMoveOrder(this.GetPlayers(), this.initialActions)
         }
         return this._moveOrder;
 

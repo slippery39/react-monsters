@@ -12,11 +12,11 @@ interface AI {
 
 class BasicAI implements AI {
 
-    private _player: Player;
+    private _playerID: number;
     private _service: BattleService;
 
     constructor(aiPlayer: Player, service: BattleService) {
-        this._player = aiPlayer;
+        this._playerID = aiPlayer.id;
         this._service = service;
 
         this._service.OnNewTurn.on((arg) => {
@@ -26,20 +26,31 @@ class BasicAI implements AI {
             this.ChooseFaintedPokemonSwitch();
         })
     }
+
+    private GetPlayerFromTurn(): Player{
+       const player = this._service.GetCurrentTurn().GetPlayers().find(player=>player.id === this._playerID);
+
+       if (player === undefined){
+           throw new Error(`Could not find player with id ${this._playerID} in the game state to use for AI Brain`);
+       }
+
+       return player;
+    }
+
     ChooseAction() {
         //NEW AI if current pokemon has 40% health use a potion
-        const AIpokemon = GetActivePokemon(this._player);
+        const AIpokemon = GetActivePokemon(this.GetPlayerFromTurn());
 
 
-        if (GetPercentageHealth(AIpokemon) <= 40 && this._player.items.length > 0) {
+        if (GetPercentageHealth(AIpokemon) <= 40 && this.GetPlayerFromTurn().items.length > 0) {
             /*
                 use a potion on their pokemon instead of attacking
             */
-            const itemToUse = shuffle(this._player.items)[0].id;
+            const itemToUse = shuffle(this.GetPlayerFromTurn().items)[0].id;
 
             const action: UseItemAction = {
                 type: 'use-item-action',
-                playerId: this._player.id,
+                playerId: this.GetPlayerFromTurn().id,
                 itemId: itemToUse
             }
 
@@ -48,11 +59,11 @@ class BasicAI implements AI {
         }
         else {
 
-            const moveId2 = shuffle(this._player.pokemon.find(p => p.id === this._player.currentPokemonId)?.techniques)[0].id || -1;
+            const moveId2 = shuffle(this.GetPlayerFromTurn().pokemon.find(p => p.id === this.GetPlayerFromTurn().currentPokemonId)?.techniques)[0].id || -1;
             const action: UseMoveAction = {
                 type: 'use-move-action',
-                playerId: this._player.id,
-                pokemonId: this._player.currentPokemonId,
+                playerId: this.GetPlayerFromTurn().id,
+                pokemonId: this.GetPlayerFromTurn().currentPokemonId,
                 moveId: moveId2
             }
             this._service.SetInitialAction(action);
@@ -60,14 +71,15 @@ class BasicAI implements AI {
     }
     ChooseFaintedPokemonSwitch() {
                 //Allowing the AI player to switch his fainted pokemon to something else.
-                if (this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action' && this._service.GetCurrentTurn().switchPromptedPlayers.filter(p => p.id === this._player.id).length > 0) {
+                if (this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action' && this._service.GetCurrentTurn().switchPromptedPlayers.filter(p => p.id === this.GetPlayerFromTurn().id).length > 0) {
 
                     console.log('ai brain is choosing a pokemon to switch');
-                    const unfaintedPokemon = this._player.pokemon.filter(poke => poke.currentStats.hp !== 0)[0];
+                    console.log(this.GetPlayerFromTurn());
+                    const unfaintedPokemon = this.GetPlayerFromTurn().pokemon.filter(poke => poke.currentStats.hp !== 0)[0];
         
                     if (unfaintedPokemon !== undefined) {
                         const switchPokemonAction: SwitchPokemonAction = {
-                            playerId: this._player.id,
+                            playerId: this.GetPlayerFromTurn().id,
                             type: 'switch-pokemon-action',
                             switchPokemonId: unfaintedPokemon.id
                         }

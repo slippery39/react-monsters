@@ -11,17 +11,10 @@ const Charizard = function () {
             speed: 252
         })
         .WithTechniques([
-            //"Fire Blast",
-            "Spikes",
-            "Spikes",
-            "Spikes",
-            "Spikes",
-            /*
-            "Volt Switch",
+            "Fire Blast",
             "Air Slash",
             "Focus Blast",
             "Substitute"
-            */
         ])
         .WithHeldItem("Leftovers")
         //.WithHeldItem("Life Orb")
