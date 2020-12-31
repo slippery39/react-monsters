@@ -85,10 +85,11 @@ function SetupTurn(): Turn {
         .WithPokemon("venusaur")
         .Build();
 
+    const initialState = {
+        players:[player1,player2]
+    }
 
-    const players: Array<Player> = [player1, player2];
-
-    const turn = new Turn(1, players);
+    const turn = new Turn(1, initialState);
 
     return turn;
 
@@ -108,7 +109,12 @@ describe('Roost heals the proper pokemon', () => {
     .WithPokemon("venusaur")
     .Build();
 
-    const turn = new Turn (1,[player1,player2]);
+
+    const initialState = {
+        players:[player1,player2]
+    }
+
+    const turn = new Turn (1,initialState);
 
     const pokemon = new PokemonBuilder().
         OfSpecies("Charizard")
@@ -169,7 +175,12 @@ describe('Turn Event Emitting Correctly Works', () => {
     */
 
     it('test the event emitters', () => {
-        const turn = new Turn(1, CreateTestPlayers());
+
+
+        const initialState = {
+            players:CreateTestPlayers()
+        }
+        const turn = new Turn(1,initialState);
 
         let switchNeededVar = 1;
         turn.OnSwitchNeeded.on((args) => {

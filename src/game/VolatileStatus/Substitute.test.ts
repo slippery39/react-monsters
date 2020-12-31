@@ -37,7 +37,11 @@ function CreateMockTurn() {
         .WithItem("Hyper Potion", 3)
         .WithItem("Max Potion", 1)
         .Build();
-    return new Turn(1, [player1, player2]);
+
+    const initialState = {
+        players:[player1,player2]
+    }
+    return new Turn(1,initialState);
 }
 
 

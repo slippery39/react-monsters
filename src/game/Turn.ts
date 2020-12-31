@@ -21,9 +21,9 @@ export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 
 
 
 
-interface GameState{
+export interface GameState{
     players:Array<Player>,
-    entryHazards:Array<EntryHazard>  
+    entryHazards?:Array<EntryHazard>  
 }
 
 
@@ -90,26 +90,26 @@ export class Turn {
     OnTurnStart: TypedEvent<OnTurnStartArgs> = new TypedEvent<OnTurnStartArgs>();
     OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs> = new TypedEvent<OnSwitchNeededArgs>();
 
-    constructor(turnId: Number, players: Array<Player>,entryHazards?:Array<EntryHazard>) {
+    constructor(turnId: Number, initialState:GameState) {
         this.id = turnId;
-        this.players = players;
+        this.players = initialState.players;
 
         //Having the entry hazards in the constructor is temporary until we figure out what we want in our battle state object.
-        if (entryHazards === undefined){
+        if (initialState.entryHazards === undefined){
             this.entryHazards = [];
         }
         else{
-            this.entryHazards = entryHazards;
+            this.entryHazards = initialState.entryHazards;
         }
 
 
         //this controls some logic in the turn.
-        this._activePokemonIdAtStart1 = players[0].currentPokemonId;
-        this._activePokemonIdAtStart2 = players[1].currentPokemonId;
+        this._activePokemonIdAtStart1 = initialState.players[0].currentPokemonId;
+        this._activePokemonIdAtStart2 = initialState.players[1].currentPokemonId;
 
         //Reset any flags for if the pokemon can attack this turn or not.
-        GetActivePokemon(players[0]).canAttackThisTurn = true;
-        GetActivePokemon(players[1]).canAttackThisTurn = true;
+        GetActivePokemon(initialState.players[0]).canAttackThisTurn = true;
+        GetActivePokemon(initialState.players[1]).canAttackThisTurn = true;
     }
     //NEW: Returning a flattened turn log instead
     GetEventLog(): Array<BattleEvent> {

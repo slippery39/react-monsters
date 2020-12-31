@@ -1,4 +1,4 @@
-import { Turn, TurnState } from "./Turn";
+import { GameState, Turn, TurnState } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import { BattleEvent } from "./BattleEvents";
 import _ from "lodash";
@@ -42,8 +42,11 @@ class BattleService {
         this.AutoAssignItemIds([player1,player2]);
         this.AutoAssignTechniqueIds([player1,player2]);
 
-
-         const turn = new Turn(1,[player1,player2]);
+        const initialState : GameState = {
+            players:[player1,player2],
+            entryHazards:[]
+        }
+         const turn = new Turn(1,initialState);
          turn.OnTurnEnd.on((args)=>{
              console.error('On turn end has fired!');
          })
@@ -170,7 +173,13 @@ class BattleService {
 
             const currentEntryHazards = this.GetCurrentTurn().GetEntryHazards();
 
-            const turn = new Turn(this.turnIndex++,[player1,player2],currentEntryHazards);
+
+            const initialState = {
+                players:[player1,player2],
+                entryHazards:this.GetCurrentTurn().GetEntryHazards()
+            }
+
+            const turn = new Turn(this.turnIndex++,initialState);
             
             turn.OnTurnEnd.on((args)=>{
                 console.error('On turn end has fired!');
