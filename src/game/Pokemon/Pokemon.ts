@@ -54,7 +54,7 @@ export interface PartialStats{
 }
 
 
-export class PokemonBuilder{
+class _PokemonBuilder{
 
     private pokemon:IPokemon
 
@@ -95,7 +95,7 @@ export class PokemonBuilder{
                 evs:CreateEmptyStats()
         }
     }
-    OfSpecies(name:string) : PokemonBuilder{        
+    OfSpecies(name:string) : _PokemonBuilder{        
         //todo: some warning here that this should be called first?
         const base = GetSpecies(name);
         //modify the base pokemon to change it into a regular pokemon.
@@ -105,30 +105,30 @@ export class PokemonBuilder{
         this.pokemon.ability = base.ability;   
         return this;
     }
-    WithIVs(ivAmounts:Stats):PokemonBuilder{
+    WithIVs(ivAmounts:Stats):_PokemonBuilder{
         this.pokemon.ivs = {...ivAmounts};
         return this;
     }
-    WithEVs(evAmounts:PartialStats):PokemonBuilder{
+    WithEVs(evAmounts:PartialStats):_PokemonBuilder{
         this.pokemon.evs = {...CreateEmptyStats(),...evAmounts};
         return this;
     }
-    WithTechniques(techNames:Array<string>) : PokemonBuilder{
+    WithTechniques(techNames:Array<string>) : _PokemonBuilder{
         this.pokemon.techniques = [];
         techNames.forEach((techName:string)=>{
             this.pokemon.techniques.push(GetTech(techName))
         });
         return this;
     }
-    WithAbility(abilityName:string):PokemonBuilder{
+    WithAbility(abilityName:string):_PokemonBuilder{
         this.pokemon.ability = abilityName;
         return this;
     }
-    WithHeldItem(heldItemName:string):PokemonBuilder{
+    WithHeldItem(heldItemName:string):_PokemonBuilder{
         this.pokemon.heldItem = GetHeldItem(heldItemName);
         return this;
     }
-    WithBaseStats(baseStats:Stats):PokemonBuilder{
+    WithBaseStats(baseStats:Stats):_PokemonBuilder{
         this.pokemon.baseStats = baseStats;
         return this;
     }
@@ -144,6 +144,10 @@ export class PokemonBuilder{
         //calculate the final stats
         return _.cloneDeep(this.pokemon);
     }
+}
+
+export function PokemonBuilder(){
+    return new _PokemonBuilder();
 }
 
 

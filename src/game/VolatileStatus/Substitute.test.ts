@@ -46,7 +46,8 @@ function CreateMockTurn() {
 
 
 function CreatePokemonWithSubstitute(): IPokemon {
-    const pokemon = new PokemonBuilder()
+    const pokemon = 
+        PokemonBuilder()
         .OfSpecies("charizard")
         .Build();
 
@@ -72,7 +73,8 @@ describe('substitute tests', () => {
 
     it('applies preoperly', () => {
 
-        const pokemon: IPokemon = new PokemonBuilder()
+        const pokemon: IPokemon =
+            PokemonBuilder()
             .OfSpecies("charizard")
             .Build();
 
@@ -94,7 +96,8 @@ describe('substitute tests', () => {
 
     it('cannot be applied if pokemon already has substitute', () => {
 
-        const pokemon: IPokemon = new PokemonBuilder()
+        const pokemon: IPokemon = 
+        PokemonBuilder()
             .OfSpecies("charizard")
             .Build();
 

@@ -14,8 +14,9 @@ import { GetTech } from './Techniques/PremadeTechniques';
 
 
 function SetupBattle(): BattleService {
-    const pokemon1 = new PokemonBuilder().
-        OfSpecies("Charizard")
+    const pokemon1 = 
+        PokemonBuilder()
+        .OfSpecies("Charizard")
         .WithBaseStats({ hp: 1, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
         .WithTechniques(["roost", "fire blast"])
         .Build();
@@ -23,7 +24,8 @@ function SetupBattle(): BattleService {
     pokemon1.status = Status.Poison
 
 
-    const pokemon2 = new PokemonBuilder()
+    const pokemon2 = 
+        PokemonBuilder()
         .OfSpecies("Charizard")
         .WithBaseStats({ hp: 1, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
         .WithTechniques(["roost", "fire blast"])
@@ -54,8 +56,9 @@ function SetupBattle(): BattleService {
 
 function SetupTurn(): Turn {
 
-    const pokemon1 = new PokemonBuilder().
-        OfSpecies("Charizard")
+    const pokemon1 = 
+        PokemonBuilder()
+        .OfSpecies("Charizard")
         .WithBaseStats({ hp: 200, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
         .WithTechniques(["roost", "fire blast"])
         .Build();
@@ -63,7 +66,8 @@ function SetupTurn(): Turn {
     pokemon1.status = Status.Poison
 
 
-    const pokemon2 = new PokemonBuilder()
+    const pokemon2 = 
+        PokemonBuilder()
         .OfSpecies("Charizard")
         .WithBaseStats({ hp: 200, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
         .WithTechniques(["roost", "fire blast"])
@@ -116,16 +120,18 @@ describe('Roost heals the proper pokemon', () => {
 
     const turn = new Turn (1,initialState);
 
-    const pokemon = new PokemonBuilder().
-        OfSpecies("Charizard")
+    const pokemon = 
+        PokemonBuilder()
+        .OfSpecies("Charizard")
         .WithBaseStats({ hp: 200, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
         .WithTechniques(["roost", "fire blast"])
         .Build();
     pokemon.currentStats.hp = 100;
     const technique = GetTech("roost");
 
-    const pokemon2 = new PokemonBuilder().
-    OfSpecies("Charizard")
+    const pokemon2 = 
+    PokemonBuilder()
+    .OfSpecies("Charizard")
     .WithBaseStats({ hp: 200, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
     .WithTechniques(["roost", "fire blast"])
     .Build();
