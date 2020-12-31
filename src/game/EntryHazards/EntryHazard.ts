@@ -11,11 +11,11 @@ export enum EntryHazardType{
 export function ApplyEntryHazard(turn:Turn,player:Player,type:EntryHazardType){
     switch(type){
         case EntryHazardType.Spikes:{
-            console.log(turn.entryHazards);
-            let spikes = turn.entryHazards.find(hazard=>hazard.type === EntryHazardType.Spikes && hazard.player!.id === player.id);
+        
+            let spikes = turn.GetEntryHazards().find(hazard=>hazard.type === EntryHazardType.Spikes && hazard.player!.id === player.id);
             if (spikes === undefined){
                 spikes = new Spikes(player);
-                turn.entryHazards.push(spikes);    
+                turn.GetEntryHazards().push(spikes);    
                 spikes.OnApplied(turn,player);        
             }
             else{

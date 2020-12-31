@@ -168,7 +168,7 @@ class BattleService {
             const player1 = this.GetCurrentTurn().players[0];
             const player2 = this.GetCurrentTurn().players[1];
 
-            const currentEntryHazards = this.GetCurrentTurn().entryHazards;
+            const currentEntryHazards = this.GetCurrentTurn().GetEntryHazards();
 
             const turn = new Turn(this.turnIndex++,[player1,player2],currentEntryHazards);
             

@@ -20,6 +20,13 @@ import { EntryHazard } from './EntryHazards/EntryHazard';
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
 
+
+interface GameState{
+    players:Array<Player>,
+    entryHazards:Array<EntryHazard>  
+}
+
+
 enum TurnStep {
     PreAction1 = 'pre-action-1',
     Action1 = 'action1',
@@ -69,7 +76,7 @@ export class Turn {
     private _moveOrder: Array<BattleAction> = [];
 
     //Entry Hazards
-    entryHazards : Array<EntryHazard> =  [];
+    private entryHazards : Array<EntryHazard> =  [];
 
     //Stores the fainted pokemon actions if 
     private _switchFaintedActions: Array<SwitchPokemonAction> = [];
@@ -163,6 +170,11 @@ export class Turn {
             defaultMessage: message
         }
         );
+    }
+
+
+    GetEntryHazards(){
+        return this.entryHazards;
     }
 
     private BeforeEndOfTurn() {
