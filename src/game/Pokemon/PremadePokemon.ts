@@ -12,10 +12,10 @@ const Charizard = function () {
         })
         .WithTechniques([
             //"Fire Blast",
-            "Ice Punch",
-            "Ice Punch",
-            "Ice Punch",
-            "Ice Punch",
+            "Spikes",
+            "Spikes",
+            "Spikes",
+            "Spikes",
             /*
             "Volt Switch",
             "Air Slash",

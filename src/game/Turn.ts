@@ -15,6 +15,7 @@ import { SubstituteVolatileStatus, VolatileStatusType } from './VolatileStatus/V
 import { Item } from './Items/Item';
 import _ from 'lodash';
 import { GetDamageEffect } from './DamageEffects/DamageEffects';
+import { EntryHazard } from './EntryHazards/EntryHazard';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -67,6 +68,9 @@ export class Turn {
     //Cached move order
     private _moveOrder: Array<BattleAction> = [];
 
+    //Entry Hazards
+    entryHazards : Array<EntryHazard> =  [];
+
     //Stores the fainted pokemon actions if 
     private _switchFaintedActions: Array<SwitchPokemonAction> = [];
 
@@ -79,9 +83,18 @@ export class Turn {
     OnTurnStart: TypedEvent<OnTurnStartArgs> = new TypedEvent<OnTurnStartArgs>();
     OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs> = new TypedEvent<OnSwitchNeededArgs>();
 
-    constructor(turnId: Number, players: Array<Player>) {
+    constructor(turnId: Number, players: Array<Player>,entryHazards?:Array<EntryHazard>) {
         this.id = turnId;
         this.players = players;
+
+        //Having the entry hazards in the constructor is temporary until we figure out what we want in our battle state object.
+        if (entryHazards === undefined){
+            this.entryHazards = [];
+        }
+        else{
+            this.entryHazards = entryHazards;
+        }
+
 
         //this controls some logic in the turn.
         this._activePokemonIdAtStart1 = players[0].currentPokemonId;
@@ -539,6 +552,10 @@ export class Turn {
             switchInPokemonId: pokemonIn.id,
         }
         this.AddEvent(switchInEffect);
+
+        this.entryHazards.forEach(hazard=>{
+            hazard.OnPokemonEntry(this,this.GetPokemon(pokemonIn.id));
+        })
     }
 
     UseItem(player:Player,item:Item){
@@ -734,7 +751,7 @@ export class Turn {
         }
         return activePokemon;
     }
-    private GetPokemonOwner(pokemon: IPokemon) {
+     GetPokemonOwner(pokemon: IPokemon) {
         const owner = this.players.filter(player => {
             return player.pokemon.find(poke => poke.id === pokemon.id) !== undefined
         })[0];

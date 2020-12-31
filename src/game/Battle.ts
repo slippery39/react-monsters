@@ -168,7 +168,9 @@ class BattleService {
             const player1 = this.GetCurrentTurn().players[0];
             const player2 = this.GetCurrentTurn().players[1];
 
-            const turn = new Turn(this.turnIndex++,[player1,player2]);
+            const currentEntryHazards = this.GetCurrentTurn().entryHazards;
+
+            const turn = new Turn(this.turnIndex++,[player1,player2],currentEntryHazards);
             
             turn.OnTurnEnd.on((args)=>{
                 console.error('On turn end has fired!');

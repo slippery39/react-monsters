@@ -1,6 +1,7 @@
 
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
 import { BattleEffect, TargetType, HealthRestoreType } from "game/Effects/Effects";
+import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
@@ -24,6 +25,19 @@ export interface BaseTechnique {
 export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Spikes",
+            description:"The user lays a trap of spikes at the opposing team's feet. The trap hurts Pokémon that switch into battle.",
+            accuracy:100,
+            pp:32,
+            power:0,
+            elementalType:ElementType.Ground,
+            damageType:DamageType.Status,
+            effects:[{
+                type:'place-entry-hazard',
+                hazard:EntryHazardType.Spikes
+            }]
+        },
         {
             name:"Iron Head",
             description:"The user slams the target with its steel-hard head. This may also make the target flinch.",

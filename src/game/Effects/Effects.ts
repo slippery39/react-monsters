@@ -1,4 +1,5 @@
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
+import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { Item } from "game/Items/Item";
 import { Player } from "game/Player/PlayerBuilder";
@@ -62,8 +63,12 @@ export interface SwitchPokemonEffect{
     type:'switch-pokemon'
 }
 
+export interface PlaceEntryHazard{
+    type:'place-entry-hazard'
+    hazard:EntryHazardType
+}
 
-export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect | SwitchPokemonEffect);
+export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard);
 
 
 
@@ -218,6 +223,11 @@ function SwitchPokemonEffect(turn:Turn,sourcePokemon:IPokemon){
     turn.PromptForSwitch(sourcePokemon);
 }
 
+function PlaceEntryHazardEffect(turn:Turn,type:EntryHazardType,player:Player){
+    console.warn("Entry Hazard has been placed");
+    ApplyEntryHazard(turn,player,type);    
+}
+
 interface EffectSource {
     sourcePokemon?: IPokemon,
     sourceTechnique?: Technique,
@@ -279,6 +289,13 @@ export function DoEffect(turn: Turn, pokemon: IPokemon, effect: BattleEffect, so
                 throw new Error("Need a source pokemon to DoEffect - aromatherapy");
             }
             SwitchPokemonEffect(turn,source.sourcePokemon);
+            break;
+        }
+        case 'place-entry-hazard':{
+            if (effect.hazard === undefined){
+                throw new Error('No hazard define for DoEffect - place entry hazard');
+            }
+            PlaceEntryHazardEffect(turn,effect.hazard,turn.GetPokemonOwner(pokemon));
             break;
         }
         default: {
