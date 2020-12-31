@@ -167,8 +167,7 @@ function GetAbility(name:String){
             return new SturdyAbility();
         }
         default:{
-            alert(`ERROR: Could not find passive ability for ${name} - using no ability instead`);
-            console.error(`ERROR: Could not find passive ability for ${name} - using no ability instead`);
+            console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);
             return new NoAbility();
         }
     }

@@ -15,8 +15,7 @@ export function CreateMockTurn(){
 
     const initialState : GameState = {
         players:[player1,player2],
-        entryHazards:[]
-    }
+       }
 
     const turn = new Turn (1,initialState);
 

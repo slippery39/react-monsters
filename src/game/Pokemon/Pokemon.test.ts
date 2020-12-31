@@ -12,7 +12,7 @@ describe('Stats are correctly calculated from Base Stats',()=>{
     */
 
     it('calculates real stats from base stats correctly with no ivs or evs',()=>{
-        const pokemon = new PokemonBuilder()
+        const pokemon = PokemonBuilder()
         .OfSpecies("charizard")
         .WithIVs({
             hp:0,
@@ -50,14 +50,14 @@ describe('Stat boosts are correctly implemented', () => {
  
    it ('calculates stat correctly with no boost', ()=>{     
      //boost amuont shuld be 0 by default
-     const pokemon = new PokemonBuilder().OfSpecies("charizard").Build();
+     const pokemon = PokemonBuilder().OfSpecies("charizard").Build();
      pokemon.currentStats.attack = 100;
      const attackAmount1 = CalculateStatWithBoost(pokemon,Stat.Attack);
      expect(attackAmount1).toBe(100);
    });
 
    it ('calculates stat correctly with boost of 1', ()=>{
-        const pokemon = new PokemonBuilder().OfSpecies("charizard").Build();
+        const pokemon = PokemonBuilder().OfSpecies("charizard").Build();
         pokemon.currentStats.attack = 100;
          pokemon.statBoosts![Stat.Attack] = 1;
          const attackAmount1 = CalculateStatWithBoost(pokemon,Stat.Attack);
@@ -65,7 +65,7 @@ describe('Stat boosts are correctly implemented', () => {
    });
 
    it ('calculates stat correctly with boost of 6', ()=>{
-    const pokemon = new PokemonBuilder().OfSpecies("charizard").Build();
+    const pokemon = PokemonBuilder().OfSpecies("charizard").Build();
     pokemon.currentStats.attack = 100;
     pokemon.statBoosts![Stat.Attack] = 6;
     const attackAmount1 = CalculateStatWithBoost(pokemon,Stat.Attack);
@@ -73,7 +73,7 @@ describe('Stat boosts are correctly implemented', () => {
 });
 
 it ('calculates stat correctly with boost of -1', ()=>{
-    const pokemon = new PokemonBuilder().OfSpecies("charizard").Build();
+    const pokemon = PokemonBuilder().OfSpecies("charizard").Build();
     pokemon.currentStats.attack = 100;
     pokemon.statBoosts![Stat.Attack] = -1;
     const attackAmount1 = CalculateStatWithBoost(pokemon,Stat.Attack);
@@ -81,7 +81,7 @@ it ('calculates stat correctly with boost of -1', ()=>{
 });
 
 it ('calculates stat correctly with boost of -6', ()=>{
-    const pokemon = new PokemonBuilder().OfSpecies("charizard").Build();
+    const pokemon = PokemonBuilder().OfSpecies("charizard").Build();
     pokemon.currentStats.attack = 100;
     pokemon.statBoosts![Stat.Attack] = -6;
     const attackAmount1 = CalculateStatWithBoost(pokemon,Stat.Attack);
@@ -91,7 +91,7 @@ it ('calculates stat correctly with boost of -6', ()=>{
 
 it('applies multiple stat boosts correctly', ()=>{
 
-    const pokemon = new PokemonBuilder().OfSpecies("charizard").Build();
+    const pokemon = PokemonBuilder().OfSpecies("charizard").Build();
     ApplyStatBoost(pokemon,Stat.Attack,2);
     
     expect(pokemon.statBoosts[Stat.Attack]).toBe(2);

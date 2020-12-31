@@ -1,9 +1,7 @@
 import 'core-js'
-import { Player, PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { GetTech } from 'game/Techniques/PremadeTechniques';
 import { CreateMockTurn } from 'game/Testing/TestingFunctions';
-import { Turn } from 'game/Turn';
 import GetAbility from './Ability';
 
 
@@ -11,14 +9,14 @@ import GetAbility from './Ability';
 describe('Levitate Ability Tests',()=>{
 
     it('does not get hit by ground moves',()=>{
-        const pokemon = new PokemonBuilder()
+        const pokemon = PokemonBuilder()
         .OfSpecies("gengar")
         .WithAbility("levitate")
         .Build();
 
         const turn = CreateMockTurn();
 
-        const pokemon2 = new PokemonBuilder().
+        const pokemon2 = PokemonBuilder().
         OfSpecies("Charizard")
         .WithBaseStats({ hp: 200, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
         .Build();
@@ -39,7 +37,7 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     */
 
     it('correctly does not apply damage modifier for pokemon at >33% health', ()=>{
-    const pokemon = new PokemonBuilder()
+    const pokemon = PokemonBuilder()
         .OfSpecies("charizard")
         .WithAbility("blaze")
         .Build();
@@ -61,7 +59,7 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     
 
     it ('correctly applies damage modifier for pokemon at <=33% health',()=>{
-        const pokemon = new PokemonBuilder()
+        const pokemon = PokemonBuilder()
         .OfSpecies("charizard")
         .WithAbility("blaze")
         .Build();
@@ -81,7 +79,7 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     });
 
     it('correctly does not apply damage modifier at <=33% health when using a non fire move',()=>{
-        const pokemon = new PokemonBuilder()
+        const pokemon = PokemonBuilder()
         .OfSpecies("charizard")
         .WithAbility("blaze")
         .Build();

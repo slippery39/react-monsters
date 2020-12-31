@@ -10,7 +10,6 @@ interface ISpecies {
     name:string,
     baseStats:Stats,
     elementalTypes:Array<ElementType>,
-    ability:string
 }
 
 
@@ -28,8 +27,6 @@ const pokemons: SpeciesDB = {
             spDefense: 85,
             speed: 100
         },
-        ability:"Sturdy"
-        //ability:"Blaze"
     },
     "blastoise": {
         name: 'Blastoise',
@@ -43,7 +40,6 @@ const pokemons: SpeciesDB = {
             spDefense: 105,
             speed: 78
         },
-        ability:"Torrent"
     },
     "venusaur":{
         name: 'Venusaur',
@@ -56,7 +52,6 @@ const pokemons: SpeciesDB = {
             spDefense: 100,
             speed: 80
         },
-        ability:"Overgrowth"
     },
     "raichu":{
         name:"Raichu",
@@ -69,7 +64,6 @@ const pokemons: SpeciesDB = {
             spDefense:80,
             speed:100
         },
-        ability:"Lightning Rod"
     },
     "alakazam":{
         name:"Alakazam",
@@ -82,7 +76,6 @@ const pokemons: SpeciesDB = {
             spDefense:85,
             speed:120
         },
-        ability:"Magic Guard"
     },
     "gengar":{
         name:"Gengar",
@@ -95,7 +88,6 @@ const pokemons: SpeciesDB = {
             spDefense:75,
             speed:110
         },
-        ability:"Levitate"
     },
     "meganium":{
         name:"Meganium",
@@ -108,7 +100,6 @@ const pokemons: SpeciesDB = {
             spDefense:100,
             speed:100
         },
-        ability:"Overgrowth"
     },
     "typhlosion":{
         name:"Typhlosion",
@@ -121,7 +112,6 @@ const pokemons: SpeciesDB = {
             spDefense:85,
             speed:100
         },
-        ability:"Flash Fire"
     },
     "feraligatr":{
         name:"Feraligatr",
@@ -134,7 +124,6 @@ const pokemons: SpeciesDB = {
             spDefense:83,
             speed:78
         },
-        ability:"Sheer Force"
     },
     "ampharos":{
         name:"Ampharos",
@@ -147,7 +136,6 @@ const pokemons: SpeciesDB = {
             spDefense:90,
             speed:55
         },
-        ability:"Static"
     },
     "skarmory":{
         name:"Skarmory",
@@ -160,7 +148,6 @@ const pokemons: SpeciesDB = {
             spDefense:70,
             speed:70
         },
-        ability:"Sturdy"
     }
 
 }

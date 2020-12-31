@@ -15,8 +15,8 @@ const Charizard = function () {
             "Focus Blast",
             "Substitute"
         ])
-        .WithHeldItem("Leftovers")
-        //.WithHeldItem("Life Orb")
+        .WithHeldItem("Leftovers") //.WithHeldItem("Life Orb")
+        .WithAbility("Blaze")
         .Build();
 }
 
@@ -35,6 +35,7 @@ const Blastoise = function () {
             "Toxic"
         ])
         .WithHeldItem("Leftovers")
+        .WithAbility("Torrent")
         .Build();
 }
 
@@ -53,6 +54,7 @@ const Venusaur = function () {
             "Sleep Powder"
         ])
         .WithHeldItem("Life Orb")
+        .WithAbility("Overgrowth")
         .Build();
 };
 
@@ -72,6 +74,7 @@ const Raichu = function () {
             "Focus Blast"
         ])
         .WithHeldItem("Leftovers")
+        .WithAbility("Lightning Rod")
         .Build();
 }
 
@@ -90,6 +93,7 @@ const Alakazam = function () {
             "Shadow Ball"
         ])
         .WithHeldItem("Life Orb")
+        .WithAbility("Magic Guard")
         .Build();
 }
 
@@ -109,6 +113,7 @@ const Gengar = function () {
             "Focus Blast"
         ])
         .WithHeldItem("Life Orb")
+        .WithAbility("Levitate")
         .Build()
 }
 
@@ -127,6 +132,7 @@ const Meganium = function () {
             "Toxic"
         ])
         .WithHeldItem("Leftovers")
+        .WithAbility("Overgrowth")
         .Build();
 }
 
@@ -147,6 +153,7 @@ const Typhlosion = function () {
             "Fire Blast"
         ])
         .WithHeldItem("Leftovers")
+        .WithAbility("Flash Fire")
         .Build();
 
 }
@@ -166,6 +173,7 @@ const Feraligatr = function () {
             "Ice Punch"
         ])
         .WithHeldItem("Life Orb")
+        .WithAbility("Sheer Force")
         .Build();
 }
 
@@ -185,6 +193,7 @@ const Ampharos = function () {
 
         ])
         .WithHeldItem("Leftovers")
+        .WithAbility("Static")
         .Build();
 }
 
@@ -203,6 +212,7 @@ const Skarmory = function () {
             "Whirlwind"
         ])
         .WithHeldItem("Leftovers")
+        .WithAbility("Sturdy")
         .Build();
 }
 

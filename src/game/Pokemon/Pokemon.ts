@@ -102,7 +102,7 @@ class _PokemonBuilder{
         this.pokemon.name = base.name;
         this.pokemon.baseStats = {...base.baseStats};
         this.pokemon.elementalTypes = [...base.elementalTypes];     
-        this.pokemon.ability = base.ability;   
+        //this.pokemon.ability = base.ability;   
         return this;
     }
     WithIVs(ivAmounts:Stats):_PokemonBuilder{
