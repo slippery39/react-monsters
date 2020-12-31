@@ -192,7 +192,7 @@ export class LeechSeedVolatileStatus extends VolatileStatus {
         const leechSeedDamage = pokemon.originalStats.hp / 16;
         //deal the leech seed damage to the pokemon
         //heal the opponent pokemon
-        const opponentPlayer = turn.players.find(player => player.currentPokemonId !== pokemon.id);
+        const opponentPlayer = turn.GetPlayers().find(player => player.currentPokemonId !== pokemon.id);
         if (opponentPlayer === undefined) {
             throw new Error('Could not find player for leech seed end of turn');
         }

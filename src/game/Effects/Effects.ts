@@ -198,7 +198,7 @@ function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: IPokemon) {
     Heals all pokemon in the user pokemons party.
     */
 
-    const pokemonOwner = turn.players.find(player => player.pokemon.find(poke => poke.id === sourcePokemon.id));
+    const pokemonOwner = turn.GetPlayers().find(player => player.pokemon.find(poke => poke.id === sourcePokemon.id));
     if (pokemonOwner === undefined) {
         throw new Error(`Could not find pokemon owner for pokemon : ${sourcePokemon.id}`);
     }

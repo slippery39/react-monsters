@@ -69,7 +69,7 @@ class BattleService {
     //For testing purposes only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
         this.GetCurrentTurn().SetStatusOfPokemon(pokemonId, status);
-        this.onStateChange.emit({ newState: this.GetCurrentTurn().players });
+        this.onStateChange.emit({ newState: this.GetCurrentTurn().GetPlayers() });
     }
 
     GetAllyPlayer() {
@@ -165,8 +165,8 @@ class BattleService {
         }
 
         if (this.GetCurrentTurn().currentState.type === 'turn-finished') {           
-            const player1 = this.GetCurrentTurn().players[0];
-            const player2 = this.GetCurrentTurn().players[1];
+            const player1 = this.GetCurrentTurn().GetPlayers()[0];
+            const player2 = this.GetCurrentTurn().GetPlayers()[1];
 
             const currentEntryHazards = this.GetCurrentTurn().GetEntryHazards();
 
@@ -189,7 +189,7 @@ class BattleService {
 
     //gets the player state for the current turn?
     GetPlayers(): Array<Player> {
-        return _.cloneDeep(this.GetCurrentTurn().players);
+        return _.cloneDeep(this.GetCurrentTurn().GetPlayers());
     }
 
     

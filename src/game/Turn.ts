@@ -58,7 +58,7 @@ type OnSwitchNeededArgs = {
 
 export class Turn {
     id: Number;
-    players: Array<Player> = [] //needs to be initial turn state.
+    private players: Array<Player> = [] //needs to be initial turn state.
 
     eventLog: Array<BattleEvent> = [];
     nextEventId: number = 1; //next id for when we have a new event.
@@ -175,6 +175,9 @@ export class Turn {
 
     GetEntryHazards(){
         return this.entryHazards;
+    }
+    GetPlayers(){
+        return this.players;
     }
 
     private BeforeEndOfTurn() {
