@@ -1,4 +1,4 @@
-import { BattleEffect, HealthRestoreType } from "game/Effects/Effects";
+import { BattleEffect, EffectType, HealthRestoreType } from "game/Effects/Effects";
 import { Status } from "../HardStatus/HardStatus";
 
 
@@ -16,11 +16,11 @@ export function GetItem(name:string): ItemBase{
             name:"Antidote",
             description:'Cures poison',
             effects:[{
-                type:'status-restore',
+                type:EffectType.StatusRestore,
                 forStatus:Status.Poison,
             },
         {
-         type:'status-restore',
+         type:EffectType.StatusRestore,
          forStatus:Status.ToxicPoison   
         }]
         },
@@ -28,17 +28,17 @@ export function GetItem(name:string): ItemBase{
             name:"Full Restore",
             description:'Heals to full health and cures any status',
             effects:[{
-                type:'health-restore',
+                type:EffectType.HealthRestore,
                 restoreType:HealthRestoreType.PercentMaxHealth,
                 amount:100
             },
-            {type:'status-restore',forStatus:'any'}]
+            {type:EffectType.StatusRestore,forStatus:'any'}]
         },
         {
             name:'Potion',
             description:'Restores 20 HP',
             effects:[{
-                type:'health-restore',
+                type:EffectType.HealthRestore,
                 restoreType:HealthRestoreType.Flat,
                 amount:20
                 }
@@ -49,7 +49,7 @@ export function GetItem(name:string): ItemBase{
             description:'Restores 60 HP',
             effects:[
                 {
-                type:'health-restore',
+                type:EffectType.HealthRestore,
                 restoreType:HealthRestoreType.Flat,
                 amount:60
                 }
@@ -60,7 +60,7 @@ export function GetItem(name:string): ItemBase{
             description:'Restores 120 HP',
             effects:[
                 {
-                type:'health-restore',
+                type:EffectType.HealthRestore,
                 restoreType:HealthRestoreType.Flat,
                 amount:120
                 }
@@ -71,7 +71,7 @@ export function GetItem(name:string): ItemBase{
             description:'Fully restores HP',
             effects:[
                 {
-                type:'health-restore',
+                type:EffectType.HealthRestore,
                 restoreType:HealthRestoreType.PercentMaxHealth,
                 amount:100
                 }

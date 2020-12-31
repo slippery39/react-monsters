@@ -14,21 +14,33 @@ export enum TargetType {
     Enemy = 'enemy'
 }
 
+export enum EffectType{
+    InflictStatus = 'inflict-status',
+    StatBoost = 'stat-boost',
+    InflictVolatileStatus = 'inflict-volatile-status',
+    HealthRestore = 'health-restore',
+    StatusRestore = 'status-restore',
+    Drain = 'drain',
+    Aromatherapy = 'aromatherapy',
+    SwitchPokemon = 'switch-pokemon',
+    PlaceEntryHazard = 'place-entry-hazard'
+}
+
 export interface InflictStatusEffect {
-    type: 'inflict-status',
+    type: EffectType.InflictStatus,
     status: Status
     target: TargetType,
     chance: number
 }
 export interface StatBoostEffect {
-    type: 'stat-boost',
+    type: EffectType.StatBoost,
     stat: Stat
     target: TargetType,
     amount: number
     chance: number
 }
 export interface InflictVolatileStatusEffect {
-    type: 'inflict-volatile-status',
+    type: EffectType.InflictVolatileStatus,
     status: VolatileStatusType,
     target: TargetType,
     chance: number
@@ -40,31 +52,31 @@ export enum HealthRestoreType {
 }
 
 export interface HealthRestoreEffect {
-    type: 'health-restore',
+    type: EffectType.HealthRestore,
     restoreType: HealthRestoreType,
     amount: number
 }
 
 export interface StatusRestoreEffect {
-    type: 'status-restore',
+    type: EffectType.StatusRestore,
     forStatus: Status | 'any',
 }
 
 export interface DrainEffect {
-    type: 'drain',
+    type: EffectType.Drain,
     amount: number
 }
 
 export interface AromatherapyEffect {
-    type: 'aromatherapy'
+    type: EffectType.Aromatherapy
 }
 
 export interface SwitchPokemonEffect{
-    type:'switch-pokemon'
+    type: EffectType.SwitchPokemon
 }
 
 export interface PlaceEntryHazard{
-    type:'place-entry-hazard'
+    type:EffectType.PlaceEntryHazard
     hazard:EntryHazardType
 }
 
@@ -244,54 +256,54 @@ export function DoEffect(turn: Turn, pokemon: IPokemon, effect: BattleEffect, so
     //This object could contain many different source info things.
     //like the pokemon, the technique, the hazard the item etc.
     switch (effect.type) {
-        case 'inflict-status': {
+        case EffectType.InflictStatus: {
             if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - inflict-status");
             }
             InflictStatus(turn, pokemon, effect.status, source.sourcePokemon);
             break;
         }
-        case 'stat-boost': {
+        case EffectType.StatBoost: {
             DoStatBoost(turn, pokemon, effect.stat, effect.amount);
             break;
         }
-        case 'inflict-volatile-status': {
+        case EffectType.InflictVolatileStatus: {
             if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - inflict-volatile-status");
             }
             InflictVolatileStatus(turn, pokemon, effect.status, source.sourcePokemon);
             break;
         }
-        case 'health-restore': {
+        case EffectType.HealthRestore: {
             ApplyHealingEffect(turn, pokemon, effect);
             break;
         }
-        case 'status-restore': {
+        case EffectType.StatusRestore: {
             ApplyStatusRestoreEffect(turn, pokemon, effect);
             break;
         }
-        case 'drain': {
+        case EffectType.Drain: {
             if (source.sourceDamage === undefined) {
                 throw new Error("Need a source damage to DoEffect - drain");
             }
             DrainEffect(turn, pokemon, effect, source.sourceDamage);
             break;
         }
-        case 'aromatherapy':{
+        case EffectType.Aromatherapy:{
             if (source.sourcePokemon === undefined){
                 throw new Error("Need a source pokemon to DoEffect - aromatherapy");
             }
             ApplyAromatherapyEffect(turn,source.sourcePokemon);
             break;
         }
-        case 'switch-pokemon':{
+        case EffectType.SwitchPokemon:{
             if (source.sourcePokemon === undefined){
                 throw new Error("Need a source pokemon to DoEffect - aromatherapy");
             }
             SwitchPokemonEffect(turn,source.sourcePokemon);
             break;
         }
-        case 'place-entry-hazard':{
+        case EffectType.PlaceEntryHazard:{
             if (effect.hazard === undefined){
                 throw new Error('No hazard define for DoEffect - place entry hazard');
             }

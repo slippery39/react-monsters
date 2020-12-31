@@ -1,6 +1,6 @@
 
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
-import { BattleEffect, TargetType, HealthRestoreType } from "game/Effects/Effects";
+import { BattleEffect, TargetType, HealthRestoreType, EffectType } from "game/Effects/Effects";
 import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
@@ -34,7 +34,7 @@ export function GetTech(name: string):Technique {
             elementalType:ElementType.Ground,
             damageType:DamageType.Status,
             effects:[{
-                type:'place-entry-hazard',
+                type:EffectType.PlaceEntryHazard,
                 hazard:EntryHazardType.Spikes
             }]
         },
@@ -48,7 +48,7 @@ export function GetTech(name: string):Technique {
             damageType:DamageType.Physical,
             makesContact:true,
             effects:[{
-                type:'inflict-volatile-status',
+                type:EffectType.InflictVolatileStatus,
                 status:VolatileStatusType.Flinch,
                 target:TargetType.Enemy,
                 chance:30
@@ -63,7 +63,7 @@ export function GetTech(name: string):Technique {
             elementalType:ElementType.Electric,
             damageType:DamageType.Special,
             effects:[{
-                type: 'switch-pokemon',
+                type:EffectType.SwitchPokemon,
                 chance:100
             }]
         },       
@@ -77,7 +77,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Normal,
             accuracy: 100,
             effects: [{
-                type: "aromatherapy"
+                type: EffectType.Aromatherapy
             }]
         },
         
@@ -91,7 +91,7 @@ export function GetTech(name: string):Technique {
             elementalType:ElementType.Ice,
             makesContact:true,
             effects:[{
-                type:'inflict-status',
+                type:EffectType.InflictStatus,
                 status:Status.Frozen,
                 target:TargetType.Enemy,
                 chance:10
@@ -107,7 +107,7 @@ export function GetTech(name: string):Technique {
             elementalType:ElementType.Dark,
             makesContact:true,
             effects:[{
-                type:'stat-boost',
+                type:EffectType.StatBoost,
                 target:TargetType.Enemy,
                 stat:Stat.Defense,
                 amount:-1,
@@ -124,7 +124,7 @@ export function GetTech(name: string):Technique {
             elementalType:ElementType.Water,
             makesContact:true,
             effects: [{
-                type: 'inflict-volatile-status',
+                type: EffectType.InflictVolatileStatus,
                 status: VolatileStatusType.Flinch,
                 target: TargetType.Enemy,
                 chance: 20
@@ -140,14 +140,14 @@ export function GetTech(name: string):Technique {
             elementalType:ElementType.Dragon,
             effects:[
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.Attack,
                     target: TargetType.Self,
                     amount: 1,
                     chance: 100
                 },
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.Speed,
                     target: TargetType.Self,
                     amount: 1,
@@ -185,7 +185,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Grass,
             accuracy: 100,
             effects: [{
-                type: 'health-restore',
+                type: EffectType.HealthRestore,
                 target: TargetType.Self,
                 restoreType: HealthRestoreType.PercentMaxHealth,
                 amount: 50,
@@ -201,7 +201,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Grass,
             accuracy: 100,
             effects: [{
-                type: "aromatherapy"
+                type: EffectType.Aromatherapy
             }]
         },
         {
@@ -213,7 +213,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Grass,
             accuracy: 100,
             effects: [{
-                type: 'drain',
+                type: EffectType.Drain,
                 amount: 50,
             }]
         },
@@ -226,7 +226,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Ice,
             accuracy: 100,
             effects: [{
-                type: 'inflict-status',
+                type: EffectType.InflictStatus,
                 status: Status.Frozen,
                 chance: 10,
                 target: TargetType.Enemy
@@ -252,19 +252,20 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Normal,
             accuracy: 100,
             effects: [{
-                type: 'status-restore',
+                type: EffectType.StatusRestore,
                 forStatus: 'any',
                 target: TargetType.Self,
                 chance: 100
             },
             {
-                type: 'health-restore',
+                type: EffectType.HealthRestore,
                 restoreType: HealthRestoreType.PercentMaxHealth,
+                target:TargetType.Self,
                 amount: 100,
                 chance: 100
             },
             {
-                type: 'inflict-status',
+                type: EffectType.InflictStatus,
                 status: Status.Resting,
                 chance: 100,
                 target: TargetType.Self
@@ -280,7 +281,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Poison,
             accuracy: 90,
             effects: [{
-                type: 'inflict-status',
+                type: EffectType.InflictStatus,
                 status: Status.ToxicPoison,
                 target: TargetType.Enemy,
                 chance: 100
@@ -315,14 +316,14 @@ export function GetTech(name: string):Technique {
             power: 0,
             accuracy: 100,
             effects: [{
-                type: 'health-restore',
+                type: EffectType.HealthRestore,
                 target: TargetType.Self,
                 restoreType: HealthRestoreType.PercentMaxHealth,
                 amount: 50,
                 chance: 100
             },
             {
-                type: 'inflict-volatile-status',
+                type: EffectType.InflictVolatileStatus,
                 status: VolatileStatusType.Roosted,
                 target: TargetType.Self,
                 chance: 100
@@ -338,7 +339,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Fighting,
             accuracy: 70,
             effects: [{
-                type: 'stat-boost',
+                type: EffectType.StatBoost,
                 stat: Stat.SpecialDefense,
                 target: TargetType.Enemy,
                 amount: -1,
@@ -354,7 +355,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Flying,
             accuracy: 95,
             effects: [{
-                type: 'inflict-volatile-status',
+                type: EffectType.InflictVolatileStatus,
                 status: VolatileStatusType.Flinch,
                 target: TargetType.Enemy,
                 chance: 30
@@ -370,7 +371,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Water,
             accuracy: 100,
             effects: [{
-                type: 'inflict-volatile-status',
+                type: EffectType.InflictVolatileStatus,
                 status: VolatileStatusType.AquaRing,
                 target: TargetType.Self,
                 chance: 100
@@ -386,7 +387,7 @@ export function GetTech(name: string):Technique {
             accuracy: 100,
             effects: [
                 {
-                    type: 'inflict-volatile-status',
+                    type: EffectType.InflictVolatileStatus,
                     status: VolatileStatusType.Confusion,
                     target: TargetType.Enemy,
                     chance: 100
@@ -402,7 +403,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Grass,
             effects: [
                 {
-                    type: 'inflict-status',
+                    type: EffectType.InflictStatus,
                     status: Status.Sleep,
                     target: TargetType.Enemy,
                     chance: 100
@@ -420,7 +421,7 @@ export function GetTech(name: string):Technique {
             effects: [
                 {
 
-                    type: 'inflict-status',
+                    type: EffectType.InflictStatus,
                     status: Status.Burned,
                     target: TargetType.Enemy,
                     chance: 100
@@ -438,7 +439,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Normal,
             effects: [
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.Attack,
                     target: TargetType.Enemy,
                     amount: -1,
@@ -456,7 +457,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Normal,
             effects: [
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.Attack,
                     target: TargetType.Self,
                     amount: 2,
@@ -474,7 +475,7 @@ export function GetTech(name: string):Technique {
             effects: [
                 {
 
-                    type: 'inflict-status',
+                    type: EffectType.InflictStatus,
                     status: Status.Poison,
                     target: TargetType.Enemy,
                     chance: 100
@@ -492,7 +493,7 @@ export function GetTech(name: string):Technique {
             effects: [
                 {
 
-                    type: 'inflict-status',
+                    type: EffectType.InflictStatus,
                     status: Status.Paralyzed,
                     target: TargetType.Enemy,
                     chance: 100
@@ -510,7 +511,7 @@ export function GetTech(name: string):Technique {
             accuracy: 85,
             effects: [
                 {
-                    type: 'inflict-status',
+                    type: EffectType.InflictStatus,
                     status: Status.Burned,
                     target: TargetType.Enemy,
                     chance: 10
@@ -559,7 +560,7 @@ export function GetTech(name: string):Technique {
             damageType: DamageType.Special,
             effects: [
                 {
-                    type: 'inflict-status',
+                    type: EffectType.InflictStatus,
                     status: Status.Paralyzed,
                     chance: 10,
                     target: TargetType.Enemy
@@ -578,7 +579,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Dark,
             effects: [
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.SpecialAttack,
                     target: TargetType.Self,
                     amount: 2,
@@ -596,14 +597,14 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Dark,
             effects: [
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.SpecialAttack,
                     target: TargetType.Self,
                     amount: 1,
                     chance: 100
                 },
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.SpecialDefense,
                     target: TargetType.Self,
                     amount: 1,
@@ -621,7 +622,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Psychic,
             effects: [
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.SpecialDefense,
                     target: TargetType.Enemy,
                     amount: 1,
@@ -641,7 +642,7 @@ export function GetTech(name: string):Technique {
             pp: 16,
             effects: [
                 {
-                    type: 'inflict-status',
+                    type: EffectType.InflictStatus,
                     status: Status.Poison,
                     target: TargetType.Enemy,
                     chance: 10
@@ -659,7 +660,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Ghost,
             effects: [
                 {
-                    type: 'stat-boost',
+                    type: EffectType.StatBoost,
                     stat: Stat.SpecialDefense,
                     target: TargetType.Enemy,
                     amount: 1,
@@ -679,7 +680,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Normal,
             effects: [
                 {
-                    type: 'inflict-volatile-status',
+                    type: EffectType.InflictVolatileStatus,
                     status: VolatileStatusType.Substitute,
                     target: TargetType.Self,
                     chance: 100
