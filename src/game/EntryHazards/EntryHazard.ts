@@ -3,7 +3,7 @@ import { ElementType } from "game/ElementType";
 import { Player } from "game/Player/PlayerBuilder";
 import { IPokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
-import { trimEnd } from "lodash";
+
 
 
 export enum EntryHazardType{
