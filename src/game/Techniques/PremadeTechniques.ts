@@ -649,7 +649,7 @@ export function GetTech(name: string):Technique {
             power: 0,
             accuracy: 100,
             pp: 20,
-            elementalType: ElementType.Dark,
+            elementalType: ElementType.Psychic,
             effects: [
                 {
                     type: EffectType.StatBoost,
