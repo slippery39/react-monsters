@@ -17,6 +17,7 @@ export interface BaseTechnique {
     damageType: DamageType,
     elementalType: ElementType,
     accuracy: number,
+    priority?:number,
     damageEffect?: DamageEffect,
     makesContact?:boolean,
     effects?: Array<BattleEffect>,
@@ -25,6 +26,19 @@ export interface BaseTechnique {
 export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Whirlwind",
+            description:"The target is blown away, and a different Pokémon is dragged out. In the wild, this ends a battle against a single Pokémon",
+            accuracy:100,
+            priority:-6,
+            pp:32,
+            power:0,
+            elementalType:ElementType.Normal,
+            damageType: DamageType.Status,
+            effects:[{
+                type:EffectType.Whirlwind
+            }]
+        },
         {
             name:"Spikes",
             description:"The user lays a trap of spikes at the opposing team's feet. The trap hurts Pokémon that switch into battle.",

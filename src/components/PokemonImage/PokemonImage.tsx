@@ -1,4 +1,5 @@
 import React from 'react';
+import "./PokemonImage.css";
 
 interface Props {
     name:string,
@@ -39,7 +40,7 @@ const PokemonImage: React.FunctionComponent<Props> = (props) => {
     }    
 
     return (
-        <img src={imageToUse} alt="pokemon" />
+        <img className="pokemon-sprite" src={imageToUse} alt="pokemon" />
     );
 }
 

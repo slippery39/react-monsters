@@ -8,6 +8,7 @@ import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
+import { shuffle } from "lodash";
 
 export enum TargetType {
     Self = 'self',
@@ -23,7 +24,8 @@ export enum EffectType{
     Drain = 'drain',
     Aromatherapy = 'aromatherapy',
     SwitchPokemon = 'switch-pokemon',
-    PlaceEntryHazard = 'place-entry-hazard'
+    PlaceEntryHazard = 'place-entry-hazard',
+    Whirlwind = 'whirlwind'
 }
 
 export interface InflictStatusEffect {
@@ -80,7 +82,11 @@ export interface PlaceEntryHazard{
     hazard:EntryHazardType
 }
 
-export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard);
+export interface WhirlwindEffect{
+    type:EffectType.Whirlwind
+}
+
+export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect);
 
 
 
@@ -240,6 +246,19 @@ function PlaceEntryHazardEffect(turn:Turn,type:EntryHazardType,player:Player){
     ApplyEntryHazard(turn,player,type);    
 }
 
+function WhirlwindEffect(turn:Turn,player:Player){
+    //Choose a random pokemon other than the current one
+    //Switch that pokemon in
+    console.warn("Whirlwind Effect");
+    const otherValidPokemon = player.pokemon.filter(poke=>poke.currentStats.hp>0 && poke.id!== player.currentPokemonId);
+    if (otherValidPokemon.length <1){
+        turn.ApplyMessage("But it failed!");
+        return;
+    }    
+    const randomPokemon = shuffle(otherValidPokemon)[0];
+    turn.SwitchPokemon(player,randomPokemon);   
+}
+
 interface EffectSource {
     sourcePokemon?: IPokemon,
     sourceTechnique?: Technique,
@@ -308,6 +327,10 @@ export function DoEffect(turn: Turn, pokemon: IPokemon, effect: BattleEffect, so
                 throw new Error('No hazard define for DoEffect - place entry hazard');
             }
             PlaceEntryHazardEffect(turn,effect.hazard,turn.GetPokemonOwner(pokemon));
+            break;
+        }
+        case EffectType.Whirlwind:{
+            WhirlwindEffect(turn,turn.GetPokemonOwner(pokemon));
             break;
         }
         default: {

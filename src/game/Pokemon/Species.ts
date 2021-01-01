@@ -16,6 +16,19 @@ interface ISpecies {
 export function GetSpecies(name:string): ISpecies{
 
 const pokemons: SpeciesDB = {
+
+    "missingno":{
+        name:"missingno",
+        elementalTypes:[ElementType.Flying,ElementType.Normal],
+        baseStats:{
+            hp:100,
+            attack:100,
+            spAttack:100,
+            spDefense:100,
+            defense:100,
+            speed:500
+        }
+    },
     "charizard":{
         name: 'Charizard',
         elementalTypes:[ElementType.Fire,ElementType.Flying],

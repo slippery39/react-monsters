@@ -5,6 +5,7 @@ import StartGameScreen from 'components/StartGameScreen/StartGameScreen';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/Battle';
 import BasicAI from 'game/AI/AI';
+import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 
 
 enum AppState{
@@ -24,10 +25,23 @@ function App() {
     setAppState(AppState.StartMenu);
   }
 
+
+
   function initializeBattle(){
+    
+    //MISSINGNO!
+    const testPokemon = PokemonBuilder().OfSpecies("missingno").WithTechniques([
+      "Whirlwind",
+      "Whirlwind",
+      "Whirlwind",
+      "Whirlwind"
+    ])
+    .Build();
+
+    
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("charizard")
+    .WithCustomPokemon(testPokemon)
     .WithPokemon("gengar")
     .WithPokemon("venusaur")
     .WithPokemon("blastoise")

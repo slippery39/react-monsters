@@ -395,6 +395,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
             case BattleEventType.SwitchIn: {
 
+                console.log("Switching In Animation Playing");
+
                 const pokemon = getPokemonById(effect.switchInPokemonId);
                 const owner = getPokemonAndOwner(state, pokemon.id).owner;
 
@@ -420,6 +422,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 break;
             }
             case BattleEventType.SwitchOut: {
+
+
+                console.log("Switching Out Animation");
 
                 const pokemon = getPokemonById(effect.switchOutPokemonId);
                 const owner = getPokemonAndOwner(state, pokemon.id).owner;
