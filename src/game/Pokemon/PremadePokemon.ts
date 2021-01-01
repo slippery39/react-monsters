@@ -198,7 +198,7 @@ const Ampharos = function () {
 }
 
 const Skarmory = function () {
-    PokemonBuilder()
+    return PokemonBuilder()
         .OfSpecies("Skarmory")
         .WithEVs({
             hp: 252,
@@ -231,6 +231,7 @@ const GetPokemon = function (name: string): IPokemon {
         Typhlosion(),
         Feraligatr(),
         Ampharos(),
+        Skarmory()
     ]
 
 

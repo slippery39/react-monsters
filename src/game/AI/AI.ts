@@ -59,20 +59,6 @@ class BasicAI implements AI {
         }
         else {
 
-
-            const unfaintedPokemon = this.GetPlayerFromTurn().pokemon.filter(poke => poke.currentStats.hp !== 0 && poke.id!=this.GetPlayerFromTurn().currentPokemonId)[0];
-        
-            if (unfaintedPokemon !== undefined) {
-                const switchPokemonAction: SwitchPokemonAction = {
-                    playerId: this.GetPlayerFromTurn().id,
-                    type: 'switch-pokemon-action',
-                    switchPokemonId: unfaintedPokemon.id
-                }
-               this._service.SetInitialAction(switchPokemonAction);
-            }
-
-            return;
-
             const moveId2 = shuffle(this.GetPlayerFromTurn().pokemon.find(p => p.id === this.GetPlayerFromTurn().currentPokemonId)?.techniques)[0].id || -1;
             const action: UseMoveAction = {
                 type: 'use-move-action',
