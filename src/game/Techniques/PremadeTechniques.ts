@@ -27,6 +27,19 @@ export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
         {
+            name:"Stealth Rock",
+            description:"The user lays a trap of levitating stones around the opposing team. The trap hurts opposing Pokémon that switch into battle.",
+            pp:32,
+            power:0,
+            accuracy:100,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Rock,
+            effects:[{
+                type:EffectType.PlaceEntryHazard,
+                hazard:EntryHazardType.StealthRock
+            }]
+        },
+        {
             name:"Seismic Toss",
             description:"The target is thrown using the power of gravity. It inflicts damage equal to the user's level.",
             pp:32,

@@ -13,7 +13,7 @@ const Charizard = function () {
             "Fire Blast",
             "Air Slash",
             "Focus Blast",
-            "Substitute"
+            "Earthquake"
         ])
         .WithHeldItem("Leftovers") //.WithHeldItem("Life Orb")
         .WithAbility("Blaze")
@@ -231,6 +231,7 @@ const Blissey = function(){
         "Seismic Toss",
         "Stealth Rock"
     ])
+    .Build()
 }
 
 
@@ -248,7 +249,8 @@ const GetPokemon = function (name: string): IPokemon {
         Typhlosion(),
         Feraligatr(),
         Ampharos(),
-        Skarmory()
+        Skarmory(),
+        Blissey()
     ]
 
 

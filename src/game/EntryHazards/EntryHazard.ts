@@ -1,10 +1,14 @@
+import { GetTypeMod } from "game/DamageFunctions";
+import { ElementType } from "game/ElementType";
 import { Player } from "game/Player/PlayerBuilder";
 import { IPokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
+import { trimEnd } from "lodash";
 
 
 export enum EntryHazardType{
-    Spikes = 'spikes'
+    Spikes = 'spikes',
+    StealthRock = 'stealth-rock'
 }
 
 
@@ -31,8 +35,21 @@ export function ApplyEntryHazard(turn:Turn,player:Player,type:EntryHazardType){
             //if not, create a new one and apply it.
             break;
         }
+        case EntryHazardType.StealthRock:{
+            let stealthRock = turn.GetEntryHazards().find(hazard=>hazard.type === EntryHazardType.StealthRock && hazard.player!.id === player.id)
+            if (stealthRock === undefined){
+                stealthRock = new StealthRock(player);
+                turn.GetEntryHazards().push(stealthRock);
+                stealthRock?.OnApplied(turn,player);
+            }
+            else{
+                stealthRock.OnApplyFail(turn,player);
+            }
+            break;
+
+        }
         default:{
-            throw new Error (`Entry hazard cannot be applyed : ${type}`)
+            throw new Error (`Entry hazard cannot be applied : ${type}`)
         }
     }
 }
@@ -98,6 +115,42 @@ export class Spikes extends EntryHazard{
        }
        turn.ApplyIndirectDamage(pokemon,damage);
        turn.ApplyMessage(`${pokemon.name} was hurt by spikes`);
+    }
+}
+
+export class StealthRock extends EntryHazard{
+    type:EntryHazardType = EntryHazardType.StealthRock
+    OnApplied(turn:Turn,player:Player){
+        turn.ApplyMessage(`Pointed stones float in the air around ${player.name}'s team.`);
+    }
+    OnApplyFail(turn:Turn,player:Player){
+        turn.ApplyMessage("But it failed!");
+    }
+    OnPokemonEntry(turn:Turn,pokemon:IPokemon){
+        const effectiveness = GetTypeMod(pokemon.elementalTypes,ElementType.Rock);
+
+        let damageMod = 0;
+        if (effectiveness >= 4){
+            damageMod = 50;
+        }
+        else if (effectiveness>=2){
+            damageMod = 25;
+        }
+        else if (effectiveness >=1){
+            damageMod = 12.5;
+        }
+        else if (effectiveness >=0.5){
+            damageMod = 6.25;
+        }
+        else if (effectiveness >=0.25){
+            damageMod = 3.125;
+        }
+
+        if (damageMod > 0){
+            const damage = pokemon.originalStats.hp / damageMod;
+            turn.ApplyIndirectDamage(pokemon,damage);
+            turn.ApplyMessage(`${pokemon.name} was hurt by stealth rock.`);
+        }
     }
 }
 

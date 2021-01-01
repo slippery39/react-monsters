@@ -33,7 +33,7 @@ function App() {
     const testPokemon = PokemonBuilder().OfSpecies("missingno").WithTechniques([
       "Soft Boiled",
       "Seismic Toss",
-      "Whirlwind",
+      "Stealth Rock",
       "Whirlwind"
     ])
     .Build();
@@ -42,7 +42,7 @@ function App() {
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
     .WithCustomPokemon(testPokemon)
-    .WithPokemon("Skarmory")
+    .WithPokemon("Blissey")
     .WithPokemon("gengar")
     .WithPokemon("venusaur")
     .WithPokemon("blastoise")
