@@ -701,6 +701,10 @@ export class Turn {
             return 0;
         }
 
+        if (move.damageEffect && damageModifierInfo.typeEffectivenessBonus!==0){
+             newDamage = GetDamageEffect(move.damageEffect.type).ModifyDamageDealt(pokemon,newDamage);
+        }
+
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
         newDamage = defendingAbility.ModifyDamageTaken(this, pokemon, defendingPokemon, move, newDamage)
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);

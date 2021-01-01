@@ -27,6 +27,34 @@ export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
         {
+            name:"Seismic Toss",
+            description:"The target is thrown using the power of gravity. It inflicts damage equal to the user's level.",
+            pp:32,
+            power:0,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            elementalType:ElementType.Fighting,
+            damageEffect:{
+                type:DamageEffectTypes.SeismicToss
+            }
+        },
+        {
+            name:"Soft Boiled",
+            description:"The user restores its own HP by up to half of its max HP.",
+            accuracy:100,
+            pp:16,
+            power:0,
+            elementalType:ElementType.Normal,
+            damageType:DamageType.Status,
+            effects:[{
+                type:EffectType.HealthRestore,
+                restoreType:HealthRestoreType.PercentMaxHealth,
+                target:TargetType.Self,
+                amount:50                
+            }]
+        },
+        {
             name:"Whirlwind",
             description:"The target is blown away, and a different Pokémon is dragged out. In the wild, this ends a battle against a single Pokémon",
             accuracy:100,

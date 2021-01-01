@@ -161,6 +161,18 @@ const pokemons: SpeciesDB = {
             spDefense:70,
             speed:70
         },
+    },
+    "blissey":{
+        name:"Blissey",
+        elementalTypes:[ElementType.Normal],
+        baseStats:{
+            hp:255,
+            attack:10,
+            defense:10,
+            spAttack:75,
+            spDefense:125,
+            speed:55,
+        }
     }
 
 }

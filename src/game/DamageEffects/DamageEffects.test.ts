@@ -11,7 +11,7 @@ describe('Eruption Tests',()=>{
 
 
     it('modifies power correctly',()=>{
-    const pokemon = new PokemonBuilder()
+    const pokemon = PokemonBuilder()
     .OfSpecies("Charizard")
     .Build();
 

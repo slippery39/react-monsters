@@ -216,6 +216,23 @@ const Skarmory = function () {
         .Build();
 }
 
+const Blissey = function(){
+    return PokemonBuilder()
+    .OfSpecies("Blissey")
+    .WithEVs({
+        hp:252,
+        defense:252,
+        spDefense:4
+    })
+    .WithHeldItem("Leftovers")
+    .WithTechniques([
+        "Thunder Wave",
+        "Soft Boiled",
+        "Seismic Toss",
+        "Stealth Rock"
+    ])
+}
+
 
 
 const GetPokemon = function (name: string): IPokemon {
