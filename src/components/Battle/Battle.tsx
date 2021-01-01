@@ -423,9 +423,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
             case BattleEventType.SwitchOut: {
 
-
-                console.log("Switching Out Animation");
-
                 const pokemon = getPokemonById(effect.switchOutPokemonId);
                 const owner = getPokemonAndOwner(state, pokemon.id).owner;
 
@@ -440,7 +437,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     timeLine.fromTo(allyPokemonImage.current, { left: "40px" }, { delay: defaultDelayTime, left: "-150px", duration: defaultAnimationTime, immediateRender: false })
                 }
                 else {
-                    timeLine.fromTo(enemyPokemonImage.current, { left: "350px" }, { delay: defaultDelayTime, left: "240px", duration: defaultAnimationTime, immediateRender: false })
+                    timeLine.fromTo(enemyPokemonImage.current, { left: "240px" }, { delay: defaultDelayTime, left: "450px", duration: defaultAnimationTime, immediateRender: false })
                 }
 
                 break;
