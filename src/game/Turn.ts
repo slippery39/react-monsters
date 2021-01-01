@@ -93,15 +93,15 @@ export class Turn {
         }
 
         this.initialGameState = _.cloneDeep(initialState);
-        this.currentGameState = _.cloneDeep(initialState);
+        //Reset any flags for if the pokemon can attack this turn or not.
+        GetActivePokemon(this.initialGameState.players[0]).canAttackThisTurn = true;
+        GetActivePokemon(this.initialGameState.players[1]).canAttackThisTurn = true;
+        this.currentGameState = _.cloneDeep(this.initialGameState);
 
         //this controls some logic in the turn.
         this._activePokemonIdAtStart1 = this.initialGameState.players[0].currentPokemonId;
         this._activePokemonIdAtStart2 = this.initialGameState.players[1].currentPokemonId;
 
-        //Reset any flags for if the pokemon can attack this turn or not.
-        GetActivePokemon(this.initialGameState.players[0]).canAttackThisTurn = true;
-        GetActivePokemon(this.initialGameState.players[1]).canAttackThisTurn = true;
     }
     //NEW: Returning a flattened turn log instead
     GetEventLog(): Array<BattleEvent> {
@@ -543,14 +543,14 @@ export class Turn {
 
         const switchInPokemon = pokemonArrCopy[switchInPokemonPos];
         //check to make sure the pokemon can actually be switched in
-        if (switchInPokemon.currentStats.hp === 0 ){
+        if (switchInPokemon.currentStats.hp === 0) {
             throw new Error(`Error tried to switch in pokemon, but it has no health : ${switchInPokemon.name}. Check the UI code or the AI code for most likely reason.`);
         }
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
         pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
 
 
-        
+
 
 
         player.currentPokemonId = pokemonArrCopy[0].id;
@@ -701,8 +701,8 @@ export class Turn {
             return 0;
         }
 
-        if (move.damageEffect && damageModifierInfo.typeEffectivenessBonus!==0){
-             newDamage = GetDamageEffect(move.damageEffect.type).ModifyDamageDealt(pokemon,newDamage);
+        if (move.damageEffect && damageModifierInfo.typeEffectivenessBonus !== 0) {
+            newDamage = GetDamageEffect(move.damageEffect.type).ModifyDamageDealt(pokemon, newDamage);
         }
 
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
