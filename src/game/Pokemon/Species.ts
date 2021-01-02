@@ -166,7 +166,20 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 125,
                 speed: 55,
             }
-        }];
+        ,
+    },
+{
+    name:"Sharpedo",
+    elementalTypes:[ElementType.Water,ElementType.Dark],
+    baseStats:{
+        hp:70,
+        attack:120,
+        defense:40,
+        spAttack:95,
+        spDefense:40,
+        speed:95
+    }
+}];
 
 
 

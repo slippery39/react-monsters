@@ -234,6 +234,25 @@ const Blissey = function(){
     .Build()
 }
 
+const Sharpedo = function(){
+    return PokemonBuilder()
+    .OfSpecies("Sharpedo")
+    .WithEVs({
+        attack:252,
+        spDefense:4,
+        speed:252    
+    })
+    .WithHeldItem("Life Orb")
+    .WithTechniques([
+        "Protect",
+        "Waterfall",
+        "Crunch",
+        "Earthquake"
+    ])
+    .Build();
+
+}
+
 
 
 const GetPokemon = function (name: string): IPokemon {
