@@ -1,9 +1,11 @@
+import PokemonImage from "components/PokemonImage/PokemonImage";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetPercentageHealth} from "game/HelperFunctions";
-import { IPokemon } from "game/Pokemon/Pokemon";
+import { ApplyStatBoost, IPokemon } from "game/Pokemon/Pokemon";
+import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import _ from "lodash";
@@ -20,6 +22,18 @@ abstract class AbstractAbility extends BattleBehaviour{
     }
     ModifyDamageTaken(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,originalDamage:number){
         return originalDamage;
+    }
+}
+
+
+class SpeedBoostAbility extends AbstractAbility{
+    EndOfTurn(turn:Turn,pokemon:IPokemon){
+        if (pokemon.statBoosts[Stat.Speed] >=6){
+            return;
+        }
+        ApplyStatBoost(pokemon,Stat.Speed,1);
+        turn.ApplyMessage(`${pokemon.name} speed has increased due to Speed Boost!`);
+
     }
 }
 
@@ -165,6 +179,9 @@ function GetAbility(name:String){
         }
         case 'sturdy':{
             return new SturdyAbility();
+        }
+        case 'speed boost':{
+            return new SpeedBoostAbility();
         }
         default:{
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

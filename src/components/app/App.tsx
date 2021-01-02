@@ -36,6 +36,7 @@ function App() {
       "Stealth Rock",
       "Whirlwind"
     ])
+    .WithAbility("Speed Boost")
     .Build();
 
     
