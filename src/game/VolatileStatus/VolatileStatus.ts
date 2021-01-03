@@ -169,6 +169,9 @@ export class ProectionVolatileStatus extends VolatileStatus {
                 turn.ApplyMessage(this.InflictedMessage(pokemon));
             }
         }
+        else{
+            this.flagForRemoval = true;
+        }
     }
     //defending against a technique.
     NegateTechnique(turn: Turn, attackingPokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) {

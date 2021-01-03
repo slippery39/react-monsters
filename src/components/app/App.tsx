@@ -32,11 +32,12 @@ function App() {
     //MISSINGNO!
     const testPokemon = PokemonBuilder().OfSpecies("missingno").WithTechniques([
       "Protect",
-      "Seismic Toss",
+      "Crunch",
       "Stealth Rock",
       "Whirlwind"
     ])
     .WithAbility("Speed Boost")
+    .WithHeldItem("Life Orb")
     .Build();
 
     
