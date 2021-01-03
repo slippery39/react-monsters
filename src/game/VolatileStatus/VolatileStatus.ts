@@ -75,7 +75,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
 
         //Not ideal here, but works for now. 
         if (!canApply) {
-            turn.ApplyMessage('But it failed!');
+            turn.AddMessage('But it failed!');
         }
         return canApply;
     }
@@ -163,10 +163,10 @@ export class ProectionVolatileStatus extends VolatileStatus {
             const isProtected = turn.Roll(this.chanceToApply);
             if (!isProtected) {
                 this.flagForRemoval = true;
-                turn.ApplyMessage(`But it failed`);
+                turn.AddMessage(`But it failed`);
             }
             else {
-                turn.ApplyMessage(this.InflictedMessage(pokemon));
+                turn.AddMessage(this.InflictedMessage(pokemon));
             }
         }
         else{
@@ -183,7 +183,7 @@ export class ProectionVolatileStatus extends VolatileStatus {
         const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) != undefined;
 
         if (isDamagingMove || isStatusMoveThatEffectsOpponent) {
-            turn.ApplyMessage(`${defendingPokemon.name} protected itself!`);
+            turn.AddMessage(`${defendingPokemon.name} protected itself!`);
             this.chanceToApply /= 2;
         }
         return true;
@@ -205,7 +205,7 @@ export class AquaRingVolatileStatus extends VolatileStatus {
     EndOfTurn(turn: Turn, pokemon: Pokemon) {
         //heal 1/16 of hp
         turn.ApplyHealing(pokemon, pokemon.originalStats.hp / 16);
-        turn.ApplyMessage(`${pokemon.name} restored a little health due to aqua veil!`);
+        turn.AddMessage(`${pokemon.name} restored a little health due to aqua veil!`);
     }
 }
 
@@ -224,7 +224,7 @@ export class FlinchVolatileStatus extends VolatileStatus {
 
     BeforeAttack(turn: Turn, pokemon: Pokemon) {
         pokemon.canAttackThisTurn = false;
-        turn.ApplyMessage(`${pokemon.name} has flinched`);
+        turn.AddMessage(`${pokemon.name} has flinched`);
     }
 
     EndOfTurn(turn: Turn, pokemon: Pokemon) {
@@ -257,7 +257,7 @@ export class LeechSeedVolatileStatus extends VolatileStatus {
         const opponentPokemon = GetActivePokemon(opponentPlayer);
         turn.ApplyIndirectDamage(pokemon, leechSeedDamage);
         turn.ApplyHealing(opponentPokemon, leechSeedDamage);
-        turn.ApplyMessage(`${pokemon.name} had its health drained a little due to leech seed!`);
+        turn.AddMessage(`${pokemon.name} had its health drained a little due to leech seed!`);
     }
 }
 
@@ -277,12 +277,12 @@ export class ConfusionVolatileStatus extends VolatileStatus {
         if (turn.Roll(this.unconfuseChance)) {
             //the attacking pokemon is no longer confused
             _.remove(pokemon.volatileStatuses, (vstatus) => vstatus.type === 'confusion');
-            turn.ApplyMessage(`${pokemon.name} has snapped out of its confusion!`);
+            turn.AddMessage(`${pokemon.name} has snapped out of its confusion!`);
         }
         else {
-            turn.ApplyMessage(`${pokemon.name} is confused!`);
+            turn.AddMessage(`${pokemon.name} is confused!`);
             if (turn.Roll(this.damageSelfChance)) {
-                turn.ApplyMessage(`${pokemon.name} has hurt itself in its confusion`);
+                turn.AddMessage(`${pokemon.name} has hurt itself in its confusion`);
                 turn.ApplyIndirectDamage(pokemon, 40);
                 //pokemon skips the turn as well
                 pokemon.canAttackThisTurn = false;

@@ -95,7 +95,7 @@ export class Spikes extends EntryHazard{
          this.stage++;
     }
     OnApplyFail(turn:Turn,player:Player){
-        turn.ApplyMessage("But it failed!");
+        turn.AddMessage("But it failed!");
     }
     OnPokemonEntry(turn:Turn,pokemon:Pokemon){   
         
@@ -114,17 +114,17 @@ export class Spikes extends EntryHazard{
         damage = pokemon.originalStats.hp *0.25;
        }
        turn.ApplyIndirectDamage(pokemon,damage);
-       turn.ApplyMessage(`${pokemon.name} was hurt by spikes`);
+       turn.AddMessage(`${pokemon.name} was hurt by spikes`);
     }
 }
 
 export class StealthRock extends EntryHazard{
     type:EntryHazardType = EntryHazardType.StealthRock
     OnApplied(turn:Turn,player:Player){
-        turn.ApplyMessage(`Pointed stones float in the air around ${player.name}'s team.`);
+        turn.AddMessage(`Pointed stones float in the air around ${player.name}'s team.`);
     }
     OnApplyFail(turn:Turn,player:Player){
-        turn.ApplyMessage("But it failed!");
+        turn.AddMessage("But it failed!");
     }
     OnPokemonEntry(turn:Turn,pokemon:Pokemon){
         const effectiveness = GetTypeMod(pokemon.elementalTypes,ElementType.Rock);
@@ -149,7 +149,7 @@ export class StealthRock extends EntryHazard{
         if (damageMod > 0){
             const damage = pokemon.originalStats.hp / damageMod;
             turn.ApplyIndirectDamage(pokemon,damage);
-            turn.ApplyMessage(`${pokemon.name} was hurt by stealth rock.`);
+            turn.AddMessage(`${pokemon.name} was hurt by stealth rock.`);
         }
     }
 }

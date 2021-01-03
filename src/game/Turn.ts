@@ -156,7 +156,7 @@ export class Turn {
             this.CalculateTurn();
         }
     }
-    ApplyMessage(message: string) {
+    AddMessage(message: string) {
         this.AddEvent({
             type: BattleEventType.GenericMessage,
             defaultMessage: message

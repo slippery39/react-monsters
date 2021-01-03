@@ -40,7 +40,7 @@ class RestingStatus extends HardStatus{
     }
 
     BeforeAttack(turn: Turn, pokemon: Pokemon) {
-        turn.ApplyMessage(`${pokemon.name} is sleeping!`);
+        turn.AddMessage(`${pokemon.name} is sleeping!`);
 
         if (pokemon.restTurnCount >= 2) {
             //Pokemon Wakes Up
@@ -83,7 +83,7 @@ class ToxicStatus extends HardStatus{
         const poisonDamage = pokemon.toxicCount * Math.ceil(maxHp / 16);
         pokemon.currentStats.hp -= poisonDamage;
         pokemon.toxicCount++;
-        turn.ApplyMessage(`${pokemon.name} is badly hurt by poison.`);
+        turn.AddMessage(`${pokemon.name} is badly hurt by poison.`);
         turn.ApplyIndirectDamage(pokemon, poisonDamage)
     }
 }
@@ -104,7 +104,7 @@ class BurnStatus extends HardStatus{
     EndOfTurn(turn: Turn, pokemon: Pokemon) {
         const maxHp = pokemon.originalStats.hp;
         const burnDamage = Math.ceil(maxHp / 8);
-        turn.ApplyMessage(`${pokemon.name} is hurt by its burn`);
+        turn.AddMessage(`${pokemon.name} is hurt by its burn`);
         turn.ApplyIndirectDamage(pokemon, burnDamage);
     }
 }
@@ -121,7 +121,7 @@ class FrozenStatus extends HardStatus{
     }
 
     BeforeAttack(turn: Turn, pokemon: Pokemon) {
-        turn.ApplyMessage(`${pokemon.name} is frozen!`);
+        turn.AddMessage(`${pokemon.name} is frozen!`);
         if (turn.Roll(this.thawChance)) {
             //Pokemon Wakes Up
             pokemon.status = Status.None;
@@ -159,7 +159,7 @@ class SleepStatus extends HardStatus{
         return;
     }
     BeforeAttack(turn: Turn, pokemon: Pokemon) {
-        turn.ApplyMessage(`${pokemon.name} is sleeping!`);
+        turn.AddMessage(`${pokemon.name} is sleeping!`);
         if (turn.Roll(this.wakeUpChance)) {
             //Pokemon Wakes Up
             pokemon.status = Status.None;
@@ -222,7 +222,7 @@ class PoisonStatus extends HardStatus {
         const maxHp = pokemon.originalStats.hp;
         const poisonDamage = Math.ceil(maxHp / 8);
         pokemon.currentStats.hp -= poisonDamage;
-        turn.ApplyMessage(`${pokemon.name} is hurt by poison`);
+        turn.AddMessage(`${pokemon.name} is hurt by poison`);
 
         turn.ApplyIndirectDamage(pokemon, poisonDamage)
     }

@@ -152,7 +152,7 @@ function DoStatBoost(turn: Turn, pokemon: Pokemon, stat: Stat, amount: number) {
     if (amount < 0) {
         message = ` ${targetPokemon.name} has had its ${statString} decreased!`
     }
-    turn.ApplyMessage(message);
+    turn.AddMessage(message);
 }
 
 export function InflictVolatileStatus(turn: Turn, pokemon: Pokemon, status: VolatileStatusType, source: Pokemon) {
@@ -169,7 +169,7 @@ export function InflictVolatileStatus(turn: Turn, pokemon: Pokemon, status: Vola
     }
     targetPokemon.volatileStatuses.push(vStatus);
     vStatus.OnApply(turn, targetPokemon);
-    turn.ApplyMessage(vStatus.InflictedMessage(targetPokemon));
+    turn.AddMessage(vStatus.InflictedMessage(targetPokemon));
 }
 
 function ApplyHealingEffect(turn: Turn, pokemon: Pokemon, effect: HealthRestoreEffect) {
@@ -208,7 +208,7 @@ function ApplyStatusRestoreEffect(turn: Turn, pokemon: Pokemon, effect: StatusRe
 function DrainEffect(turn: Turn, pokemonToHeal: Pokemon, effect: DrainEffect, damage: number) {
     const drainAmount = damage * (effect.amount * 0.01);
     turn.ApplyHealing(pokemonToHeal, drainAmount);
-    turn.ApplyMessage(`${pokemonToHeal.name} drained some energy.`)
+    turn.AddMessage(`${pokemonToHeal.name} drained some energy.`)
 }
 
 function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: Pokemon) {
@@ -252,7 +252,7 @@ function WhirlwindEffect(turn:Turn,player:Player){
     console.warn("Whirlwind Effect");
     const otherValidPokemon = player.pokemon.filter(poke=>poke.currentStats.hp>0 && poke.id!== player.currentPokemonId);
     if (otherValidPokemon.length <1){
-        turn.ApplyMessage("But it failed!");
+        turn.AddMessage("But it failed!");
         return;
     }    
     const randomPokemon = shuffle(otherValidPokemon)[0];

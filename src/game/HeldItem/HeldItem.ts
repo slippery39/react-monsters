@@ -12,7 +12,7 @@ export class LeftoversHeldItem extends HeldItem{
     EndOfTurn(turn: Turn, pokemon:Pokemon){
         const healing = Math.ceil(pokemon.originalStats.hp / 16);
         turn.ApplyHealing(pokemon,healing);
-        turn.ApplyMessage(`${pokemon.name} has healed due to its leftovers!`);
+        turn.AddMessage(`${pokemon.name} has healed due to its leftovers!`);
     }
     
 }
@@ -25,7 +25,7 @@ export class LifeOrbHeldItem extends HeldItem{
         //take recoil damage
         const recoilDamage = attackingPokemon.originalStats.hp/10;
         turn.ApplyIndirectDamage(attackingPokemon,recoilDamage);
-        turn.ApplyMessage(`${attackingPokemon.name} suffered recoil damage due to its Life Orb`);
+        turn.AddMessage(`${attackingPokemon.name} suffered recoil damage due to its Life Orb`);
         
     }
 }

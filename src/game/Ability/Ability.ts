@@ -32,7 +32,7 @@ class SpeedBoostAbility extends AbstractAbility{
             return;
         }
         ApplyStatBoost(pokemon,Stat.Speed,1);
-        turn.ApplyMessage(`${pokemon.name} speed has increased due to Speed Boost!`);
+        turn.AddMessage(`${pokemon.name} speed has increased due to Speed Boost!`);
 
     }
 }
@@ -42,7 +42,7 @@ class LevitateAbility extends AbstractAbility{
     NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
         if (move.elementalType === ElementType.Ground){
             //no damage taken, maybe write a message
-            turn.ApplyMessage(`It had no effect due to the pokemon's levitate!`);
+            turn.AddMessage(`It had no effect due to the pokemon's levitate!`);
             return true;
         }
         return false;
@@ -81,9 +81,9 @@ class FlashFireAbility extends AbstractAbility{
     NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
         if (move.elementalType === ElementType.Fire){
             //no damage taken, maybe write a message
-                turn.ApplyMessage(`It had no effect due to the pokemon's flash fire ability!`);
+                turn.AddMessage(`It had no effect due to the pokemon's flash fire ability!`);
             if (pokemon.flashFireActivated === false){
-                turn.ApplyMessage(`${pokemon.name}'s fire moves have been bposted due to flash fire!`);
+                turn.AddMessage(`${pokemon.name}'s fire moves have been bposted due to flash fire!`);
             }
             //activate flash fire
             pokemon.flashFireActivated = true;
@@ -143,7 +143,7 @@ class SturdyAbility extends AbstractAbility{
     //Little hacky but will work for now.
     OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
           if (defendingPokemon.currentStats.hp === 1 && damage === defendingPokemon.originalStats.hp -1){
-            turn.ApplyMessage(`${defendingPokemon.name} has survived due to its Sturdy ability!`);
+            turn.AddMessage(`${defendingPokemon.name} has survived due to its Sturdy ability!`);
         }
     }
 }
