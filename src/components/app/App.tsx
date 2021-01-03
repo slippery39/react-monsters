@@ -31,7 +31,7 @@ function App() {
     
     //MISSINGNO!
     const testPokemon = PokemonBuilder().OfSpecies("missingno").WithTechniques([
-      "Soft Boiled",
+      "Protect",
       "Seismic Toss",
       "Stealth Rock",
       "Whirlwind"

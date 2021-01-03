@@ -5,6 +5,8 @@ import { Turn } from "game/Turn";
 import _ from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { BattleEventType } from "game/BattleEvents";
+import { DamageType, Technique } from "game/Techniques/Technique";
+import { TargetType } from "game/Effects/Effects";
 
 
 export enum VolatileStatusType {
@@ -13,7 +15,8 @@ export enum VolatileStatusType {
     LeechSeed = 'leech-seed',
     Flinch = 'flinch',
     Roosted = 'roosted',
-    Substitute = 'substitute'
+    Substitute = 'substitute',
+    Protection = 'protection'
 
 }
 
@@ -24,6 +27,12 @@ export abstract class VolatileStatus extends BattleBehaviour {
 
     OnApply(turn: Turn, pokemon: IPokemon) {
 
+    }
+    OnTechniqueUsed(turn: Turn, pokemon: IPokemon, move: Technique) {
+
+    }
+    NegateTechnique(turn: Turn, attackingPokemon: IPokemon, defendingPokemon: IPokemon, move: Technique): boolean {
+        return false;
     }
     CanApply(turn: Turn, pokemon: IPokemon) {
         return !HasVolatileStatus(pokemon, this.type)
@@ -48,7 +57,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
     Damage(turn: Turn, pokemon: IPokemon, amount: number) {
         this.substituteHealth -= amount;
         //This is a quick hack to be able to apply the damage animation to the substitute.
-        turn.ApplyIndirectDamage(pokemon,0);
+        turn.ApplyIndirectDamage(pokemon, 0);
         if (this.substituteHealth <= 0) {
             this.Remove(turn, pokemon);
         }
@@ -65,7 +74,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
         const canApply = super.CanApply(turn, pokemon) && (pokemon.currentStats.hp > this.HealthForSubstitute(pokemon));
 
         //Not ideal here, but works for now. 
-        if (!canApply){
+        if (!canApply) {
             turn.ApplyMessage('But it failed!');
         }
         return canApply;
@@ -74,12 +83,12 @@ export class SubstituteVolatileStatus extends VolatileStatus {
     OnRemoved(turn: Turn, pokemon: IPokemon) {
         pokemon.hasSubstitute = false;
         turn.AddEvent({
-            type:BattleEventType.SubstituteBroken,
-            targetPokemonId:pokemon.id            
+            type: BattleEventType.SubstituteBroken,
+            targetPokemonId: pokemon.id
         });
         turn.AddEvent({
-            type:BattleEventType.GenericMessage,
-            defaultMessage:`${pokemon.name}'s substitute has broken!`
+            type: BattleEventType.GenericMessage,
+            defaultMessage: `${pokemon.name}'s substitute has broken!`
         })
     }
 
@@ -95,17 +104,17 @@ export class SubstituteVolatileStatus extends VolatileStatus {
 
         //temporary, to show the damage animtion in the ui.
         turn.AddEvent({
-            type:BattleEventType.Damage,
-            targetPokemonId:pokemon.id,
-            attackerPokemonId:pokemon.id,
-            targetDamageTaken:this.HealthForSubstitute(pokemon),
-            didCritical:false,
-            targetFinalHealth:pokemon.currentStats.hp,
-            effectivenessAmt:1
+            type: BattleEventType.Damage,
+            targetPokemonId: pokemon.id,
+            attackerPokemonId: pokemon.id,
+            targetDamageTaken: this.HealthForSubstitute(pokemon),
+            didCritical: false,
+            targetFinalHealth: pokemon.currentStats.hp,
+            effectivenessAmt: 1
         })
         turn.AddEvent({
-            type:BattleEventType.SubstituteCreated,
-            targetPokemonId:pokemon.id
+            type: BattleEventType.SubstituteCreated,
+            targetPokemonId: pokemon.id
         });
 
     }
@@ -137,6 +146,51 @@ export class RoostedVolatileStatus extends VolatileStatus {
         this.Remove(turn, pokemon);
     }
 
+}
+
+export class ProectionVolatileStatus extends VolatileStatus {
+
+    type = VolatileStatusType.Protection;
+    private chanceToApply: number = 100;
+    private flagForRemoval: boolean = false;
+
+    InflictedMessage(pokemon: IPokemon) {
+        return `${pokemon.name} is protecting itself`;
+    }
+
+    OnTechniqueUsed(turn: Turn, pokemon: IPokemon, move: Technique) {
+        if (move.name.toLowerCase() === "protect") {
+            const isProtected = turn.Roll(this.chanceToApply);
+            if (!isProtected) {
+                this.flagForRemoval = true;
+                turn.ApplyMessage(`But it failed`);
+            }
+            else {
+                turn.ApplyMessage(this.InflictedMessage(pokemon));
+            }
+        }
+    }
+    //defending against a technique.
+    NegateTechnique(turn: Turn, attackingPokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) {
+
+        if (this.flagForRemoval) {
+            return false;
+        }
+        const isDamagingMove = move.damageType === DamageType.Physical || move.damageType === DamageType.Special;
+        const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) != undefined;
+
+        if (isDamagingMove || isStatusMoveThatEffectsOpponent) {
+            turn.ApplyMessage(`${defendingPokemon.name} protected itself!`);
+            this.chanceToApply /= 2;
+        }
+        return true;
+    }
+    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+
+        if (this.flagForRemoval) {
+            this.Remove(turn, pokemon);
+        }
+    }
 }
 
 export class AquaRingVolatileStatus extends VolatileStatus {
@@ -258,6 +312,9 @@ export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
         }
         case VolatileStatusType.Substitute: {
             return new SubstituteVolatileStatus();
+        }
+        case VolatileStatusType.Protection: {
+            return new ProectionVolatileStatus();
         }
         default: {
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

@@ -27,6 +27,22 @@ export function GetTech(name: string):Technique {
 
     const techs: Array<BaseTechnique> = [
         {
+            name:"Protect",
+            description:"Enables the user to evade all attacks. Its chance of failing rises if it is used in succession.",
+            pp:16,
+            priority:4,
+            elementalType:ElementType.Normal,
+            power:0,
+            damageType:DamageType.Status,
+            accuracy:100,
+            effects:[{
+                type:EffectType.InflictVolatileStatus,
+                status:VolatileStatusType.Protection,
+                target:TargetType.Self,
+                chance:100
+            }]
+        },
+        {
             name:"Stealth Rock",
             description:"The user lays a trap of levitating stones around the opposing team. The trap hurts opposing Pokémon that switch into battle.",
             pp:32,

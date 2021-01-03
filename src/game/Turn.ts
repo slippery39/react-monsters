@@ -6,7 +6,7 @@ import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { IPokemon } from './Pokemon/Pokemon';
-import { Technique } from './Techniques/Technique';
+import { DamageType, Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
@@ -549,10 +549,6 @@ export class Turn {
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
         pokemonArrCopy[switchInPokemonPos] = player.pokemon[0];
 
-
-
-
-
         player.currentPokemonId = pokemonArrCopy[0].id;
 
         const switchOutEffect: SwitchOutEvent = {
@@ -610,6 +606,29 @@ export class Turn {
             moveName: move.name,
         }
         this.AddEvent(useMoveEffect);
+
+        pokemon.volatileStatuses.forEach(vStat=>{
+            vStat.OnTechniqueUsed(this,pokemon,move);
+        })
+
+
+        //Protection type effects should happen here.\
+
+
+        let techniqueNegated = false;
+        defendingPokemon.volatileStatuses.forEach(vStat => {
+            if (techniqueNegated === false) {
+                techniqueNegated = vStat.NegateTechnique(this, pokemon, defendingPokemon, move);
+            }
+        })
+
+        if (techniqueNegated) {
+            return;
+        }
+
+
+
+
 
         if (!this.Roll(move.accuracy)) {
             useMoveEffect.didMoveHit = false;
