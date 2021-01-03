@@ -1,4 +1,3 @@
-import PokemonImage from "components/PokemonImage/PokemonImage";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
@@ -13,16 +12,6 @@ import _ from "lodash";
 
 
 abstract class AbstractAbility extends BattleBehaviour{ 
-    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
-        //default is to just return the same damage that gets put in.
-        return damage;
-    }
-    NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
-        return false; //by default no abilities should negate damage unless we say so.
-    }
-    ModifyDamageTaken(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,originalDamage:number){
-        return originalDamage;
-    }
 }
 
 

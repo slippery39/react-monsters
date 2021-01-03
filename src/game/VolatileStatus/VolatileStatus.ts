@@ -28,12 +28,6 @@ export abstract class VolatileStatus extends BattleBehaviour {
     OnApply(turn: Turn, pokemon: Pokemon) {
 
     }
-    OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique) {
-
-    }
-    NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique): boolean {
-        return false;
-    }
     CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasVolatileStatus(pokemon, this.type)
     }
@@ -180,7 +174,7 @@ export class ProectionVolatileStatus extends VolatileStatus {
             return false;
         }
         const isDamagingMove = move.damageType === DamageType.Physical || move.damageType === DamageType.Special;
-        const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) != undefined;
+        const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) !== undefined;
 
         if (isDamagingMove || isStatusMoveThatEffectsOpponent) {
             turn.AddMessage(`${defendingPokemon.name} protected itself!`);

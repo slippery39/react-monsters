@@ -30,6 +30,18 @@ abstract class BattleBehaviour{
     ModifyTechnique(pokemon:Pokemon,technique:Technique){
         return technique;
     }
+    OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique) {
+
+    }
+    NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique): boolean {
+        return false;
+    }
+    NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
+        return false; //by default no abilities should negate damage unless we say so.
+    }
+    ModifyDamageTaken(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,originalDamage:number){
+        return originalDamage;
+    }
     
 }
 

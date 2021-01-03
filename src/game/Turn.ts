@@ -6,7 +6,7 @@ import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { Pokemon } from './Pokemon/Pokemon';
-import { DamageType, Technique } from './Techniques/Technique';
+import { Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
