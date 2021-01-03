@@ -1,5 +1,5 @@
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
-import { IPokemon } from "game/Pokemon/Pokemon";
+import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 
@@ -9,7 +9,7 @@ export abstract class HeldItem extends BattleBehaviour{
 
 export class LeftoversHeldItem extends HeldItem{
 
-    EndOfTurn(turn: Turn, pokemon:IPokemon){
+    EndOfTurn(turn: Turn, pokemon:Pokemon){
         const healing = Math.ceil(pokemon.originalStats.hp / 16);
         turn.ApplyHealing(pokemon,healing);
         turn.ApplyMessage(`${pokemon.name} has healed due to its leftovers!`);
@@ -18,10 +18,10 @@ export class LeftoversHeldItem extends HeldItem{
 }
 
 export class LifeOrbHeldItem extends HeldItem{
-    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any):number{
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any):number{
         return damage*1.3;
     }
-    OnDamageDealt(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,damageDealt:number){
+    OnDamageDealt(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,damageDealt:number){
         //take recoil damage
         const recoilDamage = attackingPokemon.originalStats.hp/10;
         turn.ApplyIndirectDamage(attackingPokemon,recoilDamage);

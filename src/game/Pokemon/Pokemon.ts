@@ -10,7 +10,7 @@ import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
 
 
 
-export interface IPokemon {
+export interface Pokemon {
     id: number,
     name: string,
     originalStats: Stats
@@ -56,7 +56,7 @@ export interface PartialStats{
 
 class _PokemonBuilder{
 
-    private pokemon:IPokemon
+    private pokemon:Pokemon
 
     constructor(){
         this.pokemon = {
@@ -132,7 +132,7 @@ class _PokemonBuilder{
         this.pokemon.baseStats = baseStats;
         return this;
     }
-    Build() : IPokemon{
+    Build() : Pokemon{
         //TODO, some error checking here
         //check if it has elemental types
         //check if it has moves
@@ -151,7 +151,7 @@ export function PokemonBuilder(){
 }
 
 
-export function GetStat(pokemon:IPokemon,stat:Stat) : number{
+export function GetStat(pokemon:Pokemon,stat:Stat) : number{
     switch (stat){
         case Stat.Attack:{
             return pokemon.currentStats.attack
@@ -185,7 +185,7 @@ export function CreateEmptyStats():Stats{
 
 
 //FOUND THE PROBLEM!
-export function ConvertBaseStatsToRealStats(pokemon:IPokemon): Stats{
+export function ConvertBaseStatsToRealStats(pokemon:Pokemon): Stats{
     //For now we will use an ivValue and evValue of 0.
     const level = 100;
     const natureMod = 1; //assuming a neutral nature for now.
@@ -213,17 +213,17 @@ export function ConvertBaseStatsToRealStats(pokemon:IPokemon): Stats{
     return calculatedStats;
 }
 
-export function GetPokemonBoostStage(pokemon:IPokemon,stat:Stat) : number{
+export function GetPokemonBoostStage(pokemon:Pokemon,stat:Stat) : number{
     return pokemon.statBoosts[stat];
 }
 
-export function HasVolatileStatus(pokemon:IPokemon,status:VolatileStatusType): boolean{
+export function HasVolatileStatus(pokemon:Pokemon,status:VolatileStatusType): boolean{
     return pokemon.volatileStatuses.filter(el=>
         el.type === status
     ).length >0;
 }
 
-export function CalculateStatWithBoost(pokemon:IPokemon,stat:Stat){
+export function CalculateStatWithBoost(pokemon:Pokemon,stat:Stat){
     /*
     Logic for stat boost goes in here
     */
@@ -245,7 +245,7 @@ export function CalculateStatWithBoost(pokemon:IPokemon,stat:Stat){
 }
 
 
-export function ApplyStatBoost(pokemon: IPokemon, stat:Stat,amount:number){
+export function ApplyStatBoost(pokemon: Pokemon, stat:Stat,amount:number){
     pokemon.statBoosts[stat] += amount;
     //clamp it to -6 or 6
     pokemon.statBoosts[stat] = Math.min(Math.max(pokemon.statBoosts[stat], -6), 6);

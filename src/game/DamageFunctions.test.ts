@@ -1,6 +1,6 @@
 import {ElementType} from './ElementType';
 import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './DamageFunctions';
-import {  IPokemon, PokemonBuilder } from './Pokemon/Pokemon';
+import {  Pokemon, PokemonBuilder } from './Pokemon/Pokemon';
 import { DamageType, Technique } from './Techniques/Technique';
 
 
@@ -11,11 +11,11 @@ function GetTypeMod(defendingPokemon:Pokemon,techUsed:Technique)
 function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique) 
 */
 
-const createCharizard = function() : IPokemon{
+const createCharizard = function() : Pokemon{
     return new PokemonBuilder().OfSpecies("charizard").Build();
 }
 
-const createBlastoise = function(): IPokemon{
+const createBlastoise = function(): Pokemon{
     return new PokemonBuilder().OfSpecies("charizard").Build();
 }
 

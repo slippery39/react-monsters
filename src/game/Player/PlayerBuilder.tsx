@@ -3,11 +3,11 @@ import _ from "lodash";
 import { Status } from "../HardStatus/HardStatus";
 import GetPokemon from "../Pokemon/PremadePokemon";
 import { Item } from "game/Items/Item";
-import { IPokemon } from "game/Pokemon/Pokemon";
+import { Pokemon } from "game/Pokemon/Pokemon";
 
 export interface Player {
     name: string,
-    pokemon: Array<IPokemon>,
+    pokemon: Array<Pokemon>,
     currentPokemonId:number,
     items: Array<Item>
     id:number
@@ -46,7 +46,7 @@ export class PlayerBuilder{
         this.player.items.push(newItem)
         return this;
     }
-    WithCustomPokemon(pokemon:IPokemon):PlayerBuilder{
+    WithCustomPokemon(pokemon:Pokemon):PlayerBuilder{
         this.player.pokemon.push(pokemon);
         return this;
     }

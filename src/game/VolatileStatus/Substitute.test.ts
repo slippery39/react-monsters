@@ -6,7 +6,7 @@ TODO - write tests for how substitute works.
 import { InflictStatus, InflictVolatileStatus } from "game/Effects/Effects";
 import { Status } from "game/HardStatus/HardStatus";
 import { PlayerBuilder } from "game/Player/PlayerBuilder";
-import { IPokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
+import { Pokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, SubstituteVolatileStatus, VolatileStatusType } from "./VolatileStatus";
 
@@ -45,7 +45,7 @@ function CreateMockTurn() {
 }
 
 
-function CreatePokemonWithSubstitute(): IPokemon {
+function CreatePokemonWithSubstitute(): Pokemon {
     const pokemon = 
         PokemonBuilder()
         .OfSpecies("charizard")
@@ -59,7 +59,7 @@ function CreatePokemonWithSubstitute(): IPokemon {
     return pokemon;
 }
 
-function GetSubstituteFromPokemon(pokemon: IPokemon): SubstituteVolatileStatus {
+function GetSubstituteFromPokemon(pokemon: Pokemon): SubstituteVolatileStatus {
     const substitute = pokemon.volatileStatuses.find(vStat => vStat.type === VolatileStatusType.Substitute);
     if (substitute === undefined) {
         throw new Error('Could not find substitute');
@@ -73,7 +73,7 @@ describe('substitute tests', () => {
 
     it('applies preoperly', () => {
 
-        const pokemon: IPokemon =
+        const pokemon: Pokemon =
             PokemonBuilder()
             .OfSpecies("charizard")
             .Build();
@@ -88,7 +88,7 @@ describe('substitute tests', () => {
     });
 
     it('applies and takes 25% of the pokemons health', () => {
-        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        const pokemon: Pokemon = CreatePokemonWithSubstitute();
         expect(pokemon.currentStats.hp).toBe(75);
         expect(GetSubstituteFromPokemon(pokemon).substituteHealth).toBe(25);
     });
@@ -96,12 +96,12 @@ describe('substitute tests', () => {
 
     it('cannot be applied if pokemon already has substitute', () => {
 
-        const pokemon: IPokemon = 
+        const pokemon: Pokemon = 
         PokemonBuilder()
             .OfSpecies("charizard")
             .Build();
 
-        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon: Pokemon = CreatePokemonWithSubstitute();
         //need a dummy turn object here.
         const turn = CreateMockTurn();
         const substitute = GetVolatileStatus(VolatileStatusType.Substitute);
@@ -116,8 +116,8 @@ describe('substitute tests', () => {
     });
 
     it('cannot have enemy hard status effects applied to the pokemon when under substitute', () => {
-        const pokemon: IPokemon = CreatePokemonWithSubstitute();
-        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
+        const pokemon: Pokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon: Pokemon = CreatePokemonWithSubstitute();
         //try to apply a status to the pokemon from an enemy move.
         //i.e. thunder wave should fail      
         //May need to expose the use move field..
@@ -139,7 +139,7 @@ describe('substitute tests', () => {
 
 
     it('can have its self-inflicted statuses applied when under substitute', () => {
-        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        const pokemon: Pokemon = CreatePokemonWithSubstitute();
         //try to apply a status to the pokemon from an enemy move.
         //i.e. thunder wave should fail      
         //May need to expose the use move field..
@@ -161,8 +161,8 @@ describe('substitute tests', () => {
     });
 
     it('cannot have enemy volatile statuses applied when under substitute', () => {
-        const pokemon: IPokemon = CreatePokemonWithSubstitute();
-        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
+        const pokemon: Pokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon: Pokemon = CreatePokemonWithSubstitute();
         InflictVolatileStatus(CreateMockTurn(), pokemon, VolatileStatusType.Flinch, enemyPokemon);
 
         //should not find the volatile status here
@@ -175,7 +175,7 @@ describe('substitute tests', () => {
 
 
     it('can have self inflicted volatile statuses under substitute', () => {
-        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        const pokemon: Pokemon = CreatePokemonWithSubstitute();
         InflictVolatileStatus(CreateMockTurn(), pokemon, VolatileStatusType.Flinch, pokemon);
 
         //should not find the volatile status here
@@ -187,8 +187,8 @@ describe('substitute tests', () => {
     });
 
     it('takes technique damage instead of the pokemon', () => {
-        const pokemon: IPokemon = CreatePokemonWithSubstitute();
-        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
+        const pokemon: Pokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon: Pokemon = CreatePokemonWithSubstitute();
         const turn = CreateMockTurn();
         turn.ApplyDamage(enemyPokemon, pokemon, 10, {});
         expect(pokemon.currentStats.hp).toBe(75);
@@ -196,7 +196,7 @@ describe('substitute tests', () => {
     });
 
     it('still takes indirect damage (poison,burn)', () => {
-        const pokemon: IPokemon = CreatePokemonWithSubstitute();
+        const pokemon: Pokemon = CreatePokemonWithSubstitute();
         const turn = CreateMockTurn();
         turn.ApplyIndirectDamage(pokemon, 25);
         expect(pokemon.currentStats.hp).toBe(50);
@@ -204,8 +204,8 @@ describe('substitute tests', () => {
     })
 
     it('can break',()=>{
-        const pokemon: IPokemon = CreatePokemonWithSubstitute();
-        const enemyPokemon: IPokemon = CreatePokemonWithSubstitute();
+        const pokemon: Pokemon = CreatePokemonWithSubstitute();
+        const enemyPokemon: Pokemon = CreatePokemonWithSubstitute();
         const turn = CreateMockTurn();
         turn.ApplyDamage(enemyPokemon, pokemon, 100, {});
         expect(pokemon.currentStats.hp).toBe(75);

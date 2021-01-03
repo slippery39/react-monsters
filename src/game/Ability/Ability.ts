@@ -4,7 +4,7 @@ import { InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetPercentageHealth} from "game/HelperFunctions";
-import { ApplyStatBoost, IPokemon } from "game/Pokemon/Pokemon";
+import { ApplyStatBoost, Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
@@ -13,21 +13,21 @@ import _ from "lodash";
 
 
 abstract class AbstractAbility extends BattleBehaviour{ 
-    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
         //default is to just return the same damage that gets put in.
         return damage;
     }
-    NegateDamage(turn:Turn,move:Technique,pokemon:IPokemon):boolean{
+    NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
         return false; //by default no abilities should negate damage unless we say so.
     }
-    ModifyDamageTaken(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,originalDamage:number){
+    ModifyDamageTaken(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,originalDamage:number){
         return originalDamage;
     }
 }
 
 
 class SpeedBoostAbility extends AbstractAbility{
-    EndOfTurn(turn:Turn,pokemon:IPokemon){
+    EndOfTurn(turn:Turn,pokemon:Pokemon){
         if (pokemon.statBoosts[Stat.Speed] >=6){
             return;
         }
@@ -39,7 +39,7 @@ class SpeedBoostAbility extends AbstractAbility{
 
 
 class LevitateAbility extends AbstractAbility{
-    NegateDamage(turn:Turn,move:Technique,pokemon:IPokemon):boolean{
+    NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
         if (move.elementalType === ElementType.Ground){
             //no damage taken, maybe write a message
             turn.ApplyMessage(`It had no effect due to the pokemon's levitate!`);
@@ -51,7 +51,7 @@ class LevitateAbility extends AbstractAbility{
 
 
 class BlazeAbility extends AbstractAbility{
-    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
         if (move.elementalType === ElementType.Fire && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
         }
@@ -60,7 +60,7 @@ class BlazeAbility extends AbstractAbility{
 }
 
 class TorrentAbility extends AbstractAbility{
-    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
         if (move.elementalType === ElementType.Water && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
         }
@@ -69,7 +69,7 @@ class TorrentAbility extends AbstractAbility{
 }
 
 class OverGrowthAbility extends AbstractAbility{
-    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
         if (move.elementalType === ElementType.Grass && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
         }
@@ -78,7 +78,7 @@ class OverGrowthAbility extends AbstractAbility{
 }
 
 class FlashFireAbility extends AbstractAbility{
-    NegateDamage(turn:Turn,move:Technique,pokemon:IPokemon):boolean{
+    NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
         if (move.elementalType === ElementType.Fire){
             //no damage taken, maybe write a message
                 turn.ApplyMessage(`It had no effect due to the pokemon's flash fire ability!`);
@@ -91,7 +91,7 @@ class FlashFireAbility extends AbstractAbility{
         }
         return false;
     }
-    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any){
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
         if (move.elementalType === ElementType.Fire && attackingPokemon.flashFireActivated){
             return damage*1.5;
         }
@@ -100,7 +100,7 @@ class FlashFireAbility extends AbstractAbility{
 }
 
 class SheerForceAbility extends AbstractAbility{
-    ModifyTechnique(pokemon:IPokemon,technique:Technique){        
+    ModifyTechnique(pokemon:Pokemon,technique:Technique){        
 
         if (!technique.effects){
             return technique;
@@ -120,7 +120,7 @@ class SheerForceAbility extends AbstractAbility{
 }
 
 class StaticAbility extends AbstractAbility{
-    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,damage:number){
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
         console.warn('on damage taken from technique is firing');
         console.warn(move);
         if (move.makesContact){
@@ -133,7 +133,7 @@ class StaticAbility extends AbstractAbility{
 }
 
 class SturdyAbility extends AbstractAbility{
-    ModifyDamageTaken(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,originalDamage:number){
+    ModifyDamageTaken(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,originalDamage:number){
         let modifiedDamage = originalDamage;
         if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp && originalDamage>=defendingPokemon.currentStats.hp){
             modifiedDamage = defendingPokemon.originalStats.hp -1;
@@ -141,7 +141,7 @@ class SturdyAbility extends AbstractAbility{
         return modifiedDamage;
     }
     //Little hacky but will work for now.
-    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,damage:number){
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
           if (defendingPokemon.currentStats.hp === 1 && damage === defendingPokemon.originalStats.hp -1){
             turn.ApplyMessage(`${defendingPokemon.name} has survived due to its Sturdy ability!`);
         }

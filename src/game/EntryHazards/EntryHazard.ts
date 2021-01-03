@@ -1,7 +1,7 @@
 import { GetTypeMod } from "game/DamageFunctions";
 import { ElementType } from "game/ElementType";
 import { Player } from "game/Player/PlayerBuilder";
-import { IPokemon } from "game/Pokemon/Pokemon";
+import { Pokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 
 
@@ -72,7 +72,7 @@ export abstract class EntryHazard{
     OnApplyFail(turn:Turn,player:Player){
 
     }
-    OnPokemonEntry(turn:Turn,pokemon:IPokemon){
+    OnPokemonEntry(turn:Turn,pokemon:Pokemon){
 
     }
 }
@@ -97,7 +97,7 @@ export class Spikes extends EntryHazard{
     OnApplyFail(turn:Turn,player:Player){
         turn.ApplyMessage("But it failed!");
     }
-    OnPokemonEntry(turn:Turn,pokemon:IPokemon){   
+    OnPokemonEntry(turn:Turn,pokemon:Pokemon){   
         
         if (turn.GetPokemonOwner(pokemon).id !== this.player.id){
             return;
@@ -126,7 +126,7 @@ export class StealthRock extends EntryHazard{
     OnApplyFail(turn:Turn,player:Player){
         turn.ApplyMessage("But it failed!");
     }
-    OnPokemonEntry(turn:Turn,pokemon:IPokemon){
+    OnPokemonEntry(turn:Turn,pokemon:Pokemon){
         const effectiveness = GetTypeMod(pokemon.elementalTypes,ElementType.Rock);
 
         let damageMod = 0;

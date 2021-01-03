@@ -1,6 +1,6 @@
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
-import { HasVolatileStatus, IPokemon } from "game/Pokemon/Pokemon";
+import { HasVolatileStatus, Pokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
 import _ from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
@@ -23,27 +23,27 @@ export enum VolatileStatusType {
 export abstract class VolatileStatus extends BattleBehaviour {
     abstract type: VolatileStatusType
 
-    abstract InflictedMessage(pokemon: IPokemon): string
+    abstract InflictedMessage(pokemon: Pokemon): string
 
-    OnApply(turn: Turn, pokemon: IPokemon) {
-
-    }
-    OnTechniqueUsed(turn: Turn, pokemon: IPokemon, move: Technique) {
+    OnApply(turn: Turn, pokemon: Pokemon) {
 
     }
-    NegateTechnique(turn: Turn, attackingPokemon: IPokemon, defendingPokemon: IPokemon, move: Technique): boolean {
+    OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique) {
+
+    }
+    NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique): boolean {
         return false;
     }
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasVolatileStatus(pokemon, this.type)
     }
-    Remove(turn: Turn, pokemon: IPokemon) {
+    Remove(turn: Turn, pokemon: Pokemon) {
         _.remove(pokemon.volatileStatuses, (vStat) =>
             vStat.type === this.type
         );
         this.OnRemoved(turn, pokemon);
     }
-    OnRemoved(turn: Turn, pokemon: IPokemon) {
+    OnRemoved(turn: Turn, pokemon: Pokemon) {
 
     }
 }
@@ -54,7 +54,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
 
     public substituteHealth: number = 999;
 
-    Damage(turn: Turn, pokemon: IPokemon, amount: number) {
+    Damage(turn: Turn, pokemon: Pokemon, amount: number) {
         this.substituteHealth -= amount;
         //This is a quick hack to be able to apply the damage animation to the substitute.
         turn.ApplyIndirectDamage(pokemon, 0);
@@ -62,15 +62,15 @@ export class SubstituteVolatileStatus extends VolatileStatus {
             this.Remove(turn, pokemon);
         }
     }
-    InflictedMessage(pokemon: IPokemon) {
+    InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} has created a substitute`
     }
 
-    HealthForSubstitute(pokemon: IPokemon) {
+    HealthForSubstitute(pokemon: Pokemon) {
         return Math.ceil(pokemon.originalStats.hp / 4);
     }
 
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         const canApply = super.CanApply(turn, pokemon) && (pokemon.currentStats.hp > this.HealthForSubstitute(pokemon));
 
         //Not ideal here, but works for now. 
@@ -80,7 +80,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
         return canApply;
     }
 
-    OnRemoved(turn: Turn, pokemon: IPokemon) {
+    OnRemoved(turn: Turn, pokemon: Pokemon) {
         pokemon.hasSubstitute = false;
         turn.AddEvent({
             type: BattleEventType.SubstituteBroken,
@@ -92,7 +92,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
         })
     }
 
-    OnApply(turn: Turn, pokemon: IPokemon) {
+    OnApply(turn: Turn, pokemon: Pokemon) {
         /*
             Create a substitute that has 1/4 the pokemon's health
             //all damage should go to the substiute until it breaks.
@@ -125,11 +125,11 @@ export class RoostedVolatileStatus extends VolatileStatus {
 
     private originalTypes: Array<ElementType> = [];
 
-    InflictedMessage(pokemon: IPokemon) {
+    InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} has roosted!`
     }
 
-    OnApply(turn: Turn, pokemon: IPokemon) {
+    OnApply(turn: Turn, pokemon: Pokemon) {
 
         this.originalTypes = [...pokemon.elementalTypes];
         //remove the flying element of the pokemon
@@ -138,11 +138,11 @@ export class RoostedVolatileStatus extends VolatileStatus {
         });
     }
 
-    OnRemoved(turn: Turn, pokemon: IPokemon) {
+    OnRemoved(turn: Turn, pokemon: Pokemon) {
         pokemon.elementalTypes = this.originalTypes;
     }
 
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
         this.Remove(turn, pokemon);
     }
 
@@ -154,11 +154,11 @@ export class ProectionVolatileStatus extends VolatileStatus {
     private chanceToApply: number = 100;
     private flagForRemoval: boolean = false;
 
-    InflictedMessage(pokemon: IPokemon) {
+    InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} is protecting itself`;
     }
 
-    OnTechniqueUsed(turn: Turn, pokemon: IPokemon, move: Technique) {
+    OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique) {
         if (move.name.toLowerCase() === "protect") {
             const isProtected = turn.Roll(this.chanceToApply);
             if (!isProtected) {
@@ -174,7 +174,7 @@ export class ProectionVolatileStatus extends VolatileStatus {
         }
     }
     //defending against a technique.
-    NegateTechnique(turn: Turn, attackingPokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) {
+    NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
 
         if (this.flagForRemoval) {
             return false;
@@ -188,7 +188,7 @@ export class ProectionVolatileStatus extends VolatileStatus {
         }
         return true;
     }
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
 
         if (this.flagForRemoval) {
             this.Remove(turn, pokemon);
@@ -199,10 +199,10 @@ export class ProectionVolatileStatus extends VolatileStatus {
 export class AquaRingVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.AquaRing;
 
-    InflictedMessage(pokemon: IPokemon): string {
+    InflictedMessage(pokemon: Pokemon): string {
         return `${pokemon.name} has surrounded itself in a veil of water!`
     }
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
         //heal 1/16 of hp
         turn.ApplyHealing(pokemon, pokemon.originalStats.hp / 16);
         turn.ApplyMessage(`${pokemon.name} restored a little health due to aqua veil!`);
@@ -213,21 +213,21 @@ export class AquaRingVolatileStatus extends VolatileStatus {
 export class FlinchVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.Flinch
 
-    InflictedMessage(pokemon: IPokemon): string {
+    InflictedMessage(pokemon: Pokemon): string {
         //hack here. we may need an "on apply" method
         return ``;
     }
 
     //Not sure if we should apply here or we should apply on attack.
-    OnApply(turn: Turn, pokemon: IPokemon) {
+    OnApply(turn: Turn, pokemon: Pokemon) {
     }
 
-    BeforeAttack(turn: Turn, pokemon: IPokemon) {
+    BeforeAttack(turn: Turn, pokemon: Pokemon) {
         pokemon.canAttackThisTurn = false;
         turn.ApplyMessage(`${pokemon.name} has flinched`);
     }
 
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
         _.remove(pokemon.volatileStatuses, (vStat) =>
             vStat.type === this.type
         );
@@ -237,15 +237,15 @@ export class FlinchVolatileStatus extends VolatileStatus {
 export class LeechSeedVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.LeechSeed;
 
-    InflictedMessage(pokemon: IPokemon): string {
+    InflictedMessage(pokemon: Pokemon): string {
         return `${pokemon.name} has been seeded!`;
     }
 
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return super.CanApply(turn, pokemon) && !HasElementType(pokemon, ElementType.Grass);
     }
 
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
         const leechSeedDamage = pokemon.originalStats.hp / 16;
         //deal the leech seed damage to the pokemon
         //heal the opponent pokemon
@@ -268,7 +268,7 @@ export class ConfusionVolatileStatus extends VolatileStatus {
     private unconfuseChance: number = 25;
     private damageSelfChance: number = 50
 
-    BeforeAttack(turn: Turn, pokemon: IPokemon) {
+    BeforeAttack(turn: Turn, pokemon: Pokemon) {
 
         if (pokemon.canAttackThisTurn === false) {
             return;
@@ -290,7 +290,7 @@ export class ConfusionVolatileStatus extends VolatileStatus {
         }
     }
 
-    InflictedMessage(pokemon: IPokemon): string {
+    InflictedMessage(pokemon: Pokemon): string {
         return `${pokemon.name} is now confused!`
     }
 }

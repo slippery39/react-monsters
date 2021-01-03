@@ -5,7 +5,7 @@ import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEv
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
-import { IPokemon } from './Pokemon/Pokemon';
+import { Pokemon } from './Pokemon/Pokemon';
 import { DamageType, Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
@@ -189,7 +189,7 @@ export class Turn {
     }
 
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
-    private BeforeAttack(pokemon: IPokemon) {
+    private BeforeAttack(pokemon: Pokemon) {
 
         if (!pokemon.canAttackThisTurn) {
             return;
@@ -256,14 +256,14 @@ export class Turn {
         this.GetPokemon(pokemonId).status = status;
     }
 
-    PromptForSwitch(pokemon: IPokemon) {
+    PromptForSwitch(pokemon: Pokemon) {
         const owner = this.GetPokemonOwner(pokemon);
         //TODO - This needs to be a prompt now, not just for fainted pokemon.
         this.switchPromptedPlayers.push(owner);
         this.currentState = { type: 'awaiting-switch-action' }
     }
 
-    private PokemonFainted(pokemon: IPokemon) {
+    private PokemonFainted(pokemon: Pokemon) {
         const faintedPokemonEffect: FaintedPokemonEvent = {
             targetPokemonId: pokemon.id,
             type: BattleEventType.PokemonFainted,
@@ -288,7 +288,7 @@ export class Turn {
         }
     }
 
-    ApplyHealing(pokemon: IPokemon, amount: number) {
+    ApplyHealing(pokemon: Pokemon, amount: number) {
         const itemHealAmount = amount;
         const healing = Math.min(pokemon.originalStats.hp - pokemon.currentStats.hp, itemHealAmount);
         pokemon.currentStats.hp = Math.min(pokemon.originalStats.hp, pokemon.currentStats.hp + itemHealAmount);
@@ -301,7 +301,7 @@ export class Turn {
         this.AddEvent(itemEffect);
     }
 
-    ApplyIndirectDamage(pokemon: IPokemon, damage: number) {
+    ApplyIndirectDamage(pokemon: Pokemon, damage: number) {
         pokemon.currentStats.hp -= damage;
         pokemon.currentStats.hp = Math.max(0, pokemon.currentStats.hp);
 
@@ -320,7 +320,7 @@ export class Turn {
         }
     }
 
-    ApplyDamage(attackingPokemon: IPokemon, defendingPokemon: IPokemon, damage: number, damageInfo: any) {
+    ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any) {
 
         //TODO: Ability Replacement Damage Logic.
 
@@ -367,7 +367,7 @@ export class Turn {
         }
     }
 
-    private AfterAttack(pokemon: IPokemon) {
+    private AfterAttack(pokemon: Pokemon) {
         //we could put burn effects here.
     }
 
@@ -528,7 +528,7 @@ export class Turn {
         }
     }
 
-    SwitchPokemon(player: Player, pokemonIn: IPokemon) {
+    SwitchPokemon(player: Player, pokemonIn: Pokemon) {
         const switchOutPokemonId = player.currentPokemonId;
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
         switchOutPokemon.volatileStatuses = []; //easy peasy
@@ -597,7 +597,7 @@ export class Turn {
 
 
     //temporary, i want to see how easier this makes testing
-    UseTechnique(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique) {
+    UseTechnique(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
         const useMoveEffect: UseMoveEvent = {
             type: BattleEventType.UseMove,
             userId: pokemon.id,
@@ -667,11 +667,11 @@ export class Turn {
 
     }
 
-    private DoStatusMove(move: Technique, defendingPokemon: IPokemon, pokemon: IPokemon) {
+    private DoStatusMove(move: Technique, defendingPokemon: Pokemon, pokemon: Pokemon) {
         this.ApplyMoveEffects(move, pokemon, defendingPokemon);
     }
 
-    private ApplyMoveEffects(move: Technique, pokemon: IPokemon, defendingPokemon: IPokemon, moveDamage?: number): void {
+    private ApplyMoveEffects(move: Technique, pokemon: Pokemon, defendingPokemon: Pokemon, moveDamage?: number): void {
         if (!move.effects) {
             return;
         }
@@ -693,7 +693,7 @@ export class Turn {
     }
 
     //passing the damage dealt for now,
-    private DoDamageMove(pokemon: IPokemon, defendingPokemon: IPokemon, move: Technique): number {
+    private DoDamageMove(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique): number {
 
         //Easy quick hack for handling eruption, but we need to think of a way to do this non hacky.
         //perhaps we should revamp our whole damage system?
@@ -756,7 +756,7 @@ export class Turn {
         this.eventLog.push(effect);
     }
 
-    private GetDefendingPokemon(attackingPlayer: Player): IPokemon {
+    private GetDefendingPokemon(attackingPlayer: Player): Pokemon {
         const defendingPlayer = this.GetPlayers().find(p => p !== attackingPlayer);
         if (defendingPlayer === undefined) {
             throw new Error(`Could not find defending player`);
@@ -773,7 +773,7 @@ export class Turn {
         }
         return player;
     }
-    private GetPokemon(pokemonId: number): IPokemon {
+    private GetPokemon(pokemonId: number): Pokemon {
         const pokemon = this.GetPlayers().map(player => { return player.pokemon }).flat().find(pokemon => pokemon.id === pokemonId);
         if (pokemon === undefined) {
             throw new Error(`Could not find pokemon with id ${pokemonId} `);
@@ -781,7 +781,7 @@ export class Turn {
         return pokemon;
     }
 
-    private GetActivePokemon(playerId: number): IPokemon {
+    private GetActivePokemon(playerId: number): Pokemon {
         const player = this.GetPlayer(playerId);
         const activePokemon = player.pokemon.find(poke => poke.id === player.currentPokemonId);
         if (activePokemon === undefined) {
@@ -789,7 +789,7 @@ export class Turn {
         }
         return activePokemon;
     }
-    GetPokemonOwner(pokemon: IPokemon) {
+    GetPokemonOwner(pokemon: Pokemon) {
         const owner = this.GetPlayers().filter(player => {
             return player.pokemon.find(poke => poke.id === pokemon.id) !== undefined
         })[0];

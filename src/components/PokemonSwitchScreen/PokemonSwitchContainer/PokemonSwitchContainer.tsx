@@ -5,12 +5,12 @@ import PokemonImage from "../../PokemonImage/PokemonImage";
 import AnimatedHealthBar from '../../AnimatedHealthBar/AnimatedHealthBar';
 import Pokeball from "../../Pokeball/Pokeball";
 import PokemonStatus from "../../PokemonStatus/PokemonStatus";
-import { IPokemon } from 'game/Pokemon/Pokemon';
+import { Pokemon } from 'game/Pokemon/Pokemon';
 import { Status } from 'game/HardStatus/HardStatus';
 
 interface Props {
-    pokemon: IPokemon
-    onClick?: (pokemon: IPokemon) => void
+    pokemon: Pokemon
+    onClick?: (pokemon: Pokemon) => void
 }
 
 const PokemonSwitchContainer: React.FunctionComponent<Props> = (props) => {

@@ -3,7 +3,7 @@ import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { Item } from "game/Items/Item";
 import { Player } from "game/Player/PlayerBuilder";
-import { ApplyStatBoost, IPokemon} from "game/Pokemon/Pokemon";
+import { ApplyStatBoost, Pokemon} from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
@@ -91,7 +91,7 @@ export type BattleEffect = { target?: TargetType, chance?: number } & (InflictSt
 
 
 
-export function InflictStatus(turn: Turn, pokemon: IPokemon, status: Status, source: IPokemon) {
+export function InflictStatus(turn: Turn, pokemon: Pokemon, status: Status, source: Pokemon) {
     const targetPokemon = pokemon;
     //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
     if (targetPokemon.status !== Status.None || targetPokemon.currentStats.hp === 0) {
@@ -119,7 +119,7 @@ export function InflictStatus(turn: Turn, pokemon: IPokemon, status: Status, sou
     turn.AddEvent(statusInflictedEffect);
 }
 
-function DoStatBoost(turn: Turn, pokemon: IPokemon, stat: Stat, amount: number) {
+function DoStatBoost(turn: Turn, pokemon: Pokemon, stat: Stat, amount: number) {
     const targetPokemon = pokemon;
     ApplyStatBoost(targetPokemon, stat, amount);
 
@@ -155,7 +155,7 @@ function DoStatBoost(turn: Turn, pokemon: IPokemon, stat: Stat, amount: number) 
     turn.ApplyMessage(message);
 }
 
-export function InflictVolatileStatus(turn: Turn, pokemon: IPokemon, status: VolatileStatusType, source: IPokemon) {
+export function InflictVolatileStatus(turn: Turn, pokemon: Pokemon, status: VolatileStatusType, source: Pokemon) {
     const targetPokemon = pokemon;
     const vStatus = GetVolatileStatus(status);
 
@@ -172,7 +172,7 @@ export function InflictVolatileStatus(turn: Turn, pokemon: IPokemon, status: Vol
     turn.ApplyMessage(vStatus.InflictedMessage(targetPokemon));
 }
 
-function ApplyHealingEffect(turn: Turn, pokemon: IPokemon, effect: HealthRestoreEffect) {
+function ApplyHealingEffect(turn: Turn, pokemon: Pokemon, effect: HealthRestoreEffect) {
     if (effect.restoreType === HealthRestoreType.Flat) {
         turn.ApplyHealing(pokemon, effect.amount);
     }
@@ -182,7 +182,7 @@ function ApplyHealingEffect(turn: Turn, pokemon: IPokemon, effect: HealthRestore
     }
 }
 
-function ApplyStatusRestoreEffect(turn: Turn, pokemon: IPokemon, effect: StatusRestoreEffect) {
+function ApplyStatusRestoreEffect(turn: Turn, pokemon: Pokemon, effect: StatusRestoreEffect) {
     if (effect.forStatus === 'any' && pokemon.status !== Status.None) {
         let statusRestoreEffect: StatusChangeEvent = {
             type: BattleEventType.StatusChange,
@@ -205,13 +205,13 @@ function ApplyStatusRestoreEffect(turn: Turn, pokemon: IPokemon, effect: StatusR
     }
 }
 
-function DrainEffect(turn: Turn, pokemonToHeal: IPokemon, effect: DrainEffect, damage: number) {
+function DrainEffect(turn: Turn, pokemonToHeal: Pokemon, effect: DrainEffect, damage: number) {
     const drainAmount = damage * (effect.amount * 0.01);
     turn.ApplyHealing(pokemonToHeal, drainAmount);
     turn.ApplyMessage(`${pokemonToHeal.name} drained some energy.`)
 }
 
-function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: IPokemon) {
+function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: Pokemon) {
     /*
     Heals all pokemon in the user pokemons party.
     */
@@ -237,7 +237,7 @@ function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: IPokemon) {
     });
 }
 
-function SwitchPokemonEffect(turn:Turn,sourcePokemon:IPokemon){
+function SwitchPokemonEffect(turn:Turn,sourcePokemon:Pokemon){
     turn.PromptForSwitch(sourcePokemon);
 }
 
@@ -260,7 +260,7 @@ function WhirlwindEffect(turn:Turn,player:Player){
 }
 
 interface EffectSource {
-    sourcePokemon?: IPokemon,
+    sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
     sourceDamage?: number,
     sourceItem?: Item
@@ -268,7 +268,7 @@ interface EffectSource {
 
 
 //need someting more abstract for the source, but for now just having the pokemon will do.
-export function DoEffect(turn: Turn, pokemon: IPokemon, effect: BattleEffect, source: EffectSource) {
+export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, source: EffectSource) {
 
 
     //TODO: We need a sourceInfo object,

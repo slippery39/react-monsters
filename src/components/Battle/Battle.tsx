@@ -21,7 +21,7 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEvent, BattleEventType } from 'game/BattleEvents'
 import BattleService from 'game/Battle';
-import { IPokemon } from 'game/Pokemon/Pokemon';
+import { Pokemon } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 import { Status } from 'game/HardStatus/HardStatus';
 import { Player } from 'game/Player/PlayerBuilder';
@@ -54,7 +54,7 @@ type Action = {
     newStatus?: Status
 }
 
-const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: IPokemon } {
+const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: Pokemon } {
     let pokemon;
     const pokemonOwner = state.players.find(p => {
         return p.pokemon.find(p => {
@@ -196,7 +196,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         return state.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
     }
 
-    function getPokemonById(id: number): IPokemon {
+    function getPokemonById(id: number): Pokemon {
         const pokemon = state.players.map(player => {
             return player.pokemon;
         }).flat().filter(pokemon => pokemon.id === id);
@@ -204,10 +204,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         return pokemon[0];
     }
 
-    function getAllyPokemon(): IPokemon {
+    function getAllyPokemon(): Pokemon {
         return GetActivePokemon(state.players[0]);
     }
-    function getEnemyPokemon(): IPokemon {
+    function getEnemyPokemon(): Pokemon {
         return GetActivePokemon(state.players[1]);
     }
 

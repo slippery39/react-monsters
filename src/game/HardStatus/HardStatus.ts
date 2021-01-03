@@ -2,7 +2,7 @@ import { Turn } from "game/Turn";
 import { BattleEventType, CannotAttackEvent,StatusChangeEvent } from "game/BattleEvents";
 import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
-import { IPokemon } from "game/Pokemon/Pokemon";
+import { Pokemon } from "game/Pokemon/Pokemon";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 
 
@@ -22,9 +22,9 @@ export abstract class HardStatus extends BattleBehaviour {
     abstract curedString:String
     abstract inflictedMessage:String
 
-    OnApply(turn:Turn,pokemon:IPokemon){
+    OnApply(turn:Turn,pokemon:Pokemon){
     }
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return true;
     }
 }
@@ -39,7 +39,7 @@ class RestingStatus extends HardStatus{
         return true;
     }
 
-    BeforeAttack(turn: Turn, pokemon: IPokemon) {
+    BeforeAttack(turn: Turn, pokemon: Pokemon) {
         turn.ApplyMessage(`${pokemon.name} is sleeping!`);
 
         if (pokemon.restTurnCount >= 2) {
@@ -60,7 +60,7 @@ class RestingStatus extends HardStatus{
             pokemon.restTurnCount++;
         }
     }
-    EndOfTurn(turn:Turn, pokemon:IPokemon){
+    EndOfTurn(turn:Turn, pokemon:Pokemon){
         
     }
 }
@@ -70,13 +70,13 @@ class ToxicStatus extends HardStatus{
     curedString= 'has been cured of poison!'
     inflictedMessage = 'has been badly poisoned!'
 
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Steel);
     }
-    BeforeAttack(turn: Turn, pokemon: IPokemon){
+    BeforeAttack(turn: Turn, pokemon: Pokemon){
         return;
     }
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
                 //apply poison damage
         //poison damage is 1/16 of the pokemons max hp
         const maxHp = pokemon.originalStats.hp;
@@ -95,13 +95,13 @@ class BurnStatus extends HardStatus{
     curedString= 'has been cured of its burn!'
     inflictedMessage = 'has been burned!'
 
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Fire);
     }
-    BeforeAttack(turn: Turn, pokemon: IPokemon){
+    BeforeAttack(turn: Turn, pokemon: Pokemon){
         return;
     }
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
         const maxHp = pokemon.originalStats.hp;
         const burnDamage = Math.ceil(maxHp / 8);
         turn.ApplyMessage(`${pokemon.name} is hurt by its burn`);
@@ -116,11 +116,11 @@ class FrozenStatus extends HardStatus{
     inflictedMessage = 'is frozen!'
     private thawChance: number = 25;
 
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Ice);
     }
 
-    BeforeAttack(turn: Turn, pokemon: IPokemon) {
+    BeforeAttack(turn: Turn, pokemon: Pokemon) {
         turn.ApplyMessage(`${pokemon.name} is frozen!`);
         if (turn.Roll(this.thawChance)) {
             //Pokemon Wakes Up
@@ -138,7 +138,7 @@ class FrozenStatus extends HardStatus{
             pokemon.canAttackThisTurn = false;
         }
     }
-    EndOfTurn(turn: Turn, pokemon: IPokemon){
+    EndOfTurn(turn: Turn, pokemon: Pokemon){
         return;
     }
 }
@@ -151,14 +151,14 @@ class SleepStatus extends HardStatus{
     inflictedMessage = 'has fallen asleep!'
     private wakeUpChance: number = 25;
 
-    CanApply(turn: Turn, pokemon: IPokemon){
+    CanApply(turn: Turn, pokemon: Pokemon){
         return true;
     }
 
-    EndOfTurn(turn: Turn, pokemon: IPokemon){
+    EndOfTurn(turn: Turn, pokemon: Pokemon){
         return;
     }
-    BeforeAttack(turn: Turn, pokemon: IPokemon) {
+    BeforeAttack(turn: Turn, pokemon: Pokemon) {
         turn.ApplyMessage(`${pokemon.name} is sleeping!`);
         if (turn.Roll(this.wakeUpChance)) {
             //Pokemon Wakes Up
@@ -186,11 +186,11 @@ class ParalyzeStatus extends HardStatus{
     inflictedMessage = 'is now paralyzed!'
     private cantMoveChance: number = 25;
 
-    EndOfTurn(turn: Turn, pokemon: IPokemon){
+    EndOfTurn(turn: Turn, pokemon: Pokemon){
         return;
     }
 
-    BeforeAttack(turn: Turn, pokemon: IPokemon) {
+    BeforeAttack(turn: Turn, pokemon: Pokemon) {
         if (turn.Roll(this.cantMoveChance)) {
             const cantAttackEffect: CannotAttackEvent = {
                 type: BattleEventType.CantAttack,
@@ -203,7 +203,7 @@ class ParalyzeStatus extends HardStatus{
         }
         //do the before logic here.
     }
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Electric)
     }
 
@@ -216,7 +216,7 @@ class PoisonStatus extends HardStatus {
     curedString= 'has been cured of poison!'
     inflictedMessage = ' has been poisoned!'
 
-    EndOfTurn(turn: Turn, pokemon: IPokemon) {
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
         //apply poison damage
         //poison damage is 1/16 of the pokemons max hp
         const maxHp = pokemon.originalStats.hp;
@@ -226,10 +226,10 @@ class PoisonStatus extends HardStatus {
 
         turn.ApplyIndirectDamage(pokemon, poisonDamage)
     }
-    CanApply(turn: Turn, pokemon: IPokemon) {
+    CanApply(turn: Turn, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Poison);
     }
-    BeforeAttack(turn: Turn, pokemon: IPokemon){
+    BeforeAttack(turn: Turn, pokemon: Pokemon){
         return;
     }
 
@@ -240,9 +240,9 @@ class NoneStatus extends HardStatus {
     statusType = Status.None;
     inflictedMessage = '';
     curedString= '';
-    BeforeAttack  = (turn: Turn, pokemon: IPokemon) => null;
-    CanApply =  (turn: Turn, pokemon: IPokemon) =>  true;
-    EndOfTurn =  (turn: Turn, pokemon: IPokemon) => null;
+    BeforeAttack  = (turn: Turn, pokemon: Pokemon) => null;
+    CanApply =  (turn: Turn, pokemon: Pokemon) =>  true;
+    EndOfTurn =  (turn: Turn, pokemon: Pokemon) => null;
 }
 
 function GetHardStatus(status: Status): HardStatus {

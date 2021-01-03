@@ -2,7 +2,7 @@ import React from 'react'
 import BattleHealthDisplay from 'components/BattleHealthDisplay/BattleHealthDisplay';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import "./BattlePokemonDisplay.css";
-import { IPokemon } from 'game/Pokemon/Pokemon';
+import { Pokemon } from 'game/Pokemon/Pokemon';
 
 export enum OwnerType {
     Ally = "ALLY",
@@ -11,7 +11,7 @@ export enum OwnerType {
 
 interface Props {
     owner: OwnerType,
-    pokemon: IPokemon,
+    pokemon: Pokemon,
     onHealthAnimateComplete?: () => void,
     imageRef: (el: any) => void,
     potionRef:(el:any) => void

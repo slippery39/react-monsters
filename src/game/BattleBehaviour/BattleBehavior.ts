@@ -6,28 +6,28 @@ This is the class that all classes that need to tap into the turn object will ca
 //Grab all our stuff from HardStatuses, VolatileStatuses and Abilities and Put them in here.
 */
 
-import { IPokemon } from "game/Pokemon/Pokemon";
+import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 
 abstract class BattleBehaviour{
 
-    BeforeAttack(turn:Turn,pokemon:IPokemon){
+    BeforeAttack(turn:Turn,pokemon:Pokemon){
 
     }
-    EndOfTurn(turn:Turn,pokemon:IPokemon){
+    EndOfTurn(turn:Turn,pokemon:Pokemon){
 
     }
-    OnAfterDamageCalculated(attackingPokemon:IPokemon,move:Technique,defendingPokemon:IPokemon,damage:number,damageInfo:any):number{
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any):number{
         return damage;
     }
-    OnDamageDealt(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,damageDealt:number){
+    OnDamageDealt(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,damageDealt:number){
 
     }
-    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:IPokemon,defendingPokemon:IPokemon,move:Technique,damage:number){
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
         
     }
-    ModifyTechnique(pokemon:IPokemon,technique:Technique){
+    ModifyTechnique(pokemon:Pokemon,technique:Technique){
         return technique;
     }
     

@@ -1,4 +1,4 @@
-import { IPokemon } from "game/Pokemon/Pokemon";
+import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
 import _ from "lodash";
 
@@ -12,16 +12,16 @@ export enum DamageEffectTypes{
 
 
 abstract class AbstractDamageEffect{
-    ModifyTechnique(pokemon:IPokemon,technique:Technique){
+    ModifyTechnique(pokemon:Pokemon,technique:Technique){
         return technique;
     }
-    ModifyDamageDealt(pokemon:IPokemon,originalDamage:number){
+    ModifyDamageDealt(pokemon:Pokemon,originalDamage:number){
         return originalDamage;
     }
 }
 
 class EruptionEffect extends AbstractDamageEffect{ 
-    ModifyTechnique(pokemon:IPokemon,technique:Technique){
+    ModifyTechnique(pokemon:Pokemon,technique:Technique){
         const newTech = _.cloneDeep(technique);        
         const newPower = technique.power * (pokemon.currentStats.hp / pokemon.originalStats.hp);
         newTech.power = newPower;
@@ -30,7 +30,7 @@ class EruptionEffect extends AbstractDamageEffect{
 }
 
 class SeismicTossEffect extends AbstractDamageEffect{
-    ModifyDamageDealt(pokemon:IPokemon,originalDamage:number){
+    ModifyDamageDealt(pokemon:Pokemon,originalDamage:number){
         //should be based no level
         return 100;
     }

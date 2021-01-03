@@ -1,4 +1,4 @@
-import { IPokemon, PokemonBuilder } from "./Pokemon";
+import { Pokemon, PokemonBuilder } from "./Pokemon";
 
 
 const Charizard = function () {
@@ -255,9 +255,9 @@ const Sharpedo = function(){
 
 
 
-const GetPokemon = function (name: string): IPokemon {
+const GetPokemon = function (name: string): Pokemon {
 
-    var pokemons: Array<IPokemon> = [
+    var pokemons: Array<Pokemon> = [
         Charizard(),
         Blastoise(),
         Venusaur(),
