@@ -237,6 +237,7 @@ const Blissey = function(){
 const Sharpedo = function(){
     return PokemonBuilder()
     .OfSpecies("Sharpedo")
+    .WithAbility("Speed Boost")
     .WithEVs({
         attack:252,
         spDefense:4,
@@ -268,7 +269,8 @@ const GetPokemon = function (name: string): IPokemon {
         Feraligatr(),
         Ampharos(),
         Skarmory(),
-        Blissey()
+        Blissey(),
+        Sharpedo(),
     ]
 
 
