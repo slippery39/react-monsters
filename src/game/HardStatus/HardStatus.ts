@@ -4,6 +4,7 @@ import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
+import { Technique } from "game/Techniques/Technique";
 
 
 export enum Status{
@@ -138,6 +139,22 @@ class FrozenStatus extends HardStatus{
             pokemon.canAttackThisTurn = false;
         }
     }
+
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
+        if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
+            defendingPokemon.status = Status.None;
+            const thawEffect: StatusChangeEvent = {
+                type: BattleEventType.StatusChange,
+                status: Status.None,
+                targetPokemonId: defendingPokemon.id,
+                attackerPokemonId: attackingPokemon.id,
+                defaultMessage: `${attackingPokemon.name}'s fire attack thawed ${defendingPokemon.name}!`
+            }
+            turn.AddEvent(thawEffect);
+        }
+    }
+
+
     EndOfTurn(turn: Turn, pokemon: Pokemon){
         return;
     }

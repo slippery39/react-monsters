@@ -32,7 +32,7 @@ function App() {
     //MISSINGNO!
     const testPokemon = PokemonBuilder().OfSpecies("missingno").WithTechniques([
       "Protect",
-      "Crunch",
+      "Fire Blast",
       "Stealth Rock",
       "Substitute"
     ])

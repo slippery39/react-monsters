@@ -1,7 +1,7 @@
-import { ElementType } from './ElementType';
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, StatusChangeEvent, BattleEvent } from "./BattleEvents";
+import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, 
+     BattleEvent } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
@@ -608,23 +608,6 @@ export class Turn {
 
         if (move.damageType === 'physical' || move.damageType === 'special') {
             let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
-            /*
-                On Frozen Pokemon Damaged by Fire Move
-                    -UNTHAW THE POKEMON
-            */
-            //TODO: move this into the "frozen status?";
-            if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
-                defendingPokemon.status = Status.None;
-                const thawEffect: StatusChangeEvent = {
-                    type: BattleEventType.StatusChange,
-                    status: Status.None,
-                    targetPokemonId: defendingPokemon.id,
-                    attackerPokemonId: pokemon.id,
-                    defaultMessage: `${defendingPokemon.name} is not frozen anymore!`
-                }
-                this.AddEvent(thawEffect);
-            }
-
             this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
         }
         else {
