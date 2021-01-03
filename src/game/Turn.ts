@@ -16,6 +16,7 @@ import { Item } from './Items/Item';
 import _ from 'lodash';
 import { GetDamageEffect } from './DamageEffects/DamageEffects';
 import { EntryHazard } from './EntryHazards/EntryHazard';
+import BattleBehaviour from './BattleBehaviour/BattleBehavior';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -171,43 +172,28 @@ export class Turn {
         return this.currentGameState.players;
     }
 
+    GetAllBattleBehaviours(pokemon: Pokemon) {
+        return (pokemon.volatileStatuses as Array<BattleBehaviour>).concat([GetAbility(pokemon.ability)] as Array<BattleBehaviour>).concat([GetHardStatus(pokemon.status)] as Array<BattleBehaviour>).concat([pokemon.heldItem]);
+    }
+
     private BeforeEndOfTurn() {
         const activePokemon = this.GetPlayers().map(player => this.GetActivePokemon(player.id));
-
         activePokemon.forEach(pokemon => {
-
-            pokemon.volatileStatuses.forEach(vStat => {
-                vStat.EndOfTurn(this, pokemon);
-            });
-
-            GetAbility(pokemon.ability).EndOfTurn(this, pokemon);
-            pokemon.heldItem.EndOfTurn(this, pokemon);
-
-            const hardStatus = GetHardStatus(pokemon.status);
-            hardStatus.EndOfTurn(this, pokemon);
+            this.GetAllBattleBehaviours(pokemon).forEach(bBehaviour => bBehaviour.EndOfTurn(this, pokemon))
         })
     }
 
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
     private BeforeAttack(pokemon: Pokemon) {
-
         if (!pokemon.canAttackThisTurn) {
             return;
         }
-
-        pokemon.volatileStatuses.forEach(vStat => {
-            //we need to stop on the first volatile status that makes it so we can't attack.
+        this.GetAllBattleBehaviours(pokemon).forEach(b => {
             if (!pokemon.canAttackThisTurn) {
                 return;
             }
-            //todo: this is temporary garbage code to just check if it works
-            vStat.BeforeAttack(this, pokemon);
-        })
-
-        const hardStatus = GetHardStatus(pokemon.status);
-        if (pokemon.canAttackThisTurn === true) {
-            hardStatus.BeforeAttack(this, pokemon);
-        }
+            b.BeforeAttack(this, pokemon);
+        });
     }
 
     private DoAction(action: BattleAction) {
@@ -320,22 +306,20 @@ export class Turn {
         }
     }
 
+    ApplyDamageToSubtitute(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number) {
+        const substitute = defendingPokemon.volatileStatuses.find(vStat => {
+            return vStat.type === VolatileStatusType.Substitute
+        }) as SubstituteVolatileStatus;
+        substitute.Damage(this, defendingPokemon, damage);
+
+        this.GetAllBattleBehaviours(attackingPokemon).forEach(bBehaviour => {
+            bBehaviour.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+        });
+    }
+
     ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any) {
-
-        //TODO: Ability Replacement Damage Logic.
-
-        //damage info will be the same
         if (defendingPokemon.hasSubstitute) {
-            const substitute = defendingPokemon.volatileStatuses.find(vStat => {
-                return vStat.type === VolatileStatusType.Substitute
-            }) as SubstituteVolatileStatus;
-            substitute.Damage(this, defendingPokemon, damage);
-            GetHardStatus(attackingPokemon.status).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
-            attackingPokemon.volatileStatuses.forEach(vStat => {
-                vStat.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
-            })
-            attackingPokemon.heldItem.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
-            GetAbility(attackingPokemon.ability).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+            this.ApplyDamageToSubtitute(attackingPokemon, defendingPokemon, damage);
             return;
         }
 
@@ -354,13 +338,9 @@ export class Turn {
 
         this.AddEvent(damageEffect);
 
-        GetHardStatus(attackingPokemon.status).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
-        attackingPokemon.volatileStatuses.forEach(vStat => {
-            vStat.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
-        })
-        attackingPokemon.heldItem.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
-        GetAbility(attackingPokemon.ability).OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
-
+        this.GetAllBattleBehaviours(attackingPokemon).forEach(bBehaviour => {
+            bBehaviour.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
+        });
 
         if (defendingPokemon.currentStats.hp <= 0) {
             this.PokemonFainted(defendingPokemon)
@@ -607,28 +587,19 @@ export class Turn {
         }
         this.AddEvent(useMoveEffect);
 
-        pokemon.volatileStatuses.forEach(vStat=>{
-            vStat.OnTechniqueUsed(this,pokemon,move);
+        this.GetAllBattleBehaviours(pokemon).forEach(b => {
+            b.OnTechniqueUsed(this, pokemon, move);
         })
-
-
-        //Protection type effects should happen here.\
 
 
         let techniqueNegated = false;
-        defendingPokemon.volatileStatuses.forEach(vStat => {
-            if (techniqueNegated === false) {
-                techniqueNegated = vStat.NegateTechnique(this, pokemon, defendingPokemon, move);
-            }
-        })
+        this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
+            techniqueNegated = b.NegateTechnique(this, pokemon, defendingPokemon, move);
+        });
 
         if (techniqueNegated) {
             return;
         }
-
-
-
-
 
         if (!this.Roll(move.accuracy)) {
             useMoveEffect.didMoveHit = false;
@@ -636,12 +607,7 @@ export class Turn {
         }
 
         if (move.damageType === 'physical' || move.damageType === 'special') {
-            //this method was extracted by using "extract method" and needs to be refactored. we should probably just return a partial event log.
-
-
             let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
-
-
             /*
                 On Frozen Pokemon Damaged by Fire Move
                     -UNTHAW THE POKEMON
@@ -711,11 +677,23 @@ export class Turn {
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
 
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
-        let newDamage = ability.OnAfterDamageCalculated(pokemon, move, defendingPokemon, totalDamage, damageModifierInfo);
+        let newDamage = totalDamage;
+
+        this.GetAllBattleBehaviours(pokemon).forEach(b => {
+            newDamage = b.OnAfterDamageCalculated(pokemon, move, defendingPokemon, newDamage, damageModifierInfo);
+        });
 
         //
-        const defendingAbility = GetAbility(defendingPokemon.ability);
-        if (defendingAbility.NegateDamage(this, move, defendingPokemon) === true) {
+        let damageNegated = false;
+        this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
+            if (damageNegated) {
+                return;
+            }
+            if (b.NegateDamage(this, move, defendingPokemon)) {
+                damageNegated = true;
+            }
+        });
+        if (damageNegated) {
             //no damage will be applied, any messages why will be handled by the ability itslef.
             return 0;
         }
@@ -725,9 +703,14 @@ export class Turn {
         }
 
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
-        newDamage = defendingAbility.ModifyDamageTaken(this, pokemon, defendingPokemon, move, newDamage)
+
+        this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
+            newDamage = b.ModifyDamageTaken(this, pokemon, defendingPokemon, move, newDamage);
+        })
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
-        defendingAbility.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, move, newDamage);
+        this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
+            b.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, move, newDamage);
+        })
         return newDamage;
     }
 

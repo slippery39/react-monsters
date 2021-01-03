@@ -34,7 +34,7 @@ function App() {
       "Protect",
       "Crunch",
       "Stealth Rock",
-      "Whirlwind"
+      "Substitute"
     ])
     .WithAbility("Speed Boost")
     .WithHeldItem("Life Orb")
