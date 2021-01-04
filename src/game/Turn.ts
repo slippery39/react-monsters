@@ -60,7 +60,7 @@ type OnSwitchNeededArgs = {
 export class Turn {
     id: Number;
     private initialGameState: GameState;
-    private currentGameState: GameState;
+    currentGameState: GameState;
 
     eventLog: Array<BattleEvent> = [];
     nextEventId: number = 1; //next id for when we have a new event.

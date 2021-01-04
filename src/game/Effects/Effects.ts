@@ -25,7 +25,8 @@ export enum EffectType{
     Aromatherapy = 'aromatherapy',
     SwitchPokemon = 'switch-pokemon',
     PlaceEntryHazard = 'place-entry-hazard',
-    Whirlwind = 'whirlwind'
+    Whirlwind = 'whirlwind',
+    ClearHazards = 'clear-hazards'
 }
 
 export interface InflictStatusEffect {
@@ -86,7 +87,11 @@ export interface WhirlwindEffect{
     type:EffectType.Whirlwind
 }
 
-export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect);
+export interface ClearHazardsEffect{
+    type:EffectType.ClearHazards
+}
+
+export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect);
 
 
 
@@ -259,6 +264,19 @@ function WhirlwindEffect(turn:Turn,player:Player){
     turn.SwitchPokemon(player,randomPokemon);   
 }
 
+
+function ClearHazards(turn:Turn,player:Player){
+    const hasHazards = (turn.currentGameState.entryHazards!.filter(hazard=>{
+        return hazard.player===player;
+    }).length > 0)
+    if (hasHazards){
+        turn.AddMessage(`All hazards on ${player.name}'s side have been removed!`);
+    }
+    turn.currentGameState.entryHazards = turn.currentGameState.entryHazards?.filter(hazard=>{
+        return hazard.player!==player;
+    });
+}
+
 interface EffectSource {
     sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
@@ -331,6 +349,14 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
         }
         case EffectType.Whirlwind:{
             WhirlwindEffect(turn,turn.GetPokemonOwner(pokemon));
+            break;
+        }
+        case EffectType.ClearHazards:{
+
+            if (source.sourcePokemon === undefined){
+                throw new Error(`No source pokemon defined for DoEFfect - PlaceEntryHazard`);
+            }
+            ClearHazards(turn,turn.GetPokemonOwner(source.sourcePokemon))
             break;
         }
         default: {

@@ -17,127 +17,150 @@ export interface BaseTechnique {
     damageType: DamageType,
     elementalType: ElementType,
     accuracy: number,
-    priority?:number,
+    priority?: number,
     damageEffect?: DamageEffect,
-    makesContact?:boolean,
+    makesContact?: boolean,
     effects?: Array<BattleEffect>,
 }
 
-export function GetTech(name: string):Technique {
+export function GetTech(name: string): Technique {
 
     const techs: Array<BaseTechnique> = [
         {
-            name:"Protect",
-            description:"Enables the user to evade all attacks. Its chance of failing rises if it is used in succession.",
-            pp:16,
-            priority:4,
-            elementalType:ElementType.Normal,
-            power:0,
-            damageType:DamageType.Status,
-            accuracy:100,
-            effects:[{
-                type:EffectType.InflictVolatileStatus,
-                status:VolatileStatusType.Protection,
-                target:TargetType.Self,
-                chance:100
-            }]
-        },
-        {
-            name:"Stealth Rock",
-            description:"The user lays a trap of levitating stones around the opposing team. The trap hurts opposing Pokémon that switch into battle.",
-            pp:32,
-            power:0,
-            accuracy:100,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Rock,
-            effects:[{
-                type:EffectType.PlaceEntryHazard,
-                hazard:EntryHazardType.StealthRock
-            }]
-        },
-        {
-            name:"Seismic Toss",
-            description:"The target is thrown using the power of gravity. It inflicts damage equal to the user's level.",
-            pp:32,
-            power:0,
-            accuracy:100,
-            damageType:DamageType.Physical,
+            name: "Rapid Spin",
+            description: "A spin attack that can also eliminate such moves as Bind, Wrap, Leech Seed, and Spikes.",
+            pp: 64,
+            power: 50,
+            elementalType: ElementType.Normal,
+            accuracy: 100,
+            damageType: DamageType.Physical,
             makesContact:true,
-            elementalType:ElementType.Fighting,
-            damageEffect:{
-                type:DamageEffectTypes.SeismicToss
+            effects: [{
+                type: EffectType.ClearHazards,
+                target: TargetType.Enemy,
+                chance: 100
+            },
+            {
+                type: EffectType.StatBoost,
+                target: TargetType.Self,
+                stat: Stat.Speed,
+                amount: 1,
+                chance: 100
+            },
+            ]
+        },
+        {
+            name: "Protect",
+            description: "Enables the user to evade all attacks. Its chance of failing rises if it is used in succession.",
+            pp: 16,
+            priority: 4,
+            elementalType: ElementType.Normal,
+            power: 0,
+            damageType: DamageType.Status,
+            accuracy: 100,
+            effects: [{
+                type: EffectType.InflictVolatileStatus,
+                status: VolatileStatusType.Protection,
+                target: TargetType.Self,
+                chance: 100
+            }]
+        },
+        {
+            name: "Stealth Rock",
+            description: "The user lays a trap of levitating stones around the opposing team. The trap hurts opposing Pokémon that switch into battle.",
+            pp: 32,
+            power: 0,
+            accuracy: 100,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Rock,
+            effects: [{
+                type: EffectType.PlaceEntryHazard,
+                hazard: EntryHazardType.StealthRock
+            }]
+        },
+        {
+            name: "Seismic Toss",
+            description: "The target is thrown using the power of gravity. It inflicts damage equal to the user's level.",
+            pp: 32,
+            power: 0,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            elementalType: ElementType.Fighting,
+            damageEffect: {
+                type: DamageEffectTypes.SeismicToss
             }
         },
         {
-            name:"Soft Boiled",
-            description:"The user restores its own HP by up to half of its max HP.",
-            accuracy:100,
-            pp:16,
-            power:0,
-            elementalType:ElementType.Normal,
-            damageType:DamageType.Status,
-            effects:[{
-                type:EffectType.HealthRestore,
-                restoreType:HealthRestoreType.PercentMaxHealth,
-                target:TargetType.Self,
-                amount:50                
-            }]
-        },
-        {
-            name:"Whirlwind",
-            description:"The target is blown away, and a different Pokémon is dragged out. In the wild, this ends a battle against a single Pokémon",
-            accuracy:100,
-            priority:-6,
-            pp:32,
-            power:0,
-            elementalType:ElementType.Normal,
+            name: "Soft Boiled",
+            description: "The user restores its own HP by up to half of its max HP.",
+            accuracy: 100,
+            pp: 16,
+            power: 0,
+            elementalType: ElementType.Normal,
             damageType: DamageType.Status,
-            effects:[{
-                type:EffectType.Whirlwind
+            effects: [{
+                type: EffectType.HealthRestore,
+                restoreType: HealthRestoreType.PercentMaxHealth,
+                target: TargetType.Self,
+                amount: 50
             }]
         },
         {
-            name:"Spikes",
-            description:"The user lays a trap of spikes at the opposing team's feet. The trap hurts Pokémon that switch into battle.",
-            accuracy:100,
-            pp:32,
-            power:0,
-            elementalType:ElementType.Ground,
-            damageType:DamageType.Status,
-            effects:[{
-                type:EffectType.PlaceEntryHazard,
-                hazard:EntryHazardType.Spikes
+            name: "Whirlwind",
+            description: "The target is blown away, and a different Pokémon is dragged out. In the wild, this ends a battle against a single Pokémon",
+            accuracy: 100,
+            priority: -6,
+            pp: 32,
+            power: 0,
+            elementalType: ElementType.Normal,
+            damageType: DamageType.Status,
+            effects: [{
+                type: EffectType.Whirlwind
             }]
         },
         {
-            name:"Iron Head",
-            description:"The user slams the target with its steel-hard head. This may also make the target flinch.",
-            accuracy:100,
-            pp:24,
-            power:80,
-            elementalType:ElementType.Steel,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            effects:[{
-                type:EffectType.InflictVolatileStatus,
-                status:VolatileStatusType.Flinch,
-                target:TargetType.Enemy,
-                chance:30
+            name: "Spikes",
+            description: "The user lays a trap of spikes at the opposing team's feet. The trap hurts Pokémon that switch into battle.",
+            accuracy: 100,
+            pp: 32,
+            power: 0,
+            elementalType: ElementType.Ground,
+            damageType: DamageType.Status,
+            effects: [{
+                type: EffectType.PlaceEntryHazard,
+                hazard: EntryHazardType.Spikes
             }]
         },
         {
-            name:"Volt Switch",
-            description:"[Description Needed]",
-            accuracy:100,
-            pp:24,
-            power:70,
-            elementalType:ElementType.Electric,
-            damageType:DamageType.Special,
-            effects:[{
-                type:EffectType.SwitchPokemon,
-                chance:100
+            name: "Iron Head",
+            description: "The user slams the target with its steel-hard head. This may also make the target flinch.",
+            accuracy: 100,
+            pp: 24,
+            power: 80,
+            elementalType: ElementType.Steel,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            effects: [{
+                type: EffectType.InflictVolatileStatus,
+                status: VolatileStatusType.Flinch,
+                target: TargetType.Enemy,
+                chance: 30
             }]
-        },       
+        },
+        {
+            name: "Volt Switch",
+            description: "[Description Needed]",
+            accuracy: 100,
+            pp: 24,
+            power: 70,
+            elementalType: ElementType.Electric,
+            damageType: DamageType.Special,
+            effects: [{
+                type: EffectType.SwitchPokemon,
+                chance: 100
+            }]
+        },
 
         {
             name: "Heal Bell",
@@ -151,65 +174,65 @@ export function GetTech(name: string):Technique {
                 type: EffectType.Aromatherapy
             }]
         },
-        
+
         {
-            name:"Ice Punch",
-            description:"The target is punched with an icy fist. It may also leave the target frozen.",
-            pp:24,
-            power:75,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Ice,
-            makesContact:true,
-            effects:[{
-                type:EffectType.InflictStatus,
-                status:Status.Frozen,
-                target:TargetType.Enemy,
-                chance:10
+            name: "Ice Punch",
+            description: "The target is punched with an icy fist. It may also leave the target frozen.",
+            pp: 24,
+            power: 75,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Ice,
+            makesContact: true,
+            effects: [{
+                type: EffectType.InflictStatus,
+                status: Status.Frozen,
+                target: TargetType.Enemy,
+                chance: 10
             }]
         },
         {
-            name:"Crunch",
-            description:"The user crunches up the target with sharp fangs. It may also lower the target's Defense stat.",
-            pp:24,
-            power:80,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Dark,
-            makesContact:true,
-            effects:[{
-                type:EffectType.StatBoost,
-                target:TargetType.Enemy,
-                stat:Stat.Defense,
-                amount:-1,
-                chance:20
+            name: "Crunch",
+            description: "The user crunches up the target with sharp fangs. It may also lower the target's Defense stat.",
+            pp: 24,
+            power: 80,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Dark,
+            makesContact: true,
+            effects: [{
+                type: EffectType.StatBoost,
+                target: TargetType.Enemy,
+                stat: Stat.Defense,
+                amount: -1,
+                chance: 20
             }]
         },
         {
-            name:"Waterfall",
-            description:"The user charges at the target and may make it flinch. This can also be used to climb a waterfall.",
-            pp:24,
-            power:80,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Water,
-            makesContact:true,
+            name: "Waterfall",
+            description: "The user charges at the target and may make it flinch. This can also be used to climb a waterfall.",
+            pp: 24,
+            power: 80,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Water,
+            makesContact: true,
             effects: [{
                 type: EffectType.InflictVolatileStatus,
                 status: VolatileStatusType.Flinch,
                 target: TargetType.Enemy,
                 chance: 20
-            }]  
+            }]
         },
         {
-            name:"Dragon Dance",
-            description:"The user vigorously performs a mystic, powerful dance that boosts its Attack and Speed stats.",
-            pp:32,
-            power:0,
-            accuracy:100,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Dragon,
-            effects:[
+            name: "Dragon Dance",
+            description: "The user vigorously performs a mystic, powerful dance that boosts its Attack and Speed stats.",
+            pp: 32,
+            power: 0,
+            accuracy: 100,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Dragon,
+            effects: [
                 {
                     type: EffectType.StatBoost,
                     stat: Stat.Attack,
@@ -227,24 +250,24 @@ export function GetTech(name: string):Technique {
             ]
         },
         {
-            name:"Hidden Power (Grass)",
-            description:"A unique attack that varies in type depending on the Pokémon using it",
-            pp:24,
-            power:60,
-            accuracy:100,
-            damageType:DamageType.Special,    
-            elementalType:ElementType.Grass  
+            name: "Hidden Power (Grass)",
+            description: "A unique attack that varies in type depending on the Pokémon using it",
+            pp: 24,
+            power: 60,
+            accuracy: 100,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Grass
         },
         {
-            name:"Eruption",
-            description:"The user attacks opposing Pokémon with explosive fury. The lower the user's HP, the lower the move's power.",
-            pp:8,
-            power:150,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Fire,
-            damageEffect:{
-                type:DamageEffectTypes.Eruption
+            name: "Eruption",
+            description: "The user attacks opposing Pokémon with explosive fury. The lower the user's HP, the lower the move's power.",
+            pp: 8,
+            power: 150,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Fire,
+            damageEffect: {
+                type: DamageEffectTypes.Eruption
             }
         },
         {
@@ -331,7 +354,7 @@ export function GetTech(name: string):Technique {
             {
                 type: EffectType.HealthRestore,
                 restoreType: HealthRestoreType.PercentMaxHealth,
-                target:TargetType.Self,
+                target: TargetType.Self,
                 amount: 100,
                 chance: 100
             },
@@ -367,7 +390,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Grass,
             power: 120,
             accuracy: 85,
-            makesContact:true
+            makesContact: true
         },
         {
             name: "Earthquake",
@@ -377,7 +400,7 @@ export function GetTech(name: string):Technique {
             elementalType: ElementType.Ground,
             power: 100,
             accuracy: 100,
-          },
+        },
         {
             name: "Roost",
             description: 'Heals up to 50% max health, user loses flying type until end of turn',
@@ -596,7 +619,7 @@ export function GetTech(name: string):Technique {
             pp: 15,
             power: 75,
             accuracy: 85,
-            makesContact:true,
+            makesContact: true,
             damageType: DamageType.Physical,
             elementalType: ElementType.Flying
         },

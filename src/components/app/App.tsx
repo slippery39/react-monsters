@@ -33,8 +33,16 @@ function App() {
     const testPokemon = PokemonBuilder().OfSpecies("missingno").WithTechniques([
       "Protect",
       "Fire Blast",
-      "Stealth Rock",
+      "Rapid Spin",
       "Substitute"
+    ])
+    .WithAbility("Speed Boost")
+    .WithHeldItem("Life Orb")
+    .Build();
+
+
+    const testPokemon2 = PokemonBuilder().OfSpecies("missingno").WithTechniques([
+      "Fire Blast",
     ])
     .WithAbility("Speed Boost")
     .WithHeldItem("Life Orb")
@@ -58,7 +66,7 @@ function App() {
 
 const player2 = new PlayerBuilder(2)
     .WithName("Bob")
-    .WithPokemon("charizard")
+    .WithCustomPokemon(testPokemon2)
     .WithPokemon("venusaur")
     .WithPokemon("venusaur")
     .WithPokemon("blastoise")
