@@ -1,6 +1,5 @@
 import { Pokemon, PokemonBuilder } from "./Pokemon";
 
-
 const Charizard = function () {
     return PokemonBuilder()
         .OfSpecies("Charizard")
@@ -254,6 +253,26 @@ const Sharpedo = function(){
 }
 
 
+const Starmie = function(){
+    return PokemonBuilder()
+    .OfSpecies("Starmie")
+    .WithAbility("Analytic")
+    .WithEVs({
+        spAttack:252,
+        speed:252,
+        spDefense:252
+    })
+    .WithHeldItem("Life Orb")
+    .WithTechniques([
+        "Hydro Pump",
+        "Thunderbolt",
+        "Ice Beam",
+        "Rapid Spin"
+    ])
+    .Build()
+}
+
+
 
 const GetPokemon = function (name: string): Pokemon {
 
@@ -271,6 +290,7 @@ const GetPokemon = function (name: string): Pokemon {
         Skarmory(),
         Blissey(),
         Sharpedo(),
+        Starmie()
     ]
 
 
