@@ -288,7 +288,7 @@ export class Turn {
     }
 
     ApplyIndirectDamage(pokemon: Pokemon, damage: number) {
-        pokemon.currentStats.hp -= damage;
+        pokemon.currentStats.hp -= Math.ceil(damage);
         pokemon.currentStats.hp = Math.max(0, pokemon.currentStats.hp);
 
         const damageEffect: DamageEvent = {
@@ -545,6 +545,7 @@ export class Turn {
         this.AddEvent(switchInEffect);
 
         this.GetEntryHazards().forEach(hazard => {
+            console.warn(`entry hazard applying for pokemon ${pokemonIn.id}`);
             hazard.OnPokemonEntry(this, this.GetPokemon(pokemonIn.id));
         })
     }
