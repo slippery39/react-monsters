@@ -621,7 +621,6 @@ export class Turn {
 
         if (move.damageType === 'physical' || move.damageType === 'special') {
             let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
-
             if (damage > 0){
                 this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
             }
@@ -679,7 +678,7 @@ export class Turn {
         let newDamage = totalDamage;
 
         this.GetAllBattleBehaviours(pokemon).forEach(b => {
-            newDamage = b.OnAfterDamageCalculated(pokemon, move, defendingPokemon, newDamage, damageModifierInfo);
+            newDamage = b.OnAfterDamageCalculated(pokemon, move, defendingPokemon, newDamage, damageModifierInfo,this);
         });
 
         //
@@ -785,7 +784,7 @@ export class Turn {
 
 
     //this needs to be cached due to potential randomness
-    private GetMoveOrder(): Array<BattleAction> {
+     GetMoveOrder(): Array<BattleAction> {
 
         if (this._moveOrder.length === 0) {
             this._moveOrder = GetMoveOrder(this.GetPlayers(), this.initialActions)

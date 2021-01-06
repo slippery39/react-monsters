@@ -18,7 +18,7 @@ abstract class BattleBehaviour{
     EndOfTurn(turn:Turn,pokemon:Pokemon){
 
     }
-    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any):number{
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn?:Turn):number{
         return damage;
     }
     OnDamageDealt(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,damageDealt:number){

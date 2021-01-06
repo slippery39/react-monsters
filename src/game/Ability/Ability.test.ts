@@ -2,6 +2,7 @@ import 'core-js'
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { GetTech } from 'game/Techniques/PremadeTechniques';
 import { CreateMockTurn } from 'game/Testing/TestingFunctions';
+import { Turn } from 'game/Turn';
 import GetAbility from './Ability';
 
 
@@ -49,7 +50,7 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     pokemon.originalStats.hp = 100;
     pokemon.currentStats.hp = 34;
 
-    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{});
+    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{},undefined);
 
     //damage should still be 100
 
@@ -71,7 +72,7 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     pokemon.originalStats.hp = 100;
     pokemon.currentStats.hp = 33;
 
-    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{});
+    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{},undefined);
 
     //damage should now be 150;
 

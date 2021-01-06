@@ -2,7 +2,7 @@ import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
-import { GetPercentageHealth} from "game/HelperFunctions";
+import { GetPercentageHealth, GetPokemonOwner} from "game/HelperFunctions";
 import { ApplyStatBoost, Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
@@ -137,6 +137,19 @@ class SturdyAbility extends AbstractAbility{
     }
 }
 
+
+class AnalyticAbility extends AbstractAbility{
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn:Turn){
+        const attackingOwner = GetPokemonOwner(turn.GetPlayers(),attackingPokemon);
+
+        if (turn.GetMoveOrder()[1].playerId === attackingOwner.id ){
+            console.warn('analytic ability triggering');
+            return damage*1.3;
+        }
+        return damage;
+    }
+}
+
 class NoAbility extends AbstractAbility{
 
 }
@@ -171,6 +184,9 @@ function GetAbility(name:String){
         }
         case 'speed boost':{
             return new SpeedBoostAbility();
+        }
+        case 'analytic':{
+            return new AnalyticAbility();
         }
         default:{
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);
