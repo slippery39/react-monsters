@@ -1,7 +1,9 @@
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
-import { DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType, 
-     BattleEvent } from "./BattleEvents";
+import {
+    DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType,
+    BattleEvent
+} from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
@@ -595,7 +597,9 @@ export class Turn {
 
         let techniqueNegated = false;
         this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
-            techniqueNegated = b.NegateTechnique(this, pokemon, defendingPokemon, move);
+            if (techniqueNegated === false) {
+                techniqueNegated = b.NegateTechnique(this, pokemon, defendingPokemon, move);
+            }
         });
 
         if (techniqueNegated) {
