@@ -287,6 +287,27 @@ const Starmie = function(){
 }
 
 
+const Dunsparce = function(){
+    return PokemonBuilder()
+    .OfSpecies("Dunsparce")
+    .WithAbility("Serene Grace")
+    .WithEVs({
+        hp:252,
+        defense:4,
+        spDefense:252
+    })
+    .WithNature(NatureType.Careful)
+    .WithHeldItem("Leftovers")
+    .WithTechniques([
+        "Glare",
+        "Coil",
+        "Headbutt",
+        "Roost"
+    ])
+    .Build()
+}
+
+
 
 
 

@@ -27,6 +27,37 @@ export function GetTech(name: string): Technique {
 
     const techs: Array<BaseTechnique> = [
         {
+            name:"Headbutt",
+            description:"The user sticks out its head and attacks by charging straight into the target. It may also make the target flinch.",
+            pp:24,
+            power:70,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Normal,
+            makesContact:true,
+            effects:[{
+                type:EffectType.InflictVolatileStatus,
+                status:VolatileStatusType.Flinch,
+                chance:30,
+                target:TargetType.Enemy
+            }]
+        },
+        {
+            name:"Glare",
+            description:"The user intimidates the target with the pattern on its belly to cause paralysis.",
+            pp:48,
+            power:0,
+            elementalType:ElementType.Normal,
+            accuracy:90,
+            damageType:DamageType.Status,
+            effects:[{
+                type:EffectType.InflictStatus,
+                status:Status.Paralyzed,
+                chance:100,
+                target:TargetType.Enemy
+            }]            
+        },
+        {
             name: "Rapid Spin",
             description: "A spin attack that can also eliminate such moves as Bind, Wrap, Leech Seed, and Spikes.",
             pp: 64,
