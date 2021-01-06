@@ -1,3 +1,4 @@
+import { NatureType } from "game/Natures/Natures";
 import { Pokemon, PokemonBuilder } from "./Pokemon";
 
 const Charizard = function () {
@@ -14,6 +15,7 @@ const Charizard = function () {
             "Focus Blast",
             "Earthquake"
         ])
+        .WithNature(NatureType.Timid)
         .WithHeldItem("Leftovers") //.WithHeldItem("Life Orb")
         .WithAbility("Blaze")
         .Build();
@@ -33,6 +35,7 @@ const Blastoise = function () {
             "Rest",
             "Toxic"
         ])
+        .WithNature(NatureType.Bold)
         .WithHeldItem("Leftovers")
         .WithAbility("Torrent")
         .Build();
@@ -72,6 +75,7 @@ const Raichu = function () {
             "Nasty Plot",
             "Focus Blast"
         ])
+        .WithNature(NatureType.Timid)
         .WithHeldItem("Leftovers")
         .WithAbility("Lightning Rod")
         .Build();
@@ -91,6 +95,7 @@ const Alakazam = function () {
             "Focus Blast",
             "Shadow Ball"
         ])
+        .WithNature(NatureType.Timid)
         .WithHeldItem("Life Orb")
         .WithAbility("Magic Guard")
         .Build();
@@ -111,6 +116,7 @@ const Gengar = function () {
             "Sludge Wave",
             "Focus Blast"
         ])
+        .WithNature(NatureType.Timid)
         .WithHeldItem("Life Orb")
         .WithAbility("Levitate")
         .Build()
@@ -130,6 +136,7 @@ const Meganium = function () {
             "Giga Drain",
             "Toxic"
         ])
+        .WithNature(NatureType.Calm)
         .WithHeldItem("Leftovers")
         .WithAbility("Overgrowth")
         .Build();
@@ -151,6 +158,7 @@ const Typhlosion = function () {
             "Focus Blast",
             "Fire Blast"
         ])
+        .WithNature(NatureType.Timid)
         .WithHeldItem("Leftovers")
         .WithAbility("Flash Fire")
         .Build();
@@ -171,6 +179,7 @@ const Feraligatr = function () {
             "Crunch",
             "Ice Punch"
         ])
+        .WithNature(NatureType.Jolly)
         .WithHeldItem("Life Orb")
         .WithAbility("Sheer Force")
         .Build();
@@ -191,6 +200,7 @@ const Ampharos = function () {
             "Focus Blast"
 
         ])
+        .WithNature(NatureType.Calm)
         .WithHeldItem("Leftovers")
         .WithAbility("Static")
         .Build();
@@ -210,6 +220,7 @@ const Skarmory = function () {
             "Roost",
             "Whirlwind"
         ])
+        .WithNature(NatureType.Impish)
         .WithHeldItem("Leftovers")
         .WithAbility("Sturdy")
         .Build();
@@ -223,12 +234,13 @@ const Blissey = function(){
         defense:252,
         spDefense:4
     })
+    .WithNature(NatureType.Calm)
     .WithHeldItem("Leftovers")
     .WithTechniques([
-        "Thunder Wave",
+        "Toxic",
         "Soft Boiled",
         "Seismic Toss",
-        "Stealth Rock"
+        "Protect"
     ])
     .Build()
 }
@@ -242,6 +254,7 @@ const Sharpedo = function(){
         spDefense:4,
         speed:252    
     })
+    .WithNature(NatureType.Adamant)
     .WithHeldItem("Life Orb")
     .WithTechniques([
         "Protect",
@@ -262,6 +275,7 @@ const Starmie = function(){
         speed:252,
         spDefense:252
     })
+    .WithNature(NatureType.Timid)
     .WithHeldItem("Life Orb")
     .WithTechniques([
         "Hydro Pump",

@@ -147,6 +147,10 @@ class _PokemonBuilder {
         this.pokemon.heldItem = GetHeldItem(heldItemName);
         return this;
     }
+    WithNature(nature:NatureType):_PokemonBuilder{
+        this.pokemon.nature = nature;
+        return this;
+    }
     WithBaseStats(baseStats: Stats): _PokemonBuilder {
         this.pokemon.baseStats = baseStats;
         return this;
