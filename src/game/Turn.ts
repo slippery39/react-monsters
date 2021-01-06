@@ -1,4 +1,4 @@
-import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
+import { DamageModifierInfo, GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import {
     DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType,
@@ -319,7 +319,15 @@ export class Turn {
         });
     }
 
-    ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any) {
+    ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo:any) {
+        
+        
+        if(damageInfo.typeEffectivenessBonus !== undefined && damageInfo.typeEffectivenessBonus === 0){
+            this.AddMessage("It had no effect!");
+            return;
+        }
+
+
         if (defendingPokemon.hasSubstitute) {
             this.ApplyDamageToSubtitute(attackingPokemon, defendingPokemon, damage);
             return;
@@ -613,7 +621,10 @@ export class Turn {
 
         if (move.damageType === 'physical' || move.damageType === 'special') {
             let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
-            this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
+
+            if (damage === 0){
+                this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
+            }
         }
         else {
             this.DoStatusMove(move, defendingPokemon, pokemon);

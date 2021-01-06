@@ -129,7 +129,7 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
   
     //Crits should not be applied if the move is not effective.
     if (effectiveness === 0){
-        critStrike = false,
+        critStrike = false
         critAmt = 1.0
     }
     

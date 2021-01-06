@@ -6,6 +6,7 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/Battle';
 import BasicAI from 'game/AI/AI';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
+import { ElementType } from 'game/ElementType';
 
 
 enum AppState{
@@ -45,6 +46,7 @@ function App() {
       "Fire Blast",
     ])
     .WithAbility("Speed Boost")
+    .OfElementalTypes([ElementType.Ghost])
     .WithHeldItem("Life Orb")
     .Build();
 
