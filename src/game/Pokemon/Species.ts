@@ -191,6 +191,18 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense:85,
                 speed:115
             }
+        },
+        {
+            name:"Dunsparce",
+            elementalTypes:[ElementType.Normal],
+            baseStats:{
+                hp:100,
+                attack:70,
+                defense:70,
+                spAttack:65,
+                spDefense:65,
+                speed:45
+            }
         }
     ];
 

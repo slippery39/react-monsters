@@ -288,6 +288,8 @@ const Starmie = function(){
 
 
 
+
+
 const GetPokemon = function (name: string): Pokemon {
 
     var pokemons: Array<Pokemon> = [

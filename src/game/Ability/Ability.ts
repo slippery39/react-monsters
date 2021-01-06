@@ -5,7 +5,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import { GetPercentageHealth, GetPokemonOwner} from "game/HelperFunctions";
 import { ApplyStatBoost, Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { Technique } from "game/Techniques/Technique";
+import { DamageType, Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import _ from "lodash";
 
@@ -150,6 +150,25 @@ class AnalyticAbility extends AbstractAbility{
     }
 }
 
+class SereneGraceAbility extends AbstractAbility{
+    ModifyTechnique(pokemon:Pokemon,technique:Technique){   
+        let newTechnique = _.cloneDeep(technique);
+
+        //Should have no effect for status type moves.
+        if (!newTechnique.effects || newTechnique.damageType === DamageType.Status){
+              return newTechnique;
+        }
+
+        newTechnique.effects?.forEach(effect=>{
+            if (!effect.chance){
+                effect.chance = 100;
+            }            
+            effect.chance*=2;
+        });
+        return newTechnique;
+    }
+}
+
 class NoAbility extends AbstractAbility{
 
 }
@@ -187,6 +206,9 @@ function GetAbility(name:String){
         }
         case 'analytic':{
             return new AnalyticAbility();
+        }
+        case 'serene grace':{
+            return new SereneGraceAbility();
         }
         default:{
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);
