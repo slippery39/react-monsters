@@ -622,7 +622,7 @@ export class Turn {
         if (move.damageType === 'physical' || move.damageType === 'special') {
             let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
 
-            if (damage === 0){
+            if (damage > 0){
                 this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
             }
         }

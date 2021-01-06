@@ -43,7 +43,7 @@ function App() {
 
 
     const testPokemon2 = PokemonBuilder().OfSpecies("missingno").WithTechniques([
-      "Fire Blast",
+      "Stealth Rock",
     ])
     .WithAbility("Speed Boost")
     .OfElementalTypes([ElementType.Ghost])
@@ -53,8 +53,8 @@ function App() {
     
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithCustomPokemon(testPokemon)
     .WithPokemon("Starmie")
+    .WithCustomPokemon(testPokemon)
     .WithPokemon("gengar")
     .WithPokemon("venusaur")
     .WithPokemon("blastoise")
