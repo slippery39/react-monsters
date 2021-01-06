@@ -1,6 +1,30 @@
 import 'core-js'
-import { ApplyStatBoost, CalculateStatWithBoost, PokemonBuilder } from './Pokemon';
+import { ApplyNatureStatChanges, ApplyStatBoost, CalculateStatWithBoost, PokemonBuilder, Stats } from './Pokemon';
 import { Stat } from 'game/Stat';
+import { NatureType } from 'game/Natures/Natures';
+
+
+describe('Base Stats are correctly modified based on nature',()=>{
+
+
+    it ('modifies base stats based on adamant nature',()=>{
+
+        const baseStats : Stats = {
+            hp:100,
+            attack:100,
+            spAttack:100,
+            spDefense:100,
+            speed:100,
+            defense:100
+        }
+
+        const baseStatsWithNature = ApplyNatureStatChanges(baseStats,NatureType.Adamant);
+
+        expect(baseStatsWithNature.attack).toBe(110);
+        expect(baseStatsWithNature.spAttack).toBe(90);
+
+    });
+});
 
 
 describe('Stats are correctly calculated from Base Stats',()=>{

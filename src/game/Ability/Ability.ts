@@ -40,7 +40,7 @@ class LevitateAbility extends AbstractAbility{
 
 
 class BlazeAbility extends AbstractAbility{
-    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn?:Turn){
         if (move.elementalType === ElementType.Fire && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
         }
@@ -49,7 +49,7 @@ class BlazeAbility extends AbstractAbility{
 }
 
 class TorrentAbility extends AbstractAbility{
-    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn?:Turn){
         if (move.elementalType === ElementType.Water && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
         }
@@ -58,7 +58,7 @@ class TorrentAbility extends AbstractAbility{
 }
 
 class OverGrowthAbility extends AbstractAbility{
-    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any){
+    OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn?:Turn){
         if (move.elementalType === ElementType.Grass && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
         }

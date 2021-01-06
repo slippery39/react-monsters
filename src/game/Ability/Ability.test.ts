@@ -49,7 +49,7 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     pokemon.originalStats.hp = 100;
     pokemon.currentStats.hp = 34;
 
-    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{},undefined);
+    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{},CreateMockTurn());
 
     //damage should still be 100
 
@@ -71,7 +71,7 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     pokemon.originalStats.hp = 100;
     pokemon.currentStats.hp = 33;
 
-    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{},undefined);
+    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Fire Blast"),pokemon,100,{},CreateMockTurn());
 
     //damage should now be 150;
 
@@ -91,7 +91,7 @@ describe('Blaze Ability - (Damage Modifying Ability) Modifies Correctly',()=>{
     pokemon.originalStats.hp = 100;
     pokemon.currentStats.hp = 33;
 
-    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Earthquake"),pokemon,100,{});
+    const damage = blazeAbility.OnAfterDamageCalculated(pokemon,GetTech("Earthquake"),pokemon,100,{},CreateMockTurn());
 
     //damage should still be 100
 
