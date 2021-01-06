@@ -11,6 +11,7 @@ import { GetNature, NatureType } from "game/Natures/Natures";
 
 
 
+
 export interface Pokemon {
     id: number,
     name: string,
@@ -77,7 +78,9 @@ class _PokemonBuilder {
                 [Stat.Defense]: 0,
                 [Stat.SpecialAttack]: 0,
                 [Stat.SpecialDefense]: 0,
-                [Stat.Speed]: 0
+                [Stat.Speed]: 0,
+                [Stat.Accuracy]: 0
+                
             },
             baseStats: CreateEmptyStats(),
             ivs: {
@@ -194,6 +197,9 @@ export function GetStat(pokemon: Pokemon, stat: Stat): number {
         }
         case Stat.Speed: {
             return pokemon.currentStats.speed
+        }
+        case Stat.Accuracy:{
+            return 100
         }
     }
 }
@@ -326,6 +332,9 @@ export function CalculateStatWithBoost(pokemon: Pokemon, stat: Stat) {
 
     //these are the wrong amounts, look these up again.
     var boostAmounts = [3 / 3, 4 / 3, 5 / 3, 6 / 3, 7 / 3, 8 / 3, 9 / 3];
+
+
+
     var boostAmount = (boostAmounts[(Math.abs(boostStage))]);
 
     if (boostStage < 0) {

@@ -3,6 +3,7 @@ export enum Stat{
     SpecialAttack ='special-attack',
     Defense='defense',
     SpecialDefense = 'special-defense',
-    Speed = 'speed'
+    Speed = 'speed',
+    Accuracy = 'accuracy'
 }
 

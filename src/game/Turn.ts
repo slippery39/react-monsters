@@ -7,7 +7,7 @@ import {
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { TypedEvent } from './TypedEvent/TypedEvent';
-import { Pokemon } from './Pokemon/Pokemon';
+import { CalculateStatWithBoost, Pokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
@@ -19,6 +19,7 @@ import _ from 'lodash';
 import { GetDamageEffect } from './DamageEffects/DamageEffects';
 import { EntryHazard } from './EntryHazards/EntryHazard';
 import BattleBehaviour from './BattleBehaviour/BattleBehavior';
+import { Stat } from './Stat';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -614,7 +615,12 @@ export class Turn {
             return;
         }
 
-        if (!this.Roll(move.accuracy)) {
+        let pokemonAccuracyModifier = 1;
+        
+        if (pokemon.statBoosts[Stat.Accuracy]!=0){
+            pokemonAccuracyModifier = Math.ceil(CalculateStatWithBoost(pokemon,Stat.Accuracy) /100);
+        }
+        if ( !this.Roll(move.accuracy * pokemonAccuracyModifier ) ) {
             useMoveEffect.didMoveHit = false;
             return;
         }
