@@ -40,9 +40,14 @@ export function GetSpeedPriority(players:Array<Player>,actions:Array<BattleActio
             }
         }
         const activePokemon =  GetActivePokemon(player);
+
+
+        console.log("calculating active pokemon speeds");
+        console.log(activePokemon);
+
         return {
             action: act,
-            speed:  activePokemon.status === Status.Paralyzed ? activePokemon.currentStats.speed /2 : activePokemon.currentStats.speed
+            speed:  activePokemon.status === Status.Paralyzed ? activePokemon.currentStats.speed /4 : activePokemon.currentStats.speed
         }
     }).sort((a, b) => { return b.speed - a.speed});
 }

@@ -1,4 +1,4 @@
-import { DamageModifierInfo, GetBaseDamage, GetDamageModifier } from './DamageFunctions';
+import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import {
     DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType,
@@ -320,10 +320,10 @@ export class Turn {
         });
     }
 
-    ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo:any) {
-        
-        
-        if(damageInfo.typeEffectivenessBonus !== undefined && damageInfo.typeEffectivenessBonus === 0){
+    ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any) {
+
+
+        if (damageInfo.typeEffectivenessBonus !== undefined && damageInfo.typeEffectivenessBonus === 0) {
             this.AddMessage("It had no effect!");
             return;
         }
@@ -599,10 +599,14 @@ export class Turn {
         }
         this.AddEvent(useMoveEffect);
 
+        move.currentPP -= 1;
+
+        const ability = GetAbility(pokemon.ability);
+        move = ability.ModifyTechnique(pokemon, move);
+
         this.GetAllBattleBehaviours(pokemon).forEach(b => {
             b.OnTechniqueUsed(this, pokemon, move);
         })
-
 
         let techniqueNegated = false;
         this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
@@ -616,18 +620,18 @@ export class Turn {
         }
 
         let pokemonAccuracyModifier = 1;
-        
-        if (pokemon.statBoosts[Stat.Accuracy]!=0){
-            pokemonAccuracyModifier = Math.ceil(CalculateStatWithBoost(pokemon,Stat.Accuracy) /100);
+
+        if (pokemon.statBoosts[Stat.Accuracy] !== 0) {
+            pokemonAccuracyModifier = Math.ceil(CalculateStatWithBoost(pokemon, Stat.Accuracy) / 100);
         }
-        if ( !this.Roll(move.accuracy * pokemonAccuracyModifier ) ) {
+        if (!this.Roll(move.accuracy * pokemonAccuracyModifier)) {
             useMoveEffect.didMoveHit = false;
             return;
         }
 
         if (move.damageType === 'physical' || move.damageType === 'special') {
             let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
-            if (damage > 0){
+            if (damage > 0) {
                 this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
             }
         }
@@ -665,12 +669,6 @@ export class Turn {
     //passing the damage dealt for now,
     private DoDamageMove(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique): number {
 
-        //Easy quick hack for handling eruption, but we need to think of a way to do this non hacky.
-        //perhaps we should revamp our whole damage system?
-        const ability = GetAbility(pokemon.ability);
-        move = ability.ModifyTechnique(pokemon, move);
-
-
         if (move.damageEffect) {
             const damageEffect = GetDamageEffect(move.damageEffect.type);
             move = damageEffect.ModifyTechnique(pokemon, move);
@@ -684,7 +682,7 @@ export class Turn {
         let newDamage = totalDamage;
 
         this.GetAllBattleBehaviours(pokemon).forEach(b => {
-            newDamage = b.OnAfterDamageCalculated(pokemon, move, defendingPokemon, newDamage, damageModifierInfo,this);
+            newDamage = b.OnAfterDamageCalculated(pokemon, move, defendingPokemon, newDamage, damageModifierInfo, this);
         });
 
         //
@@ -790,7 +788,7 @@ export class Turn {
 
 
     //this needs to be cached due to potential randomness
-     GetMoveOrder(): Array<BattleAction> {
+    GetMoveOrder(): Array<BattleAction> {
 
         if (this._moveOrder.length === 0) {
             this._moveOrder = GetMoveOrder(this.GetPlayers(), this.initialActions)

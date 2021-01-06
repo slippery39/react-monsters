@@ -327,7 +327,8 @@ const GetPokemon = function (name: string): Pokemon {
         Skarmory(),
         Blissey(),
         Sharpedo(),
-        Starmie()
+        Starmie(),
+        Dunsparce()
     ]
 
 

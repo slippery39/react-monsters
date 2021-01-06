@@ -27,35 +27,67 @@ export function GetTech(name: string): Technique {
 
     const techs: Array<BaseTechnique> = [
         {
-            name:"Headbutt",
-            description:"The user sticks out its head and attacks by charging straight into the target. It may also make the target flinch.",
-            pp:24,
-            power:70,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Normal,
-            makesContact:true,
-            effects:[{
-                type:EffectType.InflictVolatileStatus,
-                status:VolatileStatusType.Flinch,
-                chance:30,
-                target:TargetType.Enemy
+            name: "Coil",
+            description: "The user coils up and concentrates. This raises its Attack and Defense stats as well as its accuracy.",
+            pp: 32,
+            power: 0,
+            accuracy: 100,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Poison,
+            effects: [
+                {
+                    type: EffectType.StatBoost,
+                    stat: Stat.Attack,
+                    chance: 100,
+                    amount: 1,
+                    target: TargetType.Self
+                },
+                {
+                    type: EffectType.StatBoost,
+                    stat: Stat.Defense,
+                    chance: 100,
+                    amount: 1,
+                    target: TargetType.Self
+                },
+                {
+                    type: EffectType.StatBoost,
+                    stat: Stat.Accuracy,
+                    chance: 100,
+                    amount: 1,
+                    target: TargetType.Self
+                }
+            ]
+        },
+        {
+            name: "Headbutt",
+            description: "The user sticks out its head and attacks by charging straight into the target. It may also make the target flinch.",
+            pp: 24,
+            power: 70,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Normal,
+            makesContact: true,
+            effects: [{
+                type: EffectType.InflictVolatileStatus,
+                status: VolatileStatusType.Flinch,
+                chance: 30,
+                target: TargetType.Enemy
             }]
         },
         {
-            name:"Glare",
-            description:"The user intimidates the target with the pattern on its belly to cause paralysis.",
-            pp:48,
-            power:0,
-            elementalType:ElementType.Normal,
-            accuracy:90,
-            damageType:DamageType.Status,
-            effects:[{
-                type:EffectType.InflictStatus,
-                status:Status.Paralyzed,
-                chance:100,
-                target:TargetType.Enemy
-            }]            
+            name: "Glare",
+            description: "The user intimidates the target with the pattern on its belly to cause paralysis.",
+            pp: 48,
+            power: 0,
+            elementalType: ElementType.Normal,
+            accuracy: 90,
+            damageType: DamageType.Status,
+            effects: [{
+                type: EffectType.InflictStatus,
+                status: Status.Paralyzed,
+                chance: 100,
+                target: TargetType.Enemy
+            }]
         },
         {
             name: "Rapid Spin",
@@ -65,7 +97,7 @@ export function GetTech(name: string): Technique {
             elementalType: ElementType.Normal,
             accuracy: 100,
             damageType: DamageType.Physical,
-            makesContact:true,
+            makesContact: true,
             effects: [{
                 type: EffectType.ClearHazards,
                 target: TargetType.Enemy,
@@ -822,6 +854,6 @@ export function GetTech(name: string): Technique {
     }
 
     //convert to conform to the technique interface.
-    return { ...tech, ...{ id: -1, currentPP: tech.pp,accuracy:tech.accuracy ? tech.accuracy : 100 } };
+    return { ...tech, ...{ id: -1, currentPP: tech.pp, accuracy: tech.accuracy ? tech.accuracy : 100 } };
 }
 

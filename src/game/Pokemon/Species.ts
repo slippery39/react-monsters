@@ -19,7 +19,7 @@ export function GetSpecies(name: string): ISpecies {
                 spAttack: 100,
                 spDefense: 100,
                 defense: 100,
-                speed: 500
+                speed: 100
             }
         },
         {

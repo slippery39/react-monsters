@@ -329,12 +329,8 @@ export function CalculateStatWithBoost(pokemon: Pokemon, stat: Stat) {
     /*
      Get the boost amount
     */
-
     //these are the wrong amounts, look these up again.
     var boostAmounts = [3 / 3, 4 / 3, 5 / 3, 6 / 3, 7 / 3, 8 / 3, 9 / 3];
-
-
-
     var boostAmount = (boostAmounts[(Math.abs(boostStage))]);
 
     if (boostStage < 0) {

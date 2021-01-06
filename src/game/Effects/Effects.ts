@@ -148,6 +148,13 @@ function DoStatBoost(turn: Turn, pokemon: Pokemon, stat: Stat, amount: number) {
             statString = "speed";
             break;
         }
+        case Stat.Accuracy:{
+            statString = "accuracy"
+            break;
+        }
+        default:{
+            throw new Error(`Could not find string to use for stat : ${stat} in call to DoStatBoost()`)
+        }
     }
 
     let message = ` ${targetPokemon.name} has had its ${statString} boosted!`
