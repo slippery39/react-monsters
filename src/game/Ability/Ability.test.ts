@@ -2,7 +2,6 @@ import 'core-js'
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { GetTech } from 'game/Techniques/PremadeTechniques';
 import { CreateMockTurn } from 'game/Testing/TestingFunctions';
-import { Turn } from 'game/Turn';
 import GetAbility from './Ability';
 
 

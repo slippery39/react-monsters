@@ -11,4 +11,5 @@ export enum DamageType{
 export interface Technique extends BaseTechnique{
  id:number,
  currentPP:number,
+ accuracy:number
 }

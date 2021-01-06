@@ -33,20 +33,17 @@ export interface InflictStatusEffect {
     type: EffectType.InflictStatus,
     status: Status
     target: TargetType,
-    chance: number
 }
 export interface StatBoostEffect {
     type: EffectType.StatBoost,
     stat: Stat
     target: TargetType,
     amount: number
-    chance: number
 }
 export interface InflictVolatileStatusEffect {
     type: EffectType.InflictVolatileStatus,
     status: VolatileStatusType,
     target: TargetType,
-    chance: number
 }
 
 export enum HealthRestoreType {

@@ -16,7 +16,7 @@ export interface BaseTechnique {
     power: number,
     damageType: DamageType,
     elementalType: ElementType,
-    accuracy: number,
+    accuracy?: number,
     priority?: number,
     damageEffect?: DamageEffect,
     makesContact?: boolean,
@@ -791,6 +791,6 @@ export function GetTech(name: string): Technique {
     }
 
     //convert to conform to the technique interface.
-    return { ...tech, ...{ id: -1, currentPP: tech.pp } };
+    return { ...tech, ...{ id: -1, currentPP: tech.pp,accuracy:tech.accuracy ? tech.accuracy : 100 } };
 }
 
