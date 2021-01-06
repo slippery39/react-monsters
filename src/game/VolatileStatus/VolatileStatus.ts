@@ -142,7 +142,7 @@ export class RoostedVolatileStatus extends VolatileStatus {
 
 }
 
-export class ProectionVolatileStatus extends VolatileStatus {
+export class ProtectionVolatileStatus extends VolatileStatus {
 
     type = VolatileStatusType.Protection;
     private chanceToApply: number = 100;
@@ -311,7 +311,7 @@ export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
             return new SubstituteVolatileStatus();
         }
         case VolatileStatusType.Protection: {
-            return new ProectionVolatileStatus();
+            return new ProtectionVolatileStatus();
         }
         default: {
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

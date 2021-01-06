@@ -11,12 +11,18 @@ function GetTypeMod(defendingPokemon:Pokemon,techUsed:Technique)
 function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique) 
 */
 
-const createCharizard = function() : Pokemon{
-    return new PokemonBuilder().OfSpecies("charizard").Build();
+const CreateFirePokemon = function() : Pokemon{
+    return PokemonBuilder()
+    .UseGenericPokemon()
+    .OfElementalTypes([ElementType.Fire])
+    .Build();
 }
 
-const createBlastoise = function(): Pokemon{
-    return new PokemonBuilder().OfSpecies("charizard").Build();
+const CreateWaterPokemon = function(): Pokemon{
+    return PokemonBuilder()
+    .UseGenericPokemon()
+    .OfElementalTypes([ElementType.Water])
+    .Build();
 }
 
 
@@ -52,17 +58,54 @@ const createEarthquake = function(): Technique{
 }
 
 
+describe(`No effectiveness attacks don't crit`,()=>{
+    it('does not crit when it is 0 effectiveness',()=>{
+        //export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique,options?:{autoCrit?:boolean,autoAmt?:boolean}) 
+
+        const attackingPokemon = PokemonBuilder()
+                                .UseGenericPokemon()
+                                .OfElementalTypes([ElementType.Normal])
+                                .Build() //overrides the species.
+    
+        const defendingPokemon = PokemonBuilder()
+                                .UseGenericPokemon()
+                                .OfElementalTypes([ElementType.Ghost])
+                                .Build();
+
+        const technique :Technique = {
+            name:"Generic Technique",
+            elementalType:ElementType.Fighting,
+            power:100,
+            accuracy:100,
+            id:1,
+            description:"",
+            pp:10,
+            currentPP:10,
+            damageType:DamageType.Physical
+        }
+
+        const damageResult = GetDamageModifier(attackingPokemon,defendingPokemon,technique,{autoCrit:true});
+
+        //crit should not be modified since it should deal no damage;
+        expect(damageResult.critStrike).toBe(false);
+        expect(damageResult.critAmt).toBe(1);
+        
+
+
+    })
+})
+
 describe('GetBaseDamage tests', ()=>{
     //what do we need to test here
     
     it('gets correct base damage',()=>{
 
-        const attackingPokemon = createCharizard();
-        const defendingPokemon = createBlastoise();
+        const attackingPokemon = CreateFirePokemon();
+        const defendingPokemon = CreateWaterPokemon();
         const techUsed = createFireblast();
         const baseDamage = GetBaseDamage(attackingPokemon,defendingPokemon,techUsed);
 
-        expect(baseDamage).toBe(127);
+        expect(baseDamage).toBe(103);
     });
 
     describe('GetTypeMod() tests', ()=>{
@@ -107,7 +150,7 @@ describe('GetBaseDamage tests', ()=>{
         //Critical
         //effectuveness?
         it ('modifies damage correctly without stab', ()=>{
-            const damageModifier = GetDamageModifier(createCharizard(),createBlastoise(),createEarthquake(),{
+            const damageModifier = GetDamageModifier(CreateFirePokemon(),CreateWaterPokemon(),createEarthquake(),{
                 autoCrit:false,
                 autoAmt:true
             });
@@ -115,7 +158,7 @@ describe('GetBaseDamage tests', ()=>{
         });
         it('modifies damage correctly with not very effective + stab', ()=>{
 
-            const damageModifier = GetDamageModifier(createCharizard(),createBlastoise(),createFireblast(),{
+            const damageModifier = GetDamageModifier(CreateFirePokemon(),CreateWaterPokemon(),createFireblast(),{
                 autoCrit:false,
                 autoAmt:true
             });
@@ -124,14 +167,14 @@ describe('GetBaseDamage tests', ()=>{
         });
 
         it ('modifies damage correctly with stab and crit', ()=>{
-            const damageModifier = GetDamageModifier(createCharizard(),createBlastoise(),createFireblast(),{
+            const damageModifier = GetDamageModifier(CreateFirePokemon(),CreateWaterPokemon(),createFireblast(),{
                 autoCrit:true,
                 autoAmt:true
             });
             expect(damageModifier.critAmt*damageModifier.stabBonus*damageModifier.typeEffectivenessBonus).toBe(2*1.25*0.5);
         });
         it('modifies damage correctly for crits', ()=>{
-            const damageModifier = GetDamageModifier(createCharizard(),createBlastoise(),createEarthquake(),{
+            const damageModifier = GetDamageModifier(CreateFirePokemon(),CreateWaterPokemon(),createEarthquake(),{
                 autoCrit:true,
                 autoAmt:true
             });

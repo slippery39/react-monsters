@@ -95,6 +95,22 @@ class _PokemonBuilder{
                 evs:CreateEmptyStats()
         }
     }
+
+    //Mainly will be used for testing.
+    UseGenericPokemon():_PokemonBuilder{
+
+        this.pokemon.name = "Generic-Pokemon"
+        this.pokemon.baseStats = {
+            hp:100,
+            attack:100,
+            spAttack:100,
+            defense:100,
+            spDefense:100,
+            speed:100
+        }
+        this.pokemon.elementalTypes = [];
+        return this;
+    }
     OfSpecies(name:string) : _PokemonBuilder{        
         //todo: some warning here that this should be called first?
         const base = GetSpecies(name);
@@ -130,6 +146,10 @@ class _PokemonBuilder{
     }
     WithBaseStats(baseStats:Stats):_PokemonBuilder{
         this.pokemon.baseStats = baseStats;
+        return this;
+    }
+    OfElementalTypes(elements:Array<ElementType>):_PokemonBuilder{
+        this.pokemon.elementalTypes = [...elements];
         return this;
     }
     Build() : Pokemon{
