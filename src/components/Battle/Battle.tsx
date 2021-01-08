@@ -9,7 +9,7 @@ import ItemMenu from "components/ItemMenu/ItemMenu";
 import AttackMenuNew from "components/AttackMenuNew/AttackMenuNew";
 import './Battle.css';
 import Message from "components/Message/Message";
-import PokemonSwitchScreen from "components/PokemonSwitchScreen/PokemonSwitchScreen";
+import PokemonMiniInfoLIst from "components/PokemonSwitchScreen/PokemonMiniInfoList";
 import { GetActivePokemon } from "game/HelperFunctions";
 import Debug from "components/Debug/Debug";
 import Pokeball from "components/Pokeball/Pokeball"
@@ -619,9 +619,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                             onMenuSwitchClick={(evt) => { setMenuState(MenuState.SwitchMenu) }} />}
                     {menuState === MenuState.AttackMenu && <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)} onAttackClick={(tech: any) => { console.log(tech); SetBattleAction(tech.id); }} techniques={getAllyPokemon().techniques} />}
                     {menuState === MenuState.ItemMenu && <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} onItemClick={(item: any) => { SetUseItemAction(item.id) }} items={state.players[0].items} />}
-                    {menuState === MenuState.SwitchMenu && <PokemonSwitchScreen showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => {SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
+                    {menuState === MenuState.SwitchMenu && <PokemonMiniInfoLIst showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => {SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
                     }
-                    {menuState === MenuState.FaintedSwitchMenu && <PokemonSwitchScreen onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />}
+                    {menuState === MenuState.FaintedSwitchMenu && <PokemonMiniInfoLIst onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />}
                     {menuState === MenuState.PokemonInfo && <PokemonInfo onExitClick={HandlePokemonInfoScreenExit} pokemon={pokemonInfo} />}
                     {menuState === MenuState.GameOver && <GameOverScreen onReturnClick={() => props.onEnd()} />}
 

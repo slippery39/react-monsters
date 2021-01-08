@@ -1,5 +1,5 @@
 
-.pokemon-switch-container{
+.pokemon-mini-info-container{
 width: 175px;
 display: grid;
 grid-template-columns: 25% 75%;
@@ -15,35 +15,35 @@ grid-template-columns: 25% 75%;
     cursor:pointer;
 }
 
-.pokemon-switch-container.pokemon-switch-fainted{
+.pokemon-mini-info-container.pokemon-mini-info-fainted{
     cursor:initial;
 }
 
-.pokemon-switch-container:not(.pokemon-switch-fainted):hover{
+.pokemon-mini-info-container:not(.pokemon-mini-info-fainted):hover{
     color:yellow;
     border-color:yellow;
 }
 
 
-.pokemon-switch-pokeball{
+.pokemon-mini-info-pokeball{
 width: 20px;
     display: inline-block;
     filter: grayscale(0.5);
 }
 
-.pokemon-switch-healthbar-text{
+.pokemon-mini-info-healthbar-text{
     text-align:right;
 }
 
-.pokemon-switch-container-right{
+.pokemon-mini-info-container-right{
     margin-left:15px;
 }
 
-.pokemon-switch-icon > img{
+.pokemon-mini-info-icon > img{
     width:100%;
     max-width:40px;
 }
 
-.pokemon-switch-icon{
+.pokemon-mini-info-icon{
     grid-row:auto/span 2;
 }

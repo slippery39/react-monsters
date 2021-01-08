@@ -12,3 +12,9 @@
     margin-right: 3px;
     margin-left: 3px;
 }
+
+.mini-info-list-container{
+    display:grid;
+    grid-template-columns: 50% 50%;
+    justify-items:center;
+}
