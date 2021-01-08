@@ -1,22 +1,21 @@
 .healthbar{
-    width: 100px;
-    height: 10px;
+    height:100%;
     display: inline-block;
     box-sizing:border-box;
     border: 1px solid black;
-    border-radius: 20px; 
     background-color:grey;
 }
 
 .healthbar-hp-prepend{
     color:orange;
-    background-color:black;
-    font-size:12px;
+    font-size:0.8em;
     font-weight:bold;
     padding-left:2px;
+    margin:0 auto;
 }
 
 .healthbar-container{
-    display: inline-block;
+    display: grid;
+    grid-template-columns:15% 85%;
     background-color: black;
 }

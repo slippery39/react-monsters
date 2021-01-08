@@ -24,18 +24,11 @@ const PokemonSwitchContainer: React.FunctionComponent<Props> = (props) => {
 
     return (
         <div onClick={() => { if (props.onClick) { props.onClick(props.pokemon); } }} className={className}>
-            <div className="pokemon-switch-container-left">
-                <div className="pokemon-switch-pokeball" style={{ width: "20px" }}><Pokeball /> </div>
-                <div className="pokemon-switch-icon"><PokemonImage name={props.pokemon.name} type="small" /></div>
-            </div>
-            <div className="pokemon-switch-container-right">
-                <div className="pokemon-switch-name">{props.pokemon.name} <PokemonStatus status={props.pokemon.status || Status.None} /></div>
-                
-                <div>
-                    <div className="pokemon-switch-healthbar"><AnimatedHealthBar animate={false} value={(props.pokemon.currentStats.hp / props.pokemon.originalStats.hp) * 100} /></div>
-                    <div className="pokemon-switch-healthbar-text"> {props.pokemon.currentStats.hp} / {props.pokemon.originalStats.hp} </div>
-                </div>
-            </div>
+            <div className="pokemon-switch-pokeball" style={{ width: "20px" }}><Pokeball /> </div>
+            <div className="pokemon-switch-name">{props.pokemon.name} <PokemonStatus status={props.pokemon.status || Status.None} /></div>
+            <div className="pokemon-switch-icon"><PokemonImage name={props.pokemon.name} type="small" /></div>
+            <div className="pokemon-switch-healthbar"><AnimatedHealthBar animate={false} value={(props.pokemon.currentStats.hp / props.pokemon.originalStats.hp) * 100} /></div>
+            <div className="pokemon-switch-healthbar-text"> {props.pokemon.currentStats.hp} / {props.pokemon.originalStats.hp} </div>
         </div>
     )
 
