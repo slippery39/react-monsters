@@ -9,7 +9,7 @@ import ItemMenu from "components/ItemMenu/ItemMenu";
 import AttackMenuNew from "components/AttackMenuNew/AttackMenuNew";
 import './Battle.css';
 import Message from "components/Message/Message";
-import PokemonMiniInfoLIst from "components/PokemonSwitchScreen/PokemonMiniInfoList";
+import PokemonMiniInfoList from "components/PokemonSwitchScreen/PokemonMiniInfoList";
 import { GetActivePokemon } from "game/HelperFunctions";
 import Debug from "components/Debug/Debug";
 import Pokeball from "components/Pokeball/Pokeball"
@@ -40,7 +40,8 @@ enum MenuState {
     SwitchMenu = 'switch-menu',
     FaintedSwitchMenu = 'fainted-switch-menu',
     ShowingTurn = 'showing-turn',
-    PokemonInfo = 'pokemon-info',
+    PokemonInfoMenu = 'pokemon-info-menu',
+    ShowPokemonInfo = 'pokemon-info',
     GameOver = 'game-over',
 }
 
@@ -163,8 +164,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
     const [pokemonInfo, setPokemonInfo] = useState<Pokemon>(PokemonBuilder().UseGenericPokemon().OfElementalTypes([ElementType.Normal]).Build());
+    const [pokemonInfoMenuPlayer, setPokemonInfoMenuPlayer] = useState<Player>(battleService.GetAllyPlayer())
 
-    ;
+        ;
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -553,8 +555,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         battleService.SetPlayerAction(action);
     }
 
-    function HandlePokemonInfoScreenExit(){
-        setMenuState(MenuState.SwitchMenu);
+    function HandlePokemonInfoScreenExit() {
+        setMenuState(MenuState.PokemonInfoMenu);
+    }
+    function SwitchPokemonInfoMenuPlayer() {
+
+        if (pokemonInfoMenuPlayer.id === battleService.GetAllyPlayer().id) {
+            setPokemonInfoMenuPlayer(battleService.GetEnemyPlayer())
+        }
+        else {
+            setPokemonInfoMenuPlayer(battleService.GetAllyPlayer())
+        }
     }
 
 
@@ -574,6 +585,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
             case MenuState.FaintedSwitchMenu: {
                 return `Which pokemon do you want to switch to?`
+            }
+            case MenuState.PokemonInfoMenu: {
+                return 'Select a pokemon to view its stats and information'
             }
             case MenuState.GameOver: {
                 if (winningPlayer === undefined) {
@@ -598,9 +612,20 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
-                        <div className="enemy-party-pokeballs">{state.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.hp === 0} /></span>))}</div>
-                        {getEnemyPokemon().id !== -1 && <BattlePokemonDisplay potionRef={el => enemyPotionNode.current = el} imageRef={el => { enemyPokemonImage.current = el; }} owner={OwnerType.Enemy} pokemon={getEnemyPokemon()} />}
-                        {getAllyPokemon().id !== -1 && <BattlePokemonDisplay potionRef={el => allyPotionNode.current = el} imageRef={el => { allyPokemonImage.current = el; }} owner={OwnerType.Ally} pokemon={getAllyPokemon()} />}
+                        <div className="enemy-party-pokeballs">
+                            {state.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
+                                <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
+                        </div>
+                        {getEnemyPokemon().id !== -1 &&
+                            <BattlePokemonDisplay potionRef={el => enemyPotionNode.current = el} imageRef={el => { enemyPokemonImage.current = el; }}
+                                owner={OwnerType.Enemy}
+                                pokemon={getEnemyPokemon()} />}
+                        {getAllyPokemon().id !== -1 &&
+                            <BattlePokemonDisplay
+                                potionRef={el => allyPotionNode.current = el}
+                                imageRef={el => { allyPokemonImage.current = el; }}
+                                owner={OwnerType.Ally}
+                                pokemon={getAllyPokemon()} />}
                     </div>
                     <div style={{ height: "75px", border: "5px solid black", textAlign: "left" }}>
                         {menuState !== MenuState.ShowingTurn && <Message writeTimeMilliseconds={500} animated={true} message={`${GetMenuMessage()}`} />}
@@ -611,19 +636,58 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     </div>
                 </div>
                 <div className="bottom-screen">
-                    {menuState === MenuState.MainMenu && <div className="pokemon-party-pokeballs">{state.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}><Pokeball isFainted={p.currentStats.hp === 0} /></span>))}</div>}
+                    {menuState === MenuState.MainMenu &&
+                        <div className="pokemon-party-pokeballs">
+                            {state.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}>
+                                <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
+                        </div>}
                     {menuState === MenuState.MainMenu &&
                         <BattleMenu
-                            onMenuAttackClick={(evt) => { setMenuState(MenuState.AttackMenu) }}
-                            onMenuItemClick={(evt) => { setMenuState(MenuState.ItemMenu) }}
-                            onMenuSwitchClick={(evt) => { setMenuState(MenuState.SwitchMenu) }} />}
-                    {menuState === MenuState.AttackMenu && <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)} onAttackClick={(tech: any) => { console.log(tech); SetBattleAction(tech.id); }} techniques={getAllyPokemon().techniques} />}
-                    {menuState === MenuState.ItemMenu && <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} onItemClick={(item: any) => { SetUseItemAction(item.id) }} items={state.players[0].items} />}
-                    {menuState === MenuState.SwitchMenu && <PokemonMiniInfoLIst showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => {SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
+                            onMenuAttackClick={() => { setMenuState(MenuState.AttackMenu) }}
+                            onMenuItemClick={() => { setMenuState(MenuState.ItemMenu) }}
+                            onMenuSwitchClick={() => { setMenuState(MenuState.SwitchMenu) }}
+                            onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }}
+                        />}
+                    {menuState === MenuState.AttackMenu &&
+                        <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)}
+                            onAttackClick={(tech: any) => { console.log(tech); SetBattleAction(tech.id); }}
+                            techniques={getAllyPokemon().techniques} />}
+                    {menuState === MenuState.ItemMenu &&
+                        <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}
+                            onItemClick={(item: any) => { SetUseItemAction(item.id) }}
+                            items={state.players[0].items} />}
+                    {menuState === MenuState.SwitchMenu &&
+                        <PokemonMiniInfoList
+                            showCancelButton={true}
+                            onCancelClick={() => setMenuState(MenuState.MainMenu)}
+                            onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
+                            player={battleService.GetAllyPlayer()} />
                     }
-                    {menuState === MenuState.FaintedSwitchMenu && <PokemonMiniInfoLIst onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />}
-                    {menuState === MenuState.PokemonInfo && <PokemonInfo onExitClick={HandlePokemonInfoScreenExit} pokemon={pokemonInfo} />}
-                    {menuState === MenuState.GameOver && <GameOverScreen onReturnClick={() => props.onEnd()} />}
+                    {menuState === MenuState.PokemonInfoMenu && (
+                        <div>
+                            <div className="col-2">
+                                <div className={pokemonInfoMenuPlayer.id !== battleService.GetAllyPlayer().id ? "interactable" : "interactable tab-selected"}
+                                    onClick={SwitchPokemonInfoMenuPlayer}> Show Your Pokemon</div>
+                                <div className={pokemonInfoMenuPlayer.id !== battleService.GetEnemyPlayer().id ? "interactable" : "interactable tab-selected"}
+                                    onClick={SwitchPokemonInfoMenuPlayer}> Show Enemy Pokemon </div>
+                            </div>
+                            <PokemonMiniInfoList
+                                showCancelButton={true}
+                                onCancelClick={() => setMenuState(MenuState.MainMenu)}
+                                onPokemonClick={(pokemon) => {
+                                    setPokemonInfo(pokemon);
+                                    setMenuState(MenuState.ShowPokemonInfo)
+                                }}
+                                player={pokemonInfoMenuPlayer} />
+                        </div>)}
+                    {menuState === MenuState.FaintedSwitchMenu &&
+                        <PokemonMiniInfoList onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
+                            player={state.players[0]} />}
+                    {menuState === MenuState.ShowPokemonInfo &&
+                        <PokemonInfo onExitClick={HandlePokemonInfoScreenExit}
+                            pokemon={pokemonInfo} />}
+                    {menuState === MenuState.GameOver &&
+                        <GameOverScreen onReturnClick={() => props.onEnd()} />}
 
                 </div>
             </div>
