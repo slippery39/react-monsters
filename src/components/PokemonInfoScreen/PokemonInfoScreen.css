@@ -88,3 +88,15 @@
     font-size:1.4em;
     color:blue;
 }
+
+.selected-tab{
+    color:blue;
+}
+
+.info-exit{
+    cursor:pointer; 
+}
+.info-exit:hover{
+    color:red!important;
+    font-size:1.4em;
+}

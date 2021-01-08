@@ -182,7 +182,13 @@ export class Turn {
     private BeforeEndOfTurn() {
         const activePokemon = this.GetPlayers().map(player => this.GetActivePokemon(player.id));
         activePokemon.forEach(pokemon => {
-            this.GetAllBattleBehaviours(pokemon).forEach(bBehaviour => bBehaviour.EndOfTurn(this, pokemon))
+
+            this.GetAllBattleBehaviours(pokemon).forEach(bBehaviour => {
+                if (pokemon.currentStats.hp <= 0) {
+                    return; //guard clause against potential deaths at EOT. Otherwise, if for example, poison kills the pokemon you might have something like leftovers which could heal the pokemon which would cause this weird game state.
+                }
+                bBehaviour.EndOfTurn(this, pokemon)
+            });
         })
     }
 
@@ -329,7 +335,7 @@ export class Turn {
         }
 
         //Round the damage to prevent decimals from showing up.
-        damage = Math.max(1,Math.round(damage));
+        damage = Math.max(1, Math.round(damage));
 
         if (defendingPokemon.hasSubstitute) {
             this.ApplyDamageToSubtitute(attackingPokemon, defendingPokemon, damage);

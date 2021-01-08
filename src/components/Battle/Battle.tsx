@@ -21,10 +21,12 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEvent, BattleEventType } from 'game/BattleEvents'
 import BattleService from 'game/Battle';
-import { Pokemon } from 'game/Pokemon/Pokemon';
+import { Pokemon, PokemonBuilder } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 import { Status } from 'game/HardStatus/HardStatus';
 import { Player } from 'game/Player/PlayerBuilder';
+import PokemonInfo from 'components/PokemonInfoScreen/PokemonInfoScreen';
+import { ElementType } from 'game/ElementType';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -38,6 +40,7 @@ enum MenuState {
     SwitchMenu = 'switch-menu',
     FaintedSwitchMenu = 'fainted-switch-menu',
     ShowingTurn = 'showing-turn',
+    PokemonInfo = 'pokemon-info',
     GameOver = 'game-over',
 }
 
@@ -46,7 +49,7 @@ type State = {
 }
 
 type Action = {
-    type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique' |'substitute-broken' | 'substitute-created'
+    type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique' | 'substitute-broken' | 'substitute-created'
     id: number,
     targetId?: number | undefined,
     newHealth?: number | undefined
@@ -77,7 +80,7 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
 
 interface Props {
     onEnd: () => void;
-    battle:BattleService
+    battle: BattleService
 }
 
 const Battle: React.FunctionComponent<Props> = (props) => {
@@ -118,13 +121,13 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 pokemonData.pokemon.status = action.newStatus;
                 return newState;
             }
-            case 'substitute-broken':{
-                const pokemonData = getPokemonAndOwner(newState, action.id);          
+            case 'substitute-broken': {
+                const pokemonData = getPokemonAndOwner(newState, action.id);
                 pokemonData.pokemon.hasSubstitute = false;
                 return newState;
             }
-            case `substitute-created`:{
-                const pokemonData = getPokemonAndOwner(newState, action.id);          
+            case `substitute-created`: {
+                const pokemonData = getPokemonAndOwner(newState, action.id);
                 pokemonData.pokemon.hasSubstitute = true;
                 return newState;
             }
@@ -159,6 +162,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const [battleEvents, setBattleEvents] = useState<Array<BattleEvent>>([]);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
+    const [pokemonInfo, setPokemonInfo] = useState<Pokemon>(PokemonBuilder().UseGenericPokemon().OfElementalTypes([ElementType.Normal]).Build());
 
     ;
 
@@ -320,7 +324,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     delay: defaultDelayTime,
                     hp: effect.targetFinalHealth,
                     duration: healthAnimationTime,
-                    onUpdate: (val:any) => {
+                    onUpdate: (val: any) => {
                         dispatch({
                             type: 'health-change',
                             id: val.id,
@@ -463,17 +467,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 }
                 break;
             }
-            case BattleEventType.SubstituteBroken:{
+            case BattleEventType.SubstituteBroken: {
                 dispatch({
-                    type:'substitute-broken',
-                    id:effect.targetPokemonId
+                    type: 'substitute-broken',
+                    id: effect.targetPokemonId
                 })
                 break;
             }
-            case BattleEventType.SubstituteCreated:{
+            case BattleEventType.SubstituteCreated: {
                 dispatch({
-                    type:'substitute-created',
-                    id:effect.targetPokemonId
+                    type: 'substitute-created',
+                    id: effect.targetPokemonId
                 })
                 break;
             }
@@ -493,7 +497,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     pokemonObj.currentStats, {
                     hp: effect.targetFinalHealth,
                     duration: healthAnimationTime,
-                    onUpdate: (val:any) => {
+                    onUpdate: (val: any) => {
                         dispatch({
                             type: 'health-change',
                             id: val.id,
@@ -547,6 +551,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             itemId: itemId
         }
         battleService.SetPlayerAction(action);
+    }
+
+    function HandlePokemonInfoScreenExit(){
+        setMenuState(MenuState.SwitchMenu);
     }
 
 
@@ -611,9 +619,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                             onMenuSwitchClick={(evt) => { setMenuState(MenuState.SwitchMenu) }} />}
                     {menuState === MenuState.AttackMenu && <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)} onAttackClick={(tech: any) => { console.log(tech); SetBattleAction(tech.id); }} techniques={getAllyPokemon().techniques} />}
                     {menuState === MenuState.ItemMenu && <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} onItemClick={(item: any) => { SetUseItemAction(item.id) }} items={state.players[0].items} />}
-                    {menuState === MenuState.SwitchMenu && <PokemonSwitchScreen showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
+                    {menuState === MenuState.SwitchMenu && <PokemonSwitchScreen showCancelButton={true} onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => {SetSwitchAction(pokemon.id); }} player={battleService.GetAllyPlayer()} />
                     }
                     {menuState === MenuState.FaintedSwitchMenu && <PokemonSwitchScreen onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }} player={state.players[0]} />}
+                    {menuState === MenuState.PokemonInfo && <PokemonInfo onExitClick={HandlePokemonInfoScreenExit} pokemon={pokemonInfo} />}
                     {menuState === MenuState.GameOver && <GameOverScreen onReturnClick={() => props.onEnd()} />}
 
                 </div>
