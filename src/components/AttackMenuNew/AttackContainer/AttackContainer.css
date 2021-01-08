@@ -2,19 +2,27 @@
 .attack-container{
     border: 1px solid black;
     background-color: lightyellow;
-    margin-left: 5px;
-    margin-right: 5px;
-    margin-top: 5px;
-    margin-bottom: 5px;
     padding:3px 3px 3px 3px;
     cursor:pointer;
+    box-sizing:border-box;
+    width:100%;
+    height:100%;
+    color:black;
 }
 .attack-container:hover{
     color:blue;
+   
 }
 
 .attack-name{
     font-weight: bold;
     font-size: 20px;
+    color:black;
 }
-    
+
+.outer-attack-container{
+    padding:4px 4px 4px 4px;
+    width: 150px;
+    height:60px;
+}
+

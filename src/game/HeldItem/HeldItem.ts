@@ -4,11 +4,13 @@ import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 
 export abstract class HeldItem extends BattleBehaviour{
-    
+    name:string =""
+    description:string = ""
 }
 
 export class LeftoversHeldItem extends HeldItem{
-
+    name:string = "Leftovers"
+    description = "An item to be held by a Pokémon. The holder's HP is gradually restored during battle."
     EndOfTurn(turn: Turn, pokemon:Pokemon){
         const healing = Math.ceil(pokemon.originalStats.hp / 16);
         turn.ApplyHealing(pokemon,healing);
@@ -18,6 +20,8 @@ export class LeftoversHeldItem extends HeldItem{
 }
 
 export class LifeOrbHeldItem extends HeldItem{
+    name:string = "Life Orb";
+    description = "An item to be held by a Pokémon. It boosts the power of moves, but at the cost of some HP on each hit.";
     OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any):number{
         return damage*1.3;
     }

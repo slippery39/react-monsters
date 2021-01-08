@@ -5,13 +5,13 @@ import {ElementType} from 'game/ElementType';
 
 
 interface Props {
-    element:ElementType
+    element:ElementType,
 }
 
 const ElementIcon: React.FunctionComponent<Props> = (props) => {
 
-    const classes = `element-icon element-${props.element.toString().toLowerCase()}`
-
+    let classes = `element-icon element-${props.element.toString().toLowerCase()}`
+    
     return (
         <span className={classes}>
             {props.element.toString()}

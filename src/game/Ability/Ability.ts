@@ -12,10 +12,14 @@ import _ from "lodash";
 
 
 abstract class AbstractAbility extends BattleBehaviour{ 
+    name:string = "";
+    description:string = "";
 }
 
 
 class SpeedBoostAbility extends AbstractAbility{
+    name ="Speed Boost"
+    description = "Its Speed stat is boosted every turn."
     EndOfTurn(turn:Turn,pokemon:Pokemon){
         if (pokemon.statBoosts[Stat.Speed] >=6){
             return;
@@ -28,6 +32,8 @@ class SpeedBoostAbility extends AbstractAbility{
 
 
 class LevitateAbility extends AbstractAbility{
+    name="Levitate";
+    description = "By floating in the air, the Pokémon receives full immunity to all Ground-type moves.";
     NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
         if (move.elementalType === ElementType.Ground){
             //no damage taken, maybe write a message
@@ -40,6 +46,9 @@ class LevitateAbility extends AbstractAbility{
 
 
 class BlazeAbility extends AbstractAbility{
+    name="Blaze";
+    description = "Powers up Fire-type moves when the Pokémon's HP is low"
+
     OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn?:Turn){
         if (move.elementalType === ElementType.Fire && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
@@ -49,6 +58,8 @@ class BlazeAbility extends AbstractAbility{
 }
 
 class TorrentAbility extends AbstractAbility{
+    name="Torrent"
+    description = "Powers up Water-type moves when the Pokémon's HP is low."
     OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn?:Turn){
         if (move.elementalType === ElementType.Water && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
@@ -58,6 +69,10 @@ class TorrentAbility extends AbstractAbility{
 }
 
 class OverGrowthAbility extends AbstractAbility{
+    name = "Overgrow"
+    description = "Powers up Grass-type moves when the Pokémon's HP is low."   
+
+
     OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn?:Turn){
         if (move.elementalType === ElementType.Grass && GetPercentageHealth(attackingPokemon)<=33){
             return damage*1.5;
@@ -67,6 +82,10 @@ class OverGrowthAbility extends AbstractAbility{
 }
 
 class FlashFireAbility extends AbstractAbility{
+
+    name = "Flash Fire"
+    description = "Powers up the Pokémon's Fire-type moves if it's hit by one."    
+
     NegateDamage(turn:Turn,move:Technique,pokemon:Pokemon):boolean{
         if (move.elementalType === ElementType.Fire){
             //no damage taken, maybe write a message
@@ -89,6 +108,10 @@ class FlashFireAbility extends AbstractAbility{
 }
 
 class SheerForceAbility extends AbstractAbility{
+
+    name = "Sheer Force";
+    description = "Removes additional effects to increase the power of moves when attacking."
+
     ModifyTechnique(pokemon:Pokemon,technique:Technique){        
 
         if (!technique.effects){
@@ -109,6 +132,9 @@ class SheerForceAbility extends AbstractAbility{
 }
 
 class StaticAbility extends AbstractAbility{
+    name = "Static"
+    description = "The Pokémon is charged with static electricity, so contact with it may cause paralysis."
+
     OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
         console.warn('on damage taken from technique is firing');
         console.warn(move);
@@ -122,6 +148,10 @@ class StaticAbility extends AbstractAbility{
 }
 
 class SturdyAbility extends AbstractAbility{
+
+    name = "Sturdy"
+    description = "It cannot be knocked out with one hit."
+
     ModifyDamageTaken(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,originalDamage:number){
         let modifiedDamage = originalDamage;
         if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp && originalDamage>=defendingPokemon.currentStats.hp){
@@ -139,6 +169,10 @@ class SturdyAbility extends AbstractAbility{
 
 
 class AnalyticAbility extends AbstractAbility{
+
+    name = "Analytic"
+    description = "Boosts move power when the Pokémon moves last."
+
     OnAfterDamageCalculated(attackingPokemon:Pokemon,move:Technique,defendingPokemon:Pokemon,damage:number,damageInfo:any,turn:Turn){
         const attackingOwner = GetPokemonOwner(turn.GetPlayers(),attackingPokemon);
 
@@ -151,6 +185,10 @@ class AnalyticAbility extends AbstractAbility{
 }
 
 class SereneGraceAbility extends AbstractAbility{
+
+    name = "Serene Grace"
+    description = "Boosts the likelihood of added effects appearing."
+
     ModifyTechnique(pokemon:Pokemon,technique:Technique){   
         let newTechnique = _.cloneDeep(technique);
 

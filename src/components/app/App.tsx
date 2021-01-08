@@ -7,6 +7,7 @@ import BattleService from 'game/Battle';
 import BasicAI from 'game/AI/AI';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { ElementType } from 'game/ElementType';
+import PokemonInfo from 'components/PokemonInfoScreen/PokemonInfoScreen';
 
 
 enum AppState {
@@ -88,6 +89,7 @@ function App() {
 
   return (
     <div className='app-window'>
+      <PokemonInfo/>
       {appState === AppState.StartMenu ? <StartGameScreen onStartClick={handleStartClick} /> : <Battle battle={initializeBattle()} onEnd={handleEndGame} />}
     </div>
   )
