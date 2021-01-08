@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { TweenMax } from "gsap";
 import './AnimatedHealthBar.css'
 
@@ -6,7 +6,7 @@ import './AnimatedHealthBar.css'
 
 
 interface Props {
-    value: Number,
+    value: number,
     animate?: Boolean,
     onComplete?: () => void
 }
@@ -20,78 +20,54 @@ it will run an animation of the health going down (i.e. it won't instantly chang
 const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
 
     const [bgColor, setBGColor] = useState<string>("green");
-    let healthRef: any = useRef(null);
+    // eslint-disable-next-line
+    const [forceUpdate, setForceUpdate] = useState<boolean>(false); //used to force an update to the component to get the ref value updated in the UI. 
+    const savedValue = useRef<{ value: number }>({ value: 100 });
 
-    //i don't like how this is based on the html element instead of the actual health value.
-    //the reason why this is, is teh way this is setup, the actual number value for the prop is immediatley set 
-    //and does not actually count down.
-    //we would have to change the way this works in order to change this.
-    //see the "animated number" component to see how this might work instead.
-    function getHealthColor(element: any) {
-        if (element.current) {
-            return 'pink';
+    useEffect(() => {
+        savedValue.current = { value: props.value };
+    });
+
+    const currentValue = savedValue.current.value;
+
+    const TestGetHealthColor = useCallback(() => {
+
+        if (currentValue === undefined) {
+            return 'pink'
         }
-        const value = parseInt(getComputedStyle(element).width.split("%")[0]);
-
-        if (value <= 20) {
+        if (currentValue <= 20) {
             return 'red';
         }
-        else if (value <= 50) {
+        else if (currentValue <= 50) {
             return 'orange';
         }
         else {
             return 'green';
         }
-    }
+    }, [currentValue]);
 
 
     useEffect(() => {
-        let healthBar = healthRef;
         if (props.animate === false) {
-            setBGColor(getHealthColor(healthBar))
+            setBGColor(TestGetHealthColor())
             return;
         }
-
-    }, [props.value,props.animate]);
-
-
-
+    }, [props.value, props.animate, TestGetHealthColor]);
 
     useEffect(() => {
         let animTime = 2;
 
-        let healthBar = healthRef;
-
-        //we are going to control animation from the top level controller so this is now fine
-
-
-
-
-        //little hack here, for some reason the healtbar color doesn't change with animtime 0. probably because onUpdate() never gets called.
-        //so we are using this work around here until i can come up with cleaner solution.
         if (props.animate === false) {
-            animTime = 0;
-            TweenMax.to(healthRef, 0.01, {
-                width: props.value + '%',
-                onUpdate: () => {
-                    setBGColor(getHealthColor(healthBar))
-                },
-                onComplete: () => {
-                    if (props.onComplete) {
-                        props.onComplete();
-                    }
-                }
-            });
-
+            savedValue.current.value = props.value;
+            setBGColor(TestGetHealthColor());
+            setForceUpdate(true);
             return;
-
         }
 
-
-        TweenMax.to(healthRef, animTime, {
-            width: props.value + '%',
+        TweenMax.to(savedValue.current, animTime, {
+            value: props.value,
             onUpdate: () => {
-                setBGColor(getHealthColor(healthBar))
+                setBGColor(TestGetHealthColor())
             },
             onComplete: () => {
                 if (props.onComplete) {
@@ -99,22 +75,17 @@ const AnimatedHealthBar: React.FunctionComponent<Props> = (props) => {
                 }
             }
         });
-    }, [props.value,props]);
+    }, [props.value, props, TestGetHealthColor]);
 
     useEffect(() => {
-        setBGColor(getHealthColor(healthRef));
-    }, []);
-
-
-
-
-
+        setBGColor(TestGetHealthColor());
+    }, [TestGetHealthColor]);
 
     return (
         <div className="healthbar-container">
             <span className="healthbar-hp-prepend"> HP </span>
             <div className="healthbar">
-                <div ref={element => { healthRef = element }} style={{ height: '100%', backgroundColor: bgColor }} className="healthbar-fill"> </div>
+                <div style={{ height: '100%', width: savedValue.current.value + "%", backgroundColor: bgColor }} className="healthbar-fill"> </div>
             </div>
         </div>
     );

@@ -44,7 +44,9 @@ function App() {
 
 
     const testPokemon2 = PokemonBuilder().OfSpecies("missingno").WithTechniques([
-      "Stealth Rock",
+      "Fire blast",
+      "Hydro Pump",
+      "Thunderbolt"
     ])
       .OfElementalTypes([ElementType.Normal])
       .WithHeldItem("Life Orb")
