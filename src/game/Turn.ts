@@ -328,6 +328,8 @@ export class Turn {
             return;
         }
 
+        //Round the damage to prevent decimals from showing up.
+        damage = Math.max(1,Math.round(damage));
 
         if (defendingPokemon.hasSubstitute) {
             this.ApplyDamageToSubtitute(attackingPokemon, defendingPokemon, damage);
