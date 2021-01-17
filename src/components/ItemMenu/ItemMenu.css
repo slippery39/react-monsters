@@ -13,4 +13,6 @@
 
 .item-menu-items .item-container{
     margin-bottom:3px;
+    display:grid;
+    grid-template-columns: 50% 50%;
 }
