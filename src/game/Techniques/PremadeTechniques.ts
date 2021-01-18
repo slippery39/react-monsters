@@ -27,7 +27,7 @@ export function GetTech(name: string): Technique {
 
     const techs: Array<BaseTechnique> = [
         {
-            name:"Hidden Power (Rock)",
+            name:"Hidden Power Rock",
             description:"An attack that varies in type and intensity depending on the user.",
             pp:24,
             power:60,

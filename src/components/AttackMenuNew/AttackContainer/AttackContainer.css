@@ -19,7 +19,7 @@
 
 .attack-name{
     font-weight: bold;
-    font-size: 20px;
+    font-size: 1em;
     color:black;
     grid-column: auto / span 2
 }
