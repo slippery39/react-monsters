@@ -56,7 +56,7 @@ const Venusaur = function () {
             "Sleep Powder"
         ])
         .WithHeldItem("Life Orb")
-        .WithAbility("Overgrowth")
+        .WithAbility("Overgrow")
         .Build();
 };
 
@@ -138,7 +138,7 @@ const Meganium = function () {
         ])
         .WithNature(NatureType.Calm)
         .WithHeldItem("Leftovers")
-        .WithAbility("Overgrowth")
+        .WithAbility("Overgrow")
         .Build();
 }
 

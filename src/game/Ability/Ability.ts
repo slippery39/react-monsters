@@ -68,7 +68,7 @@ class TorrentAbility extends AbstractAbility{
     }
 }
 
-class OverGrowthAbility extends AbstractAbility{
+class OvergrowAbility extends AbstractAbility{
     name = "Overgrow"
     description = "Powers up Grass-type moves when the Pokémon's HP is low."   
 
@@ -221,8 +221,8 @@ function GetAbility(name:String){
         case 'torrent':{
             return new TorrentAbility();
         }
-        case 'overgrowth':{
-            return new OverGrowthAbility();
+        case 'overgrow':{
+            return new OvergrowAbility();
         }
         case 'levitate':{
             return new LevitateAbility();
