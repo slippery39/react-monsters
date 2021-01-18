@@ -29,6 +29,7 @@ export interface Pokemon {
     evs: Stats,
     ability: string,
     nature: NatureType,
+    weight:number,
     /*
     These variables below are temporary until i can figure out a better way to encapsulate these.
     */
@@ -91,6 +92,7 @@ class _PokemonBuilder {
                 spDefense: 31,
                 speed: 31
             },
+            weight:100,
             toxicCount: 1,
             restTurnCount: 0,
             hasSubstitute: false,
@@ -124,6 +126,7 @@ class _PokemonBuilder {
         this.pokemon.name = base.name;
         this.pokemon.baseStats = { ...base.baseStats };
         this.pokemon.elementalTypes = [...base.elementalTypes];
+        this.pokemon.weight = base.weight
         //this.pokemon.ability = base.ability;   
         return this;
     }

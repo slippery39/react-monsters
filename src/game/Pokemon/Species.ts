@@ -5,6 +5,7 @@ interface ISpecies {
     name: string,
     baseStats: Stats,
     elementalTypes: Array<ElementType>,
+    weight:number
 }
 
 export function GetSpecies(name: string): ISpecies {
@@ -20,7 +21,8 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 100,
                 defense: 100,
                 speed: 100
-            }
+            },
+            weight:3507
         },
         {
             name: 'Charizard',
@@ -33,6 +35,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 85,
                 speed: 100
             },
+            weight:90.5
         },
         {
             name: 'Blastoise',
@@ -46,6 +49,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 105,
                 speed: 78
             },
+            weight:85.5
         },
         {
             name: 'Venusaur',
@@ -58,6 +62,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 100,
                 speed: 80
             },
+            weight:100
         },
         {
             name: "Raichu",
@@ -70,6 +75,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 80,
                 speed: 100
             },
+            weight:30
         },
         {
             name: "Alakazam",
@@ -82,6 +88,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 85,
                 speed: 120
             },
+            weight:48
         },
         {
             name: "Gengar",
@@ -94,6 +101,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 75,
                 speed: 110
             },
+            weight:40.5
         },
         {
             name: "Meganium",
@@ -106,6 +114,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 100,
                 speed: 100
             },
+            weight:100.5
         },
         {
             name: "Typhlosion",
@@ -118,6 +127,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 85,
                 speed: 100
             },
+            weight:175.3
         },
         {
             name: "Feraligatr",
@@ -130,6 +140,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 83,
                 speed: 78
             },
+            weight:88.8
         },
         {
             name: "Ampharos",
@@ -142,6 +153,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 90,
                 speed: 55
             },
+            weight:61.5
         },
         {
             name: "Skarmory",
@@ -154,6 +166,7 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense: 70,
                 speed: 70
             },
+            weight:50.5
         },
         {
             name: "Blissey",
@@ -165,8 +178,8 @@ export function GetSpecies(name: string): ISpecies {
                 spAttack: 75,
                 spDefense: 125,
                 speed: 55,
-            }
-            ,
+            },
+            weight:46.8
         },
         {
             name: "Sharpedo",
@@ -178,7 +191,8 @@ export function GetSpecies(name: string): ISpecies {
                 spAttack: 95,
                 spDefense: 40,
                 speed: 95
-            }
+            },
+            weight:88.8
         },
         {
             name:"Starmie",
@@ -190,7 +204,8 @@ export function GetSpecies(name: string): ISpecies {
                 spAttack:100,
                 spDefense:85,
                 speed:115
-            }
+            },
+            weight:80
         },
         {
             name:"Dunsparce",
@@ -202,7 +217,8 @@ export function GetSpecies(name: string): ISpecies {
                 spAttack:65,
                 spDefense:65,
                 speed:45
-            }
+            },
+            weight:14
         },
         {
             name:"Sceptile",
@@ -214,7 +230,21 @@ export function GetSpecies(name: string): ISpecies {
                 spAttack:105,
                 spDefense:85,
                 speed:120
-            }
+            },
+            weight:52.2
+        },
+        {
+            name:"Blaziken",
+            elementalTypes:[ElementType.Fire,ElementType.Fighting],
+            baseStats:{
+                hp:80,
+                attack:120,
+                defense:70,
+                spAttack:110,
+                spDefense:70,
+                speed:80
+            },
+            weight:52
         }
 
     ];
