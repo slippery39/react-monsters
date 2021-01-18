@@ -323,6 +323,21 @@ const Sceptile = function(){
     .Build();
 }
 
+const Blaziken = function(){
+    return PokemonBuilder()
+    .OfSpecies("Blaziken")
+    .WithAbility("Speed Boost")
+    .WithNature(NatureType.Jolly)
+    .WithHeldItem("Leftovers")
+    .WithTechniques([
+        "Swords Dance",
+        "Low Kick",
+        "Protect",
+        "Flare Blitz"
+    ])
+    .Build()
+}
+
 
 
 
@@ -345,7 +360,8 @@ const GetPokemon = function (name: string): Pokemon {
         Sharpedo(),
         Starmie(),
         Dunsparce(),
-        Sceptile()
+        Sceptile(),
+        Blaziken()
     ]
 
 
