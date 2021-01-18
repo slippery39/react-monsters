@@ -203,7 +203,20 @@ export function GetSpecies(name: string): ISpecies {
                 spDefense:65,
                 speed:45
             }
+        },
+        {
+            name:"Sceptile",
+            elementalTypes:[ElementType.Grass],
+            baseStats:{
+                hp:70,
+                attack:85,
+                defense:65,
+                spAttack:105,
+                spDefense:85,
+                speed:120
+            }
         }
+
     ];
 
 

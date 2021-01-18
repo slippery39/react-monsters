@@ -308,6 +308,22 @@ const Dunsparce = function(){
 }
 
 
+const Sceptile = function(){
+    return PokemonBuilder()
+    .OfSpecies("Sceptile")
+    .WithAbility("Overgrow")
+    .WithNature(NatureType.Timid)
+    .WithHeldItem("Life Orb")
+    .WithTechniques([
+        "Substitute",
+        "Giga Drain",
+        "Focus Blast",
+        "Hidden Power Rock"
+    ])
+    .Build();
+}
+
+
 
 
 
@@ -328,7 +344,8 @@ const GetPokemon = function (name: string): Pokemon {
         Blissey(),
         Sharpedo(),
         Starmie(),
-        Dunsparce()
+        Dunsparce(),
+        Sceptile()
     ]
 
 

@@ -27,6 +27,15 @@ export function GetTech(name: string): Technique {
 
     const techs: Array<BaseTechnique> = [
         {
+            name:"Hidden Power (Rock)",
+            description:"An attack that varies in type and intensity depending on the user.",
+            pp:24,
+            power:60,
+            accuracy:100,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Rock,            
+        },
+        {
             name: "Coil",
             description: "The user coils up and concentrates. This raises its Attack and Defense stats as well as its accuracy.",
             pp: 32,
