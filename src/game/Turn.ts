@@ -679,7 +679,7 @@ export class Turn {
 
         if (move.damageEffect) {
             const damageEffect = GetDamageEffect(move.damageEffect.type);
-            move = damageEffect.ModifyTechnique(pokemon, move);
+            move = damageEffect.ModifyTechnique(pokemon, move,defendingPokemon);
         }
 
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);

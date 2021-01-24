@@ -27,6 +27,17 @@ export function GetTech(name: string): Technique {
 
     const techs: Array<BaseTechnique> = [
         {
+            name:"Low Kick",
+            description:"A powerful low kick that makes the target fall over. It inflicts greater damage on heavier targets.",
+            pp:24,
+            power:0,
+            accuracy:100,
+            makesContact:true,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Fighting,
+            damageEffect:{type:DamageEffectTypes.LowKick}  
+        },
+        {
             name:"Hidden Power Rock",
             description:"An attack that varies in type and intensity depending on the user.",
             pp:24,

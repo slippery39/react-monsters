@@ -333,7 +333,7 @@ const Blaziken = function(){
         "Swords Dance",
         "Low Kick",
         "Protect",
-        "Flare Blitz"
+        //"Flare Blitz"
     ])
     .Build()
 }

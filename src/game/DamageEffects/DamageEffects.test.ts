@@ -4,6 +4,44 @@ import { GetTech } from 'game/Techniques/PremadeTechniques';
 import { Technique } from 'game/Techniques/Technique';
 import { GetDamageEffect } from './DamageEffects';
 
+
+
+describe('Low Kick Tests', ()=>{
+
+
+    const weightRanges = [
+        {lower:0.1,upper:9.9,power:20},
+        {lower:10.0,upper:24.9,power:40},
+        {lower:25.0,upper:49.9,power:60},
+        {lower:50.0,upper:99.9,power:80},
+        {lower:100,upper:199.9,power:100},
+        {lower:200.0,upper:99999,power:120}        
+    ]
+
+    
+    weightRanges.forEach((val,index)=>{
+        it(`gets the right power for weight ${val.lower} amd ${val.upper}`,()=>{
+            const lowKickEffect = GetDamageEffect('low-kick');
+
+            const techUser = PokemonBuilder().UseGenericPokemon().Build();
+            const defendingPokemon = PokemonBuilder().UseGenericPokemon().Build();
+
+            const lowKick = GetTech("Low Kick");
+
+            //lower test
+            defendingPokemon.weight = val.lower;
+            const lowRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon).power;
+            expect(lowRangePower).toBe(val.power);
+
+            //upper test
+            defendingPokemon.weight = val.upper;
+            const highRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon).power;
+            expect(highRangePower).toBe(val.power);
+
+        });
+    });
+});
+
 describe('Eruption Tests',()=>{
     //make a pokemon,
     //call a method or something called "TechniqueModification(turn,pokemon,move)"
