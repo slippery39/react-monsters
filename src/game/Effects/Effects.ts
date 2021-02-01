@@ -26,7 +26,8 @@ export enum EffectType{
     SwitchPokemon = 'switch-pokemon',
     PlaceEntryHazard = 'place-entry-hazard',
     Whirlwind = 'whirlwind',
-    ClearHazards = 'clear-hazards'
+    ClearHazards = 'clear-hazards',
+    Recoil = 'recoil'
 }
 
 export interface InflictStatusEffect {
@@ -88,7 +89,19 @@ export interface ClearHazardsEffect{
     type:EffectType.ClearHazards
 }
 
-export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect);
+export interface RecoilDamageEffect{
+    type:EffectType.Recoil,
+    recoilType:RecoilDamageType,
+    amount:number
+}
+
+export enum RecoilDamageType{
+    PercentDamageDealt = 'percent-damage-dealt'
+}
+
+export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
+     | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | 
+    AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect);
 
 
 
@@ -281,6 +294,11 @@ function ClearHazards(turn:Turn,player:Player){
     });
 }
 
+function RecoilEffect(turn:Turn,pokemon:Pokemon,recoilDamage:number){
+    turn.ApplyIndirectDamage(pokemon,recoilDamage);
+    turn.AddMessage(`${pokemon.name} has damaged itself due to recoil`);
+}
+
 interface EffectSource {
     sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
@@ -361,6 +379,19 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
                 throw new Error(`No source pokemon defined for DoEFfect - PlaceEntryHazard`);
             }
             ClearHazards(turn,turn.GetPokemonOwner(source.sourcePokemon))
+            break;
+        }
+        case EffectType.Recoil:{
+            if (source.sourceDamage==undefined){
+                throw new Error("Need a source damage to induce a recoil effect");
+            }
+            if (source.sourcePokemon === undefined){
+                throw new Error(`Need a source pokemon for a recoil effect`);
+            }
+
+            if (effect.recoilType === RecoilDamageType.PercentDamageDealt){
+                RecoilEffect(turn,source.sourcePokemon,source.sourceDamage*(effect.amount/100))
+            }
             break;
         }
         default: {

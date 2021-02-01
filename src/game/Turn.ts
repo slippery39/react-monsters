@@ -2,7 +2,8 @@ import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import {
     DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType,
-    BattleEvent
+    BattleEvent,
+    StatusChangeEvent
 } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
@@ -40,6 +41,10 @@ enum TurnStep {
     PostAction2 = 'post-action-2',
     BeforeEnd = 'before-end',
     End = 'end'
+}
+
+enum Actions{
+    UseMove = 'use-move-action'
 }
 
 interface State {
@@ -193,16 +198,38 @@ export class Turn {
     }
 
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
-    private BeforeAttack(pokemon: Pokemon) {
+    private BeforeAttack(pokemon: Pokemon,techUsed:Technique) {
+       
         if (!pokemon.canAttackThisTurn) {
+            console.warn("cant attack 1");
             return;
         }
         this.GetAllBattleBehaviours(pokemon).forEach(b => {
             if (!pokemon.canAttackThisTurn) {
+                console.warn("cant attack 2");
                 return;
             }
             b.BeforeAttack(this, pokemon);
         });
+
+        console.warn("cant attack 3");
+        //Hacking in the flare blitz move until we  figure out how to structure this better.
+        //I am thinking that cantAttackEffects could be their own volatile statuses, and this way 
+        if (techUsed.name.toLowerCase() === 'flare blitz'){
+            console.warn("used flare blitz! yay");
+            //cure thawed status
+            if (pokemon.status === Status.Frozen){
+                let statusRestoreEffect: StatusChangeEvent = {
+                    type: BattleEventType.StatusChange,
+                    status: Status.None,
+                    targetPokemonId: pokemon.id,
+                    defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
+                }
+                this.AddEvent(statusRestoreEffect);
+                pokemon.status = Status.None;
+                pokemon.canAttackThisTurn = true;
+            }
+        }
     }
 
     private DoAction(action: BattleAction) {
@@ -229,7 +256,7 @@ export class Turn {
 
                 break;
             }
-            case 'use-move-action': {
+            case Actions.UseMove: {
 
                 const player = this.GetPlayer(action.playerId);
                 const pokemon = this.GetPokemon(action.pokemonId);
@@ -443,15 +470,26 @@ export class Turn {
                 case TurnStep.PreAction1: {
                     //don't need to check here because it should be fine.
                     //TODO: need to store some sort of value to see if the pokemon is able to attack or not.
-                    if (actionOrder[0].type !== 'use-move-action') {
+                    if (actionOrder[0].type !== Actions.UseMove) {
                         break;
                     }
-                    this.BeforeAttack(currentPokemon1);
+                    const currentAction = actionOrder[0];
+                    const currentTechnique = this.GetPokemon(currentAction.pokemonId).techniques.find(tech=>tech.id === currentAction.moveId);
+                    if (currentTechnique===undefined){
+                        throw new Error(`Could not find technique`);
+                    }
+                    this.BeforeAttack(currentPokemon1,currentTechnique);
                     break;
                 }
                 case TurnStep.Action1: {
+                    if (actionOrder[0].type === Actions.UseMove){
+                        const currentAction = actionOrder[0];
+                       
 
-                    if (actionOrder[0].type === 'use-move-action' && !currentPokemon1.canAttackThisTurn) {
+            
+                    }
+                    if (actionOrder[0].type === Actions.UseMove && !currentPokemon1.canAttackThisTurn) {
+                 
                         break;
                     }
                     if (pokemonAtStart1 === currentPokemon1.id) {
@@ -460,7 +498,7 @@ export class Turn {
                     break;
                 }
                 case TurnStep.PostAction1: {
-                    if (actionOrder[0].type !== 'use-move-action') {
+                    if (actionOrder[0].type !== Actions.UseMove) {
                         break;
                     }
                     if (pokemonAtStart1 === currentPokemon1.id) {
@@ -469,16 +507,23 @@ export class Turn {
                     break;
                 }
                 case TurnStep.PreAction2: {
-                    if (actionOrder[1].type !== 'use-move-action') {
+                    if (actionOrder[1].type !== Actions.UseMove) {
                         break;
                     }
                     if (pokemonAtStart2 === currentPokemon2.id) {
-                        this.BeforeAttack(currentPokemon2);
+
+                        const currentAction = actionOrder[1];
+                        const currentTechnique = this.GetPokemon(currentAction.pokemonId).techniques.find(tech=>tech.id === currentAction.moveId);
+                        if (currentTechnique===undefined){
+                            throw new Error(`Could not find technique`);
+                        }
+
+                        this.BeforeAttack(currentPokemon2,currentTechnique);
                     }
                     break;
                 }
                 case TurnStep.Action2: {
-                    if (actionOrder[1].type === 'use-move-action' && !currentPokemon2.canAttackThisTurn) {
+                    if (actionOrder[1].type === Actions.UseMove && !currentPokemon2.canAttackThisTurn) {
                         break;
                     }
                     if (pokemonAtStart2 === currentPokemon2.id) {
@@ -487,7 +532,7 @@ export class Turn {
                     break;
                 }
                 case TurnStep.PostAction2: {
-                    if (actionOrder[1].type !== 'use-move-action') {
+                    if (actionOrder[1].type !== Actions.UseMove) {
                         break;
                     }
                     if (pokemonAtStart2 === currentPokemon2.id) {
@@ -638,6 +683,10 @@ export class Turn {
         }
 
         if (move.damageType === 'physical' || move.damageType === 'special') {
+
+            //Before damage effects
+            this.ApplyBeforeDamageEffects(move,pokemon,defendingPokemon);
+
             let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
             if (damage > 0) {
                 this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
@@ -647,6 +696,13 @@ export class Turn {
             this.DoStatusMove(move, defendingPokemon, pokemon);
         }
 
+    }
+
+    private ApplyBeforeDamageEffects(move:Technique,pokemon:Pokemon,defendingPokemon:Pokemon){
+        if (move.beforeDamageEffect===undefined){
+            return;
+        }
+        DoEffect(this,defendingPokemon,move.beforeDamageEffect,{ sourcePokemon: pokemon, sourceTechnique: move});
     }
 
     private DoStatusMove(move: Technique, defendingPokemon: Pokemon, pokemon: Pokemon) {

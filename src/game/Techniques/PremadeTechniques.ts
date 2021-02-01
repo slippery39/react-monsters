@@ -1,6 +1,6 @@
 
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
-import { BattleEffect, TargetType, HealthRestoreType, EffectType } from "game/Effects/Effects";
+import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType } from "game/Effects/Effects";
 import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
@@ -18,6 +18,7 @@ export interface BaseTechnique {
     elementalType: ElementType,
     accuracy?: number,
     priority?: number,
+    beforeDamageEffect?:BattleEffect,
     damageEffect?: DamageEffect,
     makesContact?: boolean,
     effects?: Array<BattleEffect>,
@@ -26,6 +27,33 @@ export interface BaseTechnique {
 export function GetTech(name: string): Technique {
 
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Flare Blitz",
+            description:"The user cloaks itself in fire and charges the target. This also damages the user quite a lot. This attack may leave the target with a burn",
+            pp:24,
+            power:120,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Fire,
+            makesContact:true,
+            beforeDamageEffect:{
+                type:EffectType.StatusRestore,
+                forStatus:Status.Frozen
+            },
+            effects:[
+                {
+                    type:EffectType.Recoil,
+                    recoilType:RecoilDamageType.PercentDamageDealt,
+                    amount:33.33,
+                },
+                {
+                    type:EffectType.InflictStatus,
+                    status:Status.Burned,
+                    chance:10,
+                    target:TargetType.Enemy
+                }
+            ]            
+        },
         {
             name:"Low Kick",
             description:"A powerful low kick that makes the target fall over. It inflicts greater damage on heavier targets.",
@@ -486,7 +514,7 @@ export function GetTech(name: string): Technique {
         },
         {
             name: "Roost",
-            description: 'Heals up to 50% max health, user loses flying type until end of turn',
+            description: 'Heals up to 50% max health, user loses flying type unti end of turn',
             pp: 10,
             damageType: DamageType.Status,
             elementalType: ElementType.Flying,

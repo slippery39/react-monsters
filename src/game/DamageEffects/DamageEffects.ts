@@ -9,7 +9,6 @@ export enum DamageEffectTypes{
     SeismicToss = 'seismic-toss',
     LowKick = 'low-kick',
     None='null'
-
 }
 
 
