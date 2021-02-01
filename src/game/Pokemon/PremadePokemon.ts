@@ -314,6 +314,12 @@ const Sceptile = function(){
     .WithAbility("Overgrow")
     .WithNature(NatureType.Timid)
     .WithHeldItem("Life Orb")
+    .WithEVs({
+        //EVs : 4 hp /252 SpA / 252 Speed
+        hp:4,
+        spAttack:252,
+        speed:252
+    })
     .WithTechniques([
         "Substitute",
         "Giga Drain",
@@ -329,6 +335,12 @@ const Blaziken = function(){
     .WithAbility("Speed Boost")
     .WithNature(NatureType.Jolly)
     .WithHeldItem("Leftovers")
+    .WithEVs({
+        //EVs : 4 hp / 252 attack / 252 speed
+        hp:4,
+        attack:252,
+        speed:252
+    })
     .WithTechniques([
         "Swords Dance",
         "Low Kick",
