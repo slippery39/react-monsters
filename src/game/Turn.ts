@@ -13,7 +13,7 @@ import { Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
-import { BattleEffect, DoEffect, TargetType } from './Effects/Effects';
+import { BattleEffect, DoEffect, EffectType, TargetType } from './Effects/Effects';
 import { SubstituteVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
 import { Item } from './Items/Item';
 import _ from 'lodash';
@@ -201,35 +201,31 @@ export class Turn {
     private BeforeAttack(pokemon: Pokemon,techUsed:Technique) {
        
         if (!pokemon.canAttackThisTurn) {
-            console.warn("cant attack 1");
             return;
         }
         this.GetAllBattleBehaviours(pokemon).forEach(b => {
             if (!pokemon.canAttackThisTurn) {
-                console.warn("cant attack 2");
                 return;
             }
             b.BeforeAttack(this, pokemon);
         });
 
-        console.warn("cant attack 3");
-        //Hacking in the flare blitz move until we  figure out how to structure this better.
-        //I am thinking that cantAttackEffects could be their own volatile statuses, and this way 
-        if (techUsed.name.toLowerCase() === 'flare blitz'){
-            console.warn("used flare blitz! yay");
-            //cure thawed status
-            if (pokemon.status === Status.Frozen){
-                let statusRestoreEffect: StatusChangeEvent = {
-                    type: BattleEventType.StatusChange,
-                    status: Status.None,
-                    targetPokemonId: pokemon.id,
-                    defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
-                }
-                this.AddEvent(statusRestoreEffect);
-                pokemon.status = Status.None;
-                pokemon.canAttackThisTurn = true;
+        /*
+            Our unthaw effect is located here until we figure out a way to do it better.           
+        */
+       if (techUsed.beforeExecuteEffect?.type === EffectType.StatusRestore && techUsed.beforeExecuteEffect.forStatus === Status.Frozen){
+        if (pokemon.status === Status.Frozen){
+            let statusRestoreEffect: StatusChangeEvent = {
+                type: BattleEventType.StatusChange,
+                status: Status.None,
+                targetPokemonId: pokemon.id,
+                defaultMessage: `${pokemon.name}  has thawed out from using ${techUsed.name}`
             }
+            this.AddEvent(statusRestoreEffect);
+            pokemon.status = Status.None;
+            pokemon.canAttackThisTurn = true;
         }
+       }
     }
 
     private DoAction(action: BattleAction) {
@@ -699,10 +695,10 @@ export class Turn {
     }
 
     private ApplyBeforeDamageEffects(move:Technique,pokemon:Pokemon,defendingPokemon:Pokemon){
-        if (move.beforeDamageEffect===undefined){
+        if (move.beforeExecuteEffect===undefined){
             return;
         }
-        DoEffect(this,defendingPokemon,move.beforeDamageEffect,{ sourcePokemon: pokemon, sourceTechnique: move});
+        DoEffect(this,defendingPokemon,move.beforeExecuteEffect,{ sourcePokemon: pokemon, sourceTechnique: move});
     }
 
     private DoStatusMove(move: Technique, defendingPokemon: Pokemon, pokemon: Pokemon) {

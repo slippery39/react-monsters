@@ -245,6 +245,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:80
             },
             weight:52
+        },
+        {
+            name:"Swampert",
+            elementalTypes:[ElementType.Water,ElementType.Ground],
+            baseStats:{
+                hp:100,
+                attack:110,
+                defense:90,
+                spAttack:85,
+                spDefense:90,
+                speed:60
+            },
+            weight:81.9
         }
 
     ];

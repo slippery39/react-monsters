@@ -18,61 +18,82 @@ export interface BaseTechnique {
     elementalType: ElementType,
     accuracy?: number,
     priority?: number,
-    beforeDamageEffect?:BattleEffect,
+    beforeExecuteEffect?: BattleEffect,
     damageEffect?: DamageEffect,
     makesContact?: boolean,
     effects?: Array<BattleEffect>,
 }
 
-export function GetTech(name: string): Technique {
 
+export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
-            name:"Flare Blitz",
-            description:"The user cloaks itself in fire and charges the target. This also damages the user quite a lot. This attack may leave the target with a burn",
-            pp:24,
-            power:120,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Fire,
-            makesContact:true,
-            beforeDamageEffect:{
-                type:EffectType.StatusRestore,
-                forStatus:Status.Frozen
+            name: "Scald",
+            description: "The user shoots boiling hot water at its target. This may also leave the target with a burn.",
+            pp: 24,
+            power: 80,
+            accuracy: 100,
+            elementalType: ElementType.Water,
+            damageType: DamageType.Special,
+            beforeExecuteEffect: {
+                type: EffectType.StatusRestore,
+                forStatus: Status.Frozen
             },
-            effects:[
+            effects: [
                 {
-                    type:EffectType.Recoil,
-                    recoilType:RecoilDamageType.PercentDamageDealt,
-                    amount:33.33,
+                    type: EffectType.InflictStatus,
+                    status: Status.Burned,
+                    chance: 30,
+                    target: TargetType.Enemy
+                }
+            ]
+        },
+        {
+            name: "Flare Blitz",
+            description: "The user cloaks itself in fire and charges the target. This also damages the user quite a lot. This attack may leave the target with a burn",
+            pp: 24,
+            power: 120,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Fire,
+            makesContact: true,
+            beforeExecuteEffect: {
+                type: EffectType.StatusRestore,
+                forStatus: Status.Frozen
+            },
+            effects: [
+                {
+                    type: EffectType.Recoil,
+                    recoilType: RecoilDamageType.PercentDamageDealt,
+                    amount: 33.33,
                 },
                 {
-                    type:EffectType.InflictStatus,
-                    status:Status.Burned,
-                    chance:10,
-                    target:TargetType.Enemy
+                    type: EffectType.InflictStatus,
+                    status: Status.Burned,
+                    chance: 10,
+                    target: TargetType.Enemy
                 }
-            ]            
+            ]
         },
         {
-            name:"Low Kick",
-            description:"A powerful low kick that makes the target fall over. It inflicts greater damage on heavier targets.",
-            pp:24,
-            power:0,
-            accuracy:100,
-            makesContact:true,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Fighting,
-            damageEffect:{type:DamageEffectTypes.LowKick}  
+            name: "Low Kick",
+            description: "A powerful low kick that makes the target fall over. It inflicts greater damage on heavier targets.",
+            pp: 24,
+            power: 0,
+            accuracy: 100,
+            makesContact: true,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Fighting,
+            damageEffect: { type: DamageEffectTypes.LowKick }
         },
         {
-            name:"Hidden Power Rock",
-            description:"An attack that varies in type and intensity depending on the user.",
-            pp:24,
-            power:60,
-            accuracy:100,
-            damageType:DamageType.Special,
-            elementalType:ElementType.Rock,            
+            name: "Hidden Power Rock",
+            description: "An attack that varies in type and intensity depending on the user.",
+            pp: 24,
+            power: 60,
+            accuracy: 100,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Rock,
         },
         {
             name: "Coil",

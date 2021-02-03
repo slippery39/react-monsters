@@ -350,6 +350,26 @@ const Blaziken = function(){
     .Build()
 }
 
+const Swampert = function(){
+    return PokemonBuilder()
+    .OfSpecies("Swampert")
+    .WithAbility("Torrent")
+    .WithNature(NatureType.Relaxed)
+    .WithTechniques([
+        "Stealth Rock",
+        "Scald",
+        "Earthquake",
+        "Toxic"
+    ])
+    .WithHeldItem("Leftovers")
+    .WithEVs({
+        hp:240,
+        attack:16,
+        defense:252
+    })
+    .Build();
+}
+
 
 
 
@@ -373,7 +393,8 @@ const GetPokemon = function (name: string): Pokemon {
         Starmie(),
         Dunsparce(),
         Sceptile(),
-        Blaziken()
+        Blaziken(),
+        Swampert(),
     ]
 
 
