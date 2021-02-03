@@ -370,6 +370,25 @@ const Swampert = function(){
     .Build();
 }
 
+const Flygon = function(){
+    return PokemonBuilder()
+    .OfSpecies("Flygon")
+    .WithAbility("Levitate")
+    .WithHeldItem("Life Orb")
+    .WithTechniques([
+        "Earthquake",
+        "Dragon Claw",
+        "Roost",
+        "Fire Punch"
+    ])
+    .WithEVs({
+        attack:252,
+        spDefense:4,
+        speed:252
+    })
+    .Build();
+}
+
 
 
 
@@ -395,6 +414,7 @@ const GetPokemon = function (name: string): Pokemon {
         Sceptile(),
         Blaziken(),
         Swampert(),
+        Flygon(),
     ]
 
 

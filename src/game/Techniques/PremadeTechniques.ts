@@ -1,6 +1,6 @@
 
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
-import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType } from "game/Effects/Effects";
+import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType, InflictStatus } from "game/Effects/Effects";
 import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
@@ -27,6 +27,34 @@ export interface BaseTechnique {
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Fire Punch",
+            description:"The target is punched with a fiery fist. This may also leave the target with a burn.",
+            pp:24,
+            power:75,
+            accuracy:100,
+            elementalType:ElementType.Fire,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            effects:[
+                {
+                    type:EffectType.InflictStatus,
+                    status:Status.Burned,
+                    target:TargetType.Enemy,
+                    chance:10
+                }
+            ]
+        },
+        {
+            name:"Dragon Claw",
+            description:"The user slashes the target with huge sharp claws.",
+            pp:24,
+            power:80,
+            accuracy:100,
+            elementalType:ElementType.Dragon,
+            damageType:DamageType.Physical,
+            makesContact:true
+        },
         {
             name: "Scald",
             description: "The user shoots boiling hot water at its target. This may also leave the target with a burn.",

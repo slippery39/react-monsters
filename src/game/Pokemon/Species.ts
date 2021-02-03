@@ -258,7 +258,21 @@ export function GetSpecies(name: string): ISpecies {
                 speed:60
             },
             weight:81.9
+        },
+        {
+            name:"Flygon",
+            elementalTypes:[ElementType.Ground,ElementType.Dragon],
+            baseStats:{
+               hp:80,
+               attack:100,
+               defense:90,
+               spAttack:85,
+               spDefense:90,
+               speed:100
+            },
+            weight:82.0
         }
+
 
     ];
 
