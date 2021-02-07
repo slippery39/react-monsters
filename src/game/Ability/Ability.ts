@@ -1,9 +1,10 @@
+import PokemonInfo from "components/PokemonInfoScreen/PokemonInfoScreen";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetPercentageHealth, GetPokemonOwner} from "game/HelperFunctions";
-import { ApplyStatBoost, Pokemon } from "game/Pokemon/Pokemon";
+import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
@@ -136,8 +137,6 @@ class StaticAbility extends AbstractAbility{
     description = "The Pokémon is charged with static electricity, so contact with it may cause paralysis."
 
     OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
-        console.warn('on damage taken from technique is firing');
-        console.warn(move);
         if (move.makesContact){
             const shouldParalyze = turn.Roll(30);
             if (shouldParalyze){
@@ -207,6 +206,36 @@ class SereneGraceAbility extends AbstractAbility{
     }
 }
 
+class MarvelScaleAbility extends AbstractAbility{
+    name="Marvel Scale"
+    description="The Pokémon's marvelous scales boost the Defense stat if it has a status condition."
+
+    //we will need to modify the damage taken somehow?
+    //May need to call 
+
+    //This gets recalculated on every "step"
+    Update(turn:Turn,pokemon:Pokemon){
+        const multiplierTag = "MarvelScale";
+
+        if (pokemon.status!==Status.None){
+            if (pokemon.statMultipliers.find(multi=>multi.tag ===multiplierTag) === undefined){
+                const multiplier : StatMultiplier ={
+                    stat:Stat.Defense,
+                    multiplier:1.5,
+                    tag:"MarvelScale"
+                }
+
+                pokemon.statMultipliers.push(multiplier);
+            }
+        }
+        else{
+            _.remove(pokemon.statMultipliers,function(mod){
+                return mod.tag==="MarvelScale"
+            })
+        }
+    }
+}
+
 class NoAbility extends AbstractAbility{
 
 }
@@ -247,6 +276,9 @@ function GetAbility(name:String){
         }
         case 'serene grace':{
             return new SereneGraceAbility();
+        }
+        case 'marvel scale':{
+            return new MarvelScaleAbility();
         }
         default:{
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

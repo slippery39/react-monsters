@@ -10,6 +10,11 @@ import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
 import { GetNature, NatureType } from "game/Natures/Natures";
 
 
+export interface StatMultiplier{
+    stat:Stat,
+    multiplier:number,
+    tag:string //a way to temporarily identify the source of the multiplier so that we can remove it if necessary.
+}
 
 
 export interface Pokemon {
@@ -22,6 +27,7 @@ export interface Pokemon {
     elementalTypes: Array<ElementType>,
     canAttackThisTurn: boolean
     statBoosts: Record<Stat, number>,
+    statMultipliers: Array<StatMultiplier>
     volatileStatuses: Array<VolatileStatus>,
     heldItem: HeldItem,
     baseStats: Stats,
@@ -83,6 +89,7 @@ class _PokemonBuilder {
                 [Stat.Accuracy]: 0
                 
             },
+            statMultipliers:[],
             baseStats: CreateEmptyStats(),
             ivs: {
                 hp: 31,
@@ -340,7 +347,13 @@ export function CalculateStatWithBoost(pokemon: Pokemon, stat: Stat) {
         boostAmount = 1 / boostAmount;
     }
 
-    return Math.round(statAmount * boostAmount);
+     //apply multipliers as well
+    const multiplierAmount = pokemon.statMultipliers.filter((el)=>el.stat===stat).map( (el)=>el.multiplier).reduce((prev,curr)=>prev*curr,1);
+    var  calculatedStat = statAmount * multiplierAmount;
+   
+
+
+    return Math.round(calculatedStat * boostAmount);
 }
 
 

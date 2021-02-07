@@ -271,6 +271,19 @@ export function GetSpecies(name: string): ISpecies {
                speed:100
             },
             weight:82.0
+        },
+        {
+            name:"Milotic",
+            elementalTypes:[ElementType.Water],
+            baseStats:{
+                hp:95,
+                attack:60,
+                defense:79,
+                spAttack:100,
+                spDefense:125,
+                speed:81
+            },
+            weight:162.0
         }
 
 

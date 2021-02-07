@@ -375,6 +375,7 @@ const Flygon = function(){
     .OfSpecies("Flygon")
     .WithAbility("Levitate")
     .WithHeldItem("Life Orb")
+    .WithNature(NatureType.Jolly)
     .WithTechniques([
         "Earthquake",
         "Dragon Claw",
@@ -385,6 +386,26 @@ const Flygon = function(){
         attack:252,
         spDefense:4,
         speed:252
+    })
+    .Build();
+}
+
+const Milotic = function(){
+    return PokemonBuilder()
+    .OfSpecies("Milotic")
+    .WithAbility("Marvel Scale")
+    .WithHeldItem("Leftovers")
+    .WithNature(NatureType.Bold)
+    .WithTechniques([
+        "Scald",
+        //"Recover",
+        "Ice Beam",
+        //"Haze"
+    ])
+    .WithEVs({
+        hp:248,
+        defense:252,
+        speed:8
     })
     .Build();
 }
@@ -415,6 +436,7 @@ const GetPokemon = function (name: string): Pokemon {
         Blaziken(),
         Swampert(),
         Flygon(),
+        Milotic(),
     ]
 
 
