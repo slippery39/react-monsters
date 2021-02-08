@@ -1,12 +1,13 @@
 import { ElementType } from "./ElementType";
 import { Player } from "./Player/PlayerBuilder";
 import { Pokemon } from "./Pokemon/Pokemon";
+import { Stat } from "./Stat";
 
 export function GetActivePokemon(player: Player) {
     const pokemon = player.pokemon.find(p => p.id === player.currentPokemonId);
 
     if (pokemon === undefined) {
-        throw new Error(`nvalid pokemon id ${player.currentPokemonId}`);
+        throw new Error(`invalid pokemon id ${player.currentPokemonId}`);
     }
 
     return pokemon;
@@ -14,6 +15,17 @@ export function GetActivePokemon(player: Player) {
 
 export function GetPercentageHealth(pokemon: Pokemon) {
     return (pokemon.currentStats.hp / pokemon.originalStats.hp) * 100
+}
+
+
+export function ResetStatBoosts(pokemon:Pokemon){
+    pokemon.statBoosts[Stat.Attack] = 0;
+    pokemon.statBoosts[Stat.Defense] = 0;
+    pokemon.statBoosts[Stat.Accuracy] = 0;
+    pokemon.statBoosts[Stat.SpecialAttack] = 0;
+    pokemon.statBoosts[Stat.SpecialDefense] = 0;
+    pokemon.statBoosts[Stat.Speed] = 0;
+    pokemon.statBoosts[Stat.Accuracy] = 0;
 }
 
 

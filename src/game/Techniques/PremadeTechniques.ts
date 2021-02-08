@@ -28,6 +28,35 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Haze",
+            description:"The user creates a haze that eliminates every stat change among all the Pokémon engaged in battle.",
+            pp:48,
+            power:0,
+            elementalType:ElementType.Ice,
+            damageType:DamageType.Status,
+            effects:[
+                {
+                    type:EffectType.RemoveStatBoosts
+                }
+            ]
+        },
+        {
+            name:"Recover",
+            description:"A self-healing move. The user restores its own HP by up to half of its max HP.",
+            pp:16,
+            power:0,
+            elementalType:ElementType.Normal,
+            damageType:DamageType.Status,
+            effects:[
+                {
+                    type:EffectType.HealthRestore,
+                    target:TargetType.Self,
+                    restoreType:HealthRestoreType.PercentMaxHealth,
+                    amount:50
+                }
+            ]
+        },
+        {
             name:"Fire Punch",
             description:"The target is punched with a fiery fist. This may also leave the target with a burn.",
             pp:24,

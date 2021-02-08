@@ -1,6 +1,7 @@
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
 import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
+import { GetActivePokemon, ResetStatBoosts } from "game/HelperFunctions";
 import { Item } from "game/Items/Item";
 import { Player } from "game/Player/PlayerBuilder";
 import { ApplyStatBoost, Pokemon} from "game/Pokemon/Pokemon";
@@ -27,7 +28,8 @@ export enum EffectType{
     PlaceEntryHazard = 'place-entry-hazard',
     Whirlwind = 'whirlwind',
     ClearHazards = 'clear-hazards',
-    Recoil = 'recoil'
+    Recoil = 'recoil',
+    RemoveStatBoosts='remove-stat-boosts'
 }
 
 export interface InflictStatusEffect {
@@ -99,9 +101,15 @@ export enum RecoilDamageType{
     PercentDamageDealt = 'percent-damage-dealt'
 }
 
+export interface RemoveStatBoostEffect{
+    type:EffectType.RemoveStatBoosts
+}
+
+
+
 export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
      | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | 
-    AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect);
+    AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect);
 
 
 
@@ -299,7 +307,22 @@ function RecoilEffect(turn:Turn,pokemon:Pokemon,recoilDamage:number){
     turn.AddMessage(`${pokemon.name} has damaged itself due to recoil`);
 }
 
-interface EffectSource {
+function RemoveStatBoosts(turn:Turn){
+    const player1 = turn.GetPlayers()[0];
+    const player2 = turn.GetPlayers()[1];
+
+    const activePokemon1 = GetActivePokemon(player1);
+    const activePokemon2 = GetActivePokemon(player2);
+
+    ResetStatBoosts(activePokemon1);
+    ResetStatBoosts(activePokemon2);
+
+    turn.AddMessage(`All stat boosts have been reset!`);
+
+}
+
+
+export interface EffectSource {
     sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
     sourceDamage?: number,
@@ -392,6 +415,10 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
             if (effect.recoilType === RecoilDamageType.PercentDamageDealt){
                 RecoilEffect(turn,source.sourcePokemon,source.sourceDamage*(effect.amount/100))
             }
+            break;
+        }
+        case EffectType.RemoveStatBoosts:{
+            RemoveStatBoosts(turn);
             break;
         }
         default: {

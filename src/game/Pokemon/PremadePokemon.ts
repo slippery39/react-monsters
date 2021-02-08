@@ -398,9 +398,9 @@ const Milotic = function(){
     .WithNature(NatureType.Bold)
     .WithTechniques([
         "Scald",
-        //"Recover",
+        "Recover",
         "Ice Beam",
-        //"Haze"
+        "Haze"
     ])
     .WithEVs({
         hp:248,
