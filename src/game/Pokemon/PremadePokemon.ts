@@ -410,6 +410,7 @@ const Milotic = function(){
     .Build();
 }
 
+/*
 const Salamence = function(){
     return PokemonBuilder()
     .OfSpecies("Salamence")
@@ -429,6 +430,7 @@ const Salamence = function(){
     })
     .Build();
 }
+*/
 
 
 

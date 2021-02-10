@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './ItemMenu.css'
-import ItemMenuTabs, { ItemTabName } from './ItemMenuTabs/ItemMenuTabs';
 import ItemContainer from "./ItemContainer/ItemContainer"
 import { Item } from 'game/Items/Item';
 
@@ -12,27 +11,6 @@ interface Props {
 }
 
 const ItemMenu: React.FunctionComponent<Props> = (props) => {
-
-    const [menuState, setMenuState] = useState(ItemTabName.HPandPP);
-
-    /*
-    const items = props.items.map((el, index) => {
-        return (
-            <tr onClick={(evt) => props.onItemClick(el)} key={el.id} className='item-row'>
-                <td className='item-name'>
-                    {el.name}
-                </td>
-                <td className='item-description'>
-                    {el.description}
-                </td>
-                <td className='item-quantity'>
-                    {el.quantity}
-                </td>
-            </tr>
-        )
-    });
-    */
-
 
     const items = props.items.map((el, index) =>
         <ItemContainer onClick={(item)=>props.onItemClick(item)}  key={el.id} item={el} />

@@ -1,12 +1,12 @@
 
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
-import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType, InflictStatus } from "game/Effects/Effects";
+import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType } from "game/Effects/Effects";
 import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { ElementType } from "../ElementType";
-import { DamageType, Technique } from "./Technique";
+import { DamageType } from "./Technique";
 
 
 export interface BaseTechnique {
@@ -28,61 +28,61 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
-            name:"Haze",
-            description:"The user creates a haze that eliminates every stat change among all the Pokémon engaged in battle.",
-            pp:48,
-            power:0,
-            elementalType:ElementType.Ice,
-            damageType:DamageType.Status,
-            effects:[
+            name: "Haze",
+            description: "The user creates a haze that eliminates every stat change among all the Pokémon engaged in battle.",
+            pp: 48,
+            power: 0,
+            elementalType: ElementType.Ice,
+            damageType: DamageType.Status,
+            effects: [
                 {
-                    type:EffectType.RemoveStatBoosts
+                    type: EffectType.RemoveStatBoosts
                 }
             ]
         },
         {
-            name:"Recover",
-            description:"A self-healing move. The user restores its own HP by up to half of its max HP.",
-            pp:16,
-            power:0,
-            elementalType:ElementType.Normal,
-            damageType:DamageType.Status,
-            effects:[
+            name: "Recover",
+            description: "A self-healing move. The user restores its own HP by up to half of its max HP.",
+            pp: 16,
+            power: 0,
+            elementalType: ElementType.Normal,
+            damageType: DamageType.Status,
+            effects: [
                 {
-                    type:EffectType.HealthRestore,
-                    target:TargetType.Self,
-                    restoreType:HealthRestoreType.PercentMaxHealth,
-                    amount:50
+                    type: EffectType.HealthRestore,
+                    target: TargetType.Self,
+                    restoreType: HealthRestoreType.PercentMaxHealth,
+                    amount: 50
                 }
             ]
         },
         {
-            name:"Fire Punch",
-            description:"The target is punched with a fiery fist. This may also leave the target with a burn.",
-            pp:24,
-            power:75,
-            accuracy:100,
-            elementalType:ElementType.Fire,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            effects:[
+            name: "Fire Punch",
+            description: "The target is punched with a fiery fist. This may also leave the target with a burn.",
+            pp: 24,
+            power: 75,
+            accuracy: 100,
+            elementalType: ElementType.Fire,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            effects: [
                 {
-                    type:EffectType.InflictStatus,
-                    status:Status.Burned,
-                    target:TargetType.Enemy,
-                    chance:10
+                    type: EffectType.InflictStatus,
+                    status: Status.Burned,
+                    target: TargetType.Enemy,
+                    chance: 10
                 }
             ]
         },
         {
-            name:"Dragon Claw",
-            description:"The user slashes the target with huge sharp claws.",
-            pp:24,
-            power:80,
-            accuracy:100,
-            elementalType:ElementType.Dragon,
-            damageType:DamageType.Physical,
-            makesContact:true
+            name: "Dragon Claw",
+            description: "The user slashes the target with huge sharp claws.",
+            pp: 24,
+            power: 80,
+            accuracy: 100,
+            elementalType: ElementType.Dragon,
+            damageType: DamageType.Physical,
+            makesContact: true
         },
         {
             name: "Scald",

@@ -7,7 +7,6 @@ import {
 } from "./BattleEvents";
 import { SwitchPokemonAction, BattleAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
-import { TypedEvent } from './TypedEvent/TypedEvent';
 import { CalculateStatWithBoost, Pokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
@@ -49,25 +48,15 @@ enum Actions {
 
 interface State {
     type: TurnState,
-    playerId?: number, //depreciated
-    faintedPlayerIds?: Array<number>,
     nextState?: TurnState,
     winningPlayerId?: number
 }
 
-
-type OnTurnStartArgs = {
-}
-
-type OnTurnEndArgs = {
-}
-
-type OnSwitchNeededArgs = {
+type TurnEventArgs = {
 }
 
 export class Turn {
     id: Number;
-    private initialGameState: GameState;
     currentGameState: GameState;
 
     eventLog: Array<BattleEvent> = [];
@@ -75,9 +64,6 @@ export class Turn {
     initialActions: Array<BattleAction> = [];
     //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
     switchPromptedPlayers: Array<Player> = [];
-    //TODO - this is not clean, clean this up, maybe have some sort of Map that maps player to activePokemonId.
-    private _activePokemonIdAtStart1 = -1;
-    private _activePokemonIdAtStart2 = -1;
     //Cached move order
     private _moveOrder: Array<BattleAction> = [];
 
@@ -88,29 +74,14 @@ export class Turn {
     currentBattleStep = TurnStep.PreAction1;
     currentState: State = { type: 'awaiting-initial-actions' }
 
-    //NEW - Events
-    OnTurnEnd: TypedEvent<OnTurnEndArgs> = new TypedEvent<OnTurnEndArgs>();
-    OnTurnStart: TypedEvent<OnTurnStartArgs> = new TypedEvent<OnTurnStartArgs>();
-    OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs> = new TypedEvent<OnSwitchNeededArgs>();
-
     constructor(turnId: Number, initialState: GameState) {
-
         this.id = turnId;
-
         if (initialState.entryHazards === undefined) {
             initialState.entryHazards = [];
         }
-
-        this.initialGameState = _.cloneDeep(initialState);
-        //Reset any flags for if the pokemon can attack this turn or not.
-        GetActivePokemon(this.initialGameState.players[0]).canAttackThisTurn = true;
-        GetActivePokemon(this.initialGameState.players[1]).canAttackThisTurn = true;
-        this.currentGameState = _.cloneDeep(this.initialGameState);
-
-        //this controls some logic in the turn.
-        this._activePokemonIdAtStart1 = this.initialGameState.players[0].currentPokemonId;
-        this._activePokemonIdAtStart2 = this.initialGameState.players[1].currentPokemonId;
-
+        this.currentGameState = _.cloneDeep(initialState);
+        GetActivePokemon(this.currentGameState.players[0]).canAttackThisTurn = true;
+        GetActivePokemon(this.currentGameState.players[1]).canAttackThisTurn = true;
     }
     //NEW: Returning a flattened turn log instead
     GetEventLog(): Array<BattleEvent> {
@@ -397,9 +368,6 @@ export class Turn {
         }
     }
 
-    private AfterAttack(pokemon: Pokemon) {
-        //we could put burn effects here.
-    }
 
     private CalculateTurn() {
 
@@ -451,34 +419,23 @@ export class Turn {
                 throw new Error("Could not find proper battle step state");
             }
 
-            //figure out if player 1 or player 2 is action 1 or action 2
-            let pokemonAtStart1 = undefined;
-            let pokemonAtStart2 = undefined;
-
-            //get the proper starting pokeon based on the action order.
-
-            if (actionOrder[0].playerId === this.GetPlayers()[0].id) {
-                pokemonAtStart1 = this._activePokemonIdAtStart1;
-                pokemonAtStart2 = this._activePokemonIdAtStart2;
-            }
-            else {
-                pokemonAtStart1 = this._activePokemonIdAtStart2;
-                pokemonAtStart2 = this._activePokemonIdAtStart1;
-            }
+            const firstAction = actionOrder[0];
+            const secondAction = actionOrder[1];
 
             //get the propert current pokemon based on the action order
-            const currentPokemon1 = this.GetActivePokemon(actionOrder[0].playerId);
-            const currentPokemon2 = this.GetActivePokemon(actionOrder[1].playerId);
+            const currentPokemon1 = this.GetActivePokemon(firstAction.playerId);
+            const currentPokemon2 = this.GetActivePokemon(secondAction.playerId);
+
+
 
             switch (startStep.current) {
                 case TurnStep.PreAction1: {
                     //don't need to check here because it should be fine.
                     //TODO: need to store some sort of value to see if the pokemon is able to attack or not.
-                    if (actionOrder[0].type !== Actions.UseMove) {
+                    if (firstAction.type !== Actions.UseMove) {
                         break;
                     }
-                    const currentAction = actionOrder[0];
-                    const currentTechnique = this.GetPokemon(currentAction.pokemonId).techniques.find(tech => tech.id === currentAction.moveId);
+                    const currentTechnique = this.GetPokemon(firstAction.pokemonId).techniques.find(tech => tech.id === firstAction.moveId);
                     if (currentTechnique === undefined) {
                         throw new Error(`Could not find technique`);
                     }
@@ -486,61 +443,57 @@ export class Turn {
                     break;
                 }
                 case TurnStep.Action1: {
-                    if (actionOrder[0].type === Actions.UseMove) {
-                        const currentAction = actionOrder[0];
-
-
-
-                    }
-                    if (actionOrder[0].type === Actions.UseMove && !currentPokemon1.canAttackThisTurn) {
-
+                    if (firstAction.type === Actions.UseMove && !currentPokemon1.canAttackThisTurn) {
                         break;
                     }
-                    if (pokemonAtStart1 === currentPokemon1.id) {
-                        this.DoAction(actionOrder[0]);
+                    if (firstAction.type === Actions.UseMove && currentPokemon1.id !== firstAction.pokemonId) {
+                        break;
                     }
+                    this.DoAction(firstAction);
                     break;
                 }
                 case TurnStep.PostAction1: {
-                    if (actionOrder[0].type !== Actions.UseMove) {
+                    //Currently nothing happens post action.... More or less a placeholder.
+                    if (firstAction.type !== Actions.UseMove) {
                         break;
                     }
-                    if (pokemonAtStart1 === currentPokemon1.id) {
-                        this.AfterAttack(currentPokemon1)
+                    if (firstAction.type === Actions.UseMove && currentPokemon1.id !== firstAction.pokemonId) {
+                        break;
                     }
                     break;
                 }
                 case TurnStep.PreAction2: {
-                    if (actionOrder[1].type !== Actions.UseMove) {
+                    if (secondAction.type !== Actions.UseMove) {
                         break;
                     }
-                    if (pokemonAtStart2 === currentPokemon2.id) {
-
-                        const currentAction = actionOrder[1];
-                        const currentTechnique = this.GetPokemon(currentAction.pokemonId).techniques.find(tech => tech.id === currentAction.moveId);
-                        if (currentTechnique === undefined) {
-                            throw new Error(`Could not find technique`);
-                        }
-
-                        this.BeforeAttack(currentPokemon2, currentTechnique);
+                    if (secondAction.pokemonId !== currentPokemon2.id) {
+                        break;
                     }
+                    const currentTechnique = this.GetPokemon(secondAction.pokemonId).techniques.find(tech => tech.id === secondAction.moveId);
+                    if (currentTechnique === undefined) {
+                        throw new Error(`Could not find technique`);
+                    }
+
+                    this.BeforeAttack(currentPokemon2, currentTechnique);
+
                     break;
                 }
                 case TurnStep.Action2: {
-                    if (actionOrder[1].type === Actions.UseMove && !currentPokemon2.canAttackThisTurn) {
+                    if (secondAction.type === Actions.UseMove && !currentPokemon2.canAttackThisTurn) {
                         break;
                     }
-                    if (pokemonAtStart2 === currentPokemon2.id) {
-                        this.DoAction(actionOrder[1]);
+                    if (secondAction.type === 'use-move-action' && secondAction.pokemonId !== currentPokemon2.id) {
+                        break;
                     }
+
+                    this.DoAction(actionOrder[1]);
+
                     break;
                 }
                 case TurnStep.PostAction2: {
+                    //placeholder - we currently don't have any things to do post action.
                     if (actionOrder[1].type !== Actions.UseMove) {
                         break;
-                    }
-                    if (pokemonAtStart2 === currentPokemon2.id) {
-                        this.AfterAttack(currentPokemon2)
                     }
                     break;
                 }
@@ -561,20 +514,19 @@ export class Turn {
             //go to the next state
             if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
-                
+
             }
         }
-
         //loop has finished lets throw some events based on what has happened.
         //throw events if necessary
 
         if (this.currentState.type === 'awaiting-switch-action') {
             console.warn('emitting on switch needed event');
-            this.OnSwitchNeeded.emit({});
+            //this.OnSwitchNeeded.emit({});
         }
         else if (this.currentState.type === 'turn-finished') {
             console.warn('emitting turn finshed event');
-            this.OnTurnEnd.emit({});
+            //this.OnTurnEnd.emit({});
         }
     }
 
@@ -620,9 +572,9 @@ export class Turn {
             console.warn(`entry hazard applying for pokemon ${pokemonIn.id}`);
             hazard.OnPokemonEntry(this, this.GetPokemon(pokemonIn.id));
         });
-        this.GetAllBattleBehaviours(entryPokemon).forEach(b=>{
-            b.OnPokemonEntry(this,entryPokemon);
-        });        
+        this.GetAllBattleBehaviours(entryPokemon).forEach(b => {
+            b.OnPokemonEntry(this, entryPokemon);
+        });
     }
 
     UseItem(player: Player, item: Item) {

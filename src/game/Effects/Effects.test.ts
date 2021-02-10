@@ -1,9 +1,7 @@
 import 'core-js'
-import { GetActivePokemon } from 'game/HelperFunctions';
 import { Player, PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { GameState, Turn } from 'game/Turn';
 import { DoEffect, EffectSource, EffectType } from './Effects';
-import { ApplyEntryHazard, EntryHazardType } from './EntryHazard';
 
 
 //TEMPORARY FUNCTION

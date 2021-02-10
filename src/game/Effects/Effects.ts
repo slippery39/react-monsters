@@ -4,7 +4,7 @@ import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, ResetStatBoosts } from "game/HelperFunctions";
 import { Item } from "game/Items/Item";
 import { Player } from "game/Player/PlayerBuilder";
-import { ApplyStatBoost, Pokemon} from "game/Pokemon/Pokemon";
+import { ApplyStatBoost, Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
@@ -16,7 +16,7 @@ export enum TargetType {
     Enemy = 'enemy'
 }
 
-export enum EffectType{
+export enum EffectType {
     InflictStatus = 'inflict-status',
     StatBoost = 'stat-boost',
     InflictVolatileStatus = 'inflict-volatile-status',
@@ -29,7 +29,7 @@ export enum EffectType{
     Whirlwind = 'whirlwind',
     ClearHazards = 'clear-hazards',
     Recoil = 'recoil',
-    RemoveStatBoosts='remove-stat-boosts'
+    RemoveStatBoosts = 'remove-stat-boosts'
 }
 
 export interface InflictStatusEffect {
@@ -74,41 +74,41 @@ export interface AromatherapyEffect {
     type: EffectType.Aromatherapy
 }
 
-export interface SwitchPokemonEffect{
+export interface SwitchPokemonEffect {
     type: EffectType.SwitchPokemon
 }
 
-export interface PlaceEntryHazard{
-    type:EffectType.PlaceEntryHazard
-    hazard:EntryHazardType
+export interface PlaceEntryHazard {
+    type: EffectType.PlaceEntryHazard
+    hazard: EntryHazardType
 }
 
-export interface WhirlwindEffect{
-    type:EffectType.Whirlwind
+export interface WhirlwindEffect {
+    type: EffectType.Whirlwind
 }
 
-export interface ClearHazardsEffect{
-    type:EffectType.ClearHazards
+export interface ClearHazardsEffect {
+    type: EffectType.ClearHazards
 }
 
-export interface RecoilDamageEffect{
-    type:EffectType.Recoil,
-    recoilType:RecoilDamageType,
-    amount:number
+export interface RecoilDamageEffect {
+    type: EffectType.Recoil,
+    recoilType: RecoilDamageType,
+    amount: number
 }
 
-export enum RecoilDamageType{
+export enum RecoilDamageType {
     PercentDamageDealt = 'percent-damage-dealt'
 }
 
-export interface RemoveStatBoostEffect{
-    type:EffectType.RemoveStatBoosts
+export interface RemoveStatBoostEffect {
+    type: EffectType.RemoveStatBoosts
 }
 
 
 
 export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
-     | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect | 
+    | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect |
     AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect);
 
 
@@ -169,11 +169,11 @@ function DoStatBoost(turn: Turn, pokemon: Pokemon, stat: Stat, amount: number) {
             statString = "speed";
             break;
         }
-        case Stat.Accuracy:{
+        case Stat.Accuracy: {
             statString = "accuracy"
             break;
         }
-        default:{
+        default: {
             throw new Error(`Could not find string to use for stat : ${stat} in call to DoStatBoost()`)
         }
     }
@@ -267,47 +267,47 @@ function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: Pokemon) {
     });
 }
 
-function SwitchPokemonEffect(turn:Turn,sourcePokemon:Pokemon){
+function SwitchPokemonEffect(turn: Turn, sourcePokemon: Pokemon) {
     turn.PromptForSwitch(sourcePokemon);
 }
 
-function PlaceEntryHazardEffect(turn:Turn,type:EntryHazardType,player:Player){
+function PlaceEntryHazardEffect(turn: Turn, type: EntryHazardType, player: Player) {
     console.warn("Entry Hazard has been placed");
-    ApplyEntryHazard(turn,player,type);    
+    ApplyEntryHazard(turn, player, type);
 }
 
-function WhirlwindEffect(turn:Turn,player:Player){
+function WhirlwindEffect(turn: Turn, player: Player) {
     //Choose a random pokemon other than the current one
     //Switch that pokemon in
     console.warn("Whirlwind Effect");
-    const otherValidPokemon = player.pokemon.filter(poke=>poke.currentStats.hp>0 && poke.id!== player.currentPokemonId);
-    if (otherValidPokemon.length <1){
+    const otherValidPokemon = player.pokemon.filter(poke => poke.currentStats.hp > 0 && poke.id !== player.currentPokemonId);
+    if (otherValidPokemon.length < 1) {
         turn.AddMessage("But it failed!");
         return;
-    }    
+    }
     const randomPokemon = shuffle(otherValidPokemon)[0];
-    turn.SwitchPokemon(player,randomPokemon);   
+    turn.SwitchPokemon(player, randomPokemon);
 }
 
 
-function ClearHazards(turn:Turn,player:Player){
-    const hasHazards = (turn.currentGameState.entryHazards!.filter(hazard=>{
-        return hazard.player===player;
+function ClearHazards(turn: Turn, player: Player) {
+    const hasHazards = (turn.currentGameState.entryHazards!.filter(hazard => {
+        return hazard.player === player;
     }).length > 0)
-    if (hasHazards){
+    if (hasHazards) {
         turn.AddMessage(`All hazards on ${player.name}'s side have been removed!`);
     }
-    turn.currentGameState.entryHazards = turn.currentGameState.entryHazards?.filter(hazard=>{
-        return hazard.player!==player;
+    turn.currentGameState.entryHazards = turn.currentGameState.entryHazards?.filter(hazard => {
+        return hazard.player !== player;
     });
 }
 
-function RecoilEffect(turn:Turn,pokemon:Pokemon,recoilDamage:number){
-    turn.ApplyIndirectDamage(pokemon,recoilDamage);
+function RecoilEffect(turn: Turn, pokemon: Pokemon, recoilDamage: number) {
+    turn.ApplyIndirectDamage(pokemon, recoilDamage);
     turn.AddMessage(`${pokemon.name} has damaged itself due to recoil`);
 }
 
-function RemoveStatBoosts(turn:Turn){
+function RemoveStatBoosts(turn: Turn) {
     const player1 = turn.GetPlayers()[0];
     const player2 = turn.GetPlayers()[1];
 
@@ -371,53 +371,53 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
             DrainEffect(turn, pokemon, effect, source.sourceDamage);
             break;
         }
-        case EffectType.Aromatherapy:{
-            if (source.sourcePokemon === undefined){
+        case EffectType.Aromatherapy: {
+            if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - aromatherapy");
             }
-            ApplyAromatherapyEffect(turn,source.sourcePokemon);
+            ApplyAromatherapyEffect(turn, source.sourcePokemon);
             break;
         }
-        case EffectType.SwitchPokemon:{
-            if (source.sourcePokemon === undefined){
+        case EffectType.SwitchPokemon: {
+            if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - aromatherapy");
             }
-            SwitchPokemonEffect(turn,source.sourcePokemon);
+            SwitchPokemonEffect(turn, source.sourcePokemon);
             break;
         }
-        case EffectType.PlaceEntryHazard:{
-            if (effect.hazard === undefined){
+        case EffectType.PlaceEntryHazard: {
+            if (effect.hazard === undefined) {
                 throw new Error('No hazard define for DoEffect - place entry hazard');
             }
-            PlaceEntryHazardEffect(turn,effect.hazard,turn.GetPokemonOwner(pokemon));
+            PlaceEntryHazardEffect(turn, effect.hazard, turn.GetPokemonOwner(pokemon));
             break;
         }
-        case EffectType.Whirlwind:{
-            WhirlwindEffect(turn,turn.GetPokemonOwner(pokemon));
+        case EffectType.Whirlwind: {
+            WhirlwindEffect(turn, turn.GetPokemonOwner(pokemon));
             break;
         }
-        case EffectType.ClearHazards:{
+        case EffectType.ClearHazards: {
 
-            if (source.sourcePokemon === undefined){
+            if (source.sourcePokemon === undefined) {
                 throw new Error(`No source pokemon defined for DoEFfect - PlaceEntryHazard`);
             }
-            ClearHazards(turn,turn.GetPokemonOwner(source.sourcePokemon))
+            ClearHazards(turn, turn.GetPokemonOwner(source.sourcePokemon))
             break;
         }
-        case EffectType.Recoil:{
-            if (source.sourceDamage==undefined){
+        case EffectType.Recoil: {
+            if (source.sourceDamage === undefined) {
                 throw new Error("Need a source damage to induce a recoil effect");
             }
-            if (source.sourcePokemon === undefined){
+            if (source.sourcePokemon === undefined) {
                 throw new Error(`Need a source pokemon for a recoil effect`);
             }
 
-            if (effect.recoilType === RecoilDamageType.PercentDamageDealt){
-                RecoilEffect(turn,source.sourcePokemon,source.sourceDamage*(effect.amount/100))
+            if (effect.recoilType === RecoilDamageType.PercentDamageDealt) {
+                RecoilEffect(turn, source.sourcePokemon, source.sourceDamage * (effect.amount / 100))
             }
             break;
         }
-        case EffectType.RemoveStatBoosts:{
+        case EffectType.RemoveStatBoosts: {
             RemoveStatBoosts(turn);
             break;
         }

@@ -33,40 +33,31 @@ class BattleService {
     OnSwitchNeeded = new TypedEvent<number>();
 
 
+
     constructor(player1: Player, player2: Player) {
-
-
-        //Auto Assign all the ids
-        this.AutoAssignPokemonIds([player1,player2]);
-        this.AutoAssignCurrentPokemonIds([player1,player2]);
-        this.AutoAssignItemIds([player1,player2]);
-        this.AutoAssignTechniqueIds([player1,player2]);
-
-        const initialState : GameState = {
-            players:[player1,player2],
-            entryHazards:[]
-        }
-         const turn = new Turn(1,initialState);
-         turn.OnTurnEnd.on((args)=>{
-             console.error('On turn end has fired!');
-         })
-         turn.OnTurnStart.on((args)=>{
-            console.error('On turn start has fired!');
-         });
-         turn.OnSwitchNeeded.on((args)=>{
-             console.error('On switch needed has fired!');
-         })
-         this.turns.push(turn)        
+        this.Initialize([player1,player2])          
     }
 
-    NextTurn(){
+    Initialize(players:Array<Player>){
+         
+        //this would go into the new battle class
+          //Auto Assign all the ids
+          this.AutoAssignPokemonIds(players);
+          this.AutoAssignCurrentPokemonIds(players);
+          this.AutoAssignItemIds(players);
+          this.AutoAssignTechniqueIds(players);
+
+          const initialState : GameState = {
+            players:players,
+            entryHazards:[]
+        }
+
+        const turn = new Turn(1,initialState);
+        this.turns.push(turn)   
     }
 
     GetCurrentTurn() {
         return this.turns[this.turnIndex];
-    }
-    OnActionError(callback: () => {}) {
-        callback();
     }
 
     //For testing purposes only
@@ -177,18 +168,7 @@ class BattleService {
             }
 
             const turn = new Turn(this.turnIndex++,initialState);
-            
-            turn.OnTurnEnd.on((args)=>{
-                console.error('On turn end has fired!');
-            })
-            turn.OnTurnStart.on((args)=>{
-               console.error('On turn start has fired!');
-            });
-            turn.OnSwitchNeeded.on((args)=>{
-                console.error('On switch needed has fired!');
-            })
             this.turns.push(turn);
-
             this.OnNewTurn.emit(1); //AI would respond to this event.
         }
     }
