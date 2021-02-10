@@ -37,7 +37,7 @@ function App() {
       "Rapid Spin",
       "Substitute"
     ])
-      .WithAbility("Speed Boost")
+      .WithAbility("Intimidate")
       .WithHeldItem("Life Orb")
       .Build();
 
@@ -46,6 +46,7 @@ function App() {
       "Stealth Rock"
     ])
       .OfElementalTypes([ElementType.Normal])
+      .WithAbility("Intimidate")
       .WithHeldItem("Life Orb")
       .Build();
 

@@ -3,7 +3,7 @@ import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
-import { GetPercentageHealth, GetPokemonOwner} from "game/HelperFunctions";
+import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner} from "game/HelperFunctions";
 import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
@@ -236,6 +236,28 @@ class MarvelScaleAbility extends AbstractAbility{
     }
 }
 
+class IntimidateAbility extends AbstractAbility{
+    name="Intimidate"
+    description="The Pokémon intimidates opposing Pokémon upon entering battle, lowering their Attack stat."
+
+    OnPokemonEntry(turn:Turn,pokemon:Pokemon,){
+        //find out what the other pokemon is
+         //this should only effect the current pokemon
+        const trainer = GetPokemonOwner(turn.GetPlayers(),pokemon);
+        const otherTrainer = turn.GetPlayers().find(player=>player.id!==trainer.id);
+
+        if (otherTrainer === undefined){
+            throw new Error(`Could not find nother trainer in intimidate ability OnPokemonEntry`)
+        }
+       
+        const otherTrainersPokemon = GetActivePokemon(otherTrainer);
+        ApplyStatBoost(otherTrainersPokemon,Stat.Attack,-1);
+        turn.AddMessage(`${pokemon.name}'s Intimidate cuts ${otherTrainersPokemon.name}'s attack!`);
+    }
+
+
+}
+
 class NoAbility extends AbstractAbility{
 
 }
@@ -279,6 +301,9 @@ function GetAbility(name:String){
         }
         case 'marvel scale':{
             return new MarvelScaleAbility();
+        }
+        case 'intimidate':{
+            return new IntimidateAbility();
         }
         default:{
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

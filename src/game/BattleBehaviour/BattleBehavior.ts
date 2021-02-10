@@ -43,6 +43,9 @@ abstract class BattleBehaviour{
         return originalDamage;
     }
     Update(turn:Turn,pokemon:Pokemon){
+
+    }
+    OnPokemonEntry(turn:Turn,pokemon:Pokemon){
         
     }
     

@@ -410,6 +410,26 @@ const Milotic = function(){
     .Build();
 }
 
+const Salamence = function(){
+    return PokemonBuilder()
+    .OfSpecies("Salamence")
+    .WithAbility("Intimidate")
+    .WithHeldItem("Lum Berry")
+    .WithNature(NatureType.Naive)
+    .WithTechniques([
+        "Dragon Dance",
+        "Outrage",
+        "Earthquake",
+        "Fireblast"
+    ])
+    .WithEVs({
+        attack:252,
+        spAttack:4,
+        speed:252
+    })
+    .Build();
+}
+
 
 
 

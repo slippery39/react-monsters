@@ -284,6 +284,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:81
             },
             weight:162.0
+        },
+        {
+            name:"Salamence",
+            elementalTypes:[ElementType.Dragon,ElementType.Flying],
+            baseStats:{
+                hp:95,
+                attack:135,
+                defense:80,
+                spAttack:110,
+                spDefense:80,
+                speed:100
+            },
+            weight:102.6
         }
 
 

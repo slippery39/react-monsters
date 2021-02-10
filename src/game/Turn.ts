@@ -614,10 +614,15 @@ export class Turn {
         }
         this.AddEvent(switchInEffect);
 
+        const entryPokemon = this.GetPokemon(pokemonIn.id);
+
         this.GetEntryHazards().forEach(hazard => {
             console.warn(`entry hazard applying for pokemon ${pokemonIn.id}`);
             hazard.OnPokemonEntry(this, this.GetPokemon(pokemonIn.id));
-        })
+        });
+        this.GetAllBattleBehaviours(entryPokemon).forEach(b=>{
+            b.OnPokemonEntry(this,entryPokemon);
+        });        
     }
 
     UseItem(player: Player, item: Item) {
