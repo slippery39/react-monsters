@@ -1,4 +1,4 @@
-import { GameState, Turn, TurnState } from "./Turn";
+import { Turn, TurnState } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import { BattleEvent } from "./BattleEvents";
 import _ from "lodash";
@@ -6,6 +6,7 @@ import _ from "lodash";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
+import BattleGame from "./BattleGame";
 
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>
@@ -19,45 +20,31 @@ export interface OnStateChangeArgs {
     newState: Array<Player>
 }
 
+export interface OnNewTurnArgs {
+
+}
+export interface OnSwitchNeededArgs{
+
+}
+
 class BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
-    turns: Array<Turn> = [];
-    turnIndex = 0;
-
+    battle:BattleGame;
     onNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
     onStateChange = new TypedEvent<OnStateChangeArgs>();
-
     //the number type is temporary
-    OnNewTurn = new TypedEvent<number>();
-    OnSwitchNeeded = new TypedEvent<number>();
+    OnNewTurn = new TypedEvent<OnNewTurnArgs>();
+    OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
 
 
 
     constructor(player1: Player, player2: Player) {
-        this.Initialize([player1,player2])          
+        this.battle = new BattleGame([player1,player2]);
     }
 
-    Initialize(players:Array<Player>){
-         
-        //this would go into the new battle class
-          //Auto Assign all the ids
-          this.AutoAssignPokemonIds(players);
-          this.AutoAssignCurrentPokemonIds(players);
-          this.AutoAssignItemIds(players);
-          this.AutoAssignTechniqueIds(players);
-
-          const initialState : GameState = {
-            players:players,
-            entryHazards:[]
-        }
-
-        const turn = new Turn(1,initialState);
-        this.turns.push(turn)   
-    }
-
-    GetCurrentTurn() {
-        return this.turns[this.turnIndex];
+    GetCurrentTurn(): Turn {
+        return this.battle.GetCurrentTurn();
     }
 
     //For testing purposes only
@@ -75,9 +62,10 @@ class BattleService {
 
     //eventually this will run a start event or something.
     Start(){
-        this.OnNewTurn.emit(1);
+        this.battle.Initialize();
+        this.battle.StartGame();
+        this.OnNewTurn.emit({});
     }
-
 
     SetInitialAction(action: BattleAction) {
         this.GetCurrentTurn().SetInitialPlayerAction(action);
@@ -101,7 +89,7 @@ class BattleService {
         this.onNewTurnLog.emit(args);
 
         if (this.GetCurrentTurn().currentState.type ==='awaiting-switch-action'){
-            this.OnSwitchNeeded.emit(1);
+            this.OnSwitchNeeded.emit({});
         }
 
     }
@@ -157,74 +145,20 @@ class BattleService {
             let switchAction = (action as SwitchPokemonAction);
             this.SetSwitchFaintedPokemonAction(switchAction);
         }
+        //Right here.. the BattleGame should throw an event saying the turn has finished / a new turn has started
+        //This should not be calling NextTurn();
 
         if (this.GetCurrentTurn().currentState.type === 'turn-finished') {           
-            const player1 = this.GetCurrentTurn().GetPlayers()[0];
-            const player2 = this.GetCurrentTurn().GetPlayers()[1];
-
-            const initialState = {
-                players:[player1,player2],
-                entryHazards:this.GetCurrentTurn().GetEntryHazards()
-            }
-
-            const turn = new Turn(this.turnIndex++,initialState);
-            this.turns.push(turn);
-            this.OnNewTurn.emit(1); //AI would respond to this event.
+            this.battle.NextTurn();
+            //emit a new turn here.
+            this.OnNewTurn.emit({});
         }
     }
 
-    //gets the player state for the current turn?
+    //Gets a cloned version of the game state, nobody outside of here should be able to modify the state directly.
     GetPlayers(): Array<Player> {
         return _.cloneDeep(this.GetCurrentTurn().GetPlayers());
     }
-
-    
-    private AutoAssignPokemonIds(players:Array<Player>): void {
-
-        let nextPokemonId = 1;
-
-        players.flat().map(player => {
-            return player.pokemon
-        }).flat().forEach(pokemon => {
-                pokemon.id = nextPokemonId++
-        });
-    }
-
-    private AutoAssignItemIds(players:Array<Player>): void {
-
-        let nextItemId = 1;
-
-        players.flat().map(player => {
-            return player.items
-        }).flat().forEach(item => {
-            if (item.id === -1) {
-                item.id = nextItemId++;
-            }
-        });
-    }
-
-    private AutoAssignCurrentPokemonIds(players:Array<Player>): void {
-        if (players[0].currentPokemonId === -1) {
-            players[0].currentPokemonId = players[0].pokemon[0].id;
-        }
-        if (players[1].currentPokemonId === -1) {
-            players[1].currentPokemonId = players[1].pokemon[0].id;
-        }
-    }
-
-    private AutoAssignTechniqueIds(players:Array<Player>): void{
-
-        let nextTechId = 1;
-
-        players.flat().map(player=>{
-            return player.pokemon
-        }).flat().map(pokemon=>{
-            return pokemon.techniques
-        }).flat().forEach(tech=>{
-            tech.id = nextTechId++;
-        });
-    }
-
 }
 
 export default BattleService;

@@ -1,6 +1,6 @@
 import { shuffle } from "lodash";
 import { SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
-import BattleService from "game/Battle";
+import BattleService from "game/BattleService";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 
@@ -20,6 +20,7 @@ class BasicAI implements AI {
         this._service = service;
 
         this._service.OnNewTurn.on((arg) => {
+            console.log("are we choosing an action?");
             this.ChooseAction();
         })
         this._service.OnSwitchNeeded.on((arg) => {

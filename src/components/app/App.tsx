@@ -3,7 +3,7 @@ import './App.css';
 import Battle from "components/Battle/Battle";
 import StartGameScreen from 'components/StartGameScreen/StartGameScreen';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
-import BattleService from 'game/Battle';
+import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { ElementType } from 'game/ElementType';

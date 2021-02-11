@@ -53,10 +53,11 @@ function AutoAssignTechniqueIds(players:Array<Player>): void{
     });
 }
 
-/*
-class UpdatedBattle{
 
-    gameState:GameState;
+class BattleGame{
+
+    //note this variable gets set at the start but doesn't get updated at the moment, once we move more of the turn stuff over into here we can deal with that.
+    private gameState:GameState;
     turnHistory:Array<Turn> = [];    
 
     constructor(players:Array<Player>){
@@ -73,13 +74,33 @@ class UpdatedBattle{
         AutoAssignPokemonIds(this.gameState.players);
         AutoAssignCurrentPokemonIds(this.gameState.players);
         AutoAssignItemIds(this.gameState.players);
-        AutoAssignTechniqueIds(this.gameState.players);
+        AutoAssignTechniqueIds(this.gameState.players);  
     }
 
+    GetCurrentTurn():Turn{
+        const index = this.turnHistory.length -1;
+        return this.turnHistory[index];
+    }
 
+   NextTurn(){
+            //This is leftover from the BattleService class, but we are going to handle the state directly in the battle class instead.
+            const initialState = {
+                players:this.GetCurrentTurn().GetPlayers(),
+                entryHazards:this.GetCurrentTurn().GetEntryHazards()
+            }
+            const turn = new Turn(this.turnHistory.length+1,initialState);
+            this.turnHistory.push(turn);
+    }
+
+    GetPlayers():Array<Player>{
+        return this.GetCurrentTurn().currentGameState.players;
+    }
+    
     StartGame(){
-        this.GetAllBattleBehaviours(player1).OnPokemonEntry(this,pokemon);
-        this.GetAllBattleBehaviors(player2).OnPokemonEntry(this,pokemon);
+        const firstTurn = new Turn(1,this.gameState);
+        this.turnHistory.push(firstTurn);
+        //Pokemon will enter the battle, and trigger any on entry ability effects
     }
 }
-*/
+
+export default BattleGame;

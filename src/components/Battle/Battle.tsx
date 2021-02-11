@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 
 
-import { OnNewTurnLogArgs } from "game/Battle";
+import { OnNewTurnLogArgs } from "game/BattleService";
 import { SwitchPokemonAction, UseItemAction } from "game/BattleActions";
 import BattleMenu from "components/battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "components/BattlePokemonDisplay/BattlePokemonDisplay";
@@ -20,7 +20,7 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEvent, BattleEventType } from 'game/BattleEvents'
-import BattleService from 'game/Battle';
+import BattleService from 'game/BattleService';
 import { Pokemon, PokemonBuilder } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 import { Status } from 'game/HardStatus/HardStatus';
@@ -531,6 +531,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
+
+        console.warn(battleService);
         battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
