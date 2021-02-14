@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 
 
-import { OnNewTurnLogArgs } from "game/BattleService";
+import {OnNewTurnLogArgs} from "game/BattleGame";
 import { SwitchPokemonAction, UseItemAction } from "game/BattleActions";
 import BattleMenu from "components/battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "components/BattlePokemonDisplay/BattlePokemonDisplay";
@@ -180,10 +180,15 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     /* eslint-disable */
     useEffect(() => {
+
+        console.warn("is the battle service alive?");
+        console.log(battleService);
         battleService.onNewTurnLog.on(args => {
 
+            console.error("ON NEW TURN LOG BATTLE.TSX UI")
             //something 
             setTurnInfo(args);
+            console.error(args);
             setBattleEvents(battleEvents.concat(_.cloneDeep(args).currentTurnLog));
             setMenuState(MenuState.ShowingTurn);
         });

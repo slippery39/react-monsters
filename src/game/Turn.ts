@@ -20,6 +20,7 @@ import { GetDamageEffect } from './DamageEffects/DamageEffects';
 import { EntryHazard } from './EntryHazards/EntryHazard';
 import BattleBehaviour from './BattleBehaviour/BattleBehavior';
 import { Stat } from './Stat';
+import { TypedEvent } from './TypedEvent/TypedEvent';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -55,6 +56,8 @@ interface State {
 type TurnEventArgs = {
 }
 
+
+
 export class Turn {
     id: Number;
     currentGameState: GameState;
@@ -73,6 +76,9 @@ export class Turn {
     //Turn State Variables
     currentBattleStep = TurnStep.PreAction1;
     currentState: State = { type: 'awaiting-initial-actions' }
+
+    OnTurnFinished = new TypedEvent<{}>();
+    OnNewLogReady = new TypedEvent<{}>();
 
     constructor(turnId: Number, initialState: GameState) {
         this.id = turnId;
@@ -514,7 +520,11 @@ export class Turn {
             //go to the next state
             if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
-
+            }
+            else{
+                //Turn is finished, we emit the event here instead of in the switch statement to make sure any "Updates" need to happen before we are done.
+                console.warn('HELLO----->finished the turn, emitting event.')
+                this.OnTurnFinished.emit({});
             }
         }
         //loop has finished lets throw some events based on what has happened.
@@ -522,10 +532,15 @@ export class Turn {
 
         if (this.currentState.type === 'awaiting-switch-action') {
             console.warn('emitting on switch needed event');
+
+            //TODO -  New Turn Log Here
+            this.OnNewLogReady.emit({});
             //this.OnSwitchNeeded.emit({});
         }
         else if (this.currentState.type === 'turn-finished') {
             console.warn('emitting turn finshed event');
+            //New Turn Log Here.
+            this.OnNewLogReady.emit({});
             //this.OnTurnEnd.emit({});
         }
     }

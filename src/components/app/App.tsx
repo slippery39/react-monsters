@@ -32,7 +32,7 @@ function App() {
 
     //MISSINGNO!
     const testPokemon = PokemonBuilder().OfSpecies("missingno").WithTechniques([
-      "Protect",
+      "Thunderbolt",
       "Fire Blast",
       "Rapid Spin",
       "Substitute"
@@ -40,6 +40,8 @@ function App() {
       .WithAbility("Intimidate")
       .WithHeldItem("Life Orb")
       .Build();
+
+      testPokemon.currentStats.hp = 1;
 
 
     const testPokemon2 = PokemonBuilder().OfSpecies("missingno").WithTechniques([
@@ -53,7 +55,6 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("milotic")
       .WithCustomPokemon(testPokemon)
       .WithPokemon("gengar")
       .WithPokemon("venusaur")

@@ -20,7 +20,7 @@ class BasicAI implements AI {
         this._service = service;
 
         this._service.OnNewTurn.on((arg) => {
-            console.log("are we choosing an action?");
+            console.log("AI--> is choosing an action!");
             this.ChooseAction();
         })
         this._service.OnSwitchNeeded.on((arg) => {
