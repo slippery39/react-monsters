@@ -112,7 +112,6 @@ class BattleGame {
         const firstTurn = new Turn(1, this.gameState);
         this.turnHistory.push(firstTurn);
         firstTurn.OnTurnFinished.on(() => {
-
             console.warn('BATTLE GAME --> finishing first turn');
             this.NextTurn();
             this.OnNewTurn.emit({});

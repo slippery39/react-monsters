@@ -161,13 +161,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
     const [turnInfo, setTurnInfo] = useState<OnNewTurnLogArgs | undefined>(undefined);
-    const [battleEvents, setBattleEvents] = useState<Array<BattleEvent>>([]);
+    //const [battleEvents, setBattleEvents] = useState<Array<BattleEvent>>([]);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
     const [pokemonInfo, setPokemonInfo] = useState<Pokemon>(PokemonBuilder().UseGenericPokemon().OfElementalTypes([ElementType.Normal]).Build());
     const [pokemonInfoMenuPlayer, setPokemonInfoMenuPlayer] = useState<Player>(battleService.GetAllyPlayer())
 
-        ;
+
+    //using a ref because we had
+    const battleEvents = useRef<Array<BattleEvent>>([]);
+    //this is used to force update the battle events animation effect, but we use the ref above because of problems getting it to work.
+    const [battleEventsTemp,setBattleEventsTemp] = useState<Array<BattleEvent>>([]);
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -182,14 +186,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-disable */
     useEffect(() => {
         battleService.onNewTurnLog.on(args => {
-
-            console.warn(`Testing our Battle Events Log`);
-            console.error(args.currentTurnLog);
-            console.error(args.eventsSinceLastTime);
-            console.error(battleEvents.concat(args.eventsSinceLastTime));
-
             setTurnInfo(args);
-            setBattleEvents(battleEvents.concat(args.eventsSinceLastTime));
+            battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
+            setBattleEventsTemp(battleEvents.current);
             setMenuState(MenuState.ShowingTurn);
         });
 
@@ -262,7 +261,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     /* eslint-disable */
     useEffect(() => {
-        if (turnInfo === undefined || menuState !== MenuState.ShowingTurn || battleEvents.length == 0) {
+        if (turnInfo === undefined || menuState !== MenuState.ShowingTurn || battleEvents.current.length == 0) {
             return;
         }
         if (runningAnimations === true) {
@@ -285,12 +284,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const defaultAnimationTime: number = 0.2;
 
         const nextEvent = () => {
-
-            let copy = battleEvents.slice();
-            copy.shift();
-            setBattleEvents(copy);
-
-            if (copy.length === 0) {
+            let tempEvents = _.cloneDeep(battleEvents.current);
+            tempEvents.shift();            
+            battleEvents.current = tempEvents;
+            setBattleEventsTemp(battleEvents.current)
+             if (battleEvents.current.length=== 0) {
                 onEndOfTurnLog();
             }
         }
@@ -306,7 +304,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
 
         //we need to delay these calls because the state needs to update per animation.
-        const effect = battleEvents[0];
+        const effect = battleEvents.current[0];
 
         switch (effect.type) {
 
@@ -405,9 +403,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
 
             case BattleEventType.SwitchIn: {
-
-                console.log("Switching In Animation Playing");
-
                 const pokemon = getPokemonById(effect.switchInPokemonId);
                 const owner = getPokemonAndOwner(state, pokemon.id).owner;
 
@@ -532,12 +527,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         return;
 
-    }, [onEndOfTurnLog, turnInfo, battleEvents]);
+    }, [onEndOfTurnLog, turnInfo,battleEventsTemp]);
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
-
-        console.warn(battleService);
         battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
@@ -668,7 +661,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }} />
 
         const attackMenu = <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onAttackClick={(tech: any) => { console.log(tech); SetBattleAction(tech.id); }}
+            onAttackClick={(tech: any) => {SetBattleAction(tech.id); }}
             techniques={getAllyPokemon().techniques} />
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}

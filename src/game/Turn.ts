@@ -54,9 +54,6 @@ interface State {
     winningPlayerId?: number
 }
 
-type TurnEventArgs = {
-}
-
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>,
     eventsSinceLastTime:Array<BattleEvent>,
