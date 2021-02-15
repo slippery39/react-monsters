@@ -1,11 +1,11 @@
-import { Turn } from "./Turn";
+import { OnNewTurnLogArgs, Turn } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import _ from "lodash";
 
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
-import BattleGame, { OnNewTurnLogArgs } from "./BattleGame";
+import BattleGame from "./BattleGame";
 
 
 
@@ -19,6 +19,8 @@ export interface OnNewTurnArgs {
 export interface OnSwitchNeededArgs {
 
 }
+
+
 
 class BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
@@ -63,6 +65,8 @@ class BattleService {
         });
 
         this.battle.OnNewLogReady.on((info) => {
+            console.log("emitting event");
+            console.log(info);
             this.onNewTurnLog.emit(info);
         });
 
@@ -82,23 +86,7 @@ class BattleService {
 
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
-
-        //THIS LOGIC SHOULD BE MOVED TO THE UI TO ONLY GET THE NEWEST EVENTS.
-        const oldTurnLog = this.GetCurrentTurn().GetEventLog();
-        const maxId = Math.max(...oldTurnLog.map(tl => {
-            if (tl.id === undefined) { throw new Error('NO ID FOUND FOR TURN LOG') }
-            return tl.id
-        }));
-
         this.GetCurrentTurn().SetSwitchPromptAction(action);
-
-        var newTurnLog = this.GetCurrentTurn().GetEventLog();
-        if (diffLog === undefined || diffLog === true) {
-            newTurnLog = newTurnLog.filter(tl => {
-                if (tl.id === undefined) { throw new Error('NO ID FOUND FOR TURN LOG') }
-                return tl.id > maxId;
-            });
-        }
      }
     SetPlayerAction(action: BattleAction) {
 

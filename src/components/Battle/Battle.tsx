@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 
 
-import {OnNewTurnLogArgs} from "game/BattleGame";
+
 import { SwitchPokemonAction, UseItemAction } from "game/BattleActions";
 import BattleMenu from "components/battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "components/BattlePokemonDisplay/BattlePokemonDisplay";
@@ -27,6 +27,7 @@ import { Status } from 'game/HardStatus/HardStatus';
 import { Player } from 'game/Player/PlayerBuilder';
 import PokemonInfo from 'components/PokemonInfoScreen/PokemonInfoScreen';
 import { ElementType } from 'game/ElementType';
+import { OnNewTurnLogArgs } from 'game/Turn';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -180,16 +181,15 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     /* eslint-disable */
     useEffect(() => {
-
-        console.warn("is the battle service alive?");
-        console.log(battleService);
         battleService.onNewTurnLog.on(args => {
 
-            console.error("ON NEW TURN LOG BATTLE.TSX UI")
-            //something 
+            console.warn(`Testing our Battle Events Log`);
+            console.error(args.currentTurnLog);
+            console.error(args.eventsSinceLastTime);
+            console.error(battleEvents.concat(args.eventsSinceLastTime));
+
             setTurnInfo(args);
-            console.error(args);
-            setBattleEvents(battleEvents.concat(_.cloneDeep(args).currentTurnLog));
+            setBattleEvents(battleEvents.concat(args.eventsSinceLastTime));
             setMenuState(MenuState.ShowingTurn);
         });
 

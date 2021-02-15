@@ -1,7 +1,6 @@
 import _ from "lodash";
-import { BattleEvent } from "./BattleEvents";
 import { Player } from "./Player/PlayerBuilder";
-import { GameState, Turn, TurnState } from "./Turn";
+import { GameState, OnNewTurnLogArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 
 
@@ -56,13 +55,7 @@ function AutoAssignTechniqueIds(players: Array<Player>): void {
 }
 
 
-export interface OnNewTurnLogArgs {
-    currentTurnLog: Array<BattleEvent>
-    newState: Array<Player>,
-    currentTurnState: TurnState,
-    waitingForSwitchIds: Array<number>
-    winningPlayerId?: number | undefined
-}
+
 
 class BattleGame {
 
@@ -106,14 +99,7 @@ class BattleGame {
             this.NextTurn();
             this.OnNewTurn.emit({});
         });
-        turn.OnNewLogReady.on(() => {
-            const args: OnNewTurnLogArgs = {
-                currentTurnLog: _.cloneDeep(turn.GetEventLog()),
-                newState: _.cloneDeep(turn.GetPlayers()),
-                winningPlayerId: turn.currentState.winningPlayerId,
-                currentTurnState: turn.currentState.type,
-                waitingForSwitchIds: turn.switchPromptedPlayers.map(p => p.id)
-            }
+        turn.OnNewLogReady.on((args) => {     
             this.OnNewLogReady.emit(args);
         });
     }
@@ -131,14 +117,7 @@ class BattleGame {
             this.NextTurn();
             this.OnNewTurn.emit({});
         })
-        firstTurn.OnNewLogReady.on(() => {
-            const args: OnNewTurnLogArgs = {
-                currentTurnLog: _.cloneDeep(firstTurn.GetEventLog()),
-                newState: _.cloneDeep(firstTurn.GetPlayers()),
-                winningPlayerId: firstTurn.currentState.winningPlayerId,
-                currentTurnState: firstTurn.currentState.type,
-                waitingForSwitchIds: firstTurn.switchPromptedPlayers.map(p => p.id)
-            }
+        firstTurn.OnNewLogReady.on((args) => {
             this.OnNewLogReady.emit(args);
         });
 

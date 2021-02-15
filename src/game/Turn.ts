@@ -22,6 +22,7 @@ import BattleBehaviour from './BattleBehaviour/BattleBehavior';
 import { Stat } from './Stat';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 
+
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
 
@@ -56,6 +57,14 @@ interface State {
 type TurnEventArgs = {
 }
 
+export interface OnNewTurnLogArgs {
+    currentTurnLog: Array<BattleEvent>,
+    eventsSinceLastTime:Array<BattleEvent>,
+    newState: Array<Player>,
+    currentTurnState: TurnState,
+    waitingForSwitchIds: Array<number>
+    winningPlayerId?: number | undefined
+}
 
 
 export class Turn {
@@ -78,7 +87,11 @@ export class Turn {
     currentState: State = { type: 'awaiting-initial-actions' }
 
     OnTurnFinished = new TypedEvent<{}>();
-    OnNewLogReady = new TypedEvent<{}>();
+    OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
+
+
+    //turn log since our last action.
+    turnLogSinceLastAction : Array<BattleEvent> = [];
 
     constructor(turnId: Number, initialState: GameState) {
         this.id = turnId;
@@ -522,8 +535,6 @@ export class Turn {
                 this.currentBattleStep = startStep.next;
             }
             else{
-                //Turn is finished, we emit the event here instead of in the switch statement to make sure any "Updates" need to happen before we are done.
-                console.warn('HELLO----->finished the turn, emitting event.')
                 this.OnTurnFinished.emit({});
             }
         }
@@ -531,16 +542,38 @@ export class Turn {
         //throw events if necessary
 
         if (this.currentState.type === 'awaiting-switch-action') {
-            console.warn('emitting on switch needed event');
+   
+            const newTurnLogArgs:OnNewTurnLogArgs = {
+                currentTurnLog:_.cloneDeep(this.GetEventLog()),
+                eventsSinceLastTime:_.cloneDeep(this.turnLogSinceLastAction),
+                newState:_.cloneDeep(this.GetPlayers()),
+                winningPlayerId: this.currentState.winningPlayerId,
+                currentTurnState:this.currentState.type,
+                waitingForSwitchIds:this.switchPromptedPlayers.map(p=>p.id)
+            }
 
-            //TODO -  New Turn Log Here
-            this.OnNewLogReady.emit({});
+            this.turnLogSinceLastAction = []; //clear the cached events
+
+            this.OnNewLogReady.emit(newTurnLogArgs);
+            //TODO: Clear the cache
+
             //this.OnSwitchNeeded.emit({});
         }
         else if (this.currentState.type === 'turn-finished') {
+
             console.warn('emitting turn finshed event');
-            //New Turn Log Here.
-            this.OnNewLogReady.emit({});
+            const newTurnLogArgs:OnNewTurnLogArgs = {
+                currentTurnLog:_.cloneDeep(this.GetEventLog()),
+                eventsSinceLastTime:_.cloneDeep(this.turnLogSinceLastAction),
+                newState:_.cloneDeep(this.GetPlayers()),
+                winningPlayerId: this.currentState.winningPlayerId,
+                currentTurnState:this.currentState.type,
+                waitingForSwitchIds:this.switchPromptedPlayers.map(p=>p.id)
+            }
+
+            this.turnLogSinceLastAction = []; //clear the cached events
+
+            this.OnNewLogReady.emit(newTurnLogArgs);
             //this.OnTurnEnd.emit({});
         }
     }
@@ -552,7 +585,6 @@ export class Turn {
 
         const switchInPokemonPos = player.pokemon.indexOf(pokemonIn);
         if (switchInPokemonPos < 0) {
-            console.log(this.GetPlayers());
             throw new Error(`Could not find pokemon ${pokemonIn.id} for player ${player.id}`);
         }
 
@@ -781,6 +813,7 @@ export class Turn {
     public AddEvent(effect: BattleEvent) {
         effect.id = this.nextEventId++;
         this.eventLog.push(effect);
+        this.turnLogSinceLastAction.push(effect);
     }
 
     private GetDefendingPokemon(attackingPlayer: Player): Pokemon {
