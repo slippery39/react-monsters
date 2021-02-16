@@ -51,8 +51,8 @@ describe('Levitate Ability Tests', () => {
 
         const turn = CreateMockTurn();
 
-        const pokemon2 = PokemonBuilder().
-            OfSpecies("Charizard")
+        const pokemon2 = PokemonBuilder()
+            .OfSpecies("Charizard")
             .WithBaseStats({ hp: 200, attack: 1, spAttack: 1, defense: 1, spDefense: 1, speed: 1 })
             .Build();
 

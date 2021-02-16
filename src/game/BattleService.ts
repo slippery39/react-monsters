@@ -56,9 +56,8 @@ class BattleService {
     }
 
     //eventually this will run a start event or something.
-    Start() {
+    Initialize() {
         this.battle.Initialize();
-        this.battle.StartGame();
         //TODO - working on this.
         this.battle.OnNewTurn.on(() => {
             this.OnNewTurn.emit({});
@@ -75,6 +74,10 @@ class BattleService {
 
         //TODO - replace with with GameStart event.
         this.OnNewTurn.emit({});
+    }
+
+    Start(){
+        this.battle.StartGame();
     }
 
     SetInitialAction(action: BattleAction) {

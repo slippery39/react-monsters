@@ -55,8 +55,8 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
+      .WithPokemon("blastoise")
       .WithCustomPokemon(testPokemon)
-      .WithPokemon("gengar")
       .WithPokemon("venusaur")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
@@ -83,7 +83,9 @@ function App() {
 
     let battleService = new BattleService(player1, player2);
     new BasicAI(player2, battleService);
-    battleService.Start();
+    battleService.Initialize();
+    //battleService.Start();
+   
 
     return battleService;
   }

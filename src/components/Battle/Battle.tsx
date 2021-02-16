@@ -90,8 +90,12 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const battleService = props.battle;
 
     const initialState: State = {
-        players: props.battle.GetPlayers()
+        players: battleService.GetPlayers()
     }
+
+ 
+
+   
 
     const reducer = function (state = initialState, action: Action): State {
 
@@ -165,13 +169,15 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
     const [pokemonInfo, setPokemonInfo] = useState<Pokemon>(PokemonBuilder().UseGenericPokemon().OfElementalTypes([ElementType.Normal]).Build());
+
+    //This is causing problems, we need to lazy initialize it.
     const [pokemonInfoMenuPlayer, setPokemonInfoMenuPlayer] = useState<Player>(battleService.GetAllyPlayer())
 
 
     //using a ref because we had
     const battleEvents = useRef<Array<BattleEvent>>([]);
     //this is used to force update the battle events animation effect, but we use the ref above because of problems getting it to work.
-    const [battleEventsTemp,setBattleEventsTemp] = useState<Array<BattleEvent>>([]);
+    const [battleEventsTemp, setBattleEventsTemp] = useState<Array<BattleEvent>>([]);
 
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -199,8 +205,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 newState: _.cloneDeep(args.newState)
             })
         });
+
+        battleService.Start();
     }, []);
     /* eslint-enable */
+
 
     function isAllyPokemon(id: number): boolean {
         return state.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
@@ -285,10 +294,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         const nextEvent = () => {
             let tempEvents = _.cloneDeep(battleEvents.current);
-            tempEvents.shift();            
+            tempEvents.shift();
             battleEvents.current = tempEvents;
             setBattleEventsTemp(battleEvents.current)
-             if (battleEvents.current.length=== 0) {
+            if (battleEvents.current.length === 0) {
                 onEndOfTurnLog();
             }
         }
@@ -527,7 +536,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         return;
 
-    }, [onEndOfTurnLog, turnInfo,battleEventsTemp]);
+    }, [onEndOfTurnLog, turnInfo, battleEventsTemp]);
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
@@ -661,7 +670,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }} />
 
         const attackMenu = <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onAttackClick={(tech: any) => {SetBattleAction(tech.id); }}
+            onAttackClick={(tech: any) => { SetBattleAction(tech.id); }}
             techniques={getAllyPokemon().techniques} />
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}
