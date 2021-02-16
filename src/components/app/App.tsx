@@ -31,17 +31,17 @@ function App() {
   function initializeBattle() {
 
     //MISSINGNO!
-    const testPokemon = PokemonBuilder().OfSpecies("missingno").WithTechniques([
+    const testPokemon = PokemonBuilder().OfSpecies("Missingno").WithTechniques([
       "Thunderbolt",
       "Fire Blast",
       "Rapid Spin",
       "Substitute"
     ])
-      .WithAbility("Intimidate")
+      .WithAbility("Magic Guard")
       .WithHeldItem("Life Orb")
       .Build();
 
-      testPokemon.currentStats.hp = 1;
+      //testPokemon.currentStats.hp = 1;
 
 
     const testPokemon2 = PokemonBuilder().OfSpecies("missingno").WithTechniques([
@@ -55,8 +55,8 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("blastoise")
       .WithCustomPokemon(testPokemon)
+      .WithPokemon("Alakazam")
       .WithPokemon("venusaur")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")

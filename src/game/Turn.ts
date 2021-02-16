@@ -56,7 +56,7 @@ interface State {
 
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>,
-    eventsSinceLastTime:Array<BattleEvent>,
+    eventsSinceLastTime: Array<BattleEvent>,
     newState: Array<Player>,
     currentTurnState: TurnState,
     waitingForSwitchIds: Array<number>
@@ -88,7 +88,7 @@ export class Turn {
 
 
     //turn log since our last action.
-    turnLogSinceLastAction : Array<BattleEvent> = [];
+    turnLogSinceLastAction: Array<BattleEvent> = [];
 
     constructor(turnId: Number, initialState: GameState) {
         this.id = turnId;
@@ -315,6 +315,13 @@ export class Turn {
     }
 
     ApplyIndirectDamage(pokemon: Pokemon, damage: number) {
+
+
+        this.GetAllBattleBehaviours(pokemon).forEach(b => { damage = b.ModifyIndirectDamage(this, pokemon, damage) });
+
+        if (damage === 0){
+            return; 
+        }
         pokemon.currentStats.hp -= Math.ceil(damage);
         pokemon.currentStats.hp = Math.max(0, pokemon.currentStats.hp);
 
@@ -531,7 +538,7 @@ export class Turn {
             if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
             }
-            else{
+            else {
                 this.OnTurnFinished.emit({});
             }
         }
@@ -539,14 +546,14 @@ export class Turn {
         //throw events if necessary
 
         if (this.currentState.type === 'awaiting-switch-action') {
-   
-            const newTurnLogArgs:OnNewTurnLogArgs = {
-                currentTurnLog:_.cloneDeep(this.GetEventLog()),
-                eventsSinceLastTime:_.cloneDeep(this.turnLogSinceLastAction),
-                newState:_.cloneDeep(this.GetPlayers()),
+
+            const newTurnLogArgs: OnNewTurnLogArgs = {
+                currentTurnLog: _.cloneDeep(this.GetEventLog()),
+                eventsSinceLastTime: _.cloneDeep(this.turnLogSinceLastAction),
+                newState: _.cloneDeep(this.GetPlayers()),
                 winningPlayerId: this.currentState.winningPlayerId,
-                currentTurnState:this.currentState.type,
-                waitingForSwitchIds:this.switchPromptedPlayers.map(p=>p.id)
+                currentTurnState: this.currentState.type,
+                waitingForSwitchIds: this.switchPromptedPlayers.map(p => p.id)
             }
 
             this.turnLogSinceLastAction = []; //clear the cached events
@@ -559,13 +566,13 @@ export class Turn {
         else if (this.currentState.type === 'turn-finished') {
 
             console.warn('emitting turn finshed event');
-            const newTurnLogArgs:OnNewTurnLogArgs = {
-                currentTurnLog:_.cloneDeep(this.GetEventLog()),
-                eventsSinceLastTime:_.cloneDeep(this.turnLogSinceLastAction),
-                newState:_.cloneDeep(this.GetPlayers()),
+            const newTurnLogArgs: OnNewTurnLogArgs = {
+                currentTurnLog: _.cloneDeep(this.GetEventLog()),
+                eventsSinceLastTime: _.cloneDeep(this.turnLogSinceLastAction),
+                newState: _.cloneDeep(this.GetPlayers()),
                 winningPlayerId: this.currentState.winningPlayerId,
-                currentTurnState:this.currentState.type,
-                waitingForSwitchIds:this.switchPromptedPlayers.map(p=>p.id)
+                currentTurnState: this.currentState.type,
+                waitingForSwitchIds: this.switchPromptedPlayers.map(p => p.id)
             }
 
             this.turnLogSinceLastAction = []; //clear the cached events

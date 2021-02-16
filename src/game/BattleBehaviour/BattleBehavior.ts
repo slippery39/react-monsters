@@ -42,6 +42,9 @@ abstract class BattleBehaviour{
     ModifyDamageTaken(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,originalDamage:number){
         return originalDamage;
     }
+    ModifyIndirectDamage(turn:Turn,pokemon:Pokemon,damage:number){
+        return damage;
+    }
     Update(turn:Turn,pokemon:Pokemon){
 
     }

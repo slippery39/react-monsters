@@ -257,6 +257,16 @@ class IntimidateAbility extends AbstractAbility {
 
 }
 
+
+class MagicGuardAbility extends AbstractAbility{
+    name="Magic Guard"
+    description="The Pokémon only takes damage from attacks."
+
+    ModifyIndirectDamage(turn:Turn,pokemon:Pokemon,damage:number){
+        return 0;
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -303,6 +313,9 @@ function GetAbility(name: String) {
         }
         case 'intimidate': {
             return new IntimidateAbility();
+        }
+        case 'magic guard':{
+            return new MagicGuardAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

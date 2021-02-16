@@ -50,8 +50,6 @@ export class SubstituteVolatileStatus extends VolatileStatus {
 
     Damage(turn: Turn, pokemon: Pokemon, amount: number) {
         this.substituteHealth -= amount;
-        //This is a quick hack to be able to apply the damage animation to the substitute.
-        turn.ApplyIndirectDamage(pokemon, 0);
         if (this.substituteHealth <= 0) {
             this.Remove(turn, pokemon);
         }
