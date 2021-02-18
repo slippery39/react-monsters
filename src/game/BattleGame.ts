@@ -1,4 +1,4 @@
-import _, { initial } from "lodash";
+import _ from "lodash";
 import { GetActivePokemon, GetPokemonOwner } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 import { GameState, OnNewTurnLogArgs, Turn } from "./Turn";
