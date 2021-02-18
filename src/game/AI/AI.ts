@@ -20,6 +20,8 @@ class BasicAI implements AI {
         this._service = service;
 
         this._service.OnNewTurn.on((arg) => {
+
+            console.warn("AI IS CHOOSING ACTION!");
             //setTimeout(() => {
                 this.ChooseAction();    
             //}, 300);

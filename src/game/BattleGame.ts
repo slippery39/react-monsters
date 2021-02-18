@@ -159,6 +159,7 @@ class BattleGame {
         firstTurn.turnLogSinceLastAction = []; //clear the cached events
 
         firstTurn.OnNewLogReady.emit(newTurnLogArgs);
+        this.OnNewTurn.emit({});
 
     }
 }

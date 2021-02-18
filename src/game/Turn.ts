@@ -410,134 +410,103 @@ export class Turn {
 
     private CalculateTurn() {
 
-        const nextStateLookups = [
-            {
-                current: TurnStep.PreAction1,
-                next: TurnStep.Action1
-            },
-            {
-                current: TurnStep.Action1,
-                next: TurnStep.PostAction1
-            },
-            {
-                current: TurnStep.PostAction1,
-                next: TurnStep.PreAction2
-            },
-            {
-                current: TurnStep.PreAction2,
-                next: TurnStep.Action2
-            },
-            {
-                current: TurnStep.Action2,
-                next: TurnStep.PostAction2
-            },
-            {
-                current: TurnStep.PostAction2,
-                next: TurnStep.BeforeEnd
-            },
-            {
-                current: TurnStep.BeforeEnd,
-                next: TurnStep.End
-            },
-            {
-                current: TurnStep.End,
-                next: undefined
-            }
-        ];
-
         //this needs to be cached.
         const actionOrder = this.GetMoveOrder();
 
-        while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished' && this.currentState.type !== 'game-over') {
+        const firstAction = actionOrder[0];
+        const secondAction = actionOrder[1];
+        //get the propert current pokemon based on the action order
+        const currentPokemon1 = this.GetActivePokemon(firstAction.playerId);
+        const currentPokemon2 = this.GetActivePokemon(secondAction.playerId);
 
+        const preActionStep = (action: BattleAction, currentPokemon: Pokemon) => {
+            if (action.type !== Actions.UseMove && action.type !== Actions.ForcedTechnique) {
+                return;
+            }
+            let currentTechnique;
+            if (action.type === Actions.UseMove) {
+                currentTechnique = this.GetPokemon(action.pokemonId).techniques.find(tech => tech.id === action.moveId);
+            }
+            else {
+                currentTechnique = action.technique;
+            }
+            if (currentTechnique === undefined) {
+                throw new Error(`Could not find technique`);
+            }
+            this.BeforeAttack(currentPokemon, currentTechnique);
+        }
+
+        const actionStep = (action: BattleAction, currentPokemon: Pokemon) => {
+            if ((action.type === Actions.UseMove || action.type === Actions.ForcedTechnique) && !currentPokemon.canAttackThisTurn) {
+                return;
+            }
+            if ((action.type === Actions.UseMove || action.type === Actions.ForcedTechnique) && currentPokemon.id !== action.pokemonId) {
+                return;
+            }
+            this.DoAction(action);
+        }
+
+        const nextStateLookups = [
+            {
+                current: TurnStep.PreAction1,
+                next: TurnStep.Action1,
+                func:()=>preActionStep(firstAction,currentPokemon1)
+            },
+            {
+                current: TurnStep.Action1,
+                next: TurnStep.PostAction1,
+                func:()=>actionStep(firstAction,currentPokemon1)
+            },
+            {
+                current: TurnStep.PostAction1,
+                next: TurnStep.PreAction2,
+                func:()=>{}
+                
+            },
+            {
+                current: TurnStep.PreAction2,
+                next: TurnStep.Action2,
+                func:()=>preActionStep(secondAction,currentPokemon2)
+            },
+            {
+                current: TurnStep.Action2,
+                next: TurnStep.PostAction2,
+                func:()=>actionStep(secondAction,currentPokemon2)
+            },
+            {
+                current: TurnStep.PostAction2,
+                next: TurnStep.BeforeEnd,
+                func:()=>{}
+            },
+            {
+                current: TurnStep.BeforeEnd,
+                next: TurnStep.End,
+                func:()=>{this.BeforeEndOfTurn()}
+            },
+            {
+                current: TurnStep.End,
+                next: undefined,
+                func:()=>{this.EndTurn()}
+            }
+        ];
+
+        while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished' && this.currentState.type !== 'game-over') {
             var startStep = nextStateLookups.find((e) => {
                 return e.current === this.currentBattleStep
             });
-
             if (startStep === undefined) {
                 throw new Error("Could not find proper battle step state");
             }
-
-            const firstAction = actionOrder[0];
-            const secondAction = actionOrder[1];
-
-            //get the propert current pokemon based on the action order
-            const currentPokemon1 = this.GetActivePokemon(firstAction.playerId);
-            const currentPokemon2 = this.GetActivePokemon(secondAction.playerId);
-
-            const preActionStep = (action: BattleAction) => {
-                if (action.type !== Actions.UseMove && action.type !== Actions.ForcedTechnique) {
-                    return;
-                }
-                let currentTechnique;
-                if (action.type === Actions.UseMove) {
-                    currentTechnique = this.GetPokemon(action.pokemonId).techniques.find(tech => tech.id === action.moveId);
-                }
-                else {
-                    currentTechnique = action.technique;
-                }
-                if (currentTechnique === undefined) {
-                    throw new Error(`Could not find technique`);
-                }
-                this.BeforeAttack(currentPokemon1, currentTechnique);
-            }
-
-            const actionStep = (action: BattleAction, currentPokemon: Pokemon) => {
-                if ((action.type === Actions.UseMove || action.type === Actions.ForcedTechnique) && !currentPokemon.canAttackThisTurn) {
-                    return;
-                }
-                if ((action.type === Actions.UseMove || action.type === Actions.ForcedTechnique) && currentPokemon.id !== action.pokemonId) {
-                    return;
-                }
-                this.DoAction(action);
-            }
-
-            switch (startStep.current) {
-                case TurnStep.PreAction1: {
-                    preActionStep(firstAction)
-                    break;
-                }
-                case TurnStep.Action1: {
-                    actionStep(firstAction, currentPokemon1)
-                    break;
-                }
-                case TurnStep.PostAction1: {
-                    break;
-                }
-                case TurnStep.PreAction2: {
-                    preActionStep(secondAction);
-                    break;
-                }
-                case TurnStep.Action2: {
-                    actionStep(secondAction, currentPokemon2)
-                    break;
-                }
-                case TurnStep.PostAction2: {
-                    break;
-                }
-                case TurnStep.BeforeEnd: {
-                    this.BeforeEndOfTurn();
-                    break;
-                }
-                case TurnStep.End: {
-                    this.EndTurn();
-                    break;
-                }
-                default: {
-                    throw new Error('No valid battle step state found for calculate turn');
-                }
-            }
+            startStep.func();
             this.Update();
-            //go to the next state
+            //Go to the next state
             if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
             }
         }
-        //loop has finished lets throw some events based on what has happened.
-        //throw events if necessary
 
+        //Loop has finished, lets emit some events based on what has happened.
         if (this.currentState.type === 'awaiting-switch-action') {
-
             const newTurnLogArgs: OnNewTurnLogArgs = {
                 currentTurnLog: _.cloneDeep(this.GetEventLog()),
                 eventsSinceLastTime: _.cloneDeep(this.turnLogSinceLastAction),
@@ -549,9 +518,6 @@ export class Turn {
             this.turnLogSinceLastAction = []; //clear the cached events
 
             this.OnNewLogReady.emit(newTurnLogArgs);
-            //TODO: Clear the cache
-
-            //this.OnSwitchNeeded.emit({});
         }
         else if (this.currentState.type === 'turn-finished') {
             const newTurnLogArgs: OnNewTurnLogArgs = {
@@ -608,7 +574,6 @@ export class Turn {
         const entryPokemon = this.GetPokemon(pokemonIn.id);
 
         this.GetEntryHazards().forEach(hazard => {
-            console.warn(`entry hazard applying for pokemon ${pokemonIn.id}`);
             hazard.OnPokemonEntry(this, this.GetPokemon(pokemonIn.id));
         });
         this.GetAllBattleBehaviours(entryPokemon).forEach(b => {
@@ -641,9 +606,6 @@ export class Turn {
 
     }
 
-
-
-    //temporary, i want to see how easier this makes testing
     UseTechnique(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
         const useMoveEffect: UseMoveEvent = {
             type: BattleEventType.UseMove,

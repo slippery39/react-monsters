@@ -285,12 +285,12 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         //we need to pass in the ref to the pokemonNodes        
 
         //default times
-        const defaultDelayTime: number = 0.2;
-        const healthAnimationTime: number = 0.2;
-        const messageAnimationTime: number = 0.2;
-        const attackAnimationTime: number = 0.2;
-        const damageAnimationTime: number = 0.1;
-        const defaultAnimationTime: number = 0.2;
+        const defaultDelayTime: number = 0.05;
+        const healthAnimationTime: number = 0.05;
+        const messageAnimationTime: number = 0.05;
+        const attackAnimationTime: number = 0.05;
+        const damageAnimationTime: number = 0.05;
+        const defaultAnimationTime: number = 0.05;
 
         const nextEvent = () => {
             let tempEvents = _.cloneDeep(battleEvents.current);
@@ -377,7 +377,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
                 timeLine.to(pokemonNode, { delay: defaultDelayTime, top: "+=100", opacity: 0, duration: defaultAnimationTime })
                 timeLine.fromTo(messageBox.current, { text: "" }, {
-                    delay: defaultDelayTime, duration: 1, text: `${pokemon.name} has fainted!`, ease: "none"
+                    delay: defaultDelayTime, duration: messageAnimationTime, text: `${pokemon.name} has fainted!`, ease: "none"
                 });
 
                 break;

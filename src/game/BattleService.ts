@@ -67,12 +67,6 @@ class BattleService {
             console.log(info);
             this.onNewTurnLog.emit(info);
         });
-
-        //FOR NOW
-        //turn log's should come through whenever a stoppage in calculating the turn occurs.
-
-        //TODO - replace with with GameStart event.
-        this.OnNewTurn.emit({});
     }
 
     Start(){
@@ -80,6 +74,7 @@ class BattleService {
     }
 
     SetInitialAction(action: BattleAction) {
+        console.warn("are we setting an initial action?")
         this.GetCurrentTurn().SetInitialPlayerAction(action);
         //TODO - remove this
         if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
@@ -94,6 +89,8 @@ class BattleService {
 
         if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {
             this.SetInitialAction(action);
+            console.log(this.GetCurrentTurn())
+            console.log(action);
         }
         else if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
             let switchAction = (action as SwitchPokemonAction);
