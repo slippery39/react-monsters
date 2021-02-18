@@ -1,5 +1,5 @@
 import { shuffle } from "lodash";
-import { SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
+import { Actions, SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
 import BattleService from "game/BattleService";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
@@ -20,8 +20,10 @@ class BasicAI implements AI {
         this._service = service;
 
         this._service.OnNewTurn.on((arg) => {
-            console.log("AI--> is choosing an action!");
-            this.ChooseAction();
+            //setTimeout(() => {
+                this.ChooseAction();    
+            //}, 300);
+            
         })
         this._service.OnSwitchNeeded.on((arg) => {
             this.ChooseFaintedPokemonSwitch();
@@ -62,7 +64,7 @@ class BasicAI implements AI {
 
             const moveId2 = shuffle(this.GetPlayerFromTurn().pokemon.find(p => p.id === this.GetPlayerFromTurn().currentPokemonId)?.techniques)[0].id || -1;
             const action: UseMoveAction = {
-                type: 'use-move-action',
+                type: Actions.UseMove,
                 playerId: this.GetPlayerFromTurn().id,
                 pokemonId: this.GetPlayerFromTurn().currentPokemonId,
                 moveId: moveId2

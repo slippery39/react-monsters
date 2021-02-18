@@ -32,10 +32,8 @@ function App() {
 
     //MISSINGNO!
     const testPokemon = PokemonBuilder().OfSpecies("Missingno").WithTechniques([
-      "Thunderbolt",
-      "Fire Blast",
-      "Rapid Spin",
-      "Substitute"
+      "Outrage",
+      "Fire Blast"
     ])
       .WithAbility("Magic Guard")
       .WithHeldItem("Life Orb")

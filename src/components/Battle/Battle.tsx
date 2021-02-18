@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useReducer, useRef } from 'rea
 
 
 
-import { SwitchPokemonAction, UseItemAction } from "game/BattleActions";
+import { Actions, SwitchPokemonAction, UseItemAction } from "game/BattleActions";
 import BattleMenu from "components/battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "components/BattlePokemonDisplay/BattlePokemonDisplay";
 import ItemMenu from "components/ItemMenu/ItemMenu";
@@ -544,7 +544,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             playerId: 1, //todo : get player id
             pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
             moveId: techniqueId,
-            type: 'use-move-action'
+            type: Actions.UseMove
         });
     }
     function SetSwitchAction(pokemonSwitchId: number) {

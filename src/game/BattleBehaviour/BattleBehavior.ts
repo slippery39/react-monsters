@@ -6,6 +6,7 @@ This is the class that all classes that need to tap into the turn object will ca
 //Grab all our stuff from HardStatuses, VolatileStatuses and Abilities and Put them in here.
 */
 
+import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
@@ -51,6 +52,11 @@ abstract class BattleBehaviour{
     OnPokemonEntry(turn:Turn,pokemon:Pokemon){
         
     }
+    ForceAction(turn:Turn,player:Player,pokemon:Pokemon){
+        //Force the player to do a specific action in a turn
+        //Should have some way to enforce only having 1 Forced action per turn.
+    }
+
     
 }
 

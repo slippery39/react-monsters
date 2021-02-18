@@ -28,6 +28,23 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Outrage",
+            description:"The user rampages and attacks for two to three turns. The user then becomes confused.",
+            pp:16,
+            power:120,
+            elementalType:ElementType.Dragon,
+            makesContact:true,
+            damageType:DamageType.Physical,
+            effects:[
+                {
+                    type:EffectType.InflictVolatileStatus,
+                    status:VolatileStatusType.Outraged,
+                    target:TargetType.Self,
+                    chance:100
+                }
+            ]
+        },
+        {
             name: "Haze",
             description: "The user creates a haze that eliminates every stat change among all the Pokémon engaged in battle.",
             pp: 48,

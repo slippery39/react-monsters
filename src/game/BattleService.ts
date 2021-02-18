@@ -64,7 +64,6 @@ class BattleService {
         });
 
         this.battle.OnNewLogReady.on((info) => {
-            console.log("emitting event");
             console.log(info);
             this.onNewTurnLog.emit(info);
         });

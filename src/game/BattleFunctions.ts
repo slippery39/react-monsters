@@ -5,12 +5,12 @@ import { GetActivePokemon } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 
 
-export function  GetActionPriority(player:Player,action: BattleAction) {
+export function GetActionPriority(player:Player,action: BattleAction) {
 
     //priorities are defined from -5 to +7  https://bulbapedia.bulbagarden.net/wiki/Priority
     let priority: number = 0;
     switch (action.type) {
-        case 'use-move-action': {
+        case 'use-move-action': {    
             //we need some way to acess the move information from here?
             priority = GetTechniquePriority(player,action);
             break;
@@ -40,11 +40,6 @@ export function GetSpeedPriority(players:Array<Player>,actions:Array<BattleActio
             }
         }
         const activePokemon =  GetActivePokemon(player);
-
-
-        console.log("calculating active pokemon speeds");
-        console.log(activePokemon);
-
         return {
             action: act,
             speed:  activePokemon.status === Status.Paralyzed ? activePokemon.currentStats.speed /4 : activePokemon.currentStats.speed

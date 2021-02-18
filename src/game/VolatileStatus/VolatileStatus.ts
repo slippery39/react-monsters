@@ -2,11 +2,14 @@ import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { HasVolatileStatus, Pokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
-import _ from "lodash";
+import _, { shuffle } from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { BattleEventType } from "game/BattleEvents";
 import { DamageType, Technique } from "game/Techniques/Technique";
 import { TargetType } from "game/Effects/Effects";
+import { Player } from "game/Player/PlayerBuilder";
+import { GetTech } from "game/Techniques/PremadeTechniques";
+import { Actions, ForcedTechniqueAction } from "game/BattleActions";
 
 
 export enum VolatileStatusType {
@@ -16,7 +19,8 @@ export enum VolatileStatusType {
     Flinch = 'flinch',
     Roosted = 'roosted',
     Substitute = 'substitute',
-    Protection = 'protection'
+    Protection = 'protection',
+    Outraged="outraged"
 
 }
 
@@ -288,6 +292,34 @@ export class ConfusionVolatileStatus extends VolatileStatus {
 }
 
 
+export class OutragedVolatileStatus extends VolatileStatus{
+    type= VolatileStatusType.Outraged;
+
+    amountOfTurns:number = 3;
+
+    InflictedMessage(pokemon: Pokemon): string {        
+        return "";
+    }
+
+    OnApply(turn: Turn, pokemon:Pokemon){
+        this.amountOfTurns = shuffle([2,3])[0];
+    }
+
+    ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
+        //force an overwrite of whatever action might be in there.
+        const outrageTechnique = GetTech("outrage"); 
+
+        const forcedTechnique : ForcedTechniqueAction = {
+            playerId: player.id,
+            pokemonId:pokemon.id,
+            technique:outrageTechnique, 
+            type:Actions.ForcedTechnique
+        }
+        turn.SetInitialPlayerAction(forcedTechnique);
+    }
+}
+
+
 export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
     switch (type) {
         case VolatileStatusType.Confusion: {
@@ -310,6 +342,9 @@ export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
         }
         case VolatileStatusType.Protection: {
             return new ProtectionVolatileStatus();
+        }
+        case VolatileStatusType.Outraged:{
+            return new OutragedVolatileStatus();
         }
         default: {
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

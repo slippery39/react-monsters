@@ -1,5 +1,5 @@
-import _ from "lodash";
-import { GetActivePokemon } from "./HelperFunctions";
+import _, { initial } from "lodash";
+import { GetActivePokemon, GetPokemonOwner } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 import { GameState, OnNewTurnLogArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
@@ -85,13 +85,12 @@ class BattleGame {
         const firstTurn = new Turn(1, this.gameState);
         this.turnHistory.push(firstTurn);
         firstTurn.OnTurnFinished.on(() => {
-            console.warn('BATTLE GAME --> finishing first turn');
             this.NextTurn();
             this.OnNewTurn.emit({});
         })
         firstTurn.OnNewLogReady.on((args) => {
             this.OnNewLogReady.emit(args);
-        });       
+        });
 
     }
 
@@ -108,13 +107,24 @@ class BattleGame {
         }
         const turn = new Turn(this.turnHistory.length + 1, initialState);
         this.turnHistory.push(turn);
-        turn.OnTurnFinished.on(() => {
-            this.NextTurn();
-            this.OnNewTurn.emit({});
-        });
-        turn.OnNewLogReady.on((args) => {     
+     
+        turn.OnNewLogReady.on((args) => {
             this.OnNewLogReady.emit(args);
         });
+        turn.OnTurnFinished.on(() => {
+            this.NextTurn();           
+            this.OnNewTurn.emit({});
+        });
+
+        const pokemon1 = GetActivePokemon(initialState.players[0]);
+        const pokemon2 = GetActivePokemon(initialState.players[1]);
+
+        turn.GetAllBattleBehaviours(pokemon1).forEach(b => {
+            b.ForceAction(turn, GetPokemonOwner(initialState.players, pokemon1), pokemon1);
+         });
+         turn.GetAllBattleBehaviours(pokemon2).forEach(b => {
+            b.ForceAction(turn, GetPokemonOwner(initialState.players, pokemon2), pokemon2);
+         });
     }
 
     GetPlayers(): Array<Player> {
@@ -122,34 +132,34 @@ class BattleGame {
     }
 
     StartGame() {
-        
+
         const firstTurn = this.turnHistory[0];
         //Pokemon will enter the battle, and trigger any on entry ability effects
         const pokemon1 = GetActivePokemon(firstTurn.GetPlayers()[0]);
         const pokemon2 = GetActivePokemon(firstTurn.GetPlayers()[1]);
-        firstTurn.GetAllBattleBehaviours(pokemon1).forEach(b=>{
-            b.OnPokemonEntry(firstTurn,pokemon1)
+        firstTurn.GetAllBattleBehaviours(pokemon1).forEach(b => {
+            b.OnPokemonEntry(firstTurn, pokemon1)
         });
-        firstTurn.GetAllBattleBehaviours(pokemon2).forEach(b=>{
-            b.OnPokemonEntry(firstTurn,pokemon2);
+        firstTurn.GetAllBattleBehaviours(pokemon2).forEach(b => {
+            b.OnPokemonEntry(firstTurn, pokemon2);
         });
 
         //something like this to emit the turn logs...
 
         //todo, make this into a function on the turn class.
-        const newTurnLogArgs:OnNewTurnLogArgs = {
-            currentTurnLog:_.cloneDeep(firstTurn.GetEventLog()),
-            eventsSinceLastTime:_.cloneDeep(firstTurn.turnLogSinceLastAction),
-            newState:_.cloneDeep(this.GetPlayers()),
+        const newTurnLogArgs: OnNewTurnLogArgs = {
+            currentTurnLog: _.cloneDeep(firstTurn.GetEventLog()),
+            eventsSinceLastTime: _.cloneDeep(firstTurn.turnLogSinceLastAction),
+            newState: _.cloneDeep(this.GetPlayers()),
             winningPlayerId: firstTurn.currentState.winningPlayerId,
-            currentTurnState:firstTurn.currentState.type,
-            waitingForSwitchIds:firstTurn.switchPromptedPlayers.map(p=>p.id)
+            currentTurnState: firstTurn.currentState.type,
+            waitingForSwitchIds: firstTurn.switchPromptedPlayers.map(p => p.id)
         }
 
         firstTurn.turnLogSinceLastAction = []; //clear the cached events
 
         firstTurn.OnNewLogReady.emit(newTurnLogArgs);
-  
+
     }
 }
 

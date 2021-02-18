@@ -5,7 +5,7 @@ import {
     BattleEvent,
     StatusChangeEvent
 } from "./BattleEvents";
-import { SwitchPokemonAction, BattleAction } from "./BattleActions";
+import { SwitchPokemonAction, BattleAction, Actions } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { CalculateStatWithBoost, Pokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
@@ -44,9 +44,7 @@ enum TurnStep {
     End = 'end'
 }
 
-enum Actions {
-    UseMove = 'use-move-action'
-}
+
 
 interface State {
     type: TurnState,
@@ -108,6 +106,9 @@ export class Turn {
         const actionExistsForPlayer = this.initialActions.filter(act => act.playerId === action.playerId);
         if (actionExistsForPlayer.length === 0) {
             this.initialActions.push(action);
+        }
+        else{
+            return;
         }
         if (this.initialActions.length === 2) {
             this.currentState = {
@@ -260,6 +261,21 @@ export class Turn {
 
                 this.UseTechnique(pokemon, defendingPokemon, move);
                 break;
+            }
+            //When we need to force a player to do an action, like outrage / hyperbeam fatigue etc... 
+            case Actions.ForcedTechnique:{
+                const player  = this.GetPlayer(action.playerId);
+                const pokemon = this.GetPokemon(action.pokemonId);
+                const defendingPokemon = this.GetDefendingPokemon(player);
+                const move = action.technique;
+
+                if (move === undefined) {
+                    throw new Error('Could not find move to use in DoAction')
+                }
+
+                this.UseTechnique(pokemon, defendingPokemon, move);
+                break;
+            
             }
         }
     }
@@ -450,15 +466,23 @@ export class Turn {
             const currentPokemon2 = this.GetActivePokemon(secondAction.playerId);
 
 
-
             switch (startStep.current) {
                 case TurnStep.PreAction1: {
                     //don't need to check here because it should be fine.
                     //TODO: need to store some sort of value to see if the pokemon is able to attack or not.
-                    if (firstAction.type !== Actions.UseMove) {
+                    if (firstAction.type !==Actions.UseMove && firstAction.type!==Actions.ForcedTechnique) {
                         break;
                     }
-                    const currentTechnique = this.GetPokemon(firstAction.pokemonId).techniques.find(tech => tech.id === firstAction.moveId);
+
+                    let currentTechnique;
+
+                    if (firstAction.type === Actions.UseMove){
+                        currentTechnique = this.GetPokemon(firstAction.pokemonId).techniques.find(tech => tech.id === firstAction.moveId);
+                    }
+                    else{
+                        currentTechnique = firstAction.technique;
+                    }
+
                     if (currentTechnique === undefined) {
                         throw new Error(`Could not find technique`);
                     }
@@ -466,33 +490,33 @@ export class Turn {
                     break;
                 }
                 case TurnStep.Action1: {
-                    if (firstAction.type === Actions.UseMove && !currentPokemon1.canAttackThisTurn) {
+                    if ( (firstAction.type === Actions.UseMove || firstAction.type === Actions.ForcedTechnique) && !currentPokemon1.canAttackThisTurn) {
                         break;
                     }
-                    if (firstAction.type === Actions.UseMove && currentPokemon1.id !== firstAction.pokemonId) {
+                    if ( (firstAction.type === Actions.UseMove || firstAction.type === Actions.ForcedTechnique) && currentPokemon1.id !== firstAction.pokemonId) {
                         break;
                     }
                     this.DoAction(firstAction);
                     break;
                 }
                 case TurnStep.PostAction1: {
-                    //Currently nothing happens post action.... More or less a placeholder.
-                    if (firstAction.type !== Actions.UseMove) {
-                        break;
-                    }
-                    if (firstAction.type === Actions.UseMove && currentPokemon1.id !== firstAction.pokemonId) {
-                        break;
-                    }
                     break;
                 }
                 case TurnStep.PreAction2: {
-                    if (secondAction.type !== Actions.UseMove) {
+                    if (secondAction.type !== Actions.UseMove && secondAction.type!==Actions.ForcedTechnique) {
                         break;
                     }
                     if (secondAction.pokemonId !== currentPokemon2.id) {
                         break;
                     }
-                    const currentTechnique = this.GetPokemon(secondAction.pokemonId).techniques.find(tech => tech.id === secondAction.moveId);
+
+                    let currentTechnique;
+                    if (secondAction.type === Actions.UseMove){                        
+                         currentTechnique = this.GetPokemon(secondAction.pokemonId).techniques.find(tech => tech.id === secondAction.moveId);
+                    }
+                    else{
+                        currentTechnique = secondAction.technique;
+                    }
                     if (currentTechnique === undefined) {
                         throw new Error(`Could not find technique`);
                     }
@@ -502,10 +526,10 @@ export class Turn {
                     break;
                 }
                 case TurnStep.Action2: {
-                    if (secondAction.type === Actions.UseMove && !currentPokemon2.canAttackThisTurn) {
+                    if ( (secondAction.type === Actions.UseMove  ||  secondAction.type === Actions.ForcedTechnique) && !currentPokemon2.canAttackThisTurn) {
                         break;
                     }
-                    if (secondAction.type === 'use-move-action' && secondAction.pokemonId !== currentPokemon2.id) {
+                    if ( (secondAction.type === Actions.UseMove || secondAction.type === Actions.ForcedTechnique) && secondAction.pokemonId !== currentPokemon2.id) {
                         break;
                     }
 
@@ -514,10 +538,6 @@ export class Turn {
                     break;
                 }
                 case TurnStep.PostAction2: {
-                    //placeholder - we currently don't have any things to do post action.
-                    if (actionOrder[1].type !== Actions.UseMove) {
-                        break;
-                    }
                     break;
                 }
                 case TurnStep.BeforeEnd: {
@@ -539,7 +559,7 @@ export class Turn {
                 this.currentBattleStep = startStep.next;
             }
             else {
-                this.OnTurnFinished.emit({});
+                
             }
         }
         //loop has finished lets throw some events based on what has happened.
@@ -555,7 +575,6 @@ export class Turn {
                 currentTurnState: this.currentState.type,
                 waitingForSwitchIds: this.switchPromptedPlayers.map(p => p.id)
             }
-
             this.turnLogSinceLastAction = []; //clear the cached events
 
             this.OnNewLogReady.emit(newTurnLogArgs);
@@ -564,8 +583,6 @@ export class Turn {
             //this.OnSwitchNeeded.emit({});
         }
         else if (this.currentState.type === 'turn-finished') {
-
-            console.warn('emitting turn finshed event');
             const newTurnLogArgs: OnNewTurnLogArgs = {
                 currentTurnLog: _.cloneDeep(this.GetEventLog()),
                 eventsSinceLastTime: _.cloneDeep(this.turnLogSinceLastAction),
@@ -578,7 +595,7 @@ export class Turn {
             this.turnLogSinceLastAction = []; //clear the cached events
 
             this.OnNewLogReady.emit(newTurnLogArgs);
-            //this.OnTurnEnd.emit({});
+            this.OnTurnFinished.emit({});
         }
     }
 

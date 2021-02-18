@@ -1,3 +1,5 @@
+import { Technique } from "./Techniques/Technique";
+
 /*
 Battle Actions
 */
@@ -5,7 +7,7 @@ export interface UseMoveAction {
     playerId: number,
     pokemonId: number,
     moveId: number
-    type: 'use-move-action'
+    type: Actions.UseMove
 }
 
 export interface SwitchPokemonAction {
@@ -19,4 +21,18 @@ export interface UseItemAction {
     itemId: number
     type: 'use-item-action'
 }
-export type BattleAction = UseMoveAction | SwitchPokemonAction | UseItemAction
+
+export interface ForcedTechniqueAction{
+    playerId:number,
+    pokemonId:number,
+    technique:Technique,
+    type:Actions.ForcedTechnique
+}
+
+
+export enum Actions {
+    UseMove = 'use-move-action',
+    ForcedTechnique = 'forced-technique-action'
+}
+
+export type BattleAction = UseMoveAction | SwitchPokemonAction | UseItemAction | ForcedTechniqueAction
