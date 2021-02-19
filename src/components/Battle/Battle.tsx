@@ -457,13 +457,13 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
                 break;
             }
-            case BattleEventType.UseMove: {
+            case BattleEventType.UseTechnique: {
 
 
                 const pokemon = getPokemonById(effect.userId);
-                animateMessage(`${pokemon.name} used ${effect.moveName}`);
+                animateMessage(`${pokemon.name} used ${effect.techniqueName}`);
 
-                if (!effect.didMoveHit) {
+                if (!effect.didTechniqueHit) {
                     animateMessage('But it missed');
                     break;
 
@@ -544,7 +544,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             playerId: 1, //todo : get player id
             pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
             moveId: techniqueId,
-            type: Actions.UseMove
+            type: Actions.UseTechnique
         });
     }
     function SetSwitchAction(pokemonSwitchId: number) {

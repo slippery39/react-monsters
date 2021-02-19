@@ -1,7 +1,7 @@
 import { GetBaseDamage, GetDamageModifier } from './DamageFunctions';
 import { GetMoveOrder } from './BattleFunctions';
 import {
-    DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent, BattleEventType,
+    DamageEvent, FaintedPokemonEvent, HealEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent as UseTechniqueEvent, BattleEventType,
     BattleEvent,
     StatusChangeEvent
 } from "./BattleEvents";
@@ -248,18 +248,18 @@ export class Turn {
 
                 break;
             }
-            case Actions.UseMove: {
+            case Actions.UseTechnique: {
 
                 const player = this.GetPlayer(action.playerId);
                 const pokemon = this.GetPokemon(action.pokemonId);
                 const defendingPokemon = this.GetDefendingPokemon(player);
-                const move = pokemon.techniques.find(move => move.id === action.moveId);
+                const technique = pokemon.techniques.find(move => move.id === action.moveId);
 
-                if (move === undefined) {
+                if (technique === undefined) {
                     throw new Error('Could not find move to use in DoAction')
                 }
 
-                this.UseTechnique(pokemon, defendingPokemon, move);
+                this.UseTechnique(pokemon, defendingPokemon, technique);
                 break;
             }
             //When we need to force a player to do an action, like outrage / hyperbeam fatigue etc... 
@@ -267,13 +267,13 @@ export class Turn {
                 const player = this.GetPlayer(action.playerId);
                 const pokemon = this.GetPokemon(action.pokemonId);
                 const defendingPokemon = this.GetDefendingPokemon(player);
-                const move = action.technique;
+                const technique = action.technique;
 
-                if (move === undefined) {
+                if (technique === undefined) {
                     throw new Error('Could not find move to use in DoAction')
                 }
 
-                this.UseTechnique(pokemon, defendingPokemon, move);
+                this.UseTechnique(pokemon, defendingPokemon, technique);
                 break;
 
             }
@@ -420,11 +420,11 @@ export class Turn {
         const currentPokemon2 = this.GetActivePokemon(secondAction.playerId);
 
         const preActionStep = (action: BattleAction, currentPokemon: Pokemon) => {
-            if (action.type !== Actions.UseMove && action.type !== Actions.ForcedTechnique) {
+            if (action.type !== Actions.UseTechnique && action.type !== Actions.ForcedTechnique) {
                 return;
             }
             let currentTechnique;
-            if (action.type === Actions.UseMove) {
+            if (action.type === Actions.UseTechnique) {
                 currentTechnique = this.GetPokemon(action.pokemonId).techniques.find(tech => tech.id === action.moveId);
             }
             else {
@@ -437,10 +437,10 @@ export class Turn {
         }
 
         const actionStep = (action: BattleAction, currentPokemon: Pokemon) => {
-            if ((action.type === Actions.UseMove || action.type === Actions.ForcedTechnique) && !currentPokemon.canAttackThisTurn) {
+            if ((action.type === Actions.UseTechnique || action.type === Actions.ForcedTechnique) && !currentPokemon.canAttackThisTurn) {
                 return;
             }
-            if ((action.type === Actions.UseMove || action.type === Actions.ForcedTechnique) && currentPokemon.id !== action.pokemonId) {
+            if ((action.type === Actions.UseTechnique || action.type === Actions.ForcedTechnique) && currentPokemon.id !== action.pokemonId) {
                 return;
             }
             this.DoAction(action);
@@ -606,33 +606,37 @@ export class Turn {
 
     }
 
-    UseTechnique(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
-        const useMoveEffect: UseMoveEvent = {
-            type: BattleEventType.UseMove,
+    UseTechnique(pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique) {
+        const useTechniqueEffect: UseTechniqueEvent = {
+            type: BattleEventType.UseTechnique,
             userId: pokemon.id,
             targetId: defendingPokemon.id,
-            didMoveHit: true,
-            moveName: move.name,
+            didTechniqueHit: true,
+            techniqueName: technique.name,
         }
-        this.AddEvent(useMoveEffect);
+        this.AddEvent(useTechniqueEffect);
 
-        move.currentPP -= 1;
+        technique.currentPP -= 1;
 
         const ability = GetAbility(pokemon.ability);
-        move = ability.ModifyTechnique(pokemon, move);
+        technique = ability.ModifyTechnique(pokemon, technique);
 
         this.GetAllBattleBehaviours(pokemon).forEach(b => {
-            b.OnTechniqueUsed(this, pokemon, move);
+            b.OnTechniqueUsed(this, pokemon, technique);
         })
 
         let techniqueNegated = false;
         this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
             if (techniqueNegated === false) {
-                techniqueNegated = b.NegateTechnique(this, pokemon, defendingPokemon, move);
+                techniqueNegated = b.NegateTechnique(this, pokemon, defendingPokemon, technique);
             }
         });
 
         if (techniqueNegated) {
+            useTechniqueEffect.didTechniqueHit = false;
+            this.GetAllBattleBehaviours(pokemon).forEach(b=>{
+                b.OnTechniqueMissed(this,pokemon);
+            });
             return;
         }
 
@@ -641,43 +645,46 @@ export class Turn {
         if (pokemon.statBoosts[Stat.Accuracy] !== 0) {
             pokemonAccuracyModifier = Math.ceil(CalculateStatWithBoost(pokemon, Stat.Accuracy) / 100);
         }
-        if (!this.Roll(move.accuracy * pokemonAccuracyModifier)) {
-            useMoveEffect.didMoveHit = false;
+        if (!this.Roll(technique.accuracy * pokemonAccuracyModifier)) {
+            useTechniqueEffect.didTechniqueHit = false;
+            this.GetAllBattleBehaviours(pokemon).forEach(b=>{
+                b.OnTechniqueMissed(this,pokemon);
+            })
             return;
         }
 
-        if (move.damageType === 'physical' || move.damageType === 'special') {
+        if (technique.damageType === 'physical' || technique.damageType === 'special') {
 
             //Before damage effects
-            this.ApplyBeforeDamageEffects(move, pokemon, defendingPokemon);
+            this.ApplyBeforeDamageEffects(technique, pokemon, defendingPokemon);
 
-            let damage: number = this.DoDamageMove(pokemon, defendingPokemon, move);
+            let damage: number = this.DoDamageTechnique(pokemon, defendingPokemon, technique);
             if (damage > 0) {
-                this.ApplyMoveEffects(move, pokemon, defendingPokemon, damage);
+                this.ApplyTechniqueEffects(technique, pokemon, defendingPokemon, damage);
             }
         }
         else {
-            this.DoStatusMove(move, defendingPokemon, pokemon);
+            this.DoStatusTechnique(technique, defendingPokemon, pokemon);
         }
 
     }
 
-    private ApplyBeforeDamageEffects(move: Technique, pokemon: Pokemon, defendingPokemon: Pokemon) {
-        if (move.beforeExecuteEffect === undefined) {
+    private ApplyBeforeDamageEffects(technique: Technique, pokemon: Pokemon, defendingPokemon: Pokemon) {
+        if (technique.beforeExecuteEffect === undefined) {
             return;
         }
-        DoEffect(this, defendingPokemon, move.beforeExecuteEffect, { sourcePokemon: pokemon, sourceTechnique: move });
+        DoEffect(this, defendingPokemon, technique.beforeExecuteEffect, { sourcePokemon: pokemon, sourceTechnique: technique });
     }
 
-    private DoStatusMove(move: Technique, defendingPokemon: Pokemon, pokemon: Pokemon) {
-        this.ApplyMoveEffects(move, pokemon, defendingPokemon);
+    private DoStatusTechnique(technique: Technique, defendingPokemon: Pokemon, pokemon: Pokemon) {
+        this.ApplyTechniqueEffects(technique, pokemon, defendingPokemon);
     }
 
-    private ApplyMoveEffects(move: Technique, pokemon: Pokemon, defendingPokemon: Pokemon, moveDamage?: number): void {
-        if (!move.effects) {
+    private ApplyTechniqueEffects(technique: Technique, pokemon: Pokemon, defendingPokemon: Pokemon, techniqueDamage?: number): void {
+        if (!technique.effects) {
             return;
         }
-        move.effects.forEach((effect) => {
+        technique.effects.forEach((effect) => {
             const chance = effect.chance === undefined ? 100 : effect.chance;
             const targetType = effect.target === undefined ? TargetType.Enemy : effect.target;
             var targetPokemon = targetType === TargetType.Self ? pokemon : defendingPokemon;
@@ -689,28 +696,28 @@ export class Turn {
             }
 
             if (this.Roll(chance)) {
-                DoEffect(this, targetPokemon, effect, { sourcePokemon: pokemon, sourceTechnique: move, sourceDamage: moveDamage });
+                DoEffect(this, targetPokemon, effect, { sourcePokemon: pokemon, sourceTechnique: technique, sourceDamage: techniqueDamage });
             }
         });
     }
 
     //passing the damage dealt for now,
-    private DoDamageMove(pokemon: Pokemon, defendingPokemon: Pokemon, move: Technique): number {
+    private DoDamageTechnique(pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique): number {
 
-        if (move.damageEffect) {
-            const damageEffect = GetDamageEffect(move.damageEffect.type);
-            move = damageEffect.ModifyTechnique(pokemon, move, defendingPokemon);
+        if (technique.damageEffect) {
+            const damageEffect = GetDamageEffect(technique.damageEffect.type);
+            technique = damageEffect.ModifyTechnique(pokemon, technique, defendingPokemon);
         }
 
-        const baseDamage = GetBaseDamage(pokemon, defendingPokemon, move);
-        const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, move);
+        const baseDamage = GetBaseDamage(pokemon, defendingPokemon, technique);
+        const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, technique);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
 
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
         let newDamage = totalDamage;
 
         this.GetAllBattleBehaviours(pokemon).forEach(b => {
-            newDamage = b.OnAfterDamageCalculated(pokemon, move, defendingPokemon, newDamage, damageModifierInfo, this);
+            newDamage = b.OnAfterDamageCalculated(pokemon, technique, defendingPokemon, newDamage, damageModifierInfo, this);
         });
 
         //
@@ -719,7 +726,7 @@ export class Turn {
             if (damageNegated) {
                 return;
             }
-            if (b.NegateDamage(this, move, defendingPokemon)) {
+            if (b.NegateDamage(this, technique, defendingPokemon)) {
                 damageNegated = true;
             }
         });
@@ -728,18 +735,18 @@ export class Turn {
             return 0;
         }
 
-        if (move.damageEffect && damageModifierInfo.typeEffectivenessBonus !== 0) {
-            newDamage = GetDamageEffect(move.damageEffect.type).ModifyDamageDealt(pokemon, newDamage);
+        if (technique.damageEffect && damageModifierInfo.typeEffectivenessBonus !== 0) {
+            newDamage = GetDamageEffect(technique.damageEffect.type).ModifyDamageDealt(pokemon, newDamage);
         }
 
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
 
         this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
-            newDamage = b.ModifyDamageTaken(this, pokemon, defendingPokemon, move, newDamage);
+            newDamage = b.ModifyDamageTaken(this, pokemon, defendingPokemon, technique, newDamage);
         })
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
         this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
-            b.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, move, newDamage);
+            b.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, technique, newDamage);
         })
         return newDamage;
     }

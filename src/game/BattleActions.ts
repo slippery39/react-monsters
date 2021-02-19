@@ -7,7 +7,7 @@ export interface UseMoveAction {
     playerId: number,
     pokemonId: number,
     moveId: number
-    type: Actions.UseMove
+    type: Actions.UseTechnique
 }
 
 export interface SwitchPokemonAction {
@@ -31,7 +31,7 @@ export interface ForcedTechniqueAction{
 
 
 export enum Actions {
-    UseMove = 'use-move-action',
+    UseTechnique = 'use-move-action',
     ForcedTechnique = 'forced-technique-action'
 }
 

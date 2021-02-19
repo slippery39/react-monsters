@@ -66,7 +66,7 @@ class BasicAI implements AI {
 
             const moveId2 = shuffle(this.GetPlayerFromTurn().pokemon.find(p => p.id === this.GetPlayerFromTurn().currentPokemonId)?.techniques)[0].id || -1;
             const action: UseMoveAction = {
-                type: Actions.UseMove,
+                type: Actions.UseTechnique,
                 playerId: this.GetPlayerFromTurn().id,
                 pokemonId: this.GetPlayerFromTurn().currentPokemonId,
                 moveId: moveId2

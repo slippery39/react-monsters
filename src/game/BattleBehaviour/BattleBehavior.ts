@@ -34,6 +34,9 @@ abstract class BattleBehaviour{
     OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique) {
 
     }
+    OnTechniqueMissed(turn:Turn,pokemon:Pokemon){
+        
+    }
     NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique): boolean {
         return false;
     }

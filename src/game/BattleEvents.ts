@@ -14,7 +14,7 @@ export enum BattleEventType {
     UsedTechnique = 'used-technique',
     StatusChange = 'status-change',
     PokemonFainted = 'pokemon-fainted',
-    UseMove = 'use-move',
+    UseTechnique = 'use-move',
     SwitchIn = 'switch-in',
     SwitchOut = 'switch-out',
     MissedMove = 'missed-move',
@@ -80,11 +80,11 @@ export interface SwitchInEvent extends BaseBattleEvent {
 }
 
 export interface UseMoveEvent extends BaseBattleEvent {
-    type: BattleEventType.UseMove,
+    type: BattleEventType.UseTechnique,
     userId: number,
     targetId: number,
-    didMoveHit: Boolean,
-    moveName: string
+    didTechniqueHit: Boolean,
+    techniqueName: string
 }
 export interface HealEvent extends BaseBattleEvent {
     type: BattleEventType.Heal,
