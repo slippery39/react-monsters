@@ -6,7 +6,7 @@ import _, { shuffle } from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { BattleEventType } from "game/BattleEvents";
 import { DamageType, Technique } from "game/Techniques/Technique";
-import { TargetType } from "game/Effects/Effects";
+import { InflictVolatileStatus, TargetType } from "game/Effects/Effects";
 import { Player } from "game/Player/PlayerBuilder";
 import { GetTech } from "game/Techniques/PremadeTechniques";
 import { Actions, ForcedTechniqueAction } from "game/BattleActions";
@@ -294,8 +294,8 @@ export class ConfusionVolatileStatus extends VolatileStatus {
 
 export class OutragedVolatileStatus extends VolatileStatus{
     type= VolatileStatusType.Outraged;
-
     amountOfTurns:number = 3;
+    currentTurn:number = 1;
 
     InflictedMessage(pokemon: Pokemon): string {        
         return "";
@@ -303,6 +303,7 @@ export class OutragedVolatileStatus extends VolatileStatus{
 
     OnApply(turn: Turn, pokemon:Pokemon){
         this.amountOfTurns = shuffle([2,3])[0];
+        console.warn(`amount of turns is ${this.amountOfTurns}`);
     }
 
     ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
@@ -316,6 +317,28 @@ export class OutragedVolatileStatus extends VolatileStatus{
             type:Actions.ForcedTechnique
         }
         turn.SetInitialPlayerAction(forcedTechnique);
+    }
+
+    BeforeAttack(turn:Turn,pokemon:Pokemon){
+        if (pokemon.canAttackThisTurn === false){
+            this.Remove(turn,pokemon);
+            return;
+        }
+        turn.AddMessage(`${pokemon.name} is outraged!`);
+        this.currentTurn++
+    }
+
+    OnTechniqueMissed(turn:Turn,pokemon:Pokemon){
+        this.Remove(turn,pokemon);
+    }
+
+    EndOfTurn(turn:Turn, pokemon: Pokemon){
+        if (this.currentTurn>=this.amountOfTurns){
+            this.Remove(turn,pokemon);
+            turn.AddMessage(`${pokemon.name} is no longer outraged.`);
+            InflictVolatileStatus(turn, pokemon, VolatileStatusType.Confusion,pokemon);            
+        }
+        //Remove Outraged Status if Attack missed for whatever reason.
     }
 }
 

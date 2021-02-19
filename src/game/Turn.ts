@@ -356,7 +356,7 @@ export class Turn {
         }
     }
 
-    ApplyDamageToSubtitute(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number) {
+    ApplyDamageToSubstitute(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number) {
         const substitute = defendingPokemon.volatileStatuses.find(vStat => {
             return vStat.type === VolatileStatusType.Substitute
         }) as SubstituteVolatileStatus;
@@ -379,7 +379,7 @@ export class Turn {
         damage = Math.max(1, Math.round(damage));
 
         if (defendingPokemon.hasSubstitute) {
-            this.ApplyDamageToSubtitute(attackingPokemon, defendingPokemon, damage);
+            this.ApplyDamageToSubstitute(attackingPokemon, defendingPokemon, damage);
             return;
         }
 

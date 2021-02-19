@@ -81,7 +81,6 @@ function App() {
 
     let battleService = new BattleService(player1, player2);
     new BasicAI(player2, battleService);
-    new BasicAI(player1, battleService);
     battleService.Initialize();
     //battleService.Start();
    
