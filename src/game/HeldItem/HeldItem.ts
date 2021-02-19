@@ -1,7 +1,9 @@
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
+import { Status } from "game/HardStatus/HardStatus";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
+import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 
 export abstract class HeldItem extends BattleBehaviour{
     name:string =""
@@ -34,6 +36,34 @@ export class LifeOrbHeldItem extends HeldItem{
     }
 }
 
+export class LumBerryHeldItem extends HeldItem{
+    name:string = "Lum Berry";
+    description = "A Berry to be consumed by Pokémon. If a Pokémon holds one, it can recover from any status condition during battle."
+    
+    Update(turn:Turn, pokemon:Pokemon){
+
+        let hasCured:boolean = false;
+
+        if (pokemon.status!==Status.None){
+            pokemon.status = Status.None;
+            hasCured = true;
+        }
+        const confusions = pokemon.volatileStatuses.filter(vStat=>vStat.type === VolatileStatusType.Confusion);
+        if (confusions.length>0){
+            pokemon.volatileStatuses.forEach(vStat=>{
+                vStat.Remove(turn,pokemon);
+                hasCured=true;
+            });
+        }
+
+        if (hasCured){
+            turn.AddMessage(`${pokemon.name} has been cured of its status effects due to its Lum Berry!`);
+            pokemon.heldItem = new NoHeldItem();
+        }
+    }
+}
+
+
 
 //Empty held item.
 export class NoHeldItem extends HeldItem{
@@ -48,6 +78,9 @@ function GetHeldItem(name:string):HeldItem{
         }
         case "life orb":{
             return new LifeOrbHeldItem();
+        }
+        case "lum berry":{
+            return new LumBerryHeldItem();
         }
         case "none":{
             return new NoHeldItem();

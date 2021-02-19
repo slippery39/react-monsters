@@ -53,8 +53,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithCustomPokemon(testPokemon)
-      .WithPokemon("Alakazam")
+      .WithPokemon("Salamence")
       .WithPokemon("venusaur")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
@@ -67,12 +66,10 @@ function App() {
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithCustomPokemon(testPokemon2)
-      .WithPokemon("venusaur")
-      .WithPokemon("venusaur")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
       .WithPokemon("alakazam")
+      .WithCustomPokemon(testPokemon2)
       .WithItem("Potion", 1)
       .WithItem("Super Potion", 2)
       .WithItem("Hyper Potion", 3)

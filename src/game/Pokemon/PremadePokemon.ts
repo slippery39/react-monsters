@@ -410,7 +410,7 @@ const Milotic = function(){
     .Build();
 }
 
-/*
+
 const Salamence = function(){
     return PokemonBuilder()
     .OfSpecies("Salamence")
@@ -421,7 +421,7 @@ const Salamence = function(){
         "Dragon Dance",
         "Outrage",
         "Earthquake",
-        "Fireblast"
+        "Fire Blast"
     ])
     .WithEVs({
         attack:252,
@@ -430,7 +430,7 @@ const Salamence = function(){
     })
     .Build();
 }
-*/
+
 
 
 
@@ -459,6 +459,7 @@ const GetPokemon = function (name: string): Pokemon {
         Swampert(),
         Flygon(),
         Milotic(),
+        Salamence()
     ]
 
 

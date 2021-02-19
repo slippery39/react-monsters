@@ -93,9 +93,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         players: battleService.GetPlayers()
     }
 
- 
 
-   
+
+
 
     const reducer = function (state = initialState, action: Action): State {
 
@@ -232,8 +232,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     //our simple state machine for our events log.
 
-    //NEW: This should be called at the end of the turn log animation.
-    //this is only used once
+    //This is broken and does not go to the turn over on the last turn.
     const onEndOfTurnLog = useCallback(() => {
 
         if (turnInfo === undefined) {
@@ -242,7 +241,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         const turnLogCopy = turnInfo;
         setTurnInfo(undefined);
-
 
         if (turnInfo.currentTurnState === 'game-over') {
             setWinningPlayer(turnLogCopy.winningPlayerId);
@@ -292,7 +290,12 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const damageAnimationTime: number = 0.1;
         const defaultAnimationTime: number = 0.1;
 
+
+        const effect = battleEvents.current[0];
+
         const nextEvent = () => {
+
+            //update the state based on the current effect
             let tempEvents = _.cloneDeep(battleEvents.current);
             tempEvents.shift();
             battleEvents.current = tempEvents;
@@ -302,7 +305,22 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
         }
 
-        const timeLine = gsap.timeline({ paused: true, onComplete: () => { setRunningAnimations(false); nextEvent(); } });
+        const timeLine = gsap.timeline(
+            {
+                paused: true,
+                onComplete: () => {
+                    setRunningAnimations(false);
+
+                    if (effect.resultingState !== undefined) {
+                        dispatch({
+                            id: 0,
+                            type: 'state-change',
+                            newState: _.cloneDeep(effect.resultingState)
+                        })
+                    }
+                    nextEvent();
+                }
+            });
 
 
         //testing our animate message timeline function
@@ -313,7 +331,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
 
         //we need to delay these calls because the state needs to update per animation.
-        const effect = battleEvents.current[0];
+
 
         switch (effect.type) {
 
@@ -351,7 +369,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
 
             case BattleEventType.UseItem: {
-
                 const pokemon = getPokemonById(effect.targetPokemonId);
                 const owner = getPokemonAndOwner(state, pokemon.id).owner;
 

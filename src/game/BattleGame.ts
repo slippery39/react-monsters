@@ -147,18 +147,7 @@ class BattleGame {
         //something like this to emit the turn logs...
 
         //todo, make this into a function on the turn class.
-        const newTurnLogArgs: OnNewTurnLogArgs = {
-            currentTurnLog: _.cloneDeep(firstTurn.GetEventLog()),
-            eventsSinceLastTime: _.cloneDeep(firstTurn.turnLogSinceLastAction),
-            newState: _.cloneDeep(this.GetPlayers()),
-            winningPlayerId: firstTurn.currentState.winningPlayerId,
-            currentTurnState: firstTurn.currentState.type,
-            waitingForSwitchIds: firstTurn.switchPromptedPlayers.map(p => p.id)
-        }
-
-        firstTurn.turnLogSinceLastAction = []; //clear the cached events
-
-        firstTurn.OnNewLogReady.emit(newTurnLogArgs);
+        firstTurn.EmitNewTurnLog();
         this.OnNewTurn.emit({});
 
     }

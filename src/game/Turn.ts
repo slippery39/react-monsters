@@ -507,33 +507,26 @@ export class Turn {
 
         //Loop has finished, lets emit some events based on what has happened.
         if (this.currentState.type === 'awaiting-switch-action') {
-            const newTurnLogArgs: OnNewTurnLogArgs = {
-                currentTurnLog: _.cloneDeep(this.GetEventLog()),
-                eventsSinceLastTime: _.cloneDeep(this.turnLogSinceLastAction),
-                newState: _.cloneDeep(this.GetPlayers()),
-                winningPlayerId: this.currentState.winningPlayerId,
-                currentTurnState: this.currentState.type,
-                waitingForSwitchIds: this.switchPromptedPlayers.map(p => p.id)
-            }
-            this.turnLogSinceLastAction = []; //clear the cached events
-
-            this.OnNewLogReady.emit(newTurnLogArgs);
+            this.EmitNewTurnLog();
         }
         else if (this.currentState.type === 'turn-finished') {
-            const newTurnLogArgs: OnNewTurnLogArgs = {
-                currentTurnLog: _.cloneDeep(this.GetEventLog()),
-                eventsSinceLastTime: _.cloneDeep(this.turnLogSinceLastAction),
-                newState: _.cloneDeep(this.GetPlayers()),
-                winningPlayerId: this.currentState.winningPlayerId,
-                currentTurnState: this.currentState.type,
-                waitingForSwitchIds: this.switchPromptedPlayers.map(p => p.id)
-            }
-
-            this.turnLogSinceLastAction = []; //clear the cached events
-
-            this.OnNewLogReady.emit(newTurnLogArgs);
+            this.EmitNewTurnLog();
             this.OnTurnFinished.emit({});
         }
+    }
+
+     EmitNewTurnLog() {
+        const newTurnLogArgs: OnNewTurnLogArgs = {
+            currentTurnLog: _.cloneDeep(this.GetEventLog()),
+            eventsSinceLastTime: _.cloneDeep(this.turnLogSinceLastAction),
+            newState: _.cloneDeep(this.GetPlayers()),
+            winningPlayerId: this.currentState.winningPlayerId,
+            currentTurnState: this.currentState.type,
+            waitingForSwitchIds: this.switchPromptedPlayers.map(p => p.id)
+        };
+        this.turnLogSinceLastAction = []; //clear the cached events
+
+        this.OnNewLogReady.emit(newTurnLogArgs);
     }
 
     SwitchPokemon(player: Player, pokemonIn: Pokemon) {
@@ -773,6 +766,7 @@ export class Turn {
     }
     public AddEvent(effect: BattleEvent) {
         effect.id = this.nextEventId++;
+        effect.resultingState = _.cloneDeep(this.GetPlayers());
         this.eventLog.push(effect);
         this.turnLogSinceLastAction.push(effect);
     }
