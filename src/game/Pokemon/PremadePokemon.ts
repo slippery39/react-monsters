@@ -471,6 +471,26 @@ const Jolteon = function(){
     .Build();
 }
 
+const Dragonite = function(){
+    return PokemonBuilder()
+    .OfSpecies("Dragonite")
+    .WithHeldItem("Leftovers")
+    .WithNature(NatureType.Adamant)
+    .WithAbility("Multiscale")
+    .WithTechniques([
+        "Dragon Dance",
+        "Outrage",
+        "Fire Punch",
+        "Extreme Speed"
+    ])
+    .WithEVs({
+        attack:252,
+        spDefense:4,
+        speed:252
+    })
+    .Build();
+}
+
 
 
 
@@ -501,7 +521,8 @@ const GetPokemon = function (name: string): Pokemon {
         Milotic(),
         Salamence(),
         Vileplume(),
-        Jolteon()
+        Jolteon(),
+        Dragonite()
     ]
 
 

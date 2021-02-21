@@ -298,6 +298,20 @@ class VoltAbsorbAbility extends AbstractAbility{
     }
 }
 
+class MultiscaleAbility extends AbstractAbility{
+    name="Multiscale"
+    description='Reduces the amount of damage the Pokémon takes when its HP is full.'
+
+    ModifyDamageTaken(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
+        if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp){
+            return originalDamage/2;
+        }
+        else{
+            return originalDamage;
+        }
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -353,6 +367,9 @@ function GetAbility(name: String) {
         }
         case 'volt absorb':{
             return new VoltAbsorbAbility();
+        }
+        case 'multiscale':{
+            return new MultiscaleAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

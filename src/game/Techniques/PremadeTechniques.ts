@@ -28,6 +28,17 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Extreme Speed",
+            description:"The user charges the target at blinding speed. This attack always goes before any other move.",
+            pp:8,
+            power:80,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            elementalType:ElementType.Normal,
+            priority:2
+        },
+        {
             name: "Hidden Power Ice",
             description: "An attack that varies in type and intensity depending on the user.",
             pp: 24,

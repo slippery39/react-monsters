@@ -323,6 +323,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:130
             },
             weight:24.5
+        },
+        {
+            name:"Dragonite",
+            elementalTypes:[ElementType.Dragon,ElementType.Flying],
+            baseStats:{
+                hp:91,
+                attack:134,
+                defense:95,
+                spAttack:100,
+                spDefense:100,
+                speed:80
+            },
+            weight:210
         }
     ];
 
