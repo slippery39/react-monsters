@@ -345,21 +345,21 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     animObj.currentStats,
                     {
                         onStart: () => {
-                        //in case the pokemon has switched we need to reset the pokemon object to use.
-                        isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
-                    },
-                    delay: defaultDelayTime,
-                    hp: effect.targetFinalHealth,
-                    duration: healthAnimationTime,
-                    onUpdate: (val: any) => {
-                        dispatch({
-                            type: 'health-change',
-                            id: val.id,
-                            newHealth: val.currentStats.hp
-                        });
-                    },
-                    onUpdateParams: [animObj]
-                })
+                            //in case the pokemon has switched we need to reset the pokemon object to use.
+                            isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
+                        },
+                        delay: defaultDelayTime,
+                        hp: effect.targetFinalHealth,
+                        duration: healthAnimationTime,
+                        onUpdate: (val: any) => {
+                            dispatch({
+                                type: 'health-change',
+                                id: val.id,
+                                newHealth: val.currentStats.hp
+                            });
+                        },
+                        onUpdateParams: [animObj]
+                    })
                 break;
             }
 
@@ -469,8 +469,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 break;
             }
             case BattleEventType.UseTechnique: {
-
-
                 const pokemon = getPokemonById(effect.userId);
                 animateMessage(`${pokemon.name} used ${effect.techniqueName}`);
 
@@ -528,21 +526,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     },
                     onUpdateParams: [pokemonObj]
                 });
-                if (effect.didCritical) {
-                    animateMessage("It was a critical hit");
-                }
-                if (effect.effectivenessAmt > 1.0) {
-                    animateMessage("It was super effective");
-                }
-                else if (effect.effectivenessAmt < 1.0) {
-                    animateMessage("It wasn't very effective");
-                }
-                else if (effect.effectivenessAmt === 0){
-                    animateMessage("It had no effect!")
-                }
                 break;
             }
-
         }
         //add 1 second of padding.
         timeLine.set({}, {}, "+=0.1");

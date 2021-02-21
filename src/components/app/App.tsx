@@ -66,7 +66,7 @@ function App() {
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithPokemon("raichu")
+      .WithPokemon("charizard")
       .Build();
 
     let battleService = new BattleService(player1, player2);

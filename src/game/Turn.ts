@@ -25,13 +25,10 @@ import { TypedEvent } from './TypedEvent/TypedEvent';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
-
-
-export interface GameState {
+export interface Field {
     players: Array<Player>,
     entryHazards?: Array<EntryHazard>
 }
-
 
 enum TurnStep {
     PreAction1 = 'pre-action-1',
@@ -43,8 +40,6 @@ enum TurnStep {
     BeforeEnd = 'before-end',
     End = 'end'
 }
-
-
 
 interface State {
     type: TurnState,
@@ -61,21 +56,23 @@ export interface OnNewTurnLogArgs {
     winningPlayerId?: number | undefined
 }
 
-
 export class Turn {
     id: Number;
-    currentGameState: GameState;
+    currentGameState: Field;
 
     eventLog: Array<BattleEvent> = [];
+    //Events that have occured since the last time it was calculated. (In case the turn stops calculating half way through due to a switch needed)
+    eventLogSinceLastAction: Array<BattleEvent> = [];
     nextEventId: number = 1; //next id for when we have a new event.
+
     initialActions: Array<BattleAction> = [];
-    //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
-    switchPromptedPlayers: Array<Player> = [];
     //Cached move order
     private _moveOrder: Array<BattleAction> = [];
 
-    //Stores the fainted pokemon actions if 
-    private _switchFaintedActions: Array<SwitchPokemonAction> = [];
+    //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
+    playersWhoNeedToSwitch: Array<Player> = [];
+    //Stores the fainted pokemon actions if a player needs to switch thier pokemon.
+    private _switchNeededActions: Array<SwitchPokemonAction> = [];
 
     //Turn State Variables
     currentBattleStep = TurnStep.PreAction1;
@@ -84,11 +81,7 @@ export class Turn {
     OnTurnFinished = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
 
-
-    //turn log since our last action.
-    turnLogSinceLastAction: Array<BattleEvent> = [];
-
-    constructor(turnId: Number, initialState: GameState) {
+    constructor(turnId: Number, initialState: Field) {
         this.id = turnId;
         if (initialState.entryHazards === undefined) {
             initialState.entryHazards = [];
@@ -97,7 +90,8 @@ export class Turn {
         GetActivePokemon(this.currentGameState.players[0]).canAttackThisTurn = true;
         GetActivePokemon(this.currentGameState.players[1]).canAttackThisTurn = true;
     }
-    //NEW: Returning a flattened turn log instead
+
+
     GetEventLog(): Array<BattleEvent> {
         return this.eventLog;
     }
@@ -117,8 +111,6 @@ export class Turn {
             this.CalculateTurn();
         }
     }
-    //Special Action for when a pokemon faints in the middle of the turn.
-
 
     Update() {
         const pokemon1 = GetActivePokemon(this.GetPlayers()[0]);
@@ -128,27 +120,26 @@ export class Turn {
     }
 
     SetSwitchPromptAction(action: SwitchPokemonAction) {
-        if (this.switchPromptedPlayers.filter(p => p.id === action.playerId).length === 0) {
+        if (this.playersWhoNeedToSwitch.filter(p => p.id === action.playerId).length === 0) {
             throw new Error("Invalid command in SetSwitchFaintedPokemonAction, this player should not be switching a fainted pokemon");
         }
 
-        //TODO - we need a check to make sure the same player cannot add 2 actions
-        if (this._switchFaintedActions.filter((act) => {
+        if (this._switchNeededActions.filter((act) => {
             return act.playerId === action.playerId
         }).length > 0) {
             throw new Error(`Player tried to submit 2 switch fainted pokemon actions: id : ${action.playerId}`);
         }
-        this._switchFaintedActions.push(action);
+        this._switchNeededActions.push(action);
 
-        const player = this.switchPromptedPlayers.find(p => p.id === action.playerId);
+        const player = this.playersWhoNeedToSwitch.find(p => p.id === action.playerId);
         if (player === undefined) {
             throw new Error('could not find player');
         }
-        const index = this.switchPromptedPlayers.indexOf(player);
-        this.switchPromptedPlayers.splice(index, 1);
+        const index = this.playersWhoNeedToSwitch.indexOf(player);
+        this.playersWhoNeedToSwitch.splice(index, 1);
 
-        if (this.switchPromptedPlayers.length === 0) {
-            this._switchFaintedActions.forEach(act => {
+        if (this.playersWhoNeedToSwitch.length === 0) {
+            this._switchNeededActions.forEach(act => {
                 const player = this.GetPlayer(act.playerId);
                 const pokemon = this.GetPokemon(act.switchPokemonId);
                 this.SwitchPokemon(player, pokemon);
@@ -161,6 +152,8 @@ export class Turn {
             this.CalculateTurn();
         }
     }
+
+    //Adds a message that will be displayed in the UI.
     AddMessage(message: string) {
         this.AddEvent({
             type: BattleEventType.GenericMessage,
@@ -288,7 +281,7 @@ export class Turn {
     PromptForSwitch(pokemon: Pokemon) {
         const owner = this.GetPokemonOwner(pokemon);
         //TODO - This needs to be a prompt now, not just for fainted pokemon.
-        this.switchPromptedPlayers.push(owner);
+        this.playersWhoNeedToSwitch.push(owner);
         this.currentState = { type: 'awaiting-switch-action' }
     }
 
@@ -393,10 +386,25 @@ export class Turn {
             targetFinalHealth: defendingPokemon.currentStats.hp,
             targetDamageTaken: damage,
             didCritical: damageInfo.critStrike === undefined ? false : damageInfo.critStrike,
-            effectivenessAmt: damageInfo.typeEffectivenessBonus === undefined ? 1 : damageInfo.typeEffectivenessBonus
+            effectivenessAmt: damageInfo.typeEffectivenessBonus === undefined ? 1 : damageInfo.typeEffectivenessBonus,
         };
 
         this.AddEvent(damageEffect);
+
+        //Our messages would go here instead;
+
+        if (damageEffect.didCritical) {
+            this.AddMessage("It was a critical hit");
+        }
+        if (damageEffect.effectivenessAmt > 1.0) {
+            this.AddMessage("It was super effective");
+        }
+        else if (damageEffect.effectivenessAmt < 1.0) {
+            this.AddMessage("It wasn't very effective");
+        }
+        else if (damageEffect.effectivenessAmt === 0){
+            this.AddMessage("It had no effect!")
+        }
 
         this.GetAllBattleBehaviours(attackingPokemon).forEach(bBehaviour => {
             bBehaviour.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
@@ -450,43 +458,43 @@ export class Turn {
             {
                 current: TurnStep.PreAction1,
                 next: TurnStep.Action1,
-                func:()=>preActionStep(firstAction,currentPokemon1)
+                func: () => preActionStep(firstAction, currentPokemon1)
             },
             {
                 current: TurnStep.Action1,
                 next: TurnStep.PostAction1,
-                func:()=>actionStep(firstAction,currentPokemon1)
+                func: () => actionStep(firstAction, currentPokemon1)
             },
             {
                 current: TurnStep.PostAction1,
                 next: TurnStep.PreAction2,
-                func:()=>{}
-                
+                func: () => { }
+
             },
             {
                 current: TurnStep.PreAction2,
                 next: TurnStep.Action2,
-                func:()=>preActionStep(secondAction,currentPokemon2)
+                func: () => preActionStep(secondAction, currentPokemon2)
             },
             {
                 current: TurnStep.Action2,
                 next: TurnStep.PostAction2,
-                func:()=>actionStep(secondAction,currentPokemon2)
+                func: () => actionStep(secondAction, currentPokemon2)
             },
             {
                 current: TurnStep.PostAction2,
                 next: TurnStep.BeforeEnd,
-                func:()=>{}
+                func: () => { }
             },
             {
                 current: TurnStep.BeforeEnd,
                 next: TurnStep.End,
-                func:()=>{this.BeforeEndOfTurn()}
+                func: () => { this.BeforeEndOfTurn() }
             },
             {
                 current: TurnStep.End,
                 next: undefined,
-                func:()=>{this.EndTurn()}
+                func: () => { this.EndTurn() }
             }
         ];
 
@@ -511,16 +519,16 @@ export class Turn {
         }
     }
 
-     EmitNewTurnLog() {
+    EmitNewTurnLog() {
         const newTurnLogArgs: OnNewTurnLogArgs = {
             currentTurnLog: _.cloneDeep(this.GetEventLog()),
-            eventsSinceLastTime: _.cloneDeep(this.turnLogSinceLastAction),
+            eventsSinceLastTime: _.cloneDeep(this.eventLogSinceLastAction),
             newState: _.cloneDeep(this.GetPlayers()),
             winningPlayerId: this.currentState.winningPlayerId,
             currentTurnState: this.currentState.type,
-            waitingForSwitchIds: this.switchPromptedPlayers.map(p => p.id)
+            waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id)
         };
-        this.turnLogSinceLastAction = []; //clear the cached events
+        this.eventLogSinceLastAction = []; //clear the cached events
 
         this.OnNewLogReady.emit(newTurnLogArgs);
     }
@@ -623,8 +631,8 @@ export class Turn {
 
         if (techniqueNegated) {
             useTechniqueEffect.didTechniqueHit = false;
-            this.GetAllBattleBehaviours(pokemon).forEach(b=>{
-                b.OnTechniqueMissed(this,pokemon);
+            this.GetAllBattleBehaviours(pokemon).forEach(b => {
+                b.OnTechniqueMissed(this, pokemon);
             });
             return;
         }
@@ -636,8 +644,8 @@ export class Turn {
         }
         if (!this.Roll(technique.accuracy * pokemonAccuracyModifier)) {
             useTechniqueEffect.didTechniqueHit = false;
-            this.GetAllBattleBehaviours(pokemon).forEach(b=>{
-                b.OnTechniqueMissed(this,pokemon);
+            this.GetAllBattleBehaviours(pokemon).forEach(b => {
+                b.OnTechniqueMissed(this, pokemon);
             })
             return;
         }
@@ -764,7 +772,7 @@ export class Turn {
         effect.id = this.nextEventId++;
         effect.resultingState = _.cloneDeep(this.GetPlayers());
         this.eventLog.push(effect);
-        this.turnLogSinceLastAction.push(effect);
+        this.eventLogSinceLastAction.push(effect);
     }
 
     private GetDefendingPokemon(attackingPlayer: Player): Pokemon {
