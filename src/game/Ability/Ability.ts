@@ -283,6 +283,21 @@ class EffectSporeAbility extends AbstractAbility {
     }
 }
 
+class VoltAbsorbAbility extends AbstractAbility{
+    name="Volt Absorb"
+    description="Restores HP if hit by an Electric-type move, instead of taking damage."
+
+    NegateDamage(turn: Turn, move: Technique, pokemon: Pokemon): boolean {
+        if (move.elementalType === ElementType.Electric) {
+            //no damage taken, maybe write a message
+            turn.AddMessage(`It had no effect due to the pokemon's Volt Absorb Ability!`);
+            turn.AddMessage(`${pokemon.name} regained a bit of health due to Volt Absorb!`);
+            return true;
+        }
+        return false;
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -335,6 +350,9 @@ function GetAbility(name: String) {
         }
         case 'effect spore':{
             return new EffectSporeAbility();
+        }
+        case 'volt absorb':{
+            return new VoltAbsorbAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

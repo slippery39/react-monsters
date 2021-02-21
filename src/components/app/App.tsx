@@ -31,29 +31,25 @@ function App() {
   function initializeBattle() {
 
     //MISSINGNO!
-    const testPokemon = PokemonBuilder().OfSpecies("Missingno").WithTechniques([
-      "Outrage",
-      "Fire Blast"
+    const testPokemon = PokemonBuilder().GetPremadePokemon("Jolteon").WithTechniques([
+      "Thunderbolt",
     ])
-      .WithAbility("Magic Guard")
-      .WithHeldItem("Life Orb")
-      .Build();
+   .Build();
 
       //testPokemon.currentStats.hp = 1;
 
 
-    const testPokemon2 = PokemonBuilder().OfSpecies("missingno").WithTechniques([
-      "Stealth Rock"
+    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Jolteon").WithTechniques([
+      "Thunderbolt"
     ])
-      .OfElementalTypes([ElementType.Normal])
-      .WithAbility("Intimidate")
-      .WithHeldItem("Life Orb")
-      .Build();
+   .Build();
 
+    
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("vileplume")
+      .WithCustomPokemon(testPokemon)
+      .WithPokemon("jolteon")
       .WithPokemon("venusaur")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
@@ -66,6 +62,7 @@ function App() {
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
+      .WithCustomPokemon(testPokemon2)
       .WithPokemon("charizard")
       .Build();
 

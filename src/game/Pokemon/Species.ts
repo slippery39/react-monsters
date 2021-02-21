@@ -310,6 +310,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:50
             },
             weight:18.6
+        },
+        {
+            name:"Jolteon",
+            elementalTypes:[ElementType.Electric],
+            baseStats:{
+                hp:65,
+                attack:65,
+                defense:60,
+                spAttack:110,
+                spDefense:95,
+                speed:130
+            },
+            weight:24.5
         }
     ];
 

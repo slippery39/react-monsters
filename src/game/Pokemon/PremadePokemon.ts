@@ -451,6 +451,26 @@ const Vileplume = function(){
     .Build();
 }
 
+const Jolteon = function(){
+    return PokemonBuilder()
+    .OfSpecies("Jolteon")
+    .WithAbility("Volt Absorb")
+    .WithHeldItem("Life Orb")
+    .WithNature(NatureType.Timid)
+    .WithTechniques([
+        "Thunderbolt",
+        "Volt Switch",
+        "Signal Beam",
+        "Hidden Power Ice"
+    ])
+    .WithEVs({
+        defense:4,
+        spAttack:252,
+        speed:252
+    })
+    .Build();
+}
+
 
 
 
@@ -480,7 +500,8 @@ const GetPokemon = function (name: string): Pokemon {
         Flygon(),
         Milotic(),
         Salamence(),
-        Vileplume()
+        Vileplume(),
+        Jolteon()
     ]
 
 

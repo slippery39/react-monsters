@@ -28,51 +28,75 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
-            name:"Moonlight",
-            description:"Restores the user's HP. The amount of HP regained varies with the weather.",
-            pp:16,
-            elementalType:ElementType.Fairy,
-            damageType:DamageType.Status,
-            power:0,
-            effects:[
+            name: "Hidden Power Ice",
+            description: "An attack that varies in type and intensity depending on the user.",
+            pp: 24,
+            power: 60,
+            accuracy: 100,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Ice,
+        },
+        {
+            name: "Signal Beam",
+            description: "The user attacks with a sinister beam of light. This may also confuse the target.",
+            pp: 16,
+            elementalType: ElementType.Bug,
+            damageType: DamageType.Special,
+            power: 75,
+            effects: [{
+                type: EffectType.InflictVolatileStatus,
+                chance: 10,
+                status: VolatileStatusType.Confusion,
+                target:TargetType.Enemy
+            }
+            ]
+        },
+        {
+            name: "Moonlight",
+            description: "Restores the user's HP. The amount of HP regained varies with the weather.",
+            pp: 16,
+            elementalType: ElementType.Fairy,
+            damageType: DamageType.Status,
+            power: 0,
+            effects: [
                 {
-                    type:EffectType.HealthRestore,
-                    amount:50,
-                    target:TargetType.Self,
-                    restoreType:HealthRestoreType.PercentMaxHealth
+                    type: EffectType.HealthRestore,
+                    amount: 50,
+                    target: TargetType.Self,
+                    restoreType: HealthRestoreType.PercentMaxHealth
                 }
             ]
         },
         {
-            name:"Sludge Bomb",
-            description:"Unsanitary sludge is hurled at the target. It may also poison the target.",
-            pp:16,
-            elementalType:ElementType.Poison,
-            damageType:DamageType.Special,
-            power:90,
-            effects:[
+            name: "Sludge Bomb",
+            description: "Unsanitary sludge is hurled at the target. It may also poison the target.",
+            pp: 16,
+            elementalType: ElementType.Poison,
+            damageType: DamageType.Special,
+            power: 90,
+            effects: [
                 {
-                    type:EffectType.InflictStatus,
-                    status:Status.Poison,
-                    chance:30,
-                    target:TargetType.Enemy
+                    type: EffectType.InflictStatus,
+                    status: Status.Poison,
+                    chance: 30,
+                    target: TargetType.Enemy
                 }
             ]
         },
         {
-            name:"Outrage",
-            description:"The user rampages and attacks for two to three turns. The user then becomes confused.",
-            pp:16,
-            power:120,
-            elementalType:ElementType.Dragon,
-            makesContact:true,
-            damageType:DamageType.Physical,
-            effects:[
+            name: "Outrage",
+            description: "The user rampages and attacks for two to three turns. The user then becomes confused.",
+            pp: 16,
+            power: 120,
+            elementalType: ElementType.Dragon,
+            makesContact: true,
+            damageType: DamageType.Physical,
+            effects: [
                 {
-                    type:EffectType.InflictVolatileStatus,
-                    status:VolatileStatusType.Outraged,
-                    target:TargetType.Self,
-                    chance:100
+                    type: EffectType.InflictVolatileStatus,
+                    status: VolatileStatusType.Outraged,
+                    target: TargetType.Self,
+                    chance: 100
                 }
             ]
         },
