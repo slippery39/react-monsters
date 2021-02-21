@@ -262,10 +262,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     }, [turnInfo]);
 
-
-
-
-
     /* eslint-disable */
     useEffect(() => {
         if (turnInfo === undefined || menuState !== MenuState.ShowingTurn || battleEvents.current.length == 0) {
@@ -289,7 +285,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const attackAnimationTime: number = 0.1;
         const damageAnimationTime: number = 0.1;
         const defaultAnimationTime: number = 0.1;
-
 
         const effect = battleEvents.current[0];
 
@@ -347,9 +342,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 let animObj;
                 isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
                 timeLine.to(
-
-                    animObj.currentStats, {
-                    onStart: () => {
+                    animObj.currentStats,
+                    {
+                        onStart: () => {
                         //in case the pokemon has switched we need to reset the pokemon object to use.
                         isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
                     },
@@ -384,7 +379,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 timeLine.fromTo(potionNode, { opacity: 0 }, { delay: defaultDelayTime, opacity: 1, top: "-=100", duration: defaultAnimationTime, immediateRender: false, clearProps: "opacity,top" });
 
                 break;
-
             }
             case BattleEventType.PokemonFainted: {
                 const pokemon = getPokemonById(effect.targetPokemonId);
@@ -540,8 +534,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 if (effect.effectivenessAmt > 1.0) {
                     animateMessage("It was super effective");
                 }
-                if (effect.effectivenessAmt < 1.0) {
+                else if (effect.effectivenessAmt < 1.0) {
                     animateMessage("It wasn't very effective");
+                }
+                else if (effect.effectivenessAmt === 0){
+                    animateMessage("It had no effect!")
                 }
                 break;
             }

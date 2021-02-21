@@ -66,14 +66,7 @@ function App() {
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithPokemon("blastoise")
       .WithPokemon("raichu")
-      .WithPokemon("alakazam")
-      .WithCustomPokemon(testPokemon2)
-      .WithItem("Potion", 1)
-      .WithItem("Super Potion", 2)
-      .WithItem("Hyper Potion", 3)
-      .WithItem("Max Potion", 1)
       .Build();
 
     let battleService = new BattleService(player1, player2);

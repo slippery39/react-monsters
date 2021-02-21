@@ -505,12 +505,8 @@ export class Turn {
             }
         }
 
-        //Loop has finished, lets emit some events based on what has happened.
-        if (this.currentState.type === 'awaiting-switch-action') {
-            this.EmitNewTurnLog();
-        }
-        else if (this.currentState.type === 'turn-finished') {
-            this.EmitNewTurnLog();
+        this.EmitNewTurnLog();
+        if (this.currentState.type === 'turn-finished') {
             this.OnTurnFinished.emit({});
         }
     }
