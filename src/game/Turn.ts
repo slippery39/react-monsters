@@ -105,6 +105,8 @@ export class Turn {
             return;
         }
         if (this.initialActions.length === 2) {
+            console.log("calculating turns!");
+            console.log(this.initialActions);
             this.currentState = {
                 type: 'calculating-turn'
             }
@@ -520,6 +522,8 @@ export class Turn {
     }
 
     EmitNewTurnLog() {
+
+        console.log("emitting a new turn log from turn");
         const newTurnLogArgs: OnNewTurnLogArgs = {
             currentTurnLog: _.cloneDeep(this.GetEventLog()),
             eventsSinceLastTime: _.cloneDeep(this.eventLogSinceLastAction),

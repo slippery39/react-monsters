@@ -297,9 +297,20 @@ export function GetSpecies(name: string): ISpecies {
                 speed:100
             },
             weight:102.6
+        },
+        {
+            name:"Vileplume",
+            elementalTypes:[ElementType.Grass,ElementType.Poison],
+            baseStats:{
+                hp:75,
+                attack:80,
+                defense:85,
+                spAttack:110,
+                spDefense:90,
+                speed:50
+            },
+            weight:18.6
         }
-
-
     ];
 
 

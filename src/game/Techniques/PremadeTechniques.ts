@@ -28,6 +28,38 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Moonlight",
+            description:"Restores the user's HP. The amount of HP regained varies with the weather.",
+            pp:16,
+            elementalType:ElementType.Fairy,
+            damageType:DamageType.Status,
+            power:0,
+            effects:[
+                {
+                    type:EffectType.HealthRestore,
+                    amount:50,
+                    target:TargetType.Self,
+                    restoreType:HealthRestoreType.PercentMaxHealth
+                }
+            ]
+        },
+        {
+            name:"Sludge Bomb",
+            description:"Unsanitary sludge is hurled at the target. It may also poison the target.",
+            pp:16,
+            elementalType:ElementType.Poison,
+            damageType:DamageType.Special,
+            power:90,
+            effects:[
+                {
+                    type:EffectType.InflictStatus,
+                    status:Status.Poison,
+                    chance:30,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
+        {
             name:"Outrage",
             description:"The user rampages and attacks for two to three turns. The user then becomes confused.",
             pp:16,

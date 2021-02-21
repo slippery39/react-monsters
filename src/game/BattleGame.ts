@@ -109,6 +109,7 @@ class BattleGame {
         this.turnHistory.push(turn);
      
         turn.OnNewLogReady.on((args) => {
+            console.log("new log ready from battle game");
             this.OnNewLogReady.emit(args);
         });
         turn.OnTurnFinished.on(() => {
@@ -147,7 +148,9 @@ class BattleGame {
         //something like this to emit the turn logs...
 
         //todo, make this into a function on the turn class.
-        firstTurn.EmitNewTurnLog();
+        if (firstTurn.eventLogSinceLastAction.length>0){
+            firstTurn.EmitNewTurnLog();
+        }
         this.OnNewTurn.emit({});
 
     }

@@ -7,7 +7,7 @@ import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
-import _ from "lodash";
+import _, { shuffle } from "lodash";
 
 
 
@@ -267,6 +267,22 @@ class MagicGuardAbility extends AbstractAbility{
     }
 }
 
+class EffectSporeAbility extends AbstractAbility {
+    name = "Effect Spore"
+    description = "Contact with the Pokémon may inflict poison, sleep, or paralysis on its attacker."
+
+    OnDamageTakenFromTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+        if (move.makesContact) {
+            const shouldInflictStatus = turn.Roll(30);
+            if (shouldInflictStatus) {
+                const statusToInflict = shuffle([Status.Poison,Status.Sleep,Status.Paralyzed])[0];    
+                turn.AddMessage(`${defendingPokemon.name} has released spores from contact!`);               
+                InflictStatus(turn,attackingPokemon,statusToInflict,defendingPokemon);                           
+            }
+        }
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -316,6 +332,9 @@ function GetAbility(name: String) {
         }
         case 'magic guard':{
             return new MagicGuardAbility();
+        }
+        case 'effect spore':{
+            return new EffectSporeAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

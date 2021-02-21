@@ -431,6 +431,26 @@ const Salamence = function(){
     .Build();
 }
 
+const Vileplume = function(){
+    return PokemonBuilder()
+    .OfSpecies("Vileplume")
+    .WithAbility("Effect Spore")
+    .WithHeldItem("Black Sludge")
+    .WithNature(NatureType.Bold)
+    .WithTechniques([
+        "Aromatherapy",
+        "Giga Drain",
+        "Sludge Bomb",
+        "Moonlight"
+    ])
+    .WithEVs({
+        hp:252,
+        defense:252,
+        spDefense:4
+    })
+    .Build();
+}
+
 
 
 
@@ -459,7 +479,8 @@ const GetPokemon = function (name: string): Pokemon {
         Swampert(),
         Flygon(),
         Milotic(),
-        Salamence()
+        Salamence(),
+        Vileplume()
     ]
 
 

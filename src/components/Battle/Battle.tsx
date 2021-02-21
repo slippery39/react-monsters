@@ -35,7 +35,7 @@ gsap.registerPlugin(CSSPlugin);
 
 enum MenuState {
     None = 'none',
-    MainMenu = 'main=menu',
+    MainMenu = 'main-menu',
     AttackMenu = 'attack-menu',
     ItemMenu = 'item-menu',
     SwitchMenu = 'switch-menu',
@@ -201,7 +201,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         battleService.Start();
     }, []);
     /* eslint-enable */
-
 
     function isAllyPokemon(id: number): boolean {
         return state.field.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
