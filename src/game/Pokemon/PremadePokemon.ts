@@ -1,540 +1,521 @@
 import { NatureType } from "game/Natures/Natures";
-import { Pokemon, PokemonBuilder } from "./Pokemon";
+import { PartialStats, Pokemon, PokemonBuilder } from "./Pokemon";
 
-const Charizard = function () {
-    return PokemonBuilder()
-        .OfSpecies("Charizard")
-        .WithEVs({
+interface PremadePokemon {
+    species: string,
+    evs: PartialStats,
+    techniques: Array<string>,
+    nature: NatureType,
+    ability: string,
+    heldItem: string
+}
+
+const premades: Array<PremadePokemon> = [
+
+    {
+
+        species: "Charizard",
+        evs: {
             defense: 4,
             spAttack: 252,
             speed: 252
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Fire Blast",
             "Air Slash",
             "Focus Blast",
-            "Earthquake"
-        ])
-        .WithNature(NatureType.Timid)
-        .WithHeldItem("Leftovers") //.WithHeldItem("Life Orb")
-        .WithAbility("Blaze")
-        .Build();
-}
+            "Earthquake",
+        ],
+        nature: NatureType.Timid,
+        heldItem: "Leftovers", //heldItem:"Life Orb"
+        ability: "Blaze",
 
-const Blastoise = function () {
-    return PokemonBuilder()
-        .OfSpecies("Blastoise")
-        .WithEVs({
+    },
+
+    {
+
+        species: "Blastoise",
+        evs: {
             hp: 252,
             defense: 252,
             spAttack: 4,
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Surf",
             "Ice Beam",
             "Rest",
             "Toxic"
-        ])
-        .WithNature(NatureType.Bold)
-        .WithHeldItem("Leftovers")
-        .WithAbility("Torrent")
-        .Build();
-}
+        ],
+        nature: NatureType.Bold,
+        heldItem: "Leftovers",
+        ability: "Torrent"
 
-const Venusaur = function () {
-    return PokemonBuilder()
-        .OfSpecies("Venusaur")
-        .WithEVs({
+    },
+
+    {
+        species: "Venusaur",
+        evs: {
             hp: 4,
             attack: 252,
             speed: 252
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Swords Dance",
             "Power Whip",
             "Earthquake",
             "Sleep Powder"
-        ])
-        .WithHeldItem("Life Orb")
-        .WithAbility("Overgrow")
-        .Build();
-};
+        ],
+        heldItem: "Life Orb",
+        ability: "Overgrow",
+        nature: NatureType.Calm //TODO - update this.
+    },
 
 
-const Raichu = function () {
-    return PokemonBuilder()
-        .OfSpecies("Raichu")
-        .WithEVs({
+    {
+
+        species: "Raichu",
+        evs: {
             spDefense: 4,
             spAttack: 252,
             speed: 252
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Thunderbolt",
             "Surf",
             "Nasty Plot",
             "Focus Blast"
-        ])
-        .WithNature(NatureType.Timid)
-        .WithHeldItem("Leftovers")
-        .WithAbility("Lightning Rod")
-        .Build();
-}
+        ],
+        nature: NatureType.Timid,
+        heldItem: "Leftovers",
+        ability: "Lightning Rod"
 
-const Alakazam = function () {
-    return PokemonBuilder()
-        .OfSpecies("Alakazam")
-        .WithEVs({
+    },
+
+    {
+
+        species: "Alakazam",
+        evs: {
             hp: 4,
             spAttack: 252,
             speed: 252
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Calm Mind",
             "Psychic",
             "Focus Blast",
             "Shadow Ball"
-        ])
-        .WithNature(NatureType.Timid)
-        .WithHeldItem("Life Orb")
-        .WithAbility("Magic Guard")
-        .Build();
-}
+        ],
+        nature: NatureType.Timid,
+        heldItem: "Life Orb",
+        ability: "Magic Guard"
+
+    },
 
 
-const Gengar = function () {
-    return PokemonBuilder()
-        .OfSpecies("Gengar")
-        .WithEVs({
+    {
+
+        species: "Gengar",
+        evs: {
             spAttack: 252,
             spDefense: 4,
             speed: 252
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Substitute",
             "Shadow Ball",
             "Sludge Wave",
             "Focus Blast"
-        ])
-        .WithNature(NatureType.Timid)
-        .WithHeldItem("Life Orb")
-        .WithAbility("Levitate")
-        .Build()
-}
+        ],
+        nature: NatureType.Timid,
+        heldItem: "Life Orb",
+        ability: "Levitate",
+    },
 
-const Meganium = function () {
-    return PokemonBuilder()
-        .OfSpecies("Meganium")
-        .WithEVs({
+    {
+
+        species: "Meganium",
+        evs: {
             hp: 252,
             defense: 4,
             spDefense: 252
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Aromatherapy",
             "Synthesis",
             "Giga Drain",
             "Toxic"
-        ])
-        .WithNature(NatureType.Calm)
-        .WithHeldItem("Leftovers")
-        .WithAbility("Overgrow")
-        .Build();
-}
+        ],
+        nature: NatureType.Calm,
+        heldItem: "Leftovers",
+        ability: "Overgrow"
+
+    },
 
 
-const Typhlosion = function () {
+    {
 
-    return PokemonBuilder()
-        .OfSpecies("Typhlosion")
-        .WithEVs({
+
+        species: "Typhlosion",
+        evs: {
             speed: 252,
             defense: 4,
             spAttack: 252
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Eruption",
-            "Hidden Power (Grass)",
+            "Hidden Power Grass",
             "Focus Blast",
             "Fire Blast"
-        ])
-        .WithNature(NatureType.Timid)
-        .WithHeldItem("Leftovers")
-        .WithAbility("Flash Fire")
-        .Build();
+        ],
+        nature: NatureType.Timid,
+        heldItem: "Leftovers",
+        ability: "Flash Fire"
 
-}
 
-const Feraligatr = function () {
-    return PokemonBuilder()
-        .OfSpecies("Feraligatr")
-        .WithEVs({
+    },
+
+    {
+
+        species: "Feraligatr",
+        evs: {
             attack: 252,
             speed: 252,
             spDefense: 4
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Dragon Dance",
             "Waterfall",
             "Crunch",
             "Ice Punch"
-        ])
-        .WithNature(NatureType.Jolly)
-        .WithHeldItem("Life Orb")
-        .WithAbility("Sheer Force")
-        .Build();
-}
+        ],
+        nature: NatureType.Jolly,
+        heldItem: "Life Orb",
+        ability: "Sheer Force"
 
-const Ampharos = function () {
-    return PokemonBuilder()
-        .OfSpecies("Ampharos")
-        .WithEVs({
+    },
+
+    {
+
+        species: "Ampharos",
+        evs: {
             hp: 248,
             spAttack: 252,
             spDefense: 8
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Heal Bell",
             "Volt Switch",
             "Thunderbolt",
             "Focus Blast"
 
-        ])
-        .WithNature(NatureType.Calm)
-        .WithHeldItem("Leftovers")
-        .WithAbility("Static")
-        .Build();
-}
+        ],
+        nature: NatureType.Calm,
+        heldItem: "Leftovers",
+        ability: "Static"
 
-const Skarmory = function () {
-    return PokemonBuilder()
-        .OfSpecies("Skarmory")
-        .WithEVs({
+    },
+
+    {
+
+        species: "Skarmory",
+        evs: {
             hp: 252,
             defense: 252,
             speed: 4,
-        })
-        .WithTechniques([
+        },
+        techniques: [
             "Iron Head",
             "Spikes",
             "Roost",
             "Whirlwind"
-        ])
-        .WithNature(NatureType.Impish)
-        .WithHeldItem("Leftovers")
-        .WithAbility("Sturdy")
-        .Build();
-}
+        ],
+        nature: NatureType.Impish,
+        heldItem: "Leftovers",
+        ability: "Sturdy"
 
-const Blissey = function(){
-    return PokemonBuilder()
-    .OfSpecies("Blissey")
-    .WithEVs({
-        hp:252,
-        defense:252,
-        spDefense:4
-    })
-    .WithNature(NatureType.Calm)
-    .WithHeldItem("Leftovers")
-    .WithTechniques([
-        "Toxic",
-        "Soft Boiled",
-        "Seismic Toss",
-        "Protect"
-    ])
-    .Build()
-}
+    },
 
-const Sharpedo = function(){
-    return PokemonBuilder()
-    .OfSpecies("Sharpedo")
-    .WithAbility("Speed Boost")
-    .WithEVs({
-        attack:252,
-        spDefense:4,
-        speed:252    
-    })
-    .WithNature(NatureType.Adamant)
-    .WithHeldItem("Life Orb")
-    .WithTechniques([
-        "Protect",
-        "Waterfall",
-        "Crunch",
-        "Earthquake"
-    ])
-    .Build();
-}
+    {
 
+        species: "Blissey",
+        evs: {
+            hp: 252,
+            defense: 252,
+            spDefense: 4
+        },
+        nature: NatureType.Calm,
+        ability: "serene grace",
+        heldItem: "Leftovers",
+        techniques: [
+            "Toxic",
+            "Soft Boiled",
+            "Seismic Toss",
+            "Protect"
+        ],
+    },
 
-const Starmie = function(){
-    return PokemonBuilder()
-    .OfSpecies("Starmie")
-    .WithAbility("Analytic")
-    .WithEVs({
-        spAttack:252,
-        speed:252,
-        spDefense:252
-    })
-    .WithNature(NatureType.Timid)
-    .WithHeldItem("Life Orb")
-    .WithTechniques([
-        "Hydro Pump",
-        "Thunderbolt",
-        "Ice Beam",
-        "Rapid Spin"
-    ])
-    .Build()
-}
+    {
+
+        species: "Sharpedo",
+        ability: "Speed Boost",
+        evs: {
+            attack: 252,
+            spDefense: 4,
+            speed: 252
+        },
+        nature: NatureType.Adamant,
+        heldItem: "Life Orb",
+        techniques: [
+            "Protect",
+            "Waterfall",
+            "Crunch",
+            "Earthquake"
+        ],
+
+    },
 
 
-const Dunsparce = function(){
-    return PokemonBuilder()
-    .OfSpecies("Dunsparce")
-    .WithAbility("Serene Grace")
-    .WithEVs({
-        hp:252,
-        defense:4,
-        spDefense:252
-    })
-    .WithNature(NatureType.Careful)
-    .WithHeldItem("Leftovers")
-    .WithTechniques([
-        "Glare",
-        "Coil",
-        "Headbutt",
-        "Roost"
-    ])
-    .Build()
-}
+    {
+
+        species: "Starmie",
+        ability: "Analytic",
+        evs: {
+            spAttack: 252,
+            speed: 252,
+            spDefense: 252
+        },
+        nature: NatureType.Timid,
+        heldItem: "Life Orb",
+        techniques: [
+            "Hydro Pump",
+            "Thunderbolt",
+            "Ice Beam",
+            "Rapid Spin"
+        ],
+    },
 
 
-const Sceptile = function(){
-    return PokemonBuilder()
-    .OfSpecies("Sceptile")
-    .WithAbility("Overgrow")
-    .WithNature(NatureType.Timid)
-    .WithHeldItem("Life Orb")
-    .WithEVs({
-        //EVs : 4 hp /252 SpA / 252 Speed
-        hp:4,
-        spAttack:252,
-        speed:252
-    })
-    .WithTechniques([
-        "Substitute",
-        "Giga Drain",
-        "Focus Blast",
-        "Hidden Power Rock"
-    ])
-    .Build();
-}
+    {
 
-const Blaziken = function(){
-    return PokemonBuilder()
-    .OfSpecies("Blaziken")
-    .WithAbility("Speed Boost")
-    .WithNature(NatureType.Jolly)
-    .WithHeldItem("Leftovers")
-    .WithEVs({
-        //EVs : 4 hp / 252 attack / 252 speed
-        hp:4,
-        attack:252,
-        speed:252
-    })
-    .WithTechniques([
-        "Swords Dance",
-        "Low Kick",
-        "Protect",
-        "Flare Blitz"
-    ])
-    .Build()
-}
-
-const Swampert = function(){
-    return PokemonBuilder()
-    .OfSpecies("Swampert")
-    .WithAbility("Torrent")
-    .WithNature(NatureType.Relaxed)
-    .WithTechniques([
-        "Stealth Rock",
-        "Scald",
-        "Earthquake",
-        "Toxic"
-    ])
-    .WithHeldItem("Leftovers")
-    .WithEVs({
-        hp:240,
-        attack:16,
-        defense:252
-    })
-    .Build();
-}
-
-const Flygon = function(){
-    return PokemonBuilder()
-    .OfSpecies("Flygon")
-    .WithAbility("Levitate")
-    .WithHeldItem("Life Orb")
-    .WithNature(NatureType.Jolly)
-    .WithTechniques([
-        "Earthquake",
-        "Dragon Claw",
-        "Roost",
-        "Fire Punch"
-    ])
-    .WithEVs({
-        attack:252,
-        spDefense:4,
-        speed:252
-    })
-    .Build();
-}
-
-const Milotic = function(){
-    return PokemonBuilder()
-    .OfSpecies("Milotic")
-    .WithAbility("Marvel Scale")
-    .WithHeldItem("Leftovers")
-    .WithNature(NatureType.Bold)
-    .WithTechniques([
-        "Scald",
-        "Recover",
-        "Ice Beam",
-        "Haze"
-    ])
-    .WithEVs({
-        hp:248,
-        defense:252,
-        speed:8
-    })
-    .Build();
-}
+        species: "Dunsparce",
+        ability: "Serene Grace",
+        evs: {
+            hp: 252,
+            defense: 4,
+            spDefense: 252
+        },
+        nature: NatureType.Careful,
+        heldItem: "Leftovers",
+        techniques: [
+            "Glare",
+            "Coil",
+            "Headbutt",
+            "Roost"
+        ],
+    },
 
 
-const Salamence = function(){
-    return PokemonBuilder()
-    .OfSpecies("Salamence")
-    .WithAbility("Intimidate")
-    .WithHeldItem("Lum Berry")
-    .WithNature(NatureType.Naive)
-    .WithTechniques([
-        "Dragon Dance",
-        "Outrage",
-        "Earthquake",
-        "Fire Blast"
-    ])
-    .WithEVs({
-        attack:252,
-        spAttack:4,
-        speed:252
-    })
-    .Build();
-}
+    {
 
-const Vileplume = function(){
-    return PokemonBuilder()
-    .OfSpecies("Vileplume")
-    .WithAbility("Effect Spore")
-    .WithHeldItem("Black Sludge")
-    .WithNature(NatureType.Bold)
-    .WithTechniques([
-        "Aromatherapy",
-        "Giga Drain",
-        "Sludge Bomb",
-        "Moonlight"
-    ])
-    .WithEVs({
-        hp:252,
-        defense:252,
-        spDefense:4
-    })
-    .Build();
-}
+        species: "Sceptile",
+        ability: "Overgrow",
+        nature: NatureType.Timid,
+        heldItem: "Life Orb",
+        evs: {
+            //EVs : 4 hp /252 SpA / 252 Speed
+            hp: 4,
+            spAttack: 252,
+            speed: 252
+        },
+        techniques: [
+            "Substitute",
+            "Giga Drain",
+            "Focus Blast",
+            "Hidden Power Rock"
+        ],
 
-const Jolteon = function(){
-    return PokemonBuilder()
-    .OfSpecies("Jolteon")
-    .WithAbility("Volt Absorb")
-    .WithHeldItem("Life Orb")
-    .WithNature(NatureType.Timid)
-    .WithTechniques([
-        "Thunderbolt",
-        "Volt Switch",
-        "Signal Beam",
-        "Hidden Power Ice"
-    ])
-    .WithEVs({
-        defense:4,
-        spAttack:252,
-        speed:252
-    })
-    .Build();
-}
+    },
 
-const Dragonite = function(){
-    return PokemonBuilder()
-    .OfSpecies("Dragonite")
-    .WithHeldItem("Leftovers")
-    .WithNature(NatureType.Adamant)
-    .WithAbility("Multiscale")
-    .WithTechniques([
-        "Dragon Dance",
-        "Outrage",
-        "Fire Punch",
-        "Extreme Speed"
-    ])
-    .WithEVs({
-        attack:252,
-        spDefense:4,
-        speed:252
-    })
-    .Build();
-}
+    {
+
+        species: "Blaziken",
+        ability: "Speed Boost",
+        nature: NatureType.Jolly,
+        heldItem: "Leftovers",
+        evs: {
+            //EVs : 4 hp / 252 attack / 252 speed
+            hp: 4,
+            attack: 252,
+            speed: 252
+        },
+        techniques: [
+            "Swords Dance",
+            "Low Kick",
+            "Protect",
+            "Flare Blitz"
+        ],
+    },
+
+    {
+
+        species: "Swampert",
+        ability: "Torrent",
+        nature: NatureType.Relaxed,
+        techniques: [
+            "Stealth Rock",
+            "Scald",
+            "Earthquake",
+            "Toxic"
+        ],
+        heldItem: "Leftovers",
+        evs: {
+            hp: 240,
+            attack: 16,
+            defense: 252
+        },
+
+    },
+
+    {
+
+        species: "Flygon",
+        ability: "Levitate",
+        heldItem: "Life Orb",
+        nature: NatureType.Jolly,
+        techniques: [
+            "Earthquake",
+            "Dragon Claw",
+            "Roost",
+            "Fire Punch"
+        ],
+        evs: {
+            attack: 252,
+            spDefense: 4,
+            speed: 252
+        },
+
+    },
+
+    {
+
+        species: "Milotic",
+        ability: "Marvel Scale",
+        heldItem: "Leftovers",
+        nature: NatureType.Bold,
+        techniques: [
+            "Scald",
+            "Recover",
+            "Ice Beam",
+            "Haze"
+        ],
+        evs: {
+            hp: 248,
+            defense: 252,
+            speed: 8
+        },
+
+    },
 
 
+    {
 
+        species: "Salamence",
+        ability: "Intimidate",
+        heldItem: "Lum Berry",
+        nature: NatureType.Naive,
+        techniques: [
+            "Dragon Dance",
+            "Outrage",
+            "Earthquake",
+            "Fire Blast"
+        ],
+        evs: {
+            attack: 252,
+            spAttack: 4,
+            speed: 252
+        },
 
+    },
 
+    {
+
+        species: "Vileplume",
+        ability: "Effect Spore",
+        heldItem: "Black Sludge",
+        nature: NatureType.Bold,
+        techniques: [
+            "Aromatherapy",
+            "Giga Drain",
+            "Sludge Bomb",
+            "Moonlight"
+        ],
+        evs: {
+            hp: 252,
+            defense: 252,
+            spDefense: 4
+        },
+
+    },
+
+    {
+
+        species: "Jolteon",
+        ability: "Volt Absorb",
+        heldItem: "Life Orb",
+        nature: NatureType.Timid,
+        techniques: [
+            "Thunderbolt",
+            "Volt Switch",
+            "Signal Beam",
+            "Hidden Power Ice"
+        ],
+        evs: {
+            defense: 4,
+            spAttack: 252,
+            speed: 252
+        },
+
+    },
+
+    {
+
+        species: "Dragonite",
+        heldItem: "Leftovers",
+        nature: NatureType.Adamant,
+        ability: "Multiscale",
+        techniques: [
+            "Dragon Dance",
+            "Outrage",
+            "Fire Punch",
+            "Extreme Speed"
+        ],
+        evs: {
+            attack: 252,
+            spDefense: 4,
+            speed: 252
+        },
+
+    },
+]
 
 const GetPokemon = function (name: string): Pokemon {
 
-    var pokemons: Array<Pokemon> = [
-        Charizard(),
-        Blastoise(),
-        Venusaur(),
-        Raichu(),
-        Alakazam(),
-        Gengar(),
-        Meganium(),
-        Typhlosion(),
-        Feraligatr(),
-        Ampharos(),
-        Skarmory(),
-        Blissey(),
-        Sharpedo(),
-        Starmie(),
-        Dunsparce(),
-        Sceptile(),
-        Blaziken(),
-        Swampert(),
-        Flygon(),
-        Milotic(),
-        Salamence(),
-        Vileplume(),
-        Jolteon(),
-        Dragonite()
-    ]
+    const pokemonInfo = premades.find(poke => poke.species.toLowerCase() === name.toLowerCase());
 
-
-    const returnPokemon = pokemons.find(poke => {
-        return poke.name.toLowerCase() === name.toLowerCase()
-    })
-
-    if (returnPokemon === undefined) {
+    if (pokemonInfo === undefined) {
         throw new Error(`Could not find pokemon with name ${name} in the list of premade pokemon`);
     }
 
-    return returnPokemon;
+    const pokemon = PokemonBuilder()
+        .OfSpecies(pokemonInfo.species)
+        .WithTechniques(pokemonInfo.techniques)
+        .WithNature(pokemonInfo.nature)
+        .WithEVs(pokemonInfo.evs)
+        .WithAbility(pokemonInfo.ability)
+        .WithHeldItem(pokemonInfo.heldItem)
+        .Build();
+
+    return pokemon;
 
 }
 
