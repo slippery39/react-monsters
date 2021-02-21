@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { GetActivePokemon, GetPokemonOwner } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
-import { GameState, OnNewTurnLogArgs, Turn } from "./Turn";
+import { Field, OnNewTurnLogArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 
 
@@ -61,7 +61,7 @@ function AutoAssignTechniqueIds(players: Array<Player>): void {
 class BattleGame {
 
     //note this variable gets set at the start but doesn't get updated at the moment, once we move more of the turn stuff over into here we can deal with that.
-    private gameState: GameState;
+    private gameState: Field;
     turnHistory: Array<Turn> = [];
     OnNewTurn = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
@@ -128,7 +128,7 @@ class BattleGame {
     }
 
     GetPlayers(): Array<Player> {
-        return this.GetCurrentTurn().currentGameState.players;
+        return this.GetCurrentTurn().field.players;
     }
 
     StartGame() {

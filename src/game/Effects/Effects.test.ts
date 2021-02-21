@@ -1,11 +1,11 @@
 import 'core-js'
 import { Player, PlayerBuilder } from 'game/Player/PlayerBuilder';
-import { GameState, Turn } from 'game/Turn';
+import { Field, Turn } from 'game/Turn';
 import { DoEffect, EffectSource, EffectType } from './Effects';
 
 
 //TEMPORARY FUNCTION
-function InitializeGameState(gameState: GameState) {
+function InitializeGameState(gameState: Field) {
     function AutoAssignPokemonIds(players: Array<Player>): void {
 
         let nextPokemonId = 1;

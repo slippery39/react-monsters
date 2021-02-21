@@ -50,7 +50,7 @@ interface State {
 export interface OnNewTurnLogArgs {
     currentTurnLog: Array<BattleEvent>,
     eventsSinceLastTime: Array<BattleEvent>,
-    newState: Array<Player>,
+    field: Field,
     currentTurnState: TurnState,
     waitingForSwitchIds: Array<number>
     winningPlayerId?: number | undefined
@@ -58,7 +58,7 @@ export interface OnNewTurnLogArgs {
 
 export class Turn {
     id: Number;
-    currentGameState: Field;
+    field: Field;
 
     eventLog: Array<BattleEvent> = [];
     //Events that have occured since the last time it was calculated. (In case the turn stops calculating half way through due to a switch needed)
@@ -86,9 +86,9 @@ export class Turn {
         if (initialState.entryHazards === undefined) {
             initialState.entryHazards = [];
         }
-        this.currentGameState = _.cloneDeep(initialState);
-        GetActivePokemon(this.currentGameState.players[0]).canAttackThisTurn = true;
-        GetActivePokemon(this.currentGameState.players[1]).canAttackThisTurn = true;
+        this.field = _.cloneDeep(initialState);
+        GetActivePokemon(this.field.players[0]).canAttackThisTurn = true;
+        GetActivePokemon(this.field.players[1]).canAttackThisTurn = true;
     }
 
 
@@ -163,10 +163,10 @@ export class Turn {
     }
 
     GetEntryHazards(): Array<EntryHazard> {
-        return this.currentGameState.entryHazards === undefined ? [] : this.currentGameState.entryHazards
+        return this.field.entryHazards === undefined ? [] : this.field.entryHazards
     }
     GetPlayers() {
-        return this.currentGameState.players;
+        return this.field.players;
     }
 
     GetAllBattleBehaviours(pokemon: Pokemon) {
@@ -523,7 +523,7 @@ export class Turn {
         const newTurnLogArgs: OnNewTurnLogArgs = {
             currentTurnLog: _.cloneDeep(this.GetEventLog()),
             eventsSinceLastTime: _.cloneDeep(this.eventLogSinceLastAction),
-            newState: _.cloneDeep(this.GetPlayers()),
+            field: _.cloneDeep(this.field),
             winningPlayerId: this.currentState.winningPlayerId,
             currentTurnState: this.currentState.type,
             waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id)
@@ -770,7 +770,7 @@ export class Turn {
     }
     public AddEvent(effect: BattleEvent) {
         effect.id = this.nextEventId++;
-        effect.resultingState = _.cloneDeep(this.GetPlayers());
+        effect.resultingState = _.cloneDeep(this.field);
         this.eventLog.push(effect);
         this.eventLogSinceLastAction.push(effect);
     }

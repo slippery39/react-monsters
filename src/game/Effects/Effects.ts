@@ -291,13 +291,13 @@ function WhirlwindEffect(turn: Turn, player: Player) {
 
 
 function ClearHazards(turn: Turn, player: Player) {
-    const hasHazards = (turn.currentGameState.entryHazards!.filter(hazard => {
+    const hasHazards = (turn.field.entryHazards!.filter(hazard => {
         return hazard.player === player;
     }).length > 0)
     if (hasHazards) {
         turn.AddMessage(`All hazards on ${player.name}'s side have been removed!`);
     }
-    turn.currentGameState.entryHazards = turn.currentGameState.entryHazards?.filter(hazard => {
+    turn.field.entryHazards = turn.field.entryHazards?.filter(hazard => {
         return hazard.player !== player;
     });
 }

@@ -1,5 +1,5 @@
 import { Player, PlayerBuilder } from "game/Player/PlayerBuilder";
-import { GameState, Turn } from "game/Turn";
+import { Field, Turn } from "game/Turn";
 
 //A mock turn object for testing purposes.
 export function CreateMockTurn(){
@@ -13,7 +13,7 @@ export function CreateMockTurn(){
     .WithPokemon("venusaur")
     .Build();
 
-    const initialState : GameState = {
+    const initialState : Field = {
         players:[player1,player2],
        }
 

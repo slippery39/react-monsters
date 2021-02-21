@@ -3,7 +3,7 @@ All the different "events" that can happen as a result of a turn
 */
 
 import { Status } from "./HardStatus/HardStatus";
-import { Player } from "./Player/PlayerBuilder";
+import { Field } from "./Turn";
 
 export type BattleEvent = (SwitchOutEvent | SwitchInEvent | DamageEvent | HealEvent | FaintedPokemonEvent | UseMoveEvent | UseItemEvent | StatusChangeEvent | CannotAttackEvent | GenericMessageEvent | SubstituteBrokenEvent |SubstituteCreatedEvent)
 
@@ -30,7 +30,7 @@ export enum BattleEventType {
 
 export interface BaseBattleEvent{
     id?:number
-    resultingState?:Array<Player>
+    resultingState?:Field
 }
 
 //A default effect type for easy prototyping, we can just use this one to easily display messages on the front-end, and when we are ready turn it into an actual effect.

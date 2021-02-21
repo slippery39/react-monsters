@@ -27,7 +27,7 @@ import { Status } from 'game/HardStatus/HardStatus';
 import { Player } from 'game/Player/PlayerBuilder';
 import PokemonInfo from 'components/PokemonInfoScreen/PokemonInfoScreen';
 import { ElementType } from 'game/ElementType';
-import { OnNewTurnLogArgs } from 'game/Turn';
+import { Field, OnNewTurnLogArgs } from 'game/Turn';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -47,21 +47,21 @@ enum MenuState {
 }
 
 type State = {
-    players: Array<Player>,
+    field:Field,
 }
 
-type Action = {
+type UIAction = {
     type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique' | 'substitute-broken' | 'substitute-created'
     id: number,
     targetId?: number | undefined,
     newHealth?: number | undefined
-    newState?: Array<Player>
+    field?: Field,
     newStatus?: Status
 }
 
 const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: Pokemon } {
     let pokemon;
-    const pokemonOwner = state.players.find(p => {
+    const pokemonOwner = state.field.players.find(p => {
         return p.pokemon.find(p => {
             if (p.id === pokemonId) {
                 pokemon = p;
@@ -90,24 +90,18 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const battleService = props.battle;
 
     const initialState: State = {
-        players: battleService.GetPlayers()
-    }
+        field: battleService.GetField(),
+    }    
 
-
-
-
-
-    const reducer = function (state = initialState, action: Action): State {
-
+    const reducer = function (state = initialState, action: UIAction): State {
         //making a deep copy of the state object for immutable purposes.
         //this is the easiest way to get it working, but if our state object gets huge
         //then we may run into performance issues. but for now it works fine.
-
         var newState = _.cloneDeep(state);
         switch (action.type) {
             //for syncing the state with the server.
             case 'state-change': {
-                return { players: action.newState! };
+                return {field:action.field!};
             }
             case 'health-change': {
                 const pokemonData = getPokemonAndOwner(newState, action.id);
@@ -161,8 +155,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
     }
 
-
-
     const [menuState, setMenuState] = useState(MenuState.MainMenu);
     const [turnInfo, setTurnInfo] = useState<OnNewTurnLogArgs | undefined>(undefined);
     //const [battleEvents, setBattleEvents] = useState<Array<BattleEvent>>([]);
@@ -202,7 +194,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             dispatch({
                 id: 0,
                 type: 'state-change',
-                newState: _.cloneDeep(args.newState)
+                field: _.cloneDeep(args.newField)
             })
         });
 
@@ -212,11 +204,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
 
     function isAllyPokemon(id: number): boolean {
-        return state.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
+        return state.field.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
     }
 
     function getPokemonById(id: number): Pokemon {
-        const pokemon = state.players.map(player => {
+        const pokemon = state.field.players.map(player => {
             return player.pokemon;
         }).flat().filter(pokemon => pokemon.id === id);
 
@@ -224,10 +216,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     function getAllyPokemon(): Pokemon {
-        return GetActivePokemon(state.players[0]);
+        return GetActivePokemon(state.field.players[0]);
     }
     function getEnemyPokemon(): Pokemon {
-        return GetActivePokemon(state.players[1]);
+        return GetActivePokemon(state.field.players[1]);
     }
 
     //our simple state machine for our events log.
@@ -256,7 +248,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             dispatch({
                 id: 0,
                 type: 'state-change',
-                newState: turnInfo.newState
+                field: turnInfo.field
             })
         }
 
@@ -310,7 +302,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                         dispatch({
                             id: 0,
                             type: 'state-change',
-                            newState: _.cloneDeep(effect.resultingState)
+                            field: _.cloneDeep(effect.resultingState)
                         })
                     }
                     nextEvent();
@@ -541,7 +533,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     function SetBattleAction(techniqueId: number) {
         battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
-            pokemonId: state.players[0].currentPokemonId, //todo: get proper pokemon id
+            pokemonId: state.field.players[0].currentPokemonId, //todo: get proper pokemon id
             moveId: techniqueId,
             type: Actions.UseTechnique
         });
@@ -576,7 +568,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
     }
 
-
     function GetMenuMessage() {
         switch (menuState) {
             case MenuState.MainMenu: {
@@ -601,7 +592,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 if (winningPlayer === undefined) {
                     throw new Error('Could not find winning player for game over screen in Battle.tsx');
                 }
-                if (state.players[0].id === winningPlayer) {
+                if (state.field.players[0].id === winningPlayer) {
                     return `You have won the battle!`
                 }
                 else {
@@ -616,7 +607,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     const enemyPartyPokeballs = () => {
         return <div className="enemy-party-pokeballs">
-            {state.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
+            {state.field.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
                 <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
         </div>
     }
@@ -655,7 +646,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const allyPartyPokeballs = () => {
         return (menuState === MenuState.MainMenu &&
             <div className="pokemon-party-pokeballs">
-                {state.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}>
+                {state.field.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}>
                     <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
             </div>)
     }
@@ -674,7 +665,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}
             onItemClick={(item: any) => { SetUseItemAction(item.id) }}
-            items={state.players[0].items} />
+            items={state.field.players[0].items} />
 
         const switchMenu = <PokemonMiniInfoList
             showCancelButton={true}
@@ -701,7 +692,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             </div>)
 
         const faintedSwitchMenu = <PokemonMiniInfoList onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
-            player={state.players[0]} />
+            player={state.field.players[0]} />
 
         const pokemonInfoScreen = <PokemonInfo onExitClick={HandlePokemonInfoScreenExit}
             pokemon={pokemonInfo} />
@@ -740,11 +731,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
     }
 
-
-
     return (
         <div className="App">
-            <Debug players={state.players} battleService={battleService} />
+            <Debug players={state.field.players} battleService={battleService} />
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>

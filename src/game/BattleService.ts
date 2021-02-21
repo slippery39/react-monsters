@@ -1,4 +1,4 @@
-import { OnNewTurnLogArgs, Turn } from "./Turn";
+import { Field, OnNewTurnLogArgs, Turn } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import _ from "lodash";
 
@@ -10,7 +10,7 @@ import BattleGame from "./BattleGame";
 
 
 export interface OnStateChangeArgs {
-    newState: Array<Player>
+    newField: Field
 }
 
 export interface OnNewTurnArgs {
@@ -45,7 +45,7 @@ class BattleService {
     //For testing purposes only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
         this.GetCurrentTurn().SetStatusOfPokemon(pokemonId, status);
-        this.onStateChange.emit({ newState: _.cloneDeep(this.GetCurrentTurn().GetPlayers()) });
+        this.onStateChange.emit({ newField: _.cloneDeep(this.GetCurrentTurn().field) });
     }
 
     GetAllyPlayer() {
@@ -102,6 +102,10 @@ class BattleService {
     //Gets a cloned version of the game state, nobody outside of here should be able to modify the state directly.
     GetPlayers(): Array<Player> {
         return _.cloneDeep(this.GetCurrentTurn().GetPlayers());
+    }
+
+    GetField():Field{
+        return _.cloneDeep(this.GetCurrentTurn().field);
     }
 }
 
