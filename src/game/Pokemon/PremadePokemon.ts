@@ -513,6 +513,25 @@ const premades: Array<PremadePokemon> = [
             defense:4,
             speed:168
         }
+    },
+    {
+        species:"Arcanine",
+        heldItem:"Life Orb",
+        ability:"flash fire",
+        nature:NatureType.Adamant,
+        techniques:[
+            "Flare Blitz",
+            "Extreme Speed",
+            "Wild Charge",
+            "Close Combat"
+        ],
+        evs:{
+            hp:72,
+            attack:252,
+            spDefense:8,
+            speed:176
+        }
+
     }
 ]
 

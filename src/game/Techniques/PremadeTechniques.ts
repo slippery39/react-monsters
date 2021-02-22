@@ -30,6 +30,51 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Close Combat",
+            description:"The user fights the target up close without guarding itself. It also cuts the user's Defense and Sp. Def.",
+            pp:8,
+            power:120,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Fighting,
+            makesContact:true,
+            effects:[
+                {
+                    type:EffectType.StatBoost,
+                    stat:Stat.Defense,
+                    amount:-1,
+                    target:TargetType.Self
+                },
+                {
+                    type:EffectType.StatBoost,
+                    stat:Stat.SpecialDefense,
+                    amount:-1,
+                    target:TargetType.Self
+                }
+            ]
+        },
+        {
+            name: "Wild Charge",
+            description: "The user shrouds itself in electricity and smashes into its target. It also damages the user a little.",
+            pp: 24,
+            power: 90,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Electric,
+            makesContact: true,
+            beforeExecuteEffect: {
+                type: EffectType.StatusRestore,
+                forStatus: Status.Frozen
+            },
+            effects: [
+                {
+                    type: EffectType.Recoil,
+                    recoilType: RecoilDamageType.PercentDamageDealt,
+                    amount: 25,
+                },
+            ]
+        },
+        {
             name:"Bounce",
             description:"The user bounces up high, then drops on the target on the second turn. It may also leave the target with paralysis.",
             pp:8,

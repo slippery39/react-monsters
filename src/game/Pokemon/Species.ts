@@ -349,6 +349,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:81
             },
             weight:235
+        },
+        {
+            name:"Arcanine",
+            elementalTypes:[ElementType.Fire],
+            baseStats:{
+                hp:90,
+                attack:110,
+                defense:80,
+                spAttack:100,
+                spDefense:80,
+                speed:95,
+            },
+            weight:155
         }
     ];
 

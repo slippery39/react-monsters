@@ -46,7 +46,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("gyarados")
+      .WithPokemon("arcanine")
       .WithPokemon("venusaur")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
