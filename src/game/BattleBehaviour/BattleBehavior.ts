@@ -16,6 +16,10 @@ abstract class BattleBehaviour{
     BeforeAttack(turn:Turn,pokemon:Pokemon){
 
     }
+    //named this way so that it always triggers, even if the pokemon uses a move that misses or not.
+    AfterActionStep(turn:Turn,pokemon:Pokemon){
+
+    }
     EndOfTurn(turn:Turn,pokemon:Pokemon){
 
     }

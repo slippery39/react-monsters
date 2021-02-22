@@ -496,6 +496,24 @@ const premades: Array<PremadePokemon> = [
         },
 
     },
+    {
+        species:"Gyarados",
+        heldItem:"Leftovers",
+        nature:NatureType.Jolly,
+        ability:"Intimidate",
+        techniques:[
+            "Substitute",
+            "Dragon Dance",
+            "Waterfall",
+            'Bounce'
+        ],
+        evs:{
+            hp:88,
+            attack:248,
+            defense:4,
+            speed:168
+        }
+    }
 ]
 
 const GetPokemon = function (name: string): Pokemon {

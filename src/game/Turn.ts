@@ -12,7 +12,7 @@ import { Technique } from './Techniques/Technique';
 import { GetActivePokemon } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
-import { BattleEffect, DoEffect, EffectType, TargetType } from './Effects/Effects';
+import { BattleEffect, DoEffect, EffectType, InflictVolatileStatus, TargetType } from './Effects/Effects';
 import { SubstituteVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
 import { Item } from './Items/Item';
 import _ from 'lodash';
@@ -470,7 +470,7 @@ export class Turn {
             {
                 current: TurnStep.PostAction1,
                 next: TurnStep.PreAction2,
-                func: () => { }
+                func: () => { this.GetAllBattleBehaviours(currentPokemon1).forEach(b=>b.AfterActionStep(this,currentPokemon1))}
 
             },
             {
@@ -486,7 +486,7 @@ export class Turn {
             {
                 current: TurnStep.PostAction2,
                 next: TurnStep.BeforeEnd,
-                func: () => { }
+                func: () => { this.GetAllBattleBehaviours(currentPokemon2).forEach(b=>b.AfterActionStep(this,currentPokemon2))}
             },
             {
                 current: TurnStep.BeforeEnd,
@@ -614,10 +614,22 @@ export class Turn {
             targetId: defendingPokemon.id,
             didTechniqueHit: true,
             techniqueName: technique.name,
+        
         }
         this.AddEvent(useTechniqueEffect);
-
+        
         technique.currentPP -= 1;
+
+        //2 turn move should apply here?
+        if (technique.twoTurnMove){
+            if (technique.firstTurnStatus===undefined){
+                throw new Error(`Need a first turn status defined if using a twoTurnMove. Move name : ${technique.name}`);
+            }
+            //all two turn moves should inflict a volatile status on the first turn.
+            InflictVolatileStatus(this,pokemon,technique.firstTurnStatus,pokemon);
+            return;
+        }
+
 
         const ability = GetAbility(pokemon.ability);
         technique = ability.ModifyTechnique(pokemon, technique);

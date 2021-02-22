@@ -22,11 +22,33 @@ export interface BaseTechnique {
     damageEffect?: DamageEffect,
     makesContact?: boolean,
     effects?: Array<BattleEffect>,
+    twoTurnMove?:boolean,
+    firstTurnStatus?:VolatileStatusType
 }
 
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Bounce",
+            description:"The user bounces up high, then drops on the target on the second turn. It may also leave the target with paralysis.",
+            pp:8,
+            power:85,
+            accuracy:100,
+            makesContact:true,
+            twoTurnMove:true,
+            firstTurnStatus :VolatileStatusType.Bouncing,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Flying,
+            effects:[
+                {
+                    type:EffectType.InflictStatus,
+                    chance:30,
+                    status:Status.Paralyzed,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
         {
             name:"Extreme Speed",
             description:"The user charges the target at blinding speed. This attack always goes before any other move.",

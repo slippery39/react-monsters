@@ -336,6 +336,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:80
             },
             weight:210
+        },
+        {
+            name:"Gyarados",
+            elementalTypes:[ElementType.Water,ElementType.Flying],
+            baseStats:{
+                hp:95,
+                attack:125,
+                defense:79,
+                spAttack:60,
+                spDefense:100,
+                speed:81
+            },
+            weight:235
         }
     ];
 

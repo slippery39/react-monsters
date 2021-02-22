@@ -6,8 +6,6 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
-import { ElementType } from 'game/ElementType';
-
 
 enum AppState {
   StartMenu = 'start-menu',
@@ -48,7 +46,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("dragonite")
+      .WithPokemon("gyarados")
       .WithPokemon("venusaur")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
@@ -61,7 +59,7 @@ function App() {
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithCustomPokemon(testPokemon2)
+      .WithPokemon("blastoise")
       .WithPokemon("charizard")
       .Build();
 

@@ -20,8 +20,8 @@ export enum VolatileStatusType {
     Roosted = 'roosted',
     Substitute = 'substitute',
     Protection = 'protection',
-    Outraged="outraged"
-
+    Outraged = "outraged",
+    Bouncing = "bouncing"
 }
 
 export abstract class VolatileStatus extends BattleBehaviour {
@@ -165,7 +165,7 @@ export class ProtectionVolatileStatus extends VolatileStatus {
                 turn.AddMessage(this.InflictedMessage(pokemon));
             }
         }
-        else{
+        else {
             this.flagForRemoval = true;
         }
     }
@@ -292,53 +292,108 @@ export class ConfusionVolatileStatus extends VolatileStatus {
 }
 
 
-export class OutragedVolatileStatus extends VolatileStatus{
-    type= VolatileStatusType.Outraged;
-    amountOfTurns:number = 3;
-    currentTurn:number = 1;
+export class OutragedVolatileStatus extends VolatileStatus {
+    type = VolatileStatusType.Outraged;
+    amountOfTurns: number = 3;
+    currentTurn: number = 1;
 
-    InflictedMessage(pokemon: Pokemon): string {        
+    InflictedMessage(pokemon: Pokemon): string {
         return "";
     }
 
-    OnApply(turn: Turn, pokemon:Pokemon){
-        this.amountOfTurns = shuffle([2,3])[0];
+    OnApply(turn: Turn, pokemon: Pokemon) {
+        this.amountOfTurns = shuffle([2, 3])[0];
         console.warn(`amount of turns is ${this.amountOfTurns}`);
     }
 
     ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
         //force an overwrite of whatever action might be in there.
-        const outrageTechnique = GetTech("outrage"); 
+        const outrageTechnique = GetTech("outrage");
 
-        const forcedTechnique : ForcedTechniqueAction = {
+        const forcedTechnique: ForcedTechniqueAction = {
             playerId: player.id,
-            pokemonId:pokemon.id,
-            technique:outrageTechnique, 
-            type:Actions.ForcedTechnique
+            pokemonId: pokemon.id,
+            technique: outrageTechnique,
+            type: Actions.ForcedTechnique
         }
         turn.SetInitialPlayerAction(forcedTechnique);
     }
 
-    BeforeAttack(turn:Turn,pokemon:Pokemon){
-        if (pokemon.canAttackThisTurn === false){
-            this.Remove(turn,pokemon);
+    BeforeAttack(turn: Turn, pokemon: Pokemon) {
+        if (pokemon.canAttackThisTurn === false) {
+            this.Remove(turn, pokemon);
             return;
         }
         turn.AddMessage(`${pokemon.name} is outraged!`);
         this.currentTurn++
     }
 
-    OnTechniqueMissed(turn:Turn,pokemon:Pokemon){
-        this.Remove(turn,pokemon);
+    OnTechniqueMissed(turn: Turn, pokemon: Pokemon) {
+        this.Remove(turn, pokemon);
     }
 
-    EndOfTurn(turn:Turn, pokemon: Pokemon){
-        if (this.currentTurn>=this.amountOfTurns){
-            this.Remove(turn,pokemon);
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+        if (this.currentTurn >= this.amountOfTurns) {
+            this.Remove(turn, pokemon);
             turn.AddMessage(`${pokemon.name} is no longer outraged.`);
-            InflictVolatileStatus(turn, pokemon, VolatileStatusType.Confusion,pokemon);            
+            InflictVolatileStatus(turn, pokemon, VolatileStatusType.Confusion, pokemon);
         }
         //Remove Outraged Status if Attack missed for whatever reason.
+    }
+}
+
+var testId = 0;
+
+export class BouncingVolatileStatus extends VolatileStatus {
+    flaggedForRemoval:boolean = false;
+    type = VolatileStatusType.Bouncing;
+    id:number = ++testId;
+
+    constructor(){
+        super();
+        testId++;
+    }
+
+    InflictedMessage(pokemon: Pokemon) {
+        return `${pokemon.name} bounced high up in the air`;
+    }
+
+    ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
+        let bounceTechnique = GetTech("bounce");
+        //remove the 2 turn move part so that it doesn't inflict the "bounce" status again.
+        bounceTechnique.firstTurnStatus = undefined;
+        bounceTechnique.twoTurnMove = false;
+
+        const forcedTechnique: ForcedTechniqueAction = {
+            playerId: player.id,
+            pokemonId: pokemon.id,
+            technique: bounceTechnique,
+            type: Actions.ForcedTechnique
+        }
+        turn.SetInitialPlayerAction(forcedTechnique);     
+    }
+
+
+    AfterActionStep(turn:Turn,pokemon:Pokemon){
+        if (this.flaggedForRemoval === false){
+            this.flaggedForRemoval = true;
+        }
+        else{
+            this.Remove(turn,pokemon);
+        }
+    }
+
+    //This status prevents it from getting hit by any move except for 
+    NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
+        const isDamagingMove = move.damageType === DamageType.Physical || move.damageType === DamageType.Special;
+        const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) !== undefined;
+
+        if (isDamagingMove || isStatusMoveThatEffectsOpponent) {
+            turn.AddMessage(`it had no effect because ${defendingPokemon.name} is in the air!`);
+            return true;
+        }
+
+        return false;
     }
 }
 
@@ -366,8 +421,11 @@ export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
         case VolatileStatusType.Protection: {
             return new ProtectionVolatileStatus();
         }
-        case VolatileStatusType.Outraged:{
+        case VolatileStatusType.Outraged: {
             return new OutragedVolatileStatus();
+        }
+        case VolatileStatusType.Bouncing: {
+            return new BouncingVolatileStatus();
         }
         default: {
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

@@ -86,7 +86,7 @@ export interface UseMoveEvent extends BaseBattleEvent {
     userId: number,
     targetId: number,
     didTechniqueHit: Boolean,
-    techniqueName: string
+    techniqueName: string,
 }
 export interface HealEvent extends BaseBattleEvent {
     type: BattleEventType.Heal,
