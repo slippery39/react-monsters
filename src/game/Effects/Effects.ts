@@ -1,4 +1,4 @@
-import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
+import { StatusChangeEvent, BattleEventType, DamageEvent } from "game/BattleEvents";
 import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, ResetStatBoosts } from "game/HelperFunctions";
@@ -10,6 +10,7 @@ import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { shuffle } from "lodash";
+import { getEffectiveConstraintOfTypeParameter } from "typescript";
 
 export enum TargetType {
     Self = 'self',
@@ -29,7 +30,8 @@ export enum EffectType {
     Whirlwind = 'whirlwind',
     ClearHazards = 'clear-hazards',
     Recoil = 'recoil',
-    RemoveStatBoosts = 'remove-stat-boosts'
+    RemoveStatBoosts = 'remove-stat-boosts',
+    PainSplit = 'pain-split'
 }
 
 export interface InflictStatusEffect {
@@ -105,11 +107,16 @@ export interface RemoveStatBoostEffect {
     type: EffectType.RemoveStatBoosts
 }
 
+export interface PainSplitEffect {
+    type:EffectType.PainSplit
+}
+
 
 
 export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
     | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect |
-    AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect);
+    AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect
+    |PainSplitEffect);
 
 
 
@@ -321,6 +328,34 @@ function RemoveStatBoosts(turn: Turn) {
 
 }
 
+function PainSplitEffect(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon){
+
+    /*Pain Split adds the current HP of the user and target Pokémon. It then divides this value by two and increases or decreases the HP of each Pokémon to become equal to the result (limited by each Pokémon's maximum HP).*/
+    
+    //todo: handle substitute fail clause
+    
+    console.error(attackingPokemon);
+    console.error(defendingPokemon);
+    const totalHealth = attackingPokemon.currentStats.hp + defendingPokemon.currentStats.hp;
+    const healthToSet = Math.ceil(totalHealth/2);
+
+    console.error(healthToSet);
+
+    /*
+    const pokemon1HPBefore = attackingPokemon.currentStats.hp;
+    const pokemon2HPBefore = defendingPokemon.currentStats.hp;
+    */
+
+    attackingPokemon.currentStats.hp = Math.min(healthToSet,attackingPokemon.originalStats.hp);
+    defendingPokemon.currentStats.hp = Math.min(healthToSet,defendingPokemon.originalStats.hp);
+
+    //todo: add in animation triggers for the direct hp loss / gain.
+
+    //check to see if it either healed or damaged the pokemon?
+    turn.AddMessage(`The battlers shared their pain!`);
+
+}
+
 
 export interface EffectSource {
     sourcePokemon?: Pokemon,
@@ -419,6 +454,13 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
         }
         case EffectType.RemoveStatBoosts: {
             RemoveStatBoosts(turn);
+            break;
+        }
+        case EffectType.PainSplit:{
+            if (source.sourcePokemon === undefined){
+                throw new Error(`Could not find source pokemon for Pain Split effect`);
+            }
+            PainSplitEffect(turn,source.sourcePokemon,pokemon);
             break;
         }
         default: {

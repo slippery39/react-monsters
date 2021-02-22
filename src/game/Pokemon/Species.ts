@@ -44,8 +44,7 @@ export function GetSpecies(name: string): ISpecies {
                 hp: 79,
                 attack: 83,
                 defense: 100,
-                //spAttack: 85,
-                spAttack: 400,
+                spAttack: 85,
                 spDefense: 105,
                 speed: 78
             },
@@ -362,6 +361,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:95,
             },
             weight:155
+        },
+        {
+            name:"Weezing",
+            elementalTypes:[ElementType.Poison],
+            baseStats:{
+                hp:65,
+                attack:90,
+                defense:120,
+                spAttack:85,
+                spDefense:70,
+                speed:60
+            },
+            weight:9.5
         }
     ];
 

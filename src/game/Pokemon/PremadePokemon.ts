@@ -531,7 +531,23 @@ const premades: Array<PremadePokemon> = [
             spDefense:8,
             speed:176
         }
-
+    },
+    {
+        species:"Weezing",
+        heldItem:"Black Sludge",
+        ability:"Levitate",
+        nature:NatureType.Bold,
+        techniques:[
+            "Flamethrower",
+            "Thunderbolt",
+            "Pain Split",
+            "Will-o-wisp"
+        ],
+        evs:{
+            hp:252,
+            defense:252,
+            spDefense:4
+        }
     }
 ]
 

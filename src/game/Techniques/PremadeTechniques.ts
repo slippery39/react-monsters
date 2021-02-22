@@ -30,6 +30,38 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Pain Split",
+            description:"The user adds its HP to the foe's HP, then equally shares the combined HP with the foe.",
+            pp:32,
+            power:0,
+            accuracy:100,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Normal,
+            effects:[
+                {
+                    type:EffectType.PainSplit,
+                }
+            ]
+        },
+        {
+            name:"Flamethrower",
+            description:"The foe is scorched with an intense blast of fire. The target may also be left with a burn.",
+            pp:24,
+            power:90,
+            accuracy:100,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Fire,
+            makesContact:false,
+            effects:[
+                {
+                type:EffectType.InflictStatus,
+                status:Status.Burned,
+                chance:10,
+                target:TargetType.Enemy
+                }
+            ]
+        },
+        {
             name:"Close Combat",
             description:"The user fights the target up close without guarding itself. It also cuts the user's Defense and Sp. Def.",
             pp:8,
@@ -846,7 +878,7 @@ export function GetTech(name: string) {
             accuracy: 75
         },
         {
-            name: "will o wisp",
+            name: "will-o-wisp",
             description: "The user shoots a sinister, bluish-white flame at the target to inflict a burn",
             damageType: DamageType.Status,
             pp: 15,
