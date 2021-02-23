@@ -37,8 +37,8 @@ function App() {
       //testPokemon.currentStats.hp = 1;
 
 
-    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Jolteon").WithTechniques([
-      "Thunderbolt"
+    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Dunsparce").WithTechniques([
+      "Pursuit"
     ])
    .Build();
 
@@ -46,8 +46,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("weezing")
-      .WithPokemon("venusaur")
+      .WithPokemon("scizor")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
       .WithPokemon("alakazam")
@@ -59,6 +58,7 @@ function App() {
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
+      .WithCustomPokemon(testPokemon2)
       .WithPokemon("blastoise")
       .WithPokemon("charizard")
       .Build();

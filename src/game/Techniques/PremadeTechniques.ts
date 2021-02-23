@@ -30,6 +30,69 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Pursuit",
+            description:"An attack move that inflicts double damage if used on a target that is switching out of battle.",
+            pp:32,
+            power:40,
+            makesContact:true,
+            elementalType:ElementType.Dark,
+            damageType:DamageType.Physical,    
+            damageEffect:{type:DamageEffectTypes.Pursuit}  
+        },
+        {
+            name:"Superpower",
+            description:"The user attacks the target with great power. However, it also lowers the user's Attack and Defense.",
+            pp:8,
+            power:120,
+            accuracy:100,
+            makesContact:true,
+            elementalType:ElementType.Fighting,
+            damageType:DamageType.Physical,
+            effects:[
+                {
+                    type:EffectType.StatBoost,
+                    chance:100,
+                    stat:Stat.Attack,
+                    target:TargetType.Self,
+                    amount:-1
+                },
+                {
+                    type:EffectType.StatBoost,
+                    chance:100,
+                    stat:Stat.Defense,
+                    target:TargetType.Self,
+                    amount:-1
+                }
+            ]
+        },
+        {
+            name:"Bullet Punch",
+            description:"The user strikes with a tough punch as fast as a bullet. This move always goes first.",
+            pp:48,
+            power:40,
+            accuracy:100,
+            priority:1,
+            makesContact:true,
+            elementalType:ElementType.Steel,
+            damageType:DamageType.Physical,            
+        },
+        {
+            name:"U-Turn",
+            description:"After making its attack, the user rushes back to switch places with a party Pokémon in waiting.",
+            pp:32,
+            power:70,
+            accuracy:100,
+            makesContact:true,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Bug,
+            effects:[
+                {
+                        type: EffectType.SwitchPokemon,
+                        chance: 100 
+                }
+            ]
+        },
+        {
             name:"Pain Split",
             description:"The user adds its HP to the foe's HP, then equally shares the combined HP with the foe.",
             pp:32,

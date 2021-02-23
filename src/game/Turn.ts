@@ -719,7 +719,7 @@ export class Turn {
 
         if (technique.damageEffect) {
             const damageEffect = GetDamageEffect(technique.damageEffect.type);
-            technique = damageEffect.ModifyTechnique(pokemon, technique, defendingPokemon);
+            technique = damageEffect.ModifyTechnique(pokemon, technique, defendingPokemon,this);
         }
 
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, technique);
@@ -842,6 +842,7 @@ export class Turn {
 
         if (this._moveOrder.length === 0) {
             this._moveOrder = GetMoveOrder(this.GetPlayers(), this.initialActions)
+            //Pursuit happens here? 
         }
         return this._moveOrder;
 

@@ -548,6 +548,23 @@ const premades: Array<PremadePokemon> = [
             defense:252,
             spDefense:4
         }
+    },
+    {
+        species:"Scizor",
+        heldItem:"Choice Band",
+        ability:"Technician",
+        nature:NatureType.Adamant,
+        techniques:[
+            "U-turn",
+            "Bullet Punch",
+            "Superpower",
+            "Pursuit"
+        ],
+        evs:{
+            hp:248,
+            attack:252,
+            spDefense:8
+        }
     }
 ]
 

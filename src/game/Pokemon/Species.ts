@@ -374,6 +374,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:60
             },
             weight:9.5
+        },
+        {
+            name:"Scizor",
+            elementalTypes:[ElementType.Steel,ElementType.Bug],
+            baseStats:{
+                hp:70,
+                attack:130,
+                defense:100,
+                spAttack:55,
+                spDefense:80,
+                speed:65
+            },
+            weight:118
         }
     ];
 

@@ -1,19 +1,22 @@
+import { GetPokemonOwner } from "game/HelperFunctions";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
+import { Turn } from "game/Turn";
 import _ from "lodash";
 
-export type DamageEffect = (EruptionDamageEffect | SeismicTossDamageEffect | LowKickDamageEffect | NullDamageEffect);
+export type DamageEffect = (EruptionDamageEffect | SeismicTossDamageEffect | LowKickDamageEffect | PursuitDamageEffect | NullDamageEffect);
 
 export enum DamageEffectTypes{
     Eruption='eruption',
     SeismicToss = 'seismic-toss',
     LowKick = 'low-kick',
+    Pursuit="pursuit",
     None='null'
 }
 
 
 abstract class AbstractDamageEffect{
-    ModifyTechnique(pokemon:Pokemon,technique:Technique,opponentPokemon:Pokemon){
+    ModifyTechnique(pokemon:Pokemon,technique:Technique,opponentPokemon:Pokemon,turn?:Turn){
         return technique;
     }
     ModifyDamageDealt(pokemon:Pokemon,originalDamage:number){
@@ -64,6 +67,28 @@ class LowKickEffect extends AbstractDamageEffect{
     }
 }
 
+class PursuitEffect extends AbstractDamageEffect{
+    ModifyTechnique(pokemon:Pokemon,technique:Technique,opponentPokemon:Pokemon,turn:Turn){
+        const moveOrder = turn.GetMoveOrder(); //get the opponents action.
+
+        const otherAction = moveOrder.find(move=>move.playerId!==GetPokemonOwner(turn.GetPlayers(),pokemon).id)
+        if (otherAction === undefined){
+            throw new Error(`Could not find action from other player for pursuit effect`);
+        }
+
+        if (otherAction.type === 'switch-pokemon-action'){
+            let newTech = {...technique};
+            newTech.power*=2;
+
+            turn.AddMessage(`${pokemon.name} has caught ${opponentPokemon.name} switching out with pursuit!`)
+            return newTech;
+        }
+
+        return technique;
+        //if the opponents action is a switch pokemon action, then double this moves power.
+    }
+}
+
 
 export function GetDamageEffect(effectName:string){
     if (effectName === 'eruption'){
@@ -74,6 +99,9 @@ export function GetDamageEffect(effectName:string){
     }
     else if (effectName === 'low-kick'){
         return new LowKickEffect();
+    }
+    else if (effectName === "pursuit"){
+        return new PursuitEffect();
     }
 
     throw new Error(`Could not find damage effect for ${effectName}`)
@@ -93,4 +121,7 @@ interface NullDamageEffect{
 }
 interface LowKickDamageEffect{
     type:DamageEffectTypes.LowKick
+}
+interface PursuitDamageEffect{
+    type:DamageEffectTypes.Pursuit
 }

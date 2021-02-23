@@ -1,7 +1,9 @@
 import 'core-js'
+import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { GetTech } from 'game/Techniques/PremadeTechniques';
 import { Technique } from 'game/Techniques/Technique';
+import { Turn } from 'game/Turn';
 import { GetDamageEffect } from './DamageEffects';
 
 
@@ -28,14 +30,20 @@ describe('Low Kick Tests', ()=>{
 
             const lowKick = GetTech("Low Kick");
 
+              //needed for our damage effects now sadly.
+        const turn = new Turn(1,{
+            players:[new PlayerBuilder(1).WithPokemon("Charizard").Build(),new PlayerBuilder(2).WithPokemon("Blastoise").Build()],
+            entryHazards:[]
+        });
+
             //lower test
             defendingPokemon.weight = val.lower;
-            const lowRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon).power;
+            const lowRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon,turn).power;
             expect(lowRangePower).toBe(val.power);
 
             //upper test
             defendingPokemon.weight = val.upper;
-            const highRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon).power;
+            const highRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon,turn).power;
             expect(highRangePower).toBe(val.power);
 
         });
@@ -59,20 +67,28 @@ describe('Eruption Tests',()=>{
 
     const techinque = GetTech("eruption");
     const eruptionEffect = GetDamageEffect("eruption");
-    const newTechInfo : Technique  = eruptionEffect.ModifyTechnique(pokemon,techinque);
+
+        //needed for our damage effects now sadly.
+        const turn = new Turn(1,{
+            players:[new PlayerBuilder(1).WithPokemon("Charizard").Build(),new PlayerBuilder(2).WithPokemon("Blastoise").Build()],
+            entryHazards:[]
+        });
+
+
+    const newTechInfo : Technique  = eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,turn);
 
     //100% health should be 150 power;
     expect(newTechInfo.power).toBe(150);
 
     //1 health should be 1 power
     pokemon.currentStats.hp = 1;
-    const newTechInfo2 : Technique =  eruptionEffect.ModifyTechnique(pokemon,techinque);
+    const newTechInfo2 : Technique =  eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,turn);
     expect(newTechInfo2.power).toBe(1);
 
     //50% health should be 75 power
 
     pokemon.currentStats.hp = 75;
-    const newTechInfo3 : Technique =  eruptionEffect.ModifyTechnique(pokemon,techinque);
+    const newTechInfo3 : Technique =  eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,turn);
     expect(newTechInfo3.power).toBe(75);     
 
     });

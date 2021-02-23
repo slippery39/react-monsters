@@ -1,5 +1,5 @@
 import { shuffle } from "lodash";
-import { BattleAction, UseMoveAction } from "./BattleActions";
+import { Actions, BattleAction, UseMoveAction } from "./BattleActions";
 import { Status } from "./HardStatus/HardStatus";
 import { GetActivePokemon } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
@@ -59,20 +59,48 @@ export function GetMoveOrder(players:Array<Player>,actions:Array<BattleAction>) 
     const actionPriorities = actions.map(act => {
 
         const player = players.find(play=>play.id === act.playerId);
+        
         if (player === undefined){
             throw new Error(`Could not find player with id ${act.playerId} in GetMoveOrder`)
         }
+
+        let move = undefined;
+        if (act.type === Actions.UseTechnique){
+            move = player.pokemon.map(poke=>poke.techniques).flat().find(tech=>tech.id===act.moveId);
+        }
+
         return {
             playerId: act.playerId,
+            player:player,
+            type:act.type,
             priority: GetActionPriority(player,act),
-            action: act
+            action: act,
+            techniqueUsed:move
         }
     }).sort((a, b) => b.priority - a.priority);
 
     let actionOrder: Array<BattleAction> = [];
 
+    //Edge Case for when a pplayer uses the technique pursuit on a switch.
+    if (actionPriorities.find(ap=>ap.techniqueUsed?.name==="Pursuit")!==undefined && actionPriorities.find(ap=>ap.type==='switch-pokemon-action')!==undefined){
+        //The priority would put Pursuit first and the switch pokemon action second.
+
+        const pursuitAction = actionPriorities.find(ap=>ap.techniqueUsed?.name === "Pursuit");
+
+        if (pursuitAction === undefined){
+            throw new Error(`Error with the pursuit action move order stuff`);
+        }
+
+        const switchAction = actionPriorities.find(ap=>ap.type==='switch-pokemon-action');
+
+        if (switchAction === undefined){
+            throw new Error(`Error finding the switch action in the pursuit move order stuff`);
+        }
+
+        actionOrder = [pursuitAction,switchAction].map(priority=>priority.action);
+    }
     //2 cases here, the priority is equal, or the priorities are different
-    if (actionPriorities[0].priority === actionPriorities[1].priority) {
+    else if (actionPriorities[0].priority === actionPriorities[1].priority) {
         //search for the active player's pokemons speed.
         actionOrder = GetSpeedPriority(players,actions).map(priority => priority.action);
     }
@@ -80,5 +108,9 @@ export function GetMoveOrder(players:Array<Player>,actions:Array<BattleAction>) 
         //they should be sorted already.
         actionOrder = actionPriorities.map(priority => priority.action);
     }
+
+    
+   
+
     return actionOrder;
 }
