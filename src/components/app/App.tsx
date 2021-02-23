@@ -29,18 +29,21 @@ function App() {
   function initializeBattle() {
 
     //MISSINGNO!
+    /*
     const testPokemon = PokemonBuilder().GetPremadePokemon("Jolteon").WithTechniques([
       "Thunderbolt",
     ])
    .Build();
 
       //testPokemon.currentStats.hp = 1;
+      */
 
 
     const testPokemon2 = PokemonBuilder().GetPremadePokemon("Dunsparce").WithTechniques([
       "Pursuit"
     ])
    .Build();
+   
 
     
 

@@ -312,6 +312,20 @@ class MultiscaleAbility extends AbstractAbility{
     }
 }
 
+class TechnicianAbility extends AbstractAbility{
+    name="Technician";
+    description="Powers up the Pokémon's weaker moves.";
+
+    ModifyTechnique(pokemon: Pokemon, technique:Technique){
+        if (technique.power<=60){
+            let newTech = {...technique}
+            newTech.power = newTech.power*1.5;
+            return newTech;
+        }
+        return technique;
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -370,6 +384,9 @@ function GetAbility(name: String) {
         }
         case 'multiscale':{
             return new MultiscaleAbility();
+        }
+        case 'technician':{
+            return new TechnicianAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

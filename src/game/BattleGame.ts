@@ -120,6 +120,10 @@ class BattleGame {
         const pokemon1 = GetActivePokemon(initialState.players[0]);
         const pokemon2 = GetActivePokemon(initialState.players[1]);
 
+        /*
+            Forced Actions i.e. moves that must be repeated like Rollout or Outrage happen here.
+            ForcedActions mean's the user won't even get to select any action for their turn.
+        */
         turn.GetAllBattleBehaviours(pokemon1).forEach(b => {
             b.ForceAction(turn, GetPokemonOwner(initialState.players, pokemon1), pokemon1);
          });

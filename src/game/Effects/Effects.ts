@@ -1,4 +1,4 @@
-import { StatusChangeEvent, BattleEventType, DamageEvent } from "game/BattleEvents";
+import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
 import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, ResetStatBoosts } from "game/HelperFunctions";
@@ -10,7 +10,6 @@ import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { shuffle } from "lodash";
-import { getEffectiveConstraintOfTypeParameter } from "typescript";
 
 export enum TargetType {
     Self = 'self',

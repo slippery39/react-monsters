@@ -99,19 +99,34 @@ export class Turn {
     SetInitialPlayerAction(action: BattleAction) {
         const actionExistsForPlayer = this.initialActions.filter(act => act.playerId === action.playerId);
         if (actionExistsForPlayer.length === 0) {
+            
+            if (action.type === Actions.UseTechnique){
+               this.GetAllBattleBehaviours(this.GetPokemon(action.pokemonId)).forEach(b=>{
+                   if (action.type!==Actions.UseTechnique){
+                       return;
+                   }
+                   action = b.OverrideAction(this,this.GetPlayer(action.playerId),this.GetPokemon(action.pokemonId),action)
+               })
+            }
             this.initialActions.push(action);
         }
         else {
             return;
         }
         if (this.initialActions.length === 2) {
-            console.log("calculating turns!");
-            console.log(this.initialActions);
             this.currentState = {
                 type: 'calculating-turn'
             }
             this.CalculateTurn();
         }
+    }
+
+    //Overrides whatever action a player has selected 
+    OverridePlayerAction(action:BattleAction){
+        //remove the existing action
+        this.initialActions = this.initialActions.filter(act=>act.playerId!==action.playerId);
+        //push the new action in.
+        this.initialActions.push(action);
     }
 
     Update() {
@@ -420,6 +435,7 @@ export class Turn {
 
     private CalculateTurn() {
 
+        //Any action overrides for choice band or the technique "struggle" would need to happen here...
         //this needs to be cached.
         const actionOrder = this.GetMoveOrder();
 
@@ -573,6 +589,10 @@ export class Turn {
         this.AddEvent(switchInEffect);
 
         const entryPokemon = this.GetPokemon(pokemonIn.id);
+
+        this.GetAllBattleBehaviours(switchOutPokemon).forEach(b=>{
+            b.OnSwitchedOut(this,switchOutPokemon);
+        })
 
         this.GetEntryHazards().forEach(hazard => {
             hazard.OnPokemonEntry(this, this.GetPokemon(pokemonIn.id));
