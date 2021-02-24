@@ -565,6 +565,23 @@ const premades: Array<PremadePokemon> = [
             attack:252,
             spDefense:8
         }
+    },
+    {
+        species:"Shuckle",
+        heldItem:"Leftovers",
+        ability:"Sturdy",
+        nature:NatureType.Impish,
+        techniques:[
+            "Stealth Rock",
+            "Toxic",
+            "Encore",
+            "Knock Off"
+        ],
+        evs:{
+            hp:252,
+            defense:252,
+            spDefense:4
+        }
     }
 ]
 

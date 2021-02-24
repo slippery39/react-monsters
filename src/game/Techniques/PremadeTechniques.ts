@@ -30,6 +30,21 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Encore",
+            description:"The user compels the target to keep using only the move it last used for three turns.",
+            pp:8,
+            elementalType:ElementType.Normal,
+            damageType:DamageType.Status,
+            power:0,
+            effects:[
+                {
+                    type:EffectType.InflictVolatileStatus,
+                    status:VolatileStatusType.Encored,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
+        {
             name:"Pursuit",
             description:"An attack move that inflicts double damage if used on a target that is switching out of battle.",
             pp:32,

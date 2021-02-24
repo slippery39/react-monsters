@@ -387,6 +387,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:65
             },
             weight:118
+        },
+        {
+            name:"Shuckle",
+            elementalTypes:[ElementType.Rock,ElementType.Bug],
+            baseStats:{
+                hp:20,
+                attack:10,
+                defense:230,
+                spAttack:10,
+                spDefense:230,
+                speed:5                
+            },
+            weight:20.5
         }
     ];
 

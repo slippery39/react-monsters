@@ -9,7 +9,7 @@ import { DamageType, Technique } from "game/Techniques/Technique";
 import { InflictVolatileStatus, TargetType } from "game/Effects/Effects";
 import { Player } from "game/Player/PlayerBuilder";
 import { GetTech } from "game/Techniques/PremadeTechniques";
-import { Actions, ForcedTechniqueAction } from "game/BattleActions";
+import { Actions, ForcedTechniqueAction, UseMoveAction } from "game/BattleActions";
 
 
 export enum VolatileStatusType {
@@ -21,8 +21,10 @@ export enum VolatileStatusType {
     Substitute = 'substitute',
     Protection = 'protection',
     Outraged = "outraged",
-    Bouncing = "bouncing"
+    Bouncing = "bouncing",
+    Encored = "encored"
 }
+
 
 export abstract class VolatileStatus extends BattleBehaviour {
     abstract type: VolatileStatusType
@@ -342,17 +344,9 @@ export class OutragedVolatileStatus extends VolatileStatus {
     }
 }
 
-var testId = 0;
-
 export class BouncingVolatileStatus extends VolatileStatus {
     flaggedForRemoval:boolean = false;
     type = VolatileStatusType.Bouncing;
-    id:number = ++testId;
-
-    constructor(){
-        super();
-        testId++;
-    }
 
     InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} bounced high up in the air`;
@@ -395,6 +389,24 @@ export class BouncingVolatileStatus extends VolatileStatus {
 
         return false;
     }
+}
+
+export class EncoredVolatileStatus extends VolatileStatus{
+    type = VolatileStatusType.Encored
+
+    InflictedMessage(pokemon:Pokemon){
+        return `${pokemon.name} got an encore!`
+    }
+
+    OnApply(turn:Turn,pokemon:Pokemon){
+        //this is where we need the history, because we need to get the last move that the defending pokemon used.
+    }
+
+    OverrideAction(turn:Turn,player:Player,pokemon:Pokemon,action:UseMoveAction):UseMoveAction{
+        //Overrides an action, i.e. for Choice items
+        return action;
+    }
+    //We need to figure out the last move?
 }
 
 
