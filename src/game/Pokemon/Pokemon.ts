@@ -24,6 +24,7 @@ export interface Pokemon {
     originalStats: Stats
     currentStats: Stats,
     techniques: Array<Technique>,
+    techniqueUsedLast:String | undefined,
     status: Status,
     elementalTypes: Array<ElementType>,
     canAttackThisTurn: boolean
@@ -76,6 +77,7 @@ class _PokemonBuilder {
             elementalTypes: [],
             originalStats: CreateEmptyStats(),
             currentStats: CreateEmptyStats(),
+            techniqueUsedLast:undefined,
             techniques: [
             ],
             volatileStatuses: [],

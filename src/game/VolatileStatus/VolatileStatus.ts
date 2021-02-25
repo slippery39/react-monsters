@@ -22,7 +22,7 @@ export enum VolatileStatusType {
     Protection = 'protection',
     Outraged = "outraged",
     Bouncing = "bouncing",
-    Encored = "encored"
+    Encored = "encored",    
 }
 
 
@@ -393,20 +393,37 @@ export class BouncingVolatileStatus extends VolatileStatus {
 
 export class EncoredVolatileStatus extends VolatileStatus{
     type = VolatileStatusType.Encored
+    numTurns:number = 3;
+    currentTurnNum:number = 1;
 
     InflictedMessage(pokemon:Pokemon){
         return `${pokemon.name} got an encore!`
     }
 
-    OnApply(turn:Turn,pokemon:Pokemon){
-        //this is where we need the history, because we need to get the last move that the defending pokemon used.
+    OverrideAction(turn:Turn,player:Player,pokemon:Pokemon,action:UseMoveAction):UseMoveAction{
+         //Overrides an action, i.e. for Choice items
+         const encoreTechniqueName = pokemon.techniques.find(t=>t.name === pokemon.techniqueUsedLast);      
+
+         if (encoreTechniqueName === undefined){
+             throw new Error(`Could not find technique to encore`);
+         }
+
+         const newAction = {...action};
+         newAction.moveId = encoreTechniqueName.id;
+         this.currentTurnNum++;
+
+        return newAction;
     }
 
-    OverrideAction(turn:Turn,player:Player,pokemon:Pokemon,action:UseMoveAction):UseMoveAction{
-        //Overrides an action, i.e. for Choice items
-        return action;
+    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+        if (this.currentTurnNum > this.numTurns) {
+            turn.AddMessage(`${pokemon.name}'s encore has ended!`);
+            turn.AddMessage("");
+            this.Remove(turn, pokemon);
+            
+        }
+        //Remove Outraged Status if Attack missed for whatever reason.
     }
-    //We need to figure out the last move?
 }
 
 
@@ -438,6 +455,9 @@ export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
         }
         case VolatileStatusType.Bouncing: {
             return new BouncingVolatileStatus();
+        }
+        case VolatileStatusType.Encored:{
+            return new EncoredVolatileStatus();
         }
         default: {
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

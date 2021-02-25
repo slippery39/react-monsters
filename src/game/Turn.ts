@@ -57,8 +57,8 @@ export interface OnNewTurnLogArgs {
 }
 
 export class Turn {
-    id: Number;
-    field: Field;
+    id: Number; //Turn specific property
+    field: Field; //Battle specific property
 
     eventLog: Array<BattleEvent> = [];
     //Events that have occured since the last time it was calculated. (In case the turn stops calculating half way through due to a switch needed)
@@ -639,6 +639,12 @@ export class Turn {
         this.AddEvent(useTechniqueEffect);
         
         technique.currentPP -= 1;
+        
+        //Make sure we only store the technique used last as a technique the pokemon actually has. (in case of forced actions or any metronome type effects)
+        if (pokemon.techniques.find(tech=>tech.name === technique.name)){
+            pokemon.techniqueUsedLast = technique.name;
+        }
+
 
         //2 turn move should apply here?
         if (technique.twoTurnMove){

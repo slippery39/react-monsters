@@ -30,6 +30,20 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Knock Off",
+            description:"The user slaps down the target's held item, preventing that item from being used in the battle.",
+            pp:32,
+            accuracy:100,
+            makesContact:true,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Dark,
+            power:65,
+            effects:[{
+                type:EffectType.RemoveHeldItem,
+                target:TargetType.Enemy
+            }]
+        },
+        {
             name:"Encore",
             description:"The user compels the target to keep using only the move it last used for three turns.",
             pp:8,

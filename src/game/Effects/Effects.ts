@@ -1,6 +1,7 @@
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
 import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
+import { NoHeldItem } from "game/HeldItem/HeldItem";
 import { GetActivePokemon, ResetStatBoosts } from "game/HelperFunctions";
 import { Item } from "game/Items/Item";
 import { Player } from "game/Player/PlayerBuilder";
@@ -30,7 +31,8 @@ export enum EffectType {
     ClearHazards = 'clear-hazards',
     Recoil = 'recoil',
     RemoveStatBoosts = 'remove-stat-boosts',
-    PainSplit = 'pain-split'
+    PainSplit = 'pain-split',
+    RemoveHeldItem = 'remove-held-item'
 }
 
 export interface InflictStatusEffect {
@@ -110,12 +112,16 @@ export interface PainSplitEffect {
     type:EffectType.PainSplit
 }
 
+export interface RemoveHeldItemEffect{
+    type:EffectType.RemoveHeldItem
+}
+
 
 
 export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
     | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect |
     AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect
-    |PainSplitEffect);
+    |PainSplitEffect | RemoveHeldItemEffect);
 
 
 
@@ -355,6 +361,14 @@ function PainSplitEffect(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pok
 
 }
 
+function RemoveHeldItemEffect(turn:Turn,pokemon:Pokemon){
+    if (pokemon.heldItem.name!==""){       
+        turn.AddMessage(`${pokemon.name} dropped it's ${pokemon.heldItem.name}`);
+        pokemon.heldItem = new NoHeldItem();
+    } 
+    
+}
+
 
 export interface EffectSource {
     sourcePokemon?: Pokemon,
@@ -460,6 +474,10 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
                 throw new Error(`Could not find source pokemon for Pain Split effect`);
             }
             PainSplitEffect(turn,source.sourcePokemon,pokemon);
+            break;
+        }
+        case EffectType.RemoveHeldItem:{
+            RemoveHeldItemEffect(turn,pokemon);
             break;
         }
         default: {
