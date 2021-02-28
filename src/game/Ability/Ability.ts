@@ -1,5 +1,5 @@
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
-import { ApplyWeather, InflictStatus, TargetType } from "game/Effects/Effects";
+import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
@@ -252,9 +252,17 @@ class IntimidateAbility extends AbstractAbility {
         }
 
         const otherTrainersPokemon = GetActivePokemon(otherTrainer);
-        ApplyStatBoost(otherTrainersPokemon, Stat.Attack, -1);
-        turn.AddMessage(`${pokemon.name}'s Intimidate cuts ${otherTrainersPokemon.name}'s attack!`);
-    }
+
+        const params :DoStatBoostParameters = {
+            turn:turn,
+            pokemon:otherTrainersPokemon,
+            stat:Stat.Attack,
+            amount:-1,
+            sourcePokemon:pokemon,
+            messageOverride: `${pokemon.name}'s Intimidate cuts ${otherTrainersPokemon.name}'s attack!`         
+        }
+        DoStatBoost(params);
+      }
 
 
 }
@@ -364,6 +372,21 @@ class ChlorophyllAbility extends AbstractAbility{
     }
 }
 
+class ClearBodyAbility extends AbstractAbility{
+    name="Clear Body"
+    description = "Prevents other Pokémon from lowering its stats."
+
+    ModifyStatBoostAmount(turn: Turn, pokemon: Pokemon, amount: number, sourcePokemon: Pokemon){
+        if (sourcePokemon.id!==pokemon.id){
+            if (amount <= -1){
+                turn.AddMessage(`${pokemon.name}'s clear body prevents negative stat boosts!`)
+                return 0; //cannot have negative stat boosts done 
+            }
+        }
+        return amount;
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -431,6 +454,9 @@ function GetAbility(name: String) {
         }
         case 'chlorophyll':{
             return new ChlorophyllAbility();
+        }
+        case 'clear body':{
+            return new ClearBodyAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

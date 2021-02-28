@@ -30,6 +30,25 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Meteor Mash",
+            description:"The target is hit with a hard punch fired like a meteor. It may also raise the user's Attack.",
+            pp:16,
+            power:90,
+            accuracy:90,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Steel,
+            makesContact:true,
+            effects:[
+                {
+                    type:EffectType.StatBoost,
+                    stat:Stat.Attack,
+                    amount:1,
+                    chance:20,
+                    target:TargetType.Self
+                }
+            ]
+        },
+        {
             name:"Seed Bomb",
             description:"The user slams a barrage of hard-shelled seeds down on the foe from above.",
             pp:24,

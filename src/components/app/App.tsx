@@ -39,9 +39,10 @@ function App() {
       */
 
 
-    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Dunsparce").WithTechniques([
+    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Arcanine").WithTechniques([
       "Pursuit"
     ])
+    .WithAbility("Intimidate")
    .Build();
    
 
@@ -49,7 +50,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("jumpluff")
+      .WithPokemon("metagross")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
       .WithPokemon("charizard")
@@ -62,7 +63,7 @@ function App() {
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
       .WithCustomPokemon(testPokemon2)
-      .WithPokemon("blastoise")
+      .WithPokemon("arcanine")
       .WithPokemon("charizard")
       .Build();
 

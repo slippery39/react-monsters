@@ -426,6 +426,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:110
             },
             weight:3
+        },
+        {
+            name:"Metagross",
+            elementalTypes:[ElementType.Steel,ElementType.Psychic],
+            baseStats:{
+                hp:80,
+                attack:135,
+                defense:130,
+                spAttack:95,
+                spDefense:90,
+                speed:70
+            },
+            weight:550
         }
     ];
 

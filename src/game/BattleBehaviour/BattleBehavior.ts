@@ -54,6 +54,9 @@ abstract class BattleBehaviour{
     ModifyIndirectDamage(turn:Turn,pokemon:Pokemon,damage:number){
         return damage;
     }
+    ModifyStatBoostAmount(turn:Turn,pokemon:Pokemon,amount:number,sourcePokemon:Pokemon){
+        return amount;
+    }
     Update(turn:Turn,pokemon:Pokemon){
 
     }

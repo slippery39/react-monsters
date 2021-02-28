@@ -1,3 +1,4 @@
+import GetAbility from "game/Ability/Ability";
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
 import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
@@ -155,8 +156,31 @@ export function InflictStatus(turn: Turn, pokemon: Pokemon, status: Status, sour
     turn.AddEvent(statusInflictedEffect);
 }
 
-function DoStatBoost(turn: Turn, pokemon: Pokemon, stat: Stat, amount: number) {
+
+export interface DoStatBoostParameters{
+    turn:Turn,
+    pokemon:Pokemon,
+    stat:Stat,
+    amount:number,
+    sourcePokemon:Pokemon,
+    messageOverride?:string
+}
+
+export function DoStatBoost(params:DoStatBoostParameters) {
+
+    const turn = params.turn;
+    const pokemon = params.pokemon;
+    let amount = params.amount;
+    const sourcePokemon = params.sourcePokemon;
+    const stat = params.stat;
+    const messageOverride = params.messageOverride;
+
     const targetPokemon = pokemon;
+    amount = GetAbility(pokemon.ability).ModifyStatBoostAmount(turn,pokemon,amount,sourcePokemon);
+    if (amount === 0){
+        return;
+    }
+
     ApplyStatBoost(targetPokemon, stat, amount);
 
     let statString = "";
@@ -191,10 +215,14 @@ function DoStatBoost(turn: Turn, pokemon: Pokemon, stat: Stat, amount: number) {
         }
     }
 
-    let message = ` ${targetPokemon.name} has had its ${statString} boosted!`
-    if (amount < 0) {
+    let message = messageOverride;
+    if (message === undefined){
+        message = ` ${targetPokemon.name} has had its ${statString} boosted!`
+        if (amount < 0) {
         message = ` ${targetPokemon.name} has had its ${statString} decreased!`
+        }
     }
+
     turn.AddMessage(message);
 }
 
@@ -399,7 +427,17 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
             break;
         }
         case EffectType.StatBoost: {
-            DoStatBoost(turn, pokemon, effect.stat, effect.amount);
+            if (source.sourcePokemon === undefined){
+                throw new Error(`Need a source pokemon to DoEffect - effect.sourcePokemon`);
+            }            
+            const params :DoStatBoostParameters = {
+                turn:turn,
+                pokemon:pokemon,
+                stat:effect.stat,
+                amount:effect.amount,
+                sourcePokemon:source.sourcePokemon
+            }
+            DoStatBoost(params);
             break;
         }
         case EffectType.InflictVolatileStatus: {

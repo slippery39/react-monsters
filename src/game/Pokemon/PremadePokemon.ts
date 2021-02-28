@@ -616,6 +616,23 @@ const premades: Array<PremadePokemon> = [
             spDefense:4,
             speed:252
         }
+    },
+    {
+        species:"Metagross",
+        heldItem:"Leftovers",
+        ability:"Clear Body",
+        nature:NatureType.Adamant,
+        techniques:[
+            "Stealth Rock",
+            "Meteor Mash",
+            "Pursuit",
+            "Earthquake"
+        ],
+        evs:{
+            hp:252,
+            attack:96,
+            spDefense:160
+        }
     }
 ]
 
