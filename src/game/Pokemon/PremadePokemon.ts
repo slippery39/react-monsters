@@ -582,6 +582,23 @@ const premades: Array<PremadePokemon> = [
             defense:252,
             spDefense:4
         }
+    },
+    {
+        species:"Politoed",
+        heldItem:"Choice Specs",
+        ability:"Drizzle",
+        nature:NatureType.Modest,
+        techniques:[
+            "Hydro Pump",
+            "Ice Beam",
+            "Psychic",
+            "Hidden Power Grass"
+        ],
+        evs:{
+            hp:252,
+            defense:4,
+            spAttack:252
+        }
     }
 ]
 

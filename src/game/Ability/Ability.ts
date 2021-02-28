@@ -1,5 +1,5 @@
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
-import { InflictStatus, TargetType } from "game/Effects/Effects";
+import { ApplyWeather, InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
@@ -7,6 +7,7 @@ import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
+import { RainingWeather } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
 
 
@@ -327,6 +328,20 @@ class TechnicianAbility extends AbstractAbility{
     }
 }
 
+class DrizzleAbility extends AbstractAbility{
+    name="Drizzle"
+    description="The Pokémon makes it rain when it enters a battle."
+
+    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+        //find out what the other pokemon is
+        //this should only effect the current pokemon
+        const rainWeather = new RainingWeather();
+        rainWeather.duration = 5;
+        ApplyWeather(turn,rainWeather);
+        turn.AddMessage(`${pokemon.name}'s Drizzle made it rain!`);
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -388,6 +403,9 @@ function GetAbility(name: String) {
         }
         case 'technician':{
             return new TechnicianAbility();
+        }
+        case 'drizzle':{
+            return new DrizzleAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

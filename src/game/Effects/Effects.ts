@@ -10,6 +10,7 @@ import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
+import { Weather } from "game/Weather/Weather";
 import { shuffle } from "lodash";
 
 export enum TargetType {
@@ -364,9 +365,14 @@ function PainSplitEffect(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pok
 function RemoveHeldItemEffect(turn:Turn,pokemon:Pokemon){
     if (pokemon.heldItem.name!==""){       
         turn.AddMessage(`${pokemon.name} dropped it's ${pokemon.heldItem.name}`);
+        //removing the held item here not sure if we should have this for everything.
+        pokemon.heldItem.OnRemoved(turn,pokemon);
         pokemon.heldItem = new NoHeldItem();
     } 
-    
+}
+
+export function ApplyWeather(turn:Turn,weather:Weather){
+    turn.field.weather = weather;
 }
 
 export interface EffectSource {

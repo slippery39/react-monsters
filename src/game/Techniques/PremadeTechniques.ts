@@ -30,6 +30,15 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name: "Hidden Power Grass",
+            description: "An attack that varies in type and intensity depending on the user.",
+            pp: 24,
+            power: 60,
+            accuracy: 100,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Grass,
+        },
+        {
             name:"Knock Off",
             description:"The user slaps down the target's held item, preventing that item from being used in the battle.",
             pp:32,

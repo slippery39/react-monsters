@@ -3,12 +3,17 @@ import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { Player } from "game/Player/PlayerBuilder";
-import { Pokemon } from "game/Pokemon/Pokemon";
+import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
+import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
+import _ from "lodash";
 
 export abstract class HeldItem extends BattleBehaviour {
+    OnRemoved(turn:Turn,pokemon:Pokemon) { //might want this for all of our battle behaviours.
+       
+    }
     name: string = ""
     description: string = ""
 }
@@ -88,10 +93,21 @@ export class BlackSludge extends HeldItem {
 
 //Forced actions should take precedent over 
 export class ChoiceBand extends HeldItem{
-    name:string = "Choice Scarf";
+    name:string = "Choice Band";
     description = "An item to be held by a Pokémon. This scarf boosts Speed, but allows the use of only one kind of move."
 
     techniqueUsed:Technique | undefined =  undefined;
+
+    Update(turn: Turn, pokemon: Pokemon){
+        if (pokemon.statMultipliers.find(sm=>sm.tag === this.name) === undefined){
+            const statMultiplier : StatMultiplier = {
+                stat:Stat.Attack,
+                multiplier:1.5,
+                tag:this.name
+            }
+            pokemon.statMultipliers.push(statMultiplier)
+        }
+    }
 
     OnTechniqueUsed(turn:Turn, pokemon: Pokemon, technique: Technique){
         //save the technique used to the item slot
@@ -125,8 +141,70 @@ export class ChoiceBand extends HeldItem{
     OnSwitchedOut(turn:Turn,pokemon:Pokemon){
         //Reset the technique used for next time.
         this.techniqueUsed = undefined;
-    }   
+    }  
+    
+    OnRemoved(turn:Turn,pokemon:Pokemon){
+        //remove our stat multiplier.
+        _.remove(pokemon.statMultipliers,(sm=>sm.tag === this.name));
+    }
 
+}
+
+export class ChoiceSpecs extends HeldItem{
+    name:string = "Choice Specs";
+    description = "An item to be held by a Pokémon. These curious glasses boost Sp. Atk but only allow the use of one move."
+
+    techniqueUsed:Technique | undefined =  undefined;
+
+    Update(turn: Turn, pokemon: Pokemon){
+        if (pokemon.statMultipliers.find(sm=>sm.tag === this.name) === undefined){
+            const statMultiplier : StatMultiplier = {
+                stat:Stat.SpecialAttack,
+                multiplier:1.5,
+                tag:this.name
+            }
+            pokemon.statMultipliers.push(statMultiplier)
+        }
+    }
+
+    OnTechniqueUsed(turn:Turn, pokemon: Pokemon, technique: Technique){
+        //save the technique used to the item slot
+        //for sanity purposes the technique saved should be on the pokemon as well.
+        //Check to make sure the technique actually exists on the pokemon (in case of custom moves or whatnot)
+        if (this.techniqueUsed === undefined){
+            if (pokemon.techniques.find(tech=>tech.id === technique.id || tech.name === technique.name) === undefined){
+                throw new Error(`Could not find technique for pokemon to save to choice band... Technique name we tried to save was ${technique.name}`)
+            }
+            this.techniqueUsed = technique;
+        }
+    }
+
+    //CONTINUE FROM HERE... IMPLEMENTING CHOICE HELD ITEMS.
+    OverrideAction(turn:Turn,player:Player,pokemon:Pokemon,action:UseTechniqueAction){        
+        //Change to a use technique action with 
+
+        if (this.techniqueUsed === undefined){
+            return action;
+        }
+
+        const newAction: UseTechniqueAction = {
+            playerId:player.id,
+            pokemonId:pokemon.id,
+            moveId:this.techniqueUsed.id,
+            type:Actions.UseTechnique
+        }
+        return newAction;
+    }
+
+    OnSwitchedOut(turn:Turn,pokemon:Pokemon){
+        //Reset the technique used for next time.
+        this.techniqueUsed = undefined;
+    }  
+
+    OnRemoved(turn:Turn,pokemon:Pokemon){
+        //remove our stat multiplier.
+        _.remove(pokemon.statMultipliers,(sm=>sm.tag === this.name));
+    }
 }
 
 
@@ -154,9 +232,13 @@ function GetHeldItem(name: string): HeldItem {
         case "choice band":{
             return new ChoiceBand();
         }
+        case "choice specs":{
+            return new ChoiceSpecs();
+        }
         case "none": {
             return new NoHeldItem();
         }
+
         
         default: {
             throw new Error(`Could not find held item for ${name} in GetHeldItem`);

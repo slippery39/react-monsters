@@ -3,8 +3,6 @@ import { GetActivePokemon, GetPokemonOwner } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 import { Field, OnNewTurnLogArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
-import { RainingWeather } from "./Weather/Weather";
-
 
 /*
 This file is for testing out our new updated battle class and what we want from it.
@@ -74,7 +72,7 @@ class BattleGame {
         this.gameState = {
             players: _.cloneDeep(players),
             entryHazards: [],
-            weather:new RainingWeather()
+            weather:undefined
         }
     }
 
@@ -106,12 +104,11 @@ class BattleGame {
     private NextTurn() {
         //This is leftover from the BattleService class, but we are going to handle the state directly in the battle class instead.
         const initialState = _.cloneDeep(this.GetCurrentTurn().field);
-        
+
         const turn = new Turn(this.turnHistory.length + 1, initialState);
         this.turnHistory.push(turn);
      
         turn.OnNewLogReady.on((args) => {
-            console.log("new log ready from battle game");
             this.OnNewLogReady.emit(args);
         });
         turn.OnTurnFinished.on(() => {

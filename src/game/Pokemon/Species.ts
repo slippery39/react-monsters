@@ -400,6 +400,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:5                
             },
             weight:20.5
+        },
+        {
+            name:"Politoed",
+            elementalTypes:[ElementType.Water],
+            baseStats:{
+                hp:90,
+                attack:75,
+                defense:75,
+                spAttack:90,
+                spDefense:100,
+                speed:70
+            },
+            weight:33.9
         }
     ];
 
