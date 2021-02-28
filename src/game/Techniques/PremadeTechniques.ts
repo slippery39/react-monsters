@@ -30,6 +30,27 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Seed Bomb",
+            description:"The user slams a barrage of hard-shelled seeds down on the foe from above.",
+            pp:24,
+            power:80,
+            accuracy:100,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Grass,
+        },
+        {
+            name:"Acrobatics",
+            description:"The user nimbly strikes the target. If the user is not holding an item, this attack inflicts massive damage.",
+            pp:24,
+            power:55,
+            accuracy:100,
+            makesContact:true,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Flying,
+            damageEffect:{type:DamageEffectTypes.Acrobatics}
+            
+        },
+        {
             name: "Hidden Power Grass",
             description: "An attack that varies in type and intensity depending on the user.",
             pp: 24,

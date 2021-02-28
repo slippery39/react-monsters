@@ -413,6 +413,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:70
             },
             weight:33.9
+        },
+        {
+            name:"Jumpluff",
+            elementalTypes:[ElementType.Grass,ElementType.Flying],
+            baseStats:{
+                hp:75,
+                attack:55,
+                defense:70,
+                spAttack:55,
+                spDefense:85,
+                speed:110
+            },
+            weight:3
         }
     ];
 

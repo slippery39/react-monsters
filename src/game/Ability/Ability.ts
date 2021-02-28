@@ -342,6 +342,28 @@ class DrizzleAbility extends AbstractAbility{
     }
 }
 
+class ChlorophyllAbility extends AbstractAbility{
+    name="Chlorophyll"
+    description = "Boosts the Pokémon's Speed stat in sunshine"
+
+    Update(turn:Turn, pokemon: Pokemon){
+        if (!turn.field.weather){
+            return;
+        }
+        //TODO: at the time we made this ability, sunlight was not implemented yet.... double check and remove this comment once we implement sunlight.
+        if (turn.field.weather.name.toLowerCase() ==="harsh sunlight"){
+            pokemon.statMultipliers.push({
+                stat:Stat.Speed,
+                multiplier:2,
+                tag:this.name
+            })
+        }
+        else{
+            _.remove(pokemon.statMultipliers,(sm=>sm.tag===this.name));
+        }
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -406,6 +428,9 @@ function GetAbility(name: String) {
         }
         case 'drizzle':{
             return new DrizzleAbility();
+        }
+        case 'chlorophyll':{
+            return new ChlorophyllAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

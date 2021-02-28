@@ -675,12 +675,16 @@ export class Turn {
         }
 
 
+
         const ability = GetAbility(pokemon.ability);
         technique = ability.ModifyTechnique(pokemon, technique);
 
         if (this.field.weather){
-            this.field.weather.ModifyTechnique(pokemon,technique);
+           technique =  this.field.weather.ModifyTechnique(pokemon,technique);
         }
+        this.GetBehavioursForPokemon(pokemon).forEach(b=>{
+            technique = b.ModifyTechnique(pokemon,technique);
+        })
         
         this.GetBehavioursForPokemon(pokemon).forEach(b => {
             b.OnTechniqueUsed(this, pokemon, technique);

@@ -599,6 +599,23 @@ const premades: Array<PremadePokemon> = [
             defense:4,
             spAttack:252
         }
+    },
+    {
+        species:"Jumpluff",
+        heldItem:"Flying Gem",
+        ability:"Clorophyll",
+        nature:NatureType.Jolly,
+        techniques:[
+            "Swords Dance",
+            "Acrobatics",
+            "Seed Bomb",
+            "Sleep Powder"
+        ],
+        evs:{
+            attack:252,
+            spDefense:4,
+            speed:252
+        }
     }
 ]
 

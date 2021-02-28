@@ -4,16 +4,18 @@ import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import _ from "lodash";
 
-export type DamageEffect = (EruptionDamageEffect | SeismicTossDamageEffect | LowKickDamageEffect | PursuitDamageEffect | NullDamageEffect);
+export type DamageEffect = {
+    type:DamageEffectTypes
+}
 
 export enum DamageEffectTypes{
     Eruption='eruption',
     SeismicToss = 'seismic-toss',
     LowKick = 'low-kick',
     Pursuit="pursuit",
+    Acrobatics = "acrobatics",
     None='null'
 }
-
 
 abstract class AbstractDamageEffect{
     ModifyTechnique(pokemon:Pokemon,technique:Technique,opponentPokemon:Pokemon,turn?:Turn){
@@ -89,19 +91,35 @@ class PursuitEffect extends AbstractDamageEffect{
     }
 }
 
+class AcrobaticsEffect extends AbstractDamageEffect{
+    ModifyTechnique(pokemon:Pokemon,technique:Technique,opponentPokemon:Pokemon,turn:Turn){
+        if (pokemon.heldItem.name !==""){
+            return technique;
+        }
+        else{
+            const newTech = {...technique};
+            newTech.power = technique.power*2;
+            return newTech;
+        }
+    }
+}
+
 
 export function GetDamageEffect(effectName:string){
-    if (effectName === 'eruption'){
+    if (effectName === DamageEffectTypes.Eruption){
         return new EruptionEffect();
     }
-    else if (effectName === 'seismic-toss'){
+    else if (effectName === DamageEffectTypes.SeismicToss){
         return new SeismicTossEffect();
     }
-    else if (effectName === 'low-kick'){
+    else if (effectName === DamageEffectTypes.LowKick){
         return new LowKickEffect();
     }
-    else if (effectName === "pursuit"){
+    else if (effectName === DamageEffectTypes.Pursuit){
         return new PursuitEffect();
+    }
+    else if (effectName === DamageEffectTypes.Acrobatics){
+        return new AcrobaticsEffect();
     }
 
     throw new Error(`Could not find damage effect for ${effectName}`)
@@ -109,19 +127,3 @@ export function GetDamageEffect(effectName:string){
 
 
 
-
-interface EruptionDamageEffect{
-    type:DamageEffectTypes.Eruption
-}
-interface SeismicTossDamageEffect{
-    type:DamageEffectTypes.SeismicToss
-}
-interface NullDamageEffect{
-    type:DamageEffectTypes.None
-}
-interface LowKickDamageEffect{
-    type:DamageEffectTypes.LowKick
-}
-interface PursuitDamageEffect{
-    type:DamageEffectTypes.Pursuit
-}

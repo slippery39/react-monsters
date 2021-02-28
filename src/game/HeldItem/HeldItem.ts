@@ -207,6 +207,27 @@ export class ChoiceSpecs extends HeldItem{
     }
 }
 
+export class FlyingGem extends HeldItem{
+    name:string = "Flying Gem"
+    description:string = "A gem with an essence of air. When held, it strengthens the power of a Flying-type move only once."
+ 
+    ModifyTechnique(pokemon: Pokemon, technique: Technique){
+
+        alert("flying gem is trying to modify a technique");
+        if (technique.elementalType === ElementType.Flying){
+            const newTechnique = {...technique};
+            newTechnique.power *=1.5;
+
+            alert("flying gem is boosting the power of the attack");
+            //drop the held item
+            //remove the held item.
+            pokemon.heldItem = new NoHeldItem();
+            return newTechnique;
+        }
+        return technique;
+    }
+}
+
 
 
 //Empty held item.
@@ -234,6 +255,9 @@ function GetHeldItem(name: string): HeldItem {
         }
         case "choice specs":{
             return new ChoiceSpecs();
+        }
+        case "flying gem":{
+            return new FlyingGem();
         }
         case "none": {
             return new NoHeldItem();
