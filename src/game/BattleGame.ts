@@ -3,6 +3,7 @@ import { GetActivePokemon, GetPokemonOwner } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 import { Field, OnNewTurnLogArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
+import { RainingWeather } from "./Weather/Weather";
 
 
 /*
@@ -72,7 +73,8 @@ class BattleGame {
         }
         this.gameState = {
             players: _.cloneDeep(players),
-            entryHazards: []
+            entryHazards: [],
+            weather:new RainingWeather()
         }
     }
 
@@ -81,6 +83,8 @@ class BattleGame {
         AutoAssignCurrentPokemonIds(this.gameState.players);
         AutoAssignItemIds(this.gameState.players);
         AutoAssignTechniqueIds(this.gameState.players);
+
+        
 
         const firstTurn = new Turn(1, this.gameState);
         this.turnHistory.push(firstTurn);
@@ -101,10 +105,8 @@ class BattleGame {
 
     private NextTurn() {
         //This is leftover from the BattleService class, but we are going to handle the state directly in the battle class instead.
-        const initialState = {
-            players: this.GetCurrentTurn().GetPlayers(),
-            entryHazards: this.GetCurrentTurn().GetEntryHazards()
-        }
+        const initialState = _.cloneDeep(this.GetCurrentTurn().field);
+        
         const turn = new Turn(this.turnHistory.length + 1, initialState);
         this.turnHistory.push(turn);
      
@@ -124,10 +126,10 @@ class BattleGame {
             Forced Actions i.e. moves that must be repeated like Rollout or Outrage happen here.
             ForcedActions mean's the user won't even get to select any action for their turn.
         */
-        turn.GetAllBattleBehaviours(pokemon1).forEach(b => {
+        turn.GetBehavioursForPokemon(pokemon1).forEach(b => {
             b.ForceAction(turn, GetPokemonOwner(initialState.players, pokemon1), pokemon1);
          });
-         turn.GetAllBattleBehaviours(pokemon2).forEach(b => {
+         turn.GetBehavioursForPokemon(pokemon2).forEach(b => {
             b.ForceAction(turn, GetPokemonOwner(initialState.players, pokemon2), pokemon2);
          });
     }
@@ -142,10 +144,10 @@ class BattleGame {
         //Pokemon will enter the battle, and trigger any on entry ability effects
         const pokemon1 = GetActivePokemon(firstTurn.GetPlayers()[0]);
         const pokemon2 = GetActivePokemon(firstTurn.GetPlayers()[1]);
-        firstTurn.GetAllBattleBehaviours(pokemon1).forEach(b => {
+        firstTurn.GetBehavioursForPokemon(pokemon1).forEach(b => {
             b.OnPokemonEntry(firstTurn, pokemon1)
         });
-        firstTurn.GetAllBattleBehaviours(pokemon2).forEach(b => {
+        firstTurn.GetBehavioursForPokemon(pokemon2).forEach(b => {
             b.OnPokemonEntry(firstTurn, pokemon2);
         });
 

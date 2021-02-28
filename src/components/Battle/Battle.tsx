@@ -732,7 +732,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     return (
         <div className="App">
-            <Debug players={state.field.players} battleService={battleService} />
+            <Debug field={state.field} battleService={battleService} />
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>

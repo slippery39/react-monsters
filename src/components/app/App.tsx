@@ -49,10 +49,10 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("shuckle")
+      .WithPokemon("blastoise")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
-      .WithPokemon("alakazam")
+      .WithPokemon("charizard")
       .WithItem("Full Restore", 3)
       .WithItem("Antidote", 2)
       .WithItem("Hyper Potion", 3)

@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import BattleService from 'game/BattleService';
-import { ElementType } from 'game/ElementType';
-import ElementIcon from 'components/ElementIcon/ElementIcon';
 import { GetActivePokemon } from 'game/HelperFunctions';
 import './Debug.css'
 import { Pokemon } from 'game/Pokemon/Pokemon';
 import { Status } from 'game/HardStatus/HardStatus';
-import { Player } from 'game/Player/PlayerBuilder';
+import { Field } from 'game/Turn';
 
 
 function MakeStatusDropdown(poke: Pokemon, onChange: (evt: any) => void) {
@@ -21,7 +19,7 @@ function MakeStatusDropdown(poke: Pokemon, onChange: (evt: any) => void) {
     </select>)
 }
 
-
+/*
 function MakeElementIcons() {
     var icons = [];
     for (let element in ElementType) {
@@ -32,10 +30,11 @@ function MakeElementIcons() {
 
     return (<div>{icons}</div>);
 }
+*/
 
 interface Props {
     battleService: BattleService,
-    players: Array<Player>
+    field: Field
 }
 
 
@@ -45,26 +44,36 @@ const Debug: React.FunctionComponent<Props> = (props) => {
     const [hidden, setHidden] = useState<boolean>(true);
 
     function GetAllyPokemon() {
-        return GetActivePokemon(props.players[0]);
+        return GetActivePokemon(props.field.players[0]);
     }
     function GetEnemyPokemon() {
-        return GetActivePokemon(props.players[1]);
+        return GetActivePokemon(props.field.players[1]);
+    }
+
+    function GetWeatherType(){
+        return props.field.weather === undefined ? "No Active Weather" : props.field.weather.name
+    }
+    function GetWeatherDuration(){
+        return props.field.weather === undefined ? "" : props.field.weather.duration
+    }
+    function GetWeatherCurrentTurn(){
+        return props.field.weather === undefined ? "" : props.field.weather.currentTurn;
     }
 
     const hiddenClass = () => {
         return hidden ? "hidden" : ""
     }
 
-
-
     return (
         <div className='debug'>
             <div onClick={() => { setHidden(!hidden) }}> <b> Debug Info (Click to show / hide)</b> </div>
-
             <div className={hiddenClass()} >
-                <div><div>Element Icons</div>
-                    {MakeElementIcons()}
-                </div>
+                <div> 
+                    <div>Field Info</div>
+                    <div> Weather : {GetWeatherType()} </div>
+                    <div> Weather Duration : {GetWeatherDuration()} </div>
+                    <div> Weather Current Turn : {GetWeatherCurrentTurn()}</div>                    
+                </div>               
                 <div> Change Pokemon Status </div>
                 <div>
                     Ally {MakeStatusDropdown(GetAllyPokemon(), (evt) => {
@@ -77,6 +86,10 @@ const Debug: React.FunctionComponent<Props> = (props) => {
                     props.battleService.SetStatusOfPokemon(GetEnemyPokemon().id, evt.target.value);
                 })}
                 </div>
+                <div> Ally Pokemon Volatile Statuses </div>
+                <div> {GetAllyPokemon().volatileStatuses.map(vStat=>vStat.type)}</div>
+                <div> Enemy Pokemon Volatile Statuses </div>
+                <div> {GetEnemyPokemon().volatileStatuses.map(vStat=>vStat.type)}</div>
             </div>
         </div>
     )

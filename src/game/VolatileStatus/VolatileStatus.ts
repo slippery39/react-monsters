@@ -28,6 +28,7 @@ export enum VolatileStatusType {
 
 export abstract class VolatileStatus extends BattleBehaviour {
     abstract type: VolatileStatusType
+ 
 
     abstract InflictedMessage(pokemon: Pokemon): string
 
@@ -50,7 +51,7 @@ export abstract class VolatileStatus extends BattleBehaviour {
 
 export class SubstituteVolatileStatus extends VolatileStatus {
     type = VolatileStatusType.Substitute
-
+ 
 
     public substituteHealth: number = 999;
 
@@ -120,6 +121,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
 
 export class RoostedVolatileStatus extends VolatileStatus {
     type = VolatileStatusType.Roosted
+   
 
     private originalTypes: Array<ElementType> = [];
 
@@ -151,6 +153,7 @@ export class ProtectionVolatileStatus extends VolatileStatus {
     type = VolatileStatusType.Protection;
     private chanceToApply: number = 100;
     private flagForRemoval: boolean = false;
+   
 
     InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} is protecting itself`;
@@ -196,6 +199,7 @@ export class ProtectionVolatileStatus extends VolatileStatus {
 
 export class AquaRingVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.AquaRing;
+   
 
     InflictedMessage(pokemon: Pokemon): string {
         return `${pokemon.name} has surrounded itself in a veil of water!`
@@ -210,6 +214,7 @@ export class AquaRingVolatileStatus extends VolatileStatus {
 
 export class FlinchVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.Flinch
+   
 
     InflictedMessage(pokemon: Pokemon): string {
         //hack here. we may need an "on apply" method
@@ -234,6 +239,7 @@ export class FlinchVolatileStatus extends VolatileStatus {
 
 export class LeechSeedVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.LeechSeed;
+   
 
     InflictedMessage(pokemon: Pokemon): string {
         return `${pokemon.name} has been seeded!`;
@@ -262,6 +268,7 @@ export class LeechSeedVolatileStatus extends VolatileStatus {
 
 export class ConfusionVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.Confusion;
+   
 
     private unconfuseChance: number = 25;
     private damageSelfChance: number = 50
@@ -298,6 +305,7 @@ export class OutragedVolatileStatus extends VolatileStatus {
     type = VolatileStatusType.Outraged;
     amountOfTurns: number = 3;
     currentTurn: number = 1;
+
 
     InflictedMessage(pokemon: Pokemon): string {
         return "";
@@ -347,6 +355,7 @@ export class OutragedVolatileStatus extends VolatileStatus {
 export class BouncingVolatileStatus extends VolatileStatus {
     flaggedForRemoval:boolean = false;
     type = VolatileStatusType.Bouncing;
+    name="Bouncing"
 
     InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} bounced high up in the air`;
@@ -395,6 +404,8 @@ export class EncoredVolatileStatus extends VolatileStatus{
     type = VolatileStatusType.Encored
     numTurns:number = 3;
     currentTurnNum:number = 1;
+
+
 
     InflictedMessage(pokemon:Pokemon){
         return `${pokemon.name} got an encore!`

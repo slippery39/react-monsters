@@ -11,6 +11,7 @@ import _, { shuffle } from "lodash";
 
 
 
+
 abstract class AbstractAbility extends BattleBehaviour {
     name: string = "";
     description: string = "";

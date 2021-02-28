@@ -21,13 +21,15 @@ import { EntryHazard } from './EntryHazards/EntryHazard';
 import BattleBehaviour from './BattleBehaviour/BattleBehavior';
 import { Stat } from './Stat';
 import { TypedEvent } from './TypedEvent/TypedEvent';
+import { Weather } from './Weather/Weather';
 
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
 export interface Field {
     players: Array<Player>,
-    entryHazards?: Array<EntryHazard>
+    entryHazards?: Array<EntryHazard>,
+    weather?: Weather
 }
 
 enum TurnStep {
@@ -99,14 +101,14 @@ export class Turn {
     SetInitialPlayerAction(action: BattleAction) {
         const actionExistsForPlayer = this.initialActions.filter(act => act.playerId === action.playerId);
         if (actionExistsForPlayer.length === 0) {
-            
-            if (action.type === Actions.UseTechnique){
-               this.GetAllBattleBehaviours(this.GetPokemon(action.pokemonId)).forEach(b=>{
-                   if (action.type!==Actions.UseTechnique){
-                       return;
-                   }
-                   action = b.OverrideAction(this,this.GetPlayer(action.playerId),this.GetPokemon(action.pokemonId),action)
-               })
+
+            if (action.type === Actions.UseTechnique) {
+                this.GetBehavioursForPokemon(this.GetPokemon(action.pokemonId)).forEach(b => {
+                    if (action.type !== Actions.UseTechnique) {
+                        return;
+                    }
+                    action = b.OverrideAction(this, this.GetPlayer(action.playerId), this.GetPokemon(action.pokemonId), action)
+                })
             }
             this.initialActions.push(action);
         }
@@ -122,9 +124,9 @@ export class Turn {
     }
 
     //Overrides whatever action a player has selected 
-    OverridePlayerAction(action:BattleAction){
+    OverridePlayerAction(action: BattleAction) {
         //remove the existing action
-        this.initialActions = this.initialActions.filter(act=>act.playerId!==action.playerId);
+        this.initialActions = this.initialActions.filter(act => act.playerId !== action.playerId);
         //push the new action in.
         this.initialActions.push(action);
     }
@@ -132,8 +134,8 @@ export class Turn {
     Update() {
         const pokemon1 = GetActivePokemon(this.GetPlayers()[0]);
         const pokemon2 = GetActivePokemon(this.GetPlayers()[1]);
-        this.GetAllBattleBehaviours(pokemon1).forEach(b => b.Update(this, pokemon1));
-        this.GetAllBattleBehaviours(pokemon2).forEach(b => b.Update(this, pokemon2));
+        this.GetBehavioursForPokemon(pokemon1).forEach(b => b.Update(this, pokemon1));
+        this.GetBehavioursForPokemon(pokemon2).forEach(b => b.Update(this, pokemon2));
     }
 
     SetSwitchPromptAction(action: SwitchPokemonAction) {
@@ -186,21 +188,37 @@ export class Turn {
         return this.field.players;
     }
 
-    GetAllBattleBehaviours(pokemon: Pokemon) {
-        return (pokemon.volatileStatuses as Array<BattleBehaviour>).concat([GetAbility(pokemon.ability)] as Array<BattleBehaviour>).concat([GetHardStatus(pokemon.status)] as Array<BattleBehaviour>).concat([pokemon.heldItem]);
+     //Use this when we need to have a BattleBehaviour operate on a specific pokemon
+    
+    //The weather  here is a big issue, we really only want it to run once and not for each pokemon, thats we have these 2 different functions,
+    //it is possible the way we are doing things needs to be updated to make sense for weather.
+    GetBehavioursForPokemon(pokemon: Pokemon) {
+        //const weather = this.field.weather ? [this.field.weather] : [];
+
+        return (pokemon.volatileStatuses as Array<BattleBehaviour>)
+            //.concat(weather)
+            .concat([GetAbility(pokemon.ability)] as Array<BattleBehaviour>)
+            .concat([GetHardStatus(pokemon.status)] as Array<BattleBehaviour>)
+            .concat([pokemon.heldItem]);
     }
+
 
     private BeforeEndOfTurn() {
         const activePokemon = this.GetPlayers().map(player => this.GetActivePokemon(player.id));
         activePokemon.forEach(pokemon => {
-
-            this.GetAllBattleBehaviours(pokemon).forEach(bBehaviour => {
+            this.GetBehavioursForPokemon(pokemon).forEach(bBehaviour => {
                 if (pokemon.currentStats.hp <= 0) {
                     return; //guard clause against potential deaths at EOT. Otherwise, if for example, poison kills the pokemon you might have something like leftovers which could heal the pokemon which would cause this weird game state.
                 }
                 bBehaviour.EndOfTurn(this, pokemon)
             });
         })
+        //weather gets put here.
+        //this is requiring a pokemon when we don't need one....
+        //So this is an anti pattern...
+        if (this.field.weather!==undefined){
+            this.field.weather.EndOfTurn(this)
+        }
     }
 
     //Any status conditions or whatever that must apply before the pokemon starts to attack.
@@ -209,7 +227,7 @@ export class Turn {
         if (!pokemon.canAttackThisTurn) {
             return;
         }
-        this.GetAllBattleBehaviours(pokemon).forEach(b => {
+        this.GetBehavioursForPokemon(pokemon).forEach(b => {
             if (!pokemon.canAttackThisTurn) {
                 return;
             }
@@ -343,7 +361,7 @@ export class Turn {
     ApplyIndirectDamage(pokemon: Pokemon, damage: number) {
 
 
-        this.GetAllBattleBehaviours(pokemon).forEach(b => { damage = b.ModifyIndirectDamage(this, pokemon, damage) });
+        this.GetBehavioursForPokemon(pokemon).forEach(b => { damage = b.ModifyIndirectDamage(this, pokemon, damage) });
 
         if (damage === 0) {
             return;
@@ -372,7 +390,7 @@ export class Turn {
         }) as SubstituteVolatileStatus;
         substitute.Damage(this, defendingPokemon, damage);
 
-        this.GetAllBattleBehaviours(attackingPokemon).forEach(bBehaviour => {
+        this.GetBehavioursForPokemon(attackingPokemon).forEach(bBehaviour => {
             bBehaviour.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
         });
     }
@@ -419,11 +437,11 @@ export class Turn {
         else if (damageEffect.effectivenessAmt < 1.0) {
             this.AddMessage("It wasn't very effective");
         }
-        else if (damageEffect.effectivenessAmt === 0){
+        else if (damageEffect.effectivenessAmt === 0) {
             this.AddMessage("It had no effect!")
         }
 
-        this.GetAllBattleBehaviours(attackingPokemon).forEach(bBehaviour => {
+        this.GetBehavioursForPokemon(attackingPokemon).forEach(bBehaviour => {
             bBehaviour.OnDamageDealt(this, attackingPokemon, defendingPokemon, damage);
         });
 
@@ -486,7 +504,7 @@ export class Turn {
             {
                 current: TurnStep.PostAction1,
                 next: TurnStep.PreAction2,
-                func: () => { this.GetAllBattleBehaviours(currentPokemon1).forEach(b=>b.AfterActionStep(this,currentPokemon1))}
+                func: () => { this.GetBehavioursForPokemon(currentPokemon1).forEach(b => b.AfterActionStep(this, currentPokemon1)) }
 
             },
             {
@@ -502,7 +520,7 @@ export class Turn {
             {
                 current: TurnStep.PostAction2,
                 next: TurnStep.BeforeEnd,
-                func: () => { this.GetAllBattleBehaviours(currentPokemon2).forEach(b=>b.AfterActionStep(this,currentPokemon2))}
+                func: () => { this.GetBehavioursForPokemon(currentPokemon2).forEach(b => b.AfterActionStep(this, currentPokemon2)) }
             },
             {
                 current: TurnStep.BeforeEnd,
@@ -590,14 +608,14 @@ export class Turn {
 
         const entryPokemon = this.GetPokemon(pokemonIn.id);
 
-        this.GetAllBattleBehaviours(switchOutPokemon).forEach(b=>{
-            b.OnSwitchedOut(this,switchOutPokemon);
+        this.GetBehavioursForPokemon(switchOutPokemon).forEach(b => {
+            b.OnSwitchedOut(this, switchOutPokemon);
         })
 
         this.GetEntryHazards().forEach(hazard => {
             hazard.OnPokemonEntry(this, this.GetPokemon(pokemonIn.id));
         });
-        this.GetAllBattleBehaviours(entryPokemon).forEach(b => {
+        this.GetBehavioursForPokemon(entryPokemon).forEach(b => {
             b.OnPokemonEntry(this, entryPokemon);
         });
     }
@@ -634,25 +652,25 @@ export class Turn {
             targetId: defendingPokemon.id,
             didTechniqueHit: true,
             techniqueName: technique.name,
-        
+
         }
         this.AddEvent(useTechniqueEffect);
-        
+
         technique.currentPP -= 1;
-        
+
         //Make sure we only store the technique used last as a technique the pokemon actually has. (in case of forced actions or any metronome type effects)
-        if (pokemon.techniques.find(tech=>tech.name === technique.name)){
+        if (pokemon.techniques.find(tech => tech.name === technique.name)) {
             pokemon.techniqueUsedLast = technique.name;
         }
 
 
         //2 turn move should apply here?
-        if (technique.twoTurnMove){
-            if (technique.firstTurnStatus===undefined){
+        if (technique.twoTurnMove) {
+            if (technique.firstTurnStatus === undefined) {
                 throw new Error(`Need a first turn status defined if using a twoTurnMove. Move name : ${technique.name}`);
             }
             //all two turn moves should inflict a volatile status on the first turn.
-            InflictVolatileStatus(this,pokemon,technique.firstTurnStatus,pokemon);
+            InflictVolatileStatus(this, pokemon, technique.firstTurnStatus, pokemon);
             return;
         }
 
@@ -660,12 +678,16 @@ export class Turn {
         const ability = GetAbility(pokemon.ability);
         technique = ability.ModifyTechnique(pokemon, technique);
 
-        this.GetAllBattleBehaviours(pokemon).forEach(b => {
+        if (this.field.weather){
+            this.field.weather.ModifyTechnique(pokemon,technique);
+        }
+        
+        this.GetBehavioursForPokemon(pokemon).forEach(b => {
             b.OnTechniqueUsed(this, pokemon, technique);
         })
 
         let techniqueNegated = false;
-        this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
+        this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
             if (techniqueNegated === false) {
                 techniqueNegated = b.NegateTechnique(this, pokemon, defendingPokemon, technique);
             }
@@ -673,7 +695,7 @@ export class Turn {
 
         if (techniqueNegated) {
             useTechniqueEffect.didTechniqueHit = false;
-            this.GetAllBattleBehaviours(pokemon).forEach(b => {
+            this.GetBehavioursForPokemon(pokemon).forEach(b => {
                 b.OnTechniqueMissed(this, pokemon);
             });
             return;
@@ -686,7 +708,7 @@ export class Turn {
         }
         if (!this.Roll(technique.accuracy * pokemonAccuracyModifier)) {
             useTechniqueEffect.didTechniqueHit = false;
-            this.GetAllBattleBehaviours(pokemon).forEach(b => {
+            this.GetBehavioursForPokemon(pokemon).forEach(b => {
                 b.OnTechniqueMissed(this, pokemon);
             })
             return;
@@ -745,7 +767,7 @@ export class Turn {
 
         if (technique.damageEffect) {
             const damageEffect = GetDamageEffect(technique.damageEffect.type);
-            technique = damageEffect.ModifyTechnique(pokemon, technique, defendingPokemon,this);
+            technique = damageEffect.ModifyTechnique(pokemon, technique, defendingPokemon, this);
         }
 
         const baseDamage = GetBaseDamage(pokemon, defendingPokemon, technique);
@@ -755,13 +777,18 @@ export class Turn {
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
         let newDamage = totalDamage;
 
-        this.GetAllBattleBehaviours(pokemon).forEach(b => {
+        this.GetBehavioursForPokemon(pokemon).forEach(b => {
             newDamage = b.OnAfterDamageCalculated(pokemon, technique, defendingPokemon, newDamage, damageModifierInfo, this);
         });
 
+        //for the weather as well
+        if (this.field.weather){
+            newDamage = this.field.weather.OnAfterDamageCalculated(pokemon, technique, defendingPokemon, newDamage, damageModifierInfo, this)
+        }
+
         //
         let damageNegated = false;
-        this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
+        this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
             if (damageNegated) {
                 return;
             }
@@ -780,11 +807,11 @@ export class Turn {
 
         //TODO: If defending pokemon has a substitute, apply the damage to the defendingPokemon instead.
 
-        this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
+        this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
             newDamage = b.ModifyDamageTaken(this, pokemon, defendingPokemon, technique, newDamage);
         })
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
-        this.GetAllBattleBehaviours(defendingPokemon).forEach(b => {
+        this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
             b.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, technique, newDamage);
         })
         return newDamage;

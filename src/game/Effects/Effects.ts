@@ -369,7 +369,6 @@ function RemoveHeldItemEffect(turn:Turn,pokemon:Pokemon){
     
 }
 
-
 export interface EffectSource {
     sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
