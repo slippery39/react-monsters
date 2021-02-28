@@ -633,6 +633,23 @@ const premades: Array<PremadePokemon> = [
             attack:96,
             spDefense:160
         }
+    },
+    {
+        species:"Umbreon",
+        heldItem:"Leftovers",
+        ability:"Synchronize",
+        nature:NatureType.Calm,
+        techniques:[
+            "Wish",
+            "Foul Play",
+            "Heal Bell",
+            "Protect"
+        ],
+        evs:{
+            hp:252,
+            defense:4,
+            spDefense:252
+        }
     }
 ]
 

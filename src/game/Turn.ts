@@ -22,15 +22,20 @@ import BattleBehaviour from './BattleBehaviour/BattleBehavior';
 import { Stat } from './Stat';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { Weather } from './Weather/Weather';
-
+import { FieldEffect } from './FieldEffects/FieldEffects';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
 export interface Field {
     players: Array<Player>,
     entryHazards?: Array<EntryHazard>,
-    weather?: Weather
+    weather?: Weather,
+    fieldEffects?:Array<FieldEffect>, //for effects like light screen / reflect / wish etc.
 }
+
+
+
+
 
 enum TurnStep {
     PreAction1 = 'pre-action-1',
@@ -194,8 +199,9 @@ export class Turn {
     //it is possible the way we are doing things needs to be updated to make sense for weather.
     GetBehavioursForPokemon(pokemon: Pokemon) {
         //const weather = this.field.weather ? [this.field.weather] : [];
-
-        return (pokemon.volatileStatuses as Array<BattleBehaviour>)
+        return (     
+            this.field.fieldEffects!.filter(fe=>fe.playerId === this.GetPokemonOwner(pokemon).id) as Array<BattleBehaviour>)
+            .concat(pokemon.volatileStatuses as Array<BattleBehaviour>)
             //.concat(weather)
             .concat([GetAbility(pokemon.ability)] as Array<BattleBehaviour>)
             .concat([GetHardStatus(pokemon.status)] as Array<BattleBehaviour>)
@@ -774,8 +780,18 @@ export class Turn {
             technique = damageEffect.ModifyTechnique(pokemon, technique, defendingPokemon, this);
         }
 
-        const baseDamage = GetBaseDamage(pokemon, defendingPokemon, technique);
-        const damageModifierInfo = GetDamageModifier(pokemon, defendingPokemon, technique);
+        let infoForDamageCalculating = {
+            pokemon:pokemon,
+            defendingPokemon:defendingPokemon,
+            technique:technique
+        }
+        /*TODO - be able to modify what gets put in here*/
+        if (technique.damageEffect){
+             infoForDamageCalculating =GetDamageEffect(technique.damageEffect.type).ModifyDamageCalculationInfo(this,infoForDamageCalculating)
+        }
+
+        const baseDamage = GetBaseDamage(infoForDamageCalculating.pokemon,infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
+        const damageModifierInfo = GetDamageModifier(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
 
         //Abilities/Statuses/VolatileStatuses might be able to modify damage

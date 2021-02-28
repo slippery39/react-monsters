@@ -1,6 +1,7 @@
 import GetAbility from "game/Ability/Ability";
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
 import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
+import { FieldEffectType, WishFieldEffect } from "game/FieldEffects/FieldEffects";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { NoHeldItem } from "game/HeldItem/HeldItem";
 import { GetActivePokemon, ResetStatBoosts } from "game/HelperFunctions";
@@ -34,7 +35,8 @@ export enum EffectType {
     Recoil = 'recoil',
     RemoveStatBoosts = 'remove-stat-boosts',
     PainSplit = 'pain-split',
-    RemoveHeldItem = 'remove-held-item'
+    RemoveHeldItem = 'remove-held-item',
+    CreateFieldEffect = 'create-field-effect'
 }
 
 export interface InflictStatusEffect {
@@ -118,12 +120,17 @@ export interface RemoveHeldItemEffect{
     type:EffectType.RemoveHeldItem
 }
 
+export interface CreateFieldEffect{
+    type:EffectType.CreateFieldEffect
+    effectType:FieldEffectType
+}
+
 
 
 export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
     | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect |
     AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect
-    |PainSplitEffect | RemoveHeldItemEffect);
+    |PainSplitEffect | RemoveHeldItemEffect | CreateFieldEffect);
 
 
 
@@ -146,6 +153,8 @@ export function InflictStatus(turn: Turn, pokemon: Pokemon, status: Status, sour
 
     targetPokemon.status = status;
 
+  
+
     const statusInflictedEffect: StatusChangeEvent = {
         type: BattleEventType.StatusChange,
         status: status,
@@ -154,6 +163,9 @@ export function InflictStatus(turn: Turn, pokemon: Pokemon, status: Status, sour
         defaultMessage: `${targetPokemon.name} ${hardStatus.inflictedMessage}`
     };
     turn.AddEvent(statusInflictedEffect);
+
+      //TODO: OnStatusChange could be a BattleBehavior
+      GetAbility(targetPokemon.ability).OnStatusChange(turn,pokemon,status,source);
 }
 
 
@@ -403,6 +415,18 @@ export function ApplyWeather(turn:Turn,weather:Weather){
     turn.field.weather = weather;
 }
 
+export function ApplyCreateFieldEffect(turn:Turn,pokenon:Pokemon,fieldEffectType:FieldEffectType){
+    const pokemonOwner = turn.GetPokemonOwner(pokenon);
+
+    if (fieldEffectType === FieldEffectType.Wish){
+        const wishEffect = new WishFieldEffect();
+        wishEffect.playerId = pokemonOwner.id;
+        wishEffect.OnCreated(turn,pokemonOwner);
+        turn.field.fieldEffects!.push(wishEffect);
+        
+    }
+}
+
 export interface EffectSource {
     sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
@@ -521,6 +545,10 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
         }
         case EffectType.RemoveHeldItem:{
             RemoveHeldItemEffect(turn,pokemon);
+            break;
+        }
+        case EffectType.CreateFieldEffect:{
+            ApplyCreateFieldEffect(turn,pokemon,effect.effectType)
             break;
         }
         default: {

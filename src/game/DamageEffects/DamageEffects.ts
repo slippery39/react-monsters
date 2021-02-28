@@ -14,7 +14,8 @@ export enum DamageEffectTypes{
     LowKick = 'low-kick',
     Pursuit="pursuit",
     Acrobatics = "acrobatics",
-    None='null'
+    None='null',
+    FoulPlay = 'foul-play'
 }
 
 abstract class AbstractDamageEffect{
@@ -23,6 +24,9 @@ abstract class AbstractDamageEffect{
     }
     ModifyDamageDealt(pokemon:Pokemon,originalDamage:number){
         return originalDamage;
+    }
+    ModifyDamageCalculationInfo(turn:Turn,damageCalcutionInfo:{pokemon:Pokemon,defendingPokemon:Pokemon,technique:Technique}){
+        return damageCalcutionInfo;
     }
 }
 
@@ -104,6 +108,17 @@ class AcrobaticsEffect extends AbstractDamageEffect{
     }
 }
 
+class FoulPlayEffect extends AbstractDamageEffect{
+
+    ModifyDamageCalculationInfo(turn: Turn, info: { pokemon: Pokemon; defendingPokemon: Pokemon; technique: Technique; }) {
+        const newPokemon = _.cloneDeep(info.pokemon);
+        newPokemon.currentStats.attack = info.defendingPokemon.currentStats.attack;
+        newPokemon.statBoosts.attack = info.defendingPokemon.statBoosts.attack;
+        info.pokemon = newPokemon;
+        return info;
+    }
+}
+
 
 export function GetDamageEffect(effectName:string){
     if (effectName === DamageEffectTypes.Eruption){
@@ -120,6 +135,9 @@ export function GetDamageEffect(effectName:string){
     }
     else if (effectName === DamageEffectTypes.Acrobatics){
         return new AcrobaticsEffect();
+    }
+    else if (effectName === DamageEffectTypes.FoulPlay){
+        return new FoulPlayEffect();
     }
 
     throw new Error(`Could not find damage effect for ${effectName}`)

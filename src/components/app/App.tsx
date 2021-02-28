@@ -40,7 +40,7 @@ function App() {
 
 
     const testPokemon2 = PokemonBuilder().GetPremadePokemon("Arcanine").WithTechniques([
-      "Pursuit"
+      "Toxic"
     ])
     .WithAbility("Intimidate")
    .Build();
@@ -50,7 +50,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("metagross")
+      .WithPokemon("Umbreon")
       .WithPokemon("blastoise")
       .WithPokemon("raichu")
       .WithPokemon("charizard")

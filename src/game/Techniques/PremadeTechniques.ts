@@ -2,6 +2,7 @@
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
 import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType } from "game/Effects/Effects";
 import { EntryHazardType } from "game/EntryHazards/EntryHazard";
+import { FieldEffectType } from "game/FieldEffects/FieldEffects";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
@@ -22,52 +23,80 @@ export interface BaseTechnique {
     damageEffect?: DamageEffect,
     makesContact?: boolean,
     effects?: Array<BattleEffect>,
-    twoTurnMove?:boolean,
-    firstTurnStatus?:VolatileStatusType
+    twoTurnMove?: boolean,
+    firstTurnStatus?: VolatileStatusType
 }
 
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
-            name:"Meteor Mash",
-            description:"The target is hit with a hard punch fired like a meteor. It may also raise the user's Attack.",
-            pp:16,
-            power:90,
-            accuracy:90,
+            name:"Foul Play",
+            description:"The user turns the target's power against it. The higher the target's Attack stat, the greater the move's power.",
+            pp:24,
+            power:95,
+            accuracy:100,
+            damageEffect:{type:DamageEffectTypes.FoulPlay},
             damageType:DamageType.Physical,
-            elementalType:ElementType.Steel,
             makesContact:true,
-            effects:[
+            elementalType:ElementType.Dark,
+           
+        },
+        {
+            name: "Wish",
+            description: "One turn after this move is used, the target's HP is restored by half the user's max HP.",
+            pp: 16,
+            power: 0,
+            accuracy: 100,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Normal,
+            effects: [
                 {
-                    type:EffectType.StatBoost,
-                    stat:Stat.Attack,
-                    amount:1,
-                    chance:20,
+                    type: EffectType.CreateFieldEffect,
+                    effectType: FieldEffectType.Wish,
                     target:TargetType.Self
                 }
             ]
         },
         {
-            name:"Seed Bomb",
-            description:"The user slams a barrage of hard-shelled seeds down on the foe from above.",
-            pp:24,
-            power:80,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Grass,
+            name: "Meteor Mash",
+            description: "The target is hit with a hard punch fired like a meteor. It may also raise the user's Attack.",
+            pp: 16,
+            power: 90,
+            accuracy: 90,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Steel,
+            makesContact: true,
+            effects: [
+                {
+                    type: EffectType.StatBoost,
+                    stat: Stat.Attack,
+                    amount: 1,
+                    chance: 20,
+                    target: TargetType.Self
+                }
+            ]
         },
         {
-            name:"Acrobatics",
-            description:"The user nimbly strikes the target. If the user is not holding an item, this attack inflicts massive damage.",
-            pp:24,
-            power:55,
-            accuracy:100,
-            makesContact:true,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Flying,
-            damageEffect:{type:DamageEffectTypes.Acrobatics}
-            
+            name: "Seed Bomb",
+            description: "The user slams a barrage of hard-shelled seeds down on the foe from above.",
+            pp: 24,
+            power: 80,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Grass,
+        },
+        {
+            name: "Acrobatics",
+            description: "The user nimbly strikes the target. If the user is not holding an item, this attack inflicts massive damage.",
+            pp: 24,
+            power: 55,
+            accuracy: 100,
+            makesContact: true,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Flying,
+            damageEffect: { type: DamageEffectTypes.Acrobatics }
+
         },
         {
             name: "Hidden Power Grass",
@@ -79,150 +108,150 @@ export function GetTech(name: string) {
             elementalType: ElementType.Grass,
         },
         {
-            name:"Knock Off",
-            description:"The user slaps down the target's held item, preventing that item from being used in the battle.",
-            pp:32,
-            accuracy:100,
-            makesContact:true,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Dark,
-            power:65,
-            effects:[{
-                type:EffectType.RemoveHeldItem,
-                target:TargetType.Enemy
+            name: "Knock Off",
+            description: "The user slaps down the target's held item, preventing that item from being used in the battle.",
+            pp: 32,
+            accuracy: 100,
+            makesContact: true,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Dark,
+            power: 65,
+            effects: [{
+                type: EffectType.RemoveHeldItem,
+                target: TargetType.Enemy
             }]
         },
         {
-            name:"Encore",
-            description:"The user compels the target to keep using only the move it last used for three turns.",
-            pp:8,
-            elementalType:ElementType.Normal,
-            damageType:DamageType.Status,
-            power:0,
-            effects:[
+            name: "Encore",
+            description: "The user compels the target to keep using only the move it last used for three turns.",
+            pp: 8,
+            elementalType: ElementType.Normal,
+            damageType: DamageType.Status,
+            power: 0,
+            effects: [
                 {
-                    type:EffectType.InflictVolatileStatus,
-                    status:VolatileStatusType.Encored,
-                    target:TargetType.Enemy
+                    type: EffectType.InflictVolatileStatus,
+                    status: VolatileStatusType.Encored,
+                    target: TargetType.Enemy
                 }
             ]
         },
         {
-            name:"Pursuit",
-            description:"An attack move that inflicts double damage if used on a target that is switching out of battle.",
-            pp:32,
-            power:40,
-            makesContact:true,
-            elementalType:ElementType.Dark,
-            damageType:DamageType.Physical,    
-            damageEffect:{type:DamageEffectTypes.Pursuit}  
+            name: "Pursuit",
+            description: "An attack move that inflicts double damage if used on a target that is switching out of battle.",
+            pp: 32,
+            power: 40,
+            makesContact: true,
+            elementalType: ElementType.Dark,
+            damageType: DamageType.Physical,
+            damageEffect: { type: DamageEffectTypes.Pursuit }
         },
         {
-            name:"Superpower",
-            description:"The user attacks the target with great power. However, it also lowers the user's Attack and Defense.",
-            pp:8,
-            power:120,
-            accuracy:100,
-            makesContact:true,
-            elementalType:ElementType.Fighting,
-            damageType:DamageType.Physical,
-            effects:[
+            name: "Superpower",
+            description: "The user attacks the target with great power. However, it also lowers the user's Attack and Defense.",
+            pp: 8,
+            power: 120,
+            accuracy: 100,
+            makesContact: true,
+            elementalType: ElementType.Fighting,
+            damageType: DamageType.Physical,
+            effects: [
                 {
-                    type:EffectType.StatBoost,
-                    chance:100,
-                    stat:Stat.Attack,
-                    target:TargetType.Self,
-                    amount:-1
+                    type: EffectType.StatBoost,
+                    chance: 100,
+                    stat: Stat.Attack,
+                    target: TargetType.Self,
+                    amount: -1
                 },
                 {
-                    type:EffectType.StatBoost,
-                    chance:100,
-                    stat:Stat.Defense,
-                    target:TargetType.Self,
-                    amount:-1
+                    type: EffectType.StatBoost,
+                    chance: 100,
+                    stat: Stat.Defense,
+                    target: TargetType.Self,
+                    amount: -1
                 }
             ]
         },
         {
-            name:"Bullet Punch",
-            description:"The user strikes with a tough punch as fast as a bullet. This move always goes first.",
-            pp:48,
-            power:40,
-            accuracy:100,
-            priority:1,
-            makesContact:true,
-            elementalType:ElementType.Steel,
-            damageType:DamageType.Physical,            
+            name: "Bullet Punch",
+            description: "The user strikes with a tough punch as fast as a bullet. This move always goes first.",
+            pp: 48,
+            power: 40,
+            accuracy: 100,
+            priority: 1,
+            makesContact: true,
+            elementalType: ElementType.Steel,
+            damageType: DamageType.Physical,
         },
         {
-            name:"U-Turn",
-            description:"After making its attack, the user rushes back to switch places with a party Pokémon in waiting.",
-            pp:32,
-            power:70,
-            accuracy:100,
-            makesContact:true,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Bug,
-            effects:[
+            name: "U-Turn",
+            description: "After making its attack, the user rushes back to switch places with a party Pokémon in waiting.",
+            pp: 32,
+            power: 70,
+            accuracy: 100,
+            makesContact: true,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Bug,
+            effects: [
                 {
-                        type: EffectType.SwitchPokemon,
-                        chance: 100 
+                    type: EffectType.SwitchPokemon,
+                    chance: 100
                 }
             ]
         },
         {
-            name:"Pain Split",
-            description:"The user adds its HP to the foe's HP, then equally shares the combined HP with the foe.",
-            pp:32,
-            power:0,
-            accuracy:100,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Normal,
-            effects:[
+            name: "Pain Split",
+            description: "The user adds its HP to the foe's HP, then equally shares the combined HP with the foe.",
+            pp: 32,
+            power: 0,
+            accuracy: 100,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Normal,
+            effects: [
                 {
-                    type:EffectType.PainSplit,
+                    type: EffectType.PainSplit,
                 }
             ]
         },
         {
-            name:"Flamethrower",
-            description:"The foe is scorched with an intense blast of fire. The target may also be left with a burn.",
-            pp:24,
-            power:90,
-            accuracy:100,
-            damageType:DamageType.Special,
-            elementalType:ElementType.Fire,
-            makesContact:false,
-            effects:[
+            name: "Flamethrower",
+            description: "The foe is scorched with an intense blast of fire. The target may also be left with a burn.",
+            pp: 24,
+            power: 90,
+            accuracy: 100,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Fire,
+            makesContact: false,
+            effects: [
                 {
-                type:EffectType.InflictStatus,
-                status:Status.Burned,
-                chance:10,
-                target:TargetType.Enemy
+                    type: EffectType.InflictStatus,
+                    status: Status.Burned,
+                    chance: 10,
+                    target: TargetType.Enemy
                 }
             ]
         },
         {
-            name:"Close Combat",
-            description:"The user fights the target up close without guarding itself. It also cuts the user's Defense and Sp. Def.",
-            pp:8,
-            power:120,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Fighting,
-            makesContact:true,
-            effects:[
+            name: "Close Combat",
+            description: "The user fights the target up close without guarding itself. It also cuts the user's Defense and Sp. Def.",
+            pp: 8,
+            power: 120,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Fighting,
+            makesContact: true,
+            effects: [
                 {
-                    type:EffectType.StatBoost,
-                    stat:Stat.Defense,
-                    amount:-1,
-                    target:TargetType.Self
+                    type: EffectType.StatBoost,
+                    stat: Stat.Defense,
+                    amount: -1,
+                    target: TargetType.Self
                 },
                 {
-                    type:EffectType.StatBoost,
-                    stat:Stat.SpecialDefense,
-                    amount:-1,
-                    target:TargetType.Self
+                    type: EffectType.StatBoost,
+                    stat: Stat.SpecialDefense,
+                    amount: -1,
+                    target: TargetType.Self
                 }
             ]
         },
@@ -248,35 +277,35 @@ export function GetTech(name: string) {
             ]
         },
         {
-            name:"Bounce",
-            description:"The user bounces up high, then drops on the target on the second turn. It may also leave the target with paralysis.",
-            pp:8,
-            power:85,
-            accuracy:100,
-            makesContact:true,
-            twoTurnMove:true,
-            firstTurnStatus :VolatileStatusType.Bouncing,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Flying,
-            effects:[
+            name: "Bounce",
+            description: "The user bounces up high, then drops on the target on the second turn. It may also leave the target with paralysis.",
+            pp: 8,
+            power: 85,
+            accuracy: 100,
+            makesContact: true,
+            twoTurnMove: true,
+            firstTurnStatus: VolatileStatusType.Bouncing,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Flying,
+            effects: [
                 {
-                    type:EffectType.InflictStatus,
-                    chance:30,
-                    status:Status.Paralyzed,
-                    target:TargetType.Enemy
+                    type: EffectType.InflictStatus,
+                    chance: 30,
+                    status: Status.Paralyzed,
+                    target: TargetType.Enemy
                 }
             ]
         },
         {
-            name:"Extreme Speed",
-            description:"The user charges the target at blinding speed. This attack always goes before any other move.",
-            pp:8,
-            power:80,
-            accuracy:100,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            elementalType:ElementType.Normal,
-            priority:2
+            name: "Extreme Speed",
+            description: "The user charges the target at blinding speed. This attack always goes before any other move.",
+            pp: 8,
+            power: 80,
+            accuracy: 100,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            elementalType: ElementType.Normal,
+            priority: 2
         },
         {
             name: "Hidden Power Ice",
@@ -298,7 +327,7 @@ export function GetTech(name: string) {
                 type: EffectType.InflictVolatileStatus,
                 chance: 10,
                 status: VolatileStatusType.Confusion,
-                target:TargetType.Enemy
+                target: TargetType.Enemy
             }
             ]
         },

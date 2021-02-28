@@ -159,27 +159,25 @@ export class ProtectionVolatileStatus extends VolatileStatus {
         return `${pokemon.name} is protecting itself`;
     }
 
+    
+
     OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique) {
-        if (move.name.toLowerCase() === "protect") {
+        if (move.name.toLowerCase() === "protect") {            
             const isProtected = turn.Roll(this.chanceToApply);
             if (!isProtected) {
-                this.flagForRemoval = true;
                 turn.AddMessage(`But it failed`);
+                this.Remove(turn,pokemon);
             }
             else {
                 turn.AddMessage(this.InflictedMessage(pokemon));
             }
         }
-        else {
-            this.flagForRemoval = true;
+        else{
+            this.Remove(turn,pokemon);
         }
     }
     //defending against a technique.
     NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
-
-        if (this.flagForRemoval) {
-            return false;
-        }
         const isDamagingMove = move.damageType === DamageType.Physical || move.damageType === DamageType.Special;
         const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) !== undefined;
 
@@ -188,12 +186,6 @@ export class ProtectionVolatileStatus extends VolatileStatus {
             this.chanceToApply /= 2;
         }
         return true;
-    }
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
-
-        if (this.flagForRemoval) {
-            this.Remove(turn, pokemon);
-        }
     }
 }
 

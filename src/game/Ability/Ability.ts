@@ -16,6 +16,10 @@ import _, { shuffle } from "lodash";
 abstract class AbstractAbility extends BattleBehaviour {
     name: string = "";
     description: string = "";
+
+    OnStatusChange(turn:Turn,pokemon:Pokemon,status:Status,source:Pokemon){
+
+    }
 }
 
 
@@ -387,6 +391,20 @@ class ClearBodyAbility extends AbstractAbility{
     }
 }
 
+class SynchronizeAbility extends AbstractAbility{
+    name="Synchronize"
+    description = "The attacker will receive the same status condition if it inflicts a burn, poison, or paralysis to the Pokémon."
+
+    OnStatusChange(turn: Turn, pokemon: Pokemon, status: Status, source: Pokemon){
+        if (source.id !== pokemon.id && [Status.Burned,Status.Paralyzed,Status.Poison,Status.ToxicPoison].includes(status)){
+            if (source.status === Status.None){
+                source.status = status;
+                turn.AddMessage(`${pokemon.name} copied its status onto its foe due to the Synchronize ability!`);
+            }
+        }
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -457,6 +475,9 @@ function GetAbility(name: String) {
         }
         case 'clear body':{
             return new ClearBodyAbility();
+        }
+        case 'synchronize':{
+            return new SynchronizeAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

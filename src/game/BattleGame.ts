@@ -72,7 +72,8 @@ class BattleGame {
         this.gameState = {
             players: _.cloneDeep(players),
             entryHazards: [],
-            weather:undefined
+            weather:undefined,
+            fieldEffects:[]
         }
     }
 

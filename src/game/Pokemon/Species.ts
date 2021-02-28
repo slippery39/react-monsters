@@ -439,6 +439,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:70
             },
             weight:550
+        },
+        {
+            name:"Umbreon",
+            elementalTypes:[ElementType.Dark],
+            baseStats:{
+                hp:95,
+                attack:65,
+                defense:110,
+                spAttack:60,
+                spDefense:130,
+                speed:65
+            },
+            weight:27
         }
     ];
 
