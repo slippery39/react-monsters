@@ -8,7 +8,7 @@ import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/Volatile
 import { Status } from "game/HardStatus/HardStatus";
 import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
 import { GetNature, NatureType } from "game/Natures/Natures";
-import GetPokemon from "./PremadePokemon";
+import GetPokemon, { GetRandomPokemon } from "./PremadePokemon";
 
 
 export interface StatMultiplier{
@@ -131,6 +131,10 @@ class _PokemonBuilder {
     }
     GetPremadePokemon(name:string): _PokemonBuilder{
         this.pokemon = GetPokemon(name);
+        return this;
+    }
+    GetRandomPremade(): _PokemonBuilder{
+        this.pokemon = GetRandomPokemon();
         return this;
     }
     OfSpecies(name: string): _PokemonBuilder {

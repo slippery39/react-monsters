@@ -1,7 +1,7 @@
 import { GetItem } from "../Items/PremadeItems";
 import _ from "lodash";
 import { Status } from "../HardStatus/HardStatus";
-import GetPokemon from "../Pokemon/PremadePokemon";
+import GetPokemon, { GetMultipleRandomPokemon } from "../Pokemon/PremadePokemon";
 import { Item } from "game/Items/Item";
 import { Pokemon } from "game/Pokemon/Pokemon";
 
@@ -38,6 +38,11 @@ export class PlayerBuilder {
         pokemon.id = -1; //gets a new id from the game
         pokemon.status = Status.None
         this.player.pokemon.push(pokemon);
+        return this;
+    }
+    WithRandomPokemon(amount:number):PlayerBuilder{
+        const randomPokemon = GetMultipleRandomPokemon(amount);
+        this.player.pokemon =this.player.pokemon.concat(randomPokemon);
         return this;
     }
     WithItem(name: string, quantity: number): PlayerBuilder {

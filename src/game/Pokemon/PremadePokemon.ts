@@ -1,4 +1,5 @@
 import { NatureType } from "game/Natures/Natures";
+import _ from "lodash";
 import { PartialStats, Pokemon, PokemonBuilder } from "./Pokemon";
 
 interface PremadePokemon {
@@ -497,161 +498,187 @@ const premades: Array<PremadePokemon> = [
 
     },
     {
-        species:"Gyarados",
-        heldItem:"Leftovers",
-        nature:NatureType.Jolly,
-        ability:"Intimidate",
-        techniques:[
+        species: "Gyarados",
+        heldItem: "Leftovers",
+        nature: NatureType.Jolly,
+        ability: "Intimidate",
+        techniques: [
             "Substitute",
             "Dragon Dance",
             "Waterfall",
             'Bounce'
         ],
-        evs:{
-            hp:88,
-            attack:248,
-            defense:4,
-            speed:168
+        evs: {
+            hp: 88,
+            attack: 248,
+            defense: 4,
+            speed: 168
         }
     },
     {
-        species:"Arcanine",
-        heldItem:"Life Orb",
-        ability:"flash fire",
-        nature:NatureType.Adamant,
-        techniques:[
+        species: "Arcanine",
+        heldItem: "Life Orb",
+        ability: "flash fire",
+        nature: NatureType.Adamant,
+        techniques: [
             "Flare Blitz",
             "Extreme Speed",
             "Wild Charge",
             "Close Combat"
         ],
-        evs:{
-            hp:72,
-            attack:252,
-            spDefense:8,
-            speed:176
+        evs: {
+            hp: 72,
+            attack: 252,
+            spDefense: 8,
+            speed: 176
         }
     },
     {
-        species:"Weezing",
-        heldItem:"Black Sludge",
-        ability:"Levitate",
-        nature:NatureType.Bold,
-        techniques:[
+        species: "Weezing",
+        heldItem: "Black Sludge",
+        ability: "Levitate",
+        nature: NatureType.Bold,
+        techniques: [
             "Flamethrower",
             "Thunderbolt",
             "Pain Split",
             "Will-o-wisp"
         ],
-        evs:{
-            hp:252,
-            defense:252,
-            spDefense:4
+        evs: {
+            hp: 252,
+            defense: 252,
+            spDefense: 4
         }
     },
     {
-        species:"Scizor",
-        heldItem:"Choice Band",
-        ability:"Technician",
-        nature:NatureType.Adamant,
-        techniques:[
+        species: "Scizor",
+        heldItem: "Choice Band",
+        ability: "Technician",
+        nature: NatureType.Adamant,
+        techniques: [
             "U-turn",
             "Bullet Punch",
             "Superpower",
             "Pursuit"
         ],
-        evs:{
-            hp:248,
-            attack:252,
-            spDefense:8
+        evs: {
+            hp: 248,
+            attack: 252,
+            spDefense: 8
         }
     },
     {
-        species:"Shuckle",
-        heldItem:"Leftovers",
-        ability:"Sturdy",
-        nature:NatureType.Impish,
-        techniques:[
+        species: "Shuckle",
+        heldItem: "Leftovers",
+        ability: "Sturdy",
+        nature: NatureType.Impish,
+        techniques: [
             "Stealth Rock",
             "Toxic",
             "Encore",
             "Knock Off"
         ],
-        evs:{
-            hp:252,
-            defense:252,
-            spDefense:4
+        evs: {
+            hp: 252,
+            defense: 252,
+            spDefense: 4
         }
     },
     {
-        species:"Politoed",
-        heldItem:"Choice Specs",
-        ability:"Drizzle",
-        nature:NatureType.Modest,
-        techniques:[
+        species: "Politoed",
+        heldItem: "Choice Specs",
+        ability: "Drizzle",
+        nature: NatureType.Modest,
+        techniques: [
             "Hydro Pump",
             "Ice Beam",
             "Psychic",
             "Hidden Power Grass"
         ],
-        evs:{
-            hp:252,
-            defense:4,
-            spAttack:252
+        evs: {
+            hp: 252,
+            defense: 4,
+            spAttack: 252
         }
     },
     {
-        species:"Jumpluff",
-        heldItem:"Flying Gem",
-        ability:"Clorophyll",
-        nature:NatureType.Jolly,
-        techniques:[
+        species: "Jumpluff",
+        heldItem: "Flying Gem",
+        ability: "Clorophyll",
+        nature: NatureType.Jolly,
+        techniques: [
             "Swords Dance",
             "Acrobatics",
             "Seed Bomb",
             "Sleep Powder"
         ],
-        evs:{
-            attack:252,
-            spDefense:4,
-            speed:252
+        evs: {
+            attack: 252,
+            spDefense: 4,
+            speed: 252
         }
     },
     {
-        species:"Metagross",
-        heldItem:"Leftovers",
-        ability:"Clear Body",
-        nature:NatureType.Adamant,
-        techniques:[
+        species: "Metagross",
+        heldItem: "Leftovers",
+        ability: "Clear Body",
+        nature: NatureType.Adamant,
+        techniques: [
             "Stealth Rock",
             "Meteor Mash",
             "Pursuit",
             "Earthquake"
         ],
-        evs:{
-            hp:252,
-            attack:96,
-            spDefense:160
+        evs: {
+            hp: 252,
+            attack: 96,
+            spDefense: 160
         }
     },
     {
-        species:"Umbreon",
-        heldItem:"Leftovers",
-        ability:"Synchronize",
-        nature:NatureType.Calm,
-        techniques:[
+        species: "Umbreon",
+        heldItem: "Leftovers",
+        ability: "Synchronize",
+        nature: NatureType.Calm,
+        techniques: [
             "Wish",
             "Foul Play",
             "Heal Bell",
             "Protect"
         ],
-        evs:{
-            hp:252,
-            defense:4,
-            spDefense:252
+        evs: {
+            hp: 252,
+            defense: 4,
+            spDefense: 252
         }
     }
 ]
+
+function BuildPokemonFromPremadeInfo(pokemonInfo:PremadePokemon){
+    return PokemonBuilder()
+    .OfSpecies(pokemonInfo.species)
+    .WithTechniques(pokemonInfo.techniques)
+    .WithNature(pokemonInfo.nature)
+    .WithEVs(pokemonInfo.evs)
+    .WithAbility(pokemonInfo.ability)
+    .WithHeldItem(pokemonInfo.heldItem)
+    .Build();
+}
+
+export function GetRandomPokemon(): Pokemon {
+    const pokemonInfo = _.shuffle(_.cloneDeep(premades))[0];
+    return BuildPokemonFromPremadeInfo(pokemonInfo);
+}
+
+export function GetMultipleRandomPokemon(amount: number): Array<Pokemon> {
+
+    let premadesCopy = _.shuffle(_.cloneDeep(premades));
+
+
+    return premadesCopy.slice(0, amount).map(pokemonInfo => {
+        return BuildPokemonFromPremadeInfo(pokemonInfo);
+    })
+}
 
 const GetPokemon = function (name: string): Pokemon {
 
@@ -661,16 +688,7 @@ const GetPokemon = function (name: string): Pokemon {
         throw new Error(`Could not find pokemon with name ${name} in the list of premade pokemon`);
     }
 
-    const pokemon = PokemonBuilder()
-        .OfSpecies(pokemonInfo.species)
-        .WithTechniques(pokemonInfo.techniques)
-        .WithNature(pokemonInfo.nature)
-        .WithEVs(pokemonInfo.evs)
-        .WithAbility(pokemonInfo.ability)
-        .WithHeldItem(pokemonInfo.heldItem)
-        .Build();
-
-    return pokemon;
+   return BuildPokemonFromPremadeInfo(pokemonInfo);
 
 }
 
