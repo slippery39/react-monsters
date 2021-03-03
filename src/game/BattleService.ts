@@ -64,8 +64,6 @@ class BattleService {
         });
 
         this.battle.OnNewLogReady.on((info) => {
-            console.log("new log ready from battle!");
-            console.log(info);
             this.onNewTurnLog.emit(info);
         });
     }
@@ -75,7 +73,6 @@ class BattleService {
     }
 
     SetInitialAction(action: BattleAction) {
-        console.warn("are we setting an initial action?")
         this.GetCurrentTurn().SetInitialPlayerAction(action);
         //TODO - remove this
         if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
@@ -90,8 +87,6 @@ class BattleService {
 
         if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {
             this.SetInitialAction(action);
-            console.log(this.GetCurrentTurn())
-            console.log(action);
         }
         else if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
             let switchAction = (action as SwitchPokemonAction);

@@ -356,6 +356,7 @@ class BasicAI implements AI {
 
         }
         else {
+            //this.ChooseRandomAction();
             this.ChooseActionMonteCarlo();
         }
     }

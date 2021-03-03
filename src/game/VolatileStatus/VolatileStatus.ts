@@ -36,12 +36,17 @@ export abstract class VolatileStatus extends BattleBehaviour {
 
     }
     CanApply(turn: Turn, pokemon: Pokemon) {
-        return !HasVolatileStatus(pokemon, this.type)
+         return !HasVolatileStatus(pokemon, this.type)
     }
     Remove(turn: Turn, pokemon: Pokemon) {
         _.remove(pokemon.volatileStatuses, (vStat) =>
             vStat.type === this.type
         );
+
+        if (pokemon.volatileStatuses.filter(vStat=>vStat.type === this.type).length>0){
+            console.log(this.type);
+            console.error("Volatile Status was not actually removed!");
+        }
         this.OnRemoved(turn, pokemon);
     }
     OnRemoved(turn: Turn, pokemon: Pokemon) {
@@ -156,6 +161,7 @@ export class ProtectionVolatileStatus extends VolatileStatus {
    
 
     InflictedMessage(pokemon: Pokemon) {
+        //this is firing every single time.
         return `${pokemon.name} is protecting itself`;
     }
 
@@ -170,21 +176,21 @@ export class ProtectionVolatileStatus extends VolatileStatus {
             const isProtected = turn.Roll(this.chanceToApply);
             if (!isProtected) {
                 turn.AddMessage(`But it failed`);
-                this.Remove(turn,pokemon);
-            }
+                this.isProtected = false;
+           }
             else {
                 turn.AddMessage(this.InflictedMessage(pokemon));
                 this.isProtected = true;
             }
         }
         else{
-            this.Remove(turn,pokemon);
+            this.isProtected = false;
         }
     }
     //defending against a technique.
     NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
 
-        if (this.isProtected === false){
+        if (!this.isProtected){
             return false;
         }
 
@@ -194,13 +200,14 @@ export class ProtectionVolatileStatus extends VolatileStatus {
         if (isDamagingMove || isStatusMoveThatEffectsOpponent) {
             turn.AddMessage(`${defendingPokemon.name} protected itself!`);
             this.chanceToApply /= 2;
+            return true;
         }
-        return true;
+        return false;
     }
 
     EndOfTurn(turn:Turn,pokemon:Pokemon){
         if (!this.isProtected){
-            this.Remove(turn,pokemon);
+            _.remove(pokemon.volatileStatuses,(vStat=>vStat.type === this.type))
         }
         else{
             this.isProtected = false;
