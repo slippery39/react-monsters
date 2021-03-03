@@ -39,7 +39,7 @@ function App() {
       */
 
 
-    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Raichu").WithTechniques([
+    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Jumpluff").WithTechniques([
       "Thunderbolt"
     ])
    .Build();

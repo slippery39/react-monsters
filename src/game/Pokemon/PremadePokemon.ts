@@ -604,7 +604,7 @@ const premades: Array<PremadePokemon> = [
     {
         species: "Jumpluff",
         heldItem: "Flying Gem",
-        ability: "Clorophyll",
+        ability: "Chlorophyll",
         nature: NatureType.Jolly,
         techniques: [
             "Swords Dance",
