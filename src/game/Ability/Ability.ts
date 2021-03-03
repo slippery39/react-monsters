@@ -405,6 +405,28 @@ class SynchronizeAbility extends AbstractAbility{
     }
 }
 
+class LightningRodAbility extends AbstractAbility{
+        name = "Lightning Rod"
+        description = "The Pokémon draws in all Electric-type moves. Instead of being hit by Electric-type moves, it boosts its Sp. Atk."
+    
+        NegateDamage(turn: Turn, move: Technique, pokemon: Pokemon): boolean {
+            if (move.elementalType === ElementType.Electric) {
+                //no damage taken, maybe write a message
+                turn.AddMessage(`${pokemon.name}'s lightning rod absorbed the electric move!`);
+                DoStatBoost({
+                   turn:turn,
+                   pokemon:pokemon,
+                   stat:Stat.SpecialAttack,
+                   amount:1,
+                   sourcePokemon:pokemon,
+                })
+                
+                return true;
+            }
+            return false;
+        }  
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -478,6 +500,9 @@ function GetAbility(name: String) {
         }
         case 'synchronize':{
             return new SynchronizeAbility();
+        }
+        case 'lightning rod':{
+            return new LightningRodAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);
