@@ -394,9 +394,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 }
                 animateMessage(message, () => {
                     dispatch({
-                        type: 'status-change',
+                        type: 'state-change',
                         id: pokemon.id,
-                        newStatus: effect.status
+                        field: effect.resultingState!
                     });
                 })
                 break;

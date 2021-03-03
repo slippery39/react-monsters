@@ -50,7 +50,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("Sharpedo")
+      .WithRandomPokemon(6)
       .WithItem("Full Restore", 3)
       .WithItem("Antidote", 2)
       .WithItem("Hyper Potion", 3)
@@ -59,7 +59,7 @@ function App() {
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithCustomPokemon(testPokemon2)
+      .WithRandomPokemon(6)
       .Build();
 
     let battleService = new BattleService(player1, player2);

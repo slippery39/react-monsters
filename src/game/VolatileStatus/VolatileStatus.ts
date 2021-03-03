@@ -193,13 +193,12 @@ export class ProtectionVolatileStatus extends VolatileStatus {
         if (!this.isProtected){
             return false;
         }
-
+        this.chanceToApply /= 2; //new: going to always lower the chance now to prevent protect spamming against
         const isDamagingMove = move.damageType === DamageType.Physical || move.damageType === DamageType.Special;
         const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) !== undefined;
 
         if (isDamagingMove || isStatusMoveThatEffectsOpponent) {
             turn.AddMessage(`${defendingPokemon.name} protected itself!`);
-            this.chanceToApply /= 2;
             return true;
         }
         return false;
@@ -331,7 +330,6 @@ export class OutragedVolatileStatus extends VolatileStatus {
 
     OnApply(turn: Turn, pokemon: Pokemon) {
         this.amountOfTurns = shuffle([2, 3])[0];
-        console.warn(`amount of turns is ${this.amountOfTurns}`);
     }
 
     ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {

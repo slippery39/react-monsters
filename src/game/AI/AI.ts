@@ -175,7 +175,9 @@ class BasicAI implements AI {
     }
 
 
+    /* TODO - We should do a 2 turn simulation if neither the current pokemon or the enemy pokemon fainted, or else 2 turn moves like Bounce / Wish / whatever will not be scored appropriately*/
     private Simulate1Tech(simmedPlayer: Player, techToSim: Technique, beforeField: Field, oppAction?: BattleAction) {
+
 
         const testGame = new BattleGame(beforeField.players, false);
         testGame.gameState = beforeField;
@@ -290,21 +292,21 @@ class BasicAI implements AI {
         if (GetActivePokemon(simmedPlayer).status === Status.None &&
         [Status.Burned,Status.ToxicPoison,Status.Resting,Status.Frozen,Status.Paralyzed,Status.Poison].includes(GetActivePokemon(simmedPlayerAfter).status)){
             points-=10;
-            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus]-=10;
+            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus]-=45;
         }
 
         //Enemy had a status inflicted onto them
-        if (GetActivePokemon(simmedPlayer).status === Status.None &&
-        [Status.Burned,Status.ToxicPoison,Status.Resting,Status.Frozen,Status.Paralyzed,Status.Poison].includes(GetActivePokemon(simmedPlayerAfter).status)){
+        if (GetActivePokemon(opponentPlayer).status === Status.None &&
+        [Status.Burned,Status.ToxicPoison,Status.Resting,Status.Frozen,Status.Paralyzed,Status.Poison].includes(GetActivePokemon(simmedOpponentAfter).status)){
             points+=10;
-            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus]+=10;
+            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus]+=45;
         }
 
         //We got a stat boost while still having more than 70% health
         if ( (GetActivePokemon(simmedPlayerAfter).currentStats.hp / GetActivePokemon(simmedPlayerAfter).originalStats.hp) * 100 >=70
          && GetStatBoostsAmount(simmedPlayerAfter) > GetStatBoostsAmount(simmedPlayer)){
-             //give it 15 points stat boosts are pretty important;
-             points+=15;
+             //give it 45 points stat boosts are pretty important;
+             points+=45;
              pointCalcs[PointCalculationTypes.AllyStatBoost]+=15;
          }
 
