@@ -42,11 +42,6 @@ export abstract class VolatileStatus extends BattleBehaviour {
         _.remove(pokemon.volatileStatuses, (vStat) =>
             vStat.type === this.type
         );
-
-        if (pokemon.volatileStatuses.filter(vStat=>vStat.type === this.type).length>0){
-            console.log(this.type);
-            console.error("Volatile Status was not actually removed!");
-        }
         this.OnRemoved(turn, pokemon);
     }
     OnRemoved(turn: Turn, pokemon: Pokemon) {

@@ -10,7 +10,6 @@ function SwitchToOtherPokemon(turn:Turn,player:Player){
     const otherPokemon = player.pokemon.filter(poke=>poke.id!==player.currentPokemonId)[0];
     
     if (otherPokemon === undefined){
-        console.log(player.pokemon);
         throw new Error(`Could not find pokemon in call to switch to other pokemon`);
     }
     

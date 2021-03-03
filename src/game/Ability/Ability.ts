@@ -3,7 +3,7 @@ import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, Target
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
-import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
+import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
@@ -30,9 +30,14 @@ class SpeedBoostAbility extends AbstractAbility {
         if (pokemon.statBoosts[Stat.Speed] >= 6) {
             return;
         }
-        ApplyStatBoost(pokemon, Stat.Speed, 1);
-        turn.AddMessage(`${pokemon.name} speed has increased due to Speed Boost!`);
-
+        DoStatBoost({
+           turn:turn,
+           stat:Stat.Speed,
+           amount:1,
+           pokemon:pokemon,
+           sourcePokemon:pokemon,
+           messageOverride:`${pokemon.name} speed has increased due to Speed Boost!`
+        })
     }
 }
 
@@ -181,7 +186,6 @@ class AnalyticAbility extends AbstractAbility {
         const attackingOwner = GetPokemonOwner(turn.GetPlayers(), attackingPokemon);
 
         if (turn.GetMoveOrder()[1].playerId === attackingOwner.id) {
-            console.warn('analytic ability triggering');
             return damage * 1.3;
         }
         return damage;

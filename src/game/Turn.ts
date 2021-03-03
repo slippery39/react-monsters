@@ -50,7 +50,6 @@ enum TurnStep {
 
 interface State {
     type: TurnState,
-    nextState?: TurnState,
     winningPlayerId?: number
 }
 
@@ -87,6 +86,7 @@ export class Turn {
 
     OnTurnFinished = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
+    OnSwitchNeeded = new TypedEvent<{}>();
 
     shouldProcessEvents:boolean = true;
 
@@ -122,7 +122,7 @@ export class Turn {
         else {
             return;
         }
-        if (this.initialActions.length === 2) {
+        if (this.initialActions.length === 2 && this.currentState.type==='awaiting-initial-actions') {
             this.currentState = {
                 type: 'calculating-turn'
             }
@@ -145,9 +145,13 @@ export class Turn {
         this.GetBehavioursForPokemon(pokemon2).forEach(b => b.Update(this, pokemon2));
     }
 
-    SetSwitchPromptAction(action: SwitchPokemonAction) {
+    SetSwitchPromptAction(action: SwitchPokemonAction) {        
+        if (action.type!=='switch-pokemon-action'){
+            throw new Error(`Invalid action type being processed in SetSwitchPromptAction....`);
+        }
+
         if (this.playersWhoNeedToSwitch.filter(p => p.id === action.playerId).length === 0) {
-            throw new Error("Invalid command in SetSwitchFaintedPokemonAction, this player should not be switching a fainted pokemon");
+            throw new Error("Invalid command in SetSwitchPromptPokemonAction, this player should not be switching a pokemon");
         }
 
         if (this._switchNeededActions.filter((act) => {
@@ -171,8 +175,10 @@ export class Turn {
                 this.SwitchPokemon(player, pokemon);
             });
 
+            this._switchNeededActions = [];//reset the switch needed actions.
+
             this.currentState = {
-                type: this.currentState.nextState!
+                type: 'calculating-turn'
             };
             //continue calculating the turn
             this.CalculateTurn();
@@ -326,6 +332,7 @@ export class Turn {
         //TODO - This needs to be a prompt now, not just for fainted pokemon.
         this.playersWhoNeedToSwitch.push(owner);
         this.currentState = { type: 'awaiting-switch-action' }
+        this.OnSwitchNeeded.emit({});
     }
 
     private PokemonFainted(pokemon: Pokemon) {
@@ -573,7 +580,6 @@ export class Turn {
             waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id)
         };
         this.eventLogSinceLastAction = []; //clear the cached events
-
         this.OnNewLogReady.emit(newTurnLogArgs);
     }
 
@@ -865,6 +871,10 @@ export class Turn {
         effect.resultingState = _.cloneDeep(this.field); //TODO - potential bottleneck concern here.
         this.eventLog.push(effect);
         this.eventLogSinceLastAction.push(effect);
+    }
+
+    public GetValidSwitchIns(player:Player){
+        return player.pokemon.filter(poke=>poke.id!==player.currentPokemonId && poke.currentStats.hp>0);
     }
 
     private GetDefendingPokemon(attackingPlayer: Player): Pokemon {

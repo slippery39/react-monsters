@@ -96,7 +96,7 @@ describe('testing haze', () => {
 
         InitializeGameState(gameState);
 
-        const turn = new Turn(1, gameState);
+        const turn = new Turn(1, gameState,true);
 
       
 

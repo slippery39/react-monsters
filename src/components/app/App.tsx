@@ -39,9 +39,16 @@ function App() {
       */
 
 
-    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Jumpluff").WithTechniques([
-      "Thunderbolt"
+    const testPokemon2 = PokemonBuilder().GetPremadePokemon("Ampharos").WithTechniques([
+      "Volt Switch"
     ])
+   .Build();
+
+   const testPokemon3 = PokemonBuilder()
+   .GetPremadePokemon("Scizor")
+   .WithTechniques([
+     "U-Turn"
+   ])
    .Build();
    
 
@@ -49,7 +56,8 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithCustomPokemon(testPokemon2)
+      .WithPokemon("Scizor")
+      .WithPokemon("Ampharos")
       .WithItem("Full Restore", 3)
       .WithItem("Antidote", 2)
       .WithItem("Hyper Potion", 3)
@@ -59,6 +67,7 @@ function App() {
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
       .WithCustomPokemon(testPokemon2)
+      .WithCustomPokemon(testPokemon3)
       .Build();
 
     let battleService = new BattleService(player1, player2);

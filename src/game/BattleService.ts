@@ -62,10 +62,10 @@ class BattleService {
         this.battle.OnNewTurn.on(() => {
             this.OnNewTurn.emit({});
         });
-
         this.battle.OnNewLogReady.on((info) => {
             this.onNewTurnLog.emit(info);
         });
+        this.battle.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit({}));
     }
 
     Start(){
@@ -75,10 +75,11 @@ class BattleService {
     SetInitialAction(action: BattleAction) {
         this.GetCurrentTurn().SetInitialPlayerAction(action);
         //TODO - remove this
+        /*
         if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
             this.OnSwitchNeeded.emit({});
         }
-
+        */
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
         this.GetCurrentTurn().SetSwitchPromptAction(action);
@@ -89,14 +90,31 @@ class BattleService {
             this.SetInitialAction(action);
         }
         else if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
+            //RIGHT HERE IS WHERE IT'S HAPPENING!, WE NEED TO VALIDATE HERE....
+
+            if (action.type!=='switch-pokemon-action'){
+                console.error(`Somehow a wrong action type got into the awaiting-switch-action branch of SetPlayerAction...`);
+                return;
+            }
             let switchAction = (action as SwitchPokemonAction);
             this.SetSwitchFaintedPokemonAction(switchAction);
+
+            /*
+            if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
+                this.OnSwitchNeeded.emit({});
+            }
+            */
         }
     }
 
     //Gets a cloned version of the game state, nobody outside of here should be able to modify the state directly.
     GetPlayers(): Array<Player> {
         return _.cloneDeep(this.GetCurrentTurn().GetPlayers());
+    }
+
+    GetValidPokemonToSwitchInto(playerId:number){
+        const player = this.battle.GetPlayerById(playerId);
+        return player.pokemon.filter(poke=>poke.id!==player.currentPokemonId && poke.currentStats.hp>0).map(poke=>poke.id);
     }
 
     GetField():Field{

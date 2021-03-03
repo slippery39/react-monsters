@@ -4,16 +4,15 @@ import BattleService from "game/BattleService";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import BattleGame from "game/BattleGame";
-import _ from "lodash";
 import { Field } from "game/Turn";
 import { Technique } from "game/Techniques/Technique";
 import { Status } from "game/HardStatus/HardStatus";
-import { GetStat } from "game/Pokemon/Pokemon";
+
 
 
 interface AI {
     ChooseAction: () => void
-    ChooseFaintedPokemonSwitch: () => void
+    ChoosePokemonToSwitchInto: () => void
 }
 
 enum PointCalculationTypes{
@@ -43,15 +42,13 @@ class BasicAI implements AI {
         this._service = service;
 
         this._service.OnNewTurn.on((arg) => {
-
-            console.warn("AI IS CHOOSING ACTION!");
             //setTimeout(() => {
             this.ChooseAction();
             //}, 300);
 
         })
         this._service.OnSwitchNeeded.on((arg) => {
-            this.ChooseFaintedPokemonSwitch();
+            this.ChoosePokemonToSwitchInto();
         })
     }
 
@@ -222,11 +219,6 @@ class BasicAI implements AI {
 
         testGame.GetCurrentTurn().SetInitialPlayerAction(opponentAction);
 
-        //Calculate points here
-        //Here we will look at the game state.
-        function GetNonFaintedPokemon(player: Player) {
-            return player.pokemon.filter(poke => poke.currentStats.hp > 0).length;
-        }
 
         function GetAmountOfFaintedPokemon(player:Player){
             return player.pokemon.filter(poke => poke.currentStats.hp <= 0).length;
@@ -358,26 +350,35 @@ class BasicAI implements AI {
 
         }
         else {
-            //this.ChooseRandomAction();
-            this.ChooseActionMonteCarlo();
+            this.ChooseRandomAction();
+            //this.ChooseActionMonteCarlo();
         }
     }
-    ChooseFaintedPokemonSwitch() {
+    ChoosePokemonToSwitchInto() {
         //Allowing the AI player to switch his fainted pokemon to something else.
-        if (this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action' && this._service.GetCurrentTurn().playersWhoNeedToSwitch.filter(p => p.id === this.GetPlayerFromTurn().id).length > 0) {
 
-            console.log('ai brain is choosing a pokemon to switch');
-            console.log(this.GetPlayerFromTurn());
-            const unfaintedPokemon = this.GetPlayerFromTurn().pokemon.filter(poke => poke.currentStats.hp > 0)[0];
+        
+        const isAwaitingSwitchAction = this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action';
+        const AIShouldSwitch = this._service.GetCurrentTurn().playersWhoNeedToSwitch.filter(p => p.id === this.GetPlayerFromTurn().id).length > 0;
 
-            if (unfaintedPokemon !== undefined) {
+        if (isAwaitingSwitchAction && AIShouldSwitch) {
+
+            const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
+            if (validPokemon.length === 0 ){
+                throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
+            }
+            const pokemonChosen = shuffle(validPokemon)[0]
+            if (validPokemon.length>0) {
                 const switchPokemonAction: SwitchPokemonAction = {
                     playerId: this.GetPlayerFromTurn().id,
                     type: 'switch-pokemon-action',
-                    switchPokemonId: unfaintedPokemon.id
+                    switchPokemonId: pokemonChosen
                 }
                 this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);
             }
+        }
+        else{
+            
         }
     }
 

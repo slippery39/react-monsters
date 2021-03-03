@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { OnSwitchNeededArgs } from "./BattleService";
 import { GetActivePokemon, GetPokemonOwner } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 import { Field, OnNewTurnLogArgs, Turn } from "./Turn";
@@ -69,6 +70,7 @@ class BattleGame {
     turnHistory: Array<Turn> = [];
     OnNewTurn = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
+    OnSwitchNeeded = new TypedEvent<{}>();
     shouldProcessEvents : boolean = true;
 
     constructor(players: Array<Player>,processEvents:boolean) {
@@ -101,6 +103,7 @@ class BattleGame {
         firstTurn.OnNewLogReady.on((args) => {
             this.OnNewLogReady.emit(args);
         });
+        firstTurn.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args))
 
     }
 
@@ -123,6 +126,7 @@ class BattleGame {
             this.NextTurn();           
             this.OnNewTurn.emit({});
         });
+        turn.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args))
 
         const pokemon1 = GetActivePokemon(initialState.players[0]);
         const pokemon2 = GetActivePokemon(initialState.players[1]);
@@ -141,6 +145,13 @@ class BattleGame {
 
     GetPlayers(): Array<Player> {
         return this.GetCurrentTurn().field.players;
+    }
+    GetPlayerById(id:number){
+        const player =this.GetCurrentTurn().field.players.find(p=>p.id === id);
+        if (player === undefined){
+            throw new Error(`Could not find player with id ${id} in GetPlayerById`);
+        }
+        return player;
     }
 
     StartGame() {

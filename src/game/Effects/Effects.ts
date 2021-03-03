@@ -321,6 +321,10 @@ function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: Pokemon) {
 }
 
 function SwitchPokemonEffect(turn: Turn, sourcePokemon: Pokemon) {
+    //check to see if there is valid pokemon to switch into
+    if (turn.GetValidSwitchIns(turn.GetPokemonOwner(sourcePokemon)).length===0){
+        return;
+    }
     turn.PromptForSwitch(sourcePokemon);
 }
 
