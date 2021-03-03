@@ -692,7 +692,7 @@ export function GetTech(name: string) {
         },
         {
             name: "Volt Switch",
-            description: "[Description Needed]",
+            description: "After making its attack, the user rushes back to switch places with a party Pokémon in waiting.",
             accuracy: 100,
             pp: 24,
             power: 70,
@@ -855,7 +855,7 @@ export function GetTech(name: string) {
         },
         {
             name: "Ice Beam",
-            description: '',
+            description: 'The target is struck with an icy-cold beam of energy. It may also freeze the target solid.',
             pp: 16,
             power: 90,
             damageType: DamageType.Special,
@@ -871,17 +871,16 @@ export function GetTech(name: string) {
         },
         {
             name: "Surf",
-            description: '',
+            description: 'The user attacks everything around it by swamping its surroundings with a giant wave.',
             pp: 16,
             power: 90,
             damageType: DamageType.Special,
             elementalType: ElementType.Water,
             accuracy: 100,
-            effects: [],
         },
         {
             name: "Rest",
-            description: '',
+            description: "The user goes to sleep for two turns. This fully restores the user's HP and heals any status conditions.",
             pp: 16,
             power: 0,
             damageType: DamageType.Status,
@@ -910,7 +909,7 @@ export function GetTech(name: string) {
         },
         {
             name: "Toxic",
-            description: '',
+            description: 'A move that leaves the target badly poisoned. Its poison damage worsens every turn.',
             pp: 16,
             power: 0,
             damageType: DamageType.Status,
@@ -926,7 +925,7 @@ export function GetTech(name: string) {
         },
         {
             name: "Power Whip",
-            description: '',
+            description: 'The user violently whirls its vines, tentacles, or the like to harshly lash the target.',
             pp: 16,
             damageType: DamageType.Physical,
             elementalType: ElementType.Grass,
@@ -936,7 +935,7 @@ export function GetTech(name: string) {
         },
         {
             name: "Earthquake",
-            description: '',
+            description: 'The user sets off an earthquake that strikes those around it.',
             pp: 16,
             damageType: DamageType.Physical,
             elementalType: ElementType.Ground,
@@ -945,7 +944,7 @@ export function GetTech(name: string) {
         },
         {
             name: "Roost",
-            description: 'Heals up to 50% max health, user loses flying type unti end of turn',
+            description: "The user lands and rests its body. It restores the user's HP by up to half of its max HP.",
             pp: 10,
             damageType: DamageType.Status,
             elementalType: ElementType.Flying,
@@ -968,7 +967,7 @@ export function GetTech(name: string) {
         },
         {
             name: "Focus Blast",
-            description: "Has a 10% chance to lower the target's Special Defence by 1 stage",
+            description: "The user heightens its mental focus and unleashes its power. This may also lower the target's Sp. Def stat.",
             damageType: DamageType.Special,
             pp: 10,
             power: 120,
@@ -984,7 +983,7 @@ export function GetTech(name: string) {
         },
         {
             name: "Air Slash",
-            description: 'Has a 30% chance to flinch the target',
+            description: 'The user attacks with a blade of air that slices even the sky. This may also make the target flinch.',
             damageType: DamageType.Special,
             pp: 20,
             power: 75,
@@ -1014,23 +1013,6 @@ export function GetTech(name: string) {
             }]
         },
         {
-            name: "Confuse Ray",
-            description: "A ray that confuses the opponent",
-            damageType: DamageType.Status,
-            pp: 15,
-            power: 0,
-            elementalType: ElementType.Normal,
-            accuracy: 100,
-            effects: [
-                {
-                    type: EffectType.InflictVolatileStatus,
-                    status: VolatileStatusType.Confusion,
-                    target: TargetType.Enemy,
-                    chance: 100
-                }
-            ]
-        },
-        {
             name: "Sleep Powder",
             description: "The user scatters a big cloud of sleep-inducing dust around the target",
             damageType: DamageType.Status,
@@ -1048,7 +1030,7 @@ export function GetTech(name: string) {
             accuracy: 75
         },
         {
-            name: "will-o-wisp",
+            name: "Will-O-Wisp",
             description: "The user shoots a sinister, bluish-white flame at the target to inflict a burn",
             damageType: DamageType.Status,
             pp: 15,
@@ -1066,26 +1048,8 @@ export function GetTech(name: string) {
             accuracy: 85
         },
         {
-            name: "Growl",
-            description: "The user growls at the target",
-            damageType: DamageType.Status,
-            power: 0,
-            accuracy: 100,
-            pp: 20,
-            elementalType: ElementType.Normal,
-            effects: [
-                {
-                    type: EffectType.StatBoost,
-                    stat: Stat.Attack,
-                    target: TargetType.Enemy,
-                    amount: -1,
-                    chance: 100
-                }
-            ]
-        },
-        {
             name: "Swords Dance",
-            description: "The user does a dance and increases its attack",
+            description: "A frenetic dance to uplift the fighting spirit. This sharply raises the user's Attack stat.",
             damageType: DamageType.Status,
             power: 0,
             accuracy: 100,
@@ -1102,7 +1066,7 @@ export function GetTech(name: string) {
             ]
         },
         {
-            name: "poison powder",
+            name: "Poison Powder",
             description: "The user scatters a cloud of poisonous dust that poisons the target",
             damageType: DamageType.Status,
             pp: 15,
@@ -1120,7 +1084,7 @@ export function GetTech(name: string) {
             accuracy: 75
         },
         {
-            name: "thunder wave",
+            name: "Thunder Wave",
             description: "The user launches a weak jolt of electricity that paralyzes the target",
             damageType: DamageType.Status,
             pp: 20,
@@ -1139,7 +1103,7 @@ export function GetTech(name: string) {
         },
         {
             name: 'Fire blast',
-            description: 'Has a 10% chance to burn the target',
+            description: 'The target is attacked with an intense blast of all-consuming fire. It may also leave the target with a burn.',
             pp: 10,
             power: 120,
             damageType: DamageType.Special,
@@ -1154,22 +1118,11 @@ export function GetTech(name: string) {
                 }
             ]
         },
-
-        {
-            name: 'Fly',
-            description: 'a flying attack',
-            pp: 15,
-            power: 75,
-            accuracy: 85,
-            makesContact: true,
-            damageType: DamageType.Physical,
-            elementalType: ElementType.Flying
-        },
         {
 
             name: 'Hydro Pump',
             pp: 10,
-            description: 'hydro pumpy action',
+            description: 'The foe is blasted by a huge volume of water launched under great pressure.',
             power: 120,
             accuracy: 85,
             elementalType: ElementType.Water,
@@ -1177,18 +1130,8 @@ export function GetTech(name: string) {
 
         },
         {
-            name: 'Razor Leaf',
-            description: 'some razory leaves',
-            pp: 35,
-            power: 65,
-            accuracy: 95,
-            damageType: DamageType.Physical,
-            elementalType: ElementType.Grass,
-
-        },
-        {
             name: "Thunderbolt",
-            description: 'thunderbolt',
+            description: 'A strong electric blast crashes down on the target. This may also leave the target with paralysis.',
             pp: 24,
             power: 90,
             accuracy: 100,
@@ -1204,7 +1147,6 @@ export function GetTech(name: string) {
             ]
 
         },
-        //should be nasty plot.
         {
             name: "Nasty Plot",
             description: "The user stimulates its brain by thinking bad thoughts. This sharply raises the user's Sp. Atk stat.",
