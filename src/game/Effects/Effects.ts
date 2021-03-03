@@ -325,14 +325,12 @@ function SwitchPokemonEffect(turn: Turn, sourcePokemon: Pokemon) {
 }
 
 function PlaceEntryHazardEffect(turn: Turn, type: EntryHazardType, player: Player) {
-    console.warn("Entry Hazard has been placed");
     ApplyEntryHazard(turn, player, type);
 }
 
 function WhirlwindEffect(turn: Turn, player: Player) {
     //Choose a random pokemon other than the current one
     //Switch that pokemon in
-    console.warn("Whirlwind Effect");
     const otherValidPokemon = player.pokemon.filter(poke => poke.currentStats.hp > 0 && poke.id !== player.currentPokemonId);
     if (otherValidPokemon.length < 1) {
         turn.AddMessage("But it failed!");
@@ -379,14 +377,8 @@ function PainSplitEffect(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pok
     /*Pain Split adds the current HP of the user and target Pokémon. It then divides this value by two and increases or decreases the HP of each Pokémon to become equal to the result (limited by each Pokémon's maximum HP).*/
     
     //todo: handle substitute fail clause
-    
-    console.error(attackingPokemon);
-    console.error(defendingPokemon);
     const totalHealth = attackingPokemon.currentStats.hp + defendingPokemon.currentStats.hp;
     const healthToSet = Math.ceil(totalHealth/2);
-
-    console.error(healthToSet);
-
     /*
     const pokemon1HPBefore = attackingPokemon.currentStats.hp;
     const pokemon2HPBefore = defendingPokemon.currentStats.hp;

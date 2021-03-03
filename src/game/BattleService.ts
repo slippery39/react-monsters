@@ -35,7 +35,7 @@ class BattleService {
 
 
     constructor(player1: Player, player2: Player) {
-        this.battle = new BattleGame([player1, player2]);
+        this.battle = new BattleGame([player1, player2],true);
     }
 
     GetCurrentTurn(): Turn {

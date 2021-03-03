@@ -161,7 +161,6 @@ export class StealthRock extends EntryHazard {
         if (damageMod > 0) {
             const damage = pokemon.originalStats.hp / damageMod;
             turn.ApplyIndirectDamage(pokemon, damage);
-            console.log(`pokemon has taken damage, current stats : ${pokemon.currentStats.hp}/${pokemon.originalStats.hp}`);
             turn.AddMessage(`${pokemon.name} was hurt by stealth rock.`);
         }
     }

@@ -55,26 +55,33 @@ function AutoAssignTechniqueIds(players: Array<Player>): void {
 }
 
 
+interface GameOptions{
+    processEvents:boolean
+}
+
+
 
 
 class BattleGame {
 
     //note this variable gets set at the start but doesn't get updated at the moment, once we move more of the turn stuff over into here we can deal with that.
-    private gameState: Field;
+    gameState: Field;
     turnHistory: Array<Turn> = [];
     OnNewTurn = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
+    shouldProcessEvents : boolean = true;
 
-    constructor(players: Array<Player>) {
+    constructor(players: Array<Player>,processEvents:boolean) {
         if (players.length !== 2) {
             throw new Error(`Need exactly 2 players to properly initialize a battle`);
         }
         this.gameState = {
-            players: _.cloneDeep(players),
+            players: _.cloneDeep(players), //TODO: testing non clone deeped vs clone deeped.
             entryHazards: [],
             weather:undefined,
             fieldEffects:[]
         }
+        this.shouldProcessEvents = processEvents;
     }
 
     Initialize() {
@@ -85,7 +92,7 @@ class BattleGame {
 
         
 
-        const firstTurn = new Turn(1, this.gameState);
+        const firstTurn = new Turn(1, this.gameState,this.shouldProcessEvents);
         this.turnHistory.push(firstTurn);
         firstTurn.OnTurnFinished.on(() => {
             this.NextTurn();
@@ -106,7 +113,7 @@ class BattleGame {
         //This is leftover from the BattleService class, but we are going to handle the state directly in the battle class instead.
         const initialState = _.cloneDeep(this.GetCurrentTurn().field);
 
-        const turn = new Turn(this.turnHistory.length + 1, initialState);
+        const turn = new Turn(this.turnHistory.length + 1, initialState,this.shouldProcessEvents);
         this.turnHistory.push(turn);
      
         turn.OnNewLogReady.on((args) => {

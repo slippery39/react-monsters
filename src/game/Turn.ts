@@ -88,7 +88,9 @@ export class Turn {
     OnTurnFinished = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
 
-    constructor(turnId: Number, initialState: Field) {
+    shouldProcessEvents:boolean = true;
+
+    constructor(turnId: Number, initialState: Field,shouldProcessEvents:boolean) {
         this.id = turnId;
         if (initialState.entryHazards === undefined) {
             initialState.entryHazards = [];
@@ -562,12 +564,10 @@ export class Turn {
     }
 
     EmitNewTurnLog() {
-
-        console.log("emitting a new turn log from turn");
         const newTurnLogArgs: OnNewTurnLogArgs = {
-            currentTurnLog: _.cloneDeep(this.GetEventLog()),
-            eventsSinceLastTime: _.cloneDeep(this.eventLogSinceLastAction),
-            field: _.cloneDeep(this.field),
+            currentTurnLog: [...this.GetEventLog()],
+            eventsSinceLastTime: [...this.eventLogSinceLastAction],
+            field: /*_.cloneDeep*/(this.field),
             winningPlayerId: this.currentState.winningPlayerId,
             currentTurnState: this.currentState.type,
             waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id)
@@ -858,8 +858,11 @@ export class Turn {
         return Math.round(Math.random() * 100);
     }
     public AddEvent(effect: BattleEvent) {
+        if (!this.shouldProcessEvents){
+            return;
+        }
         effect.id = this.nextEventId++;
-        effect.resultingState = _.cloneDeep(this.field);
+        effect.resultingState = _.cloneDeep(this.field); //TODO - potential bottleneck concern here.
         this.eventLog.push(effect);
         this.eventLogSinceLastAction.push(effect);
     }
