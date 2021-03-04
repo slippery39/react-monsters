@@ -7,6 +7,7 @@ import BattleGame from "game/BattleGame";
 import { Field } from "game/Turn";
 import { Technique } from "game/Techniques/Technique";
 import { Status } from "game/HardStatus/HardStatus";
+import waitForSeconds from "./CoroutineTest";
 
 
 
@@ -15,9 +16,9 @@ interface AI {
     ChoosePokemonToSwitchInto: () => void
 }
 
-enum PointCalculationTypes{
-    WonGame="won-game",
-    EnemyPokemonFainted="enemy-pokemon-fainted",
+enum PointCalculationTypes {
+    WonGame = "won-game",
+    EnemyPokemonFainted = "enemy-pokemon-fainted",
     AllyPokemonFainted = 'ally-pokemon-fainted',
     EnemyTeamDeltaHealth = "enemy-team-delta-health",
     AllyTeamDeltaHealth = "ally-team-delta-health",
@@ -30,7 +31,16 @@ enum PointCalculationTypes{
     LostGame = "lost-game"
 }
 
+
+
 type PointCalcRecord = Record<PointCalculationTypes, number>;
+
+interface PointCalcInfo {
+    moveId: number,
+    moveName: string,
+    points: number,
+    pointCalcs: PointCalcRecord
+}
 
 class BasicAI implements AI {
 
@@ -42,8 +52,9 @@ class BasicAI implements AI {
         this._service = service;
 
         this._service.OnNewTurn.on((arg) => {
+            console.log("ai is choosing an actrion");
             //setTimeout(() => {
-            this.ChooseAction();
+            this.ChooseAction()
             //}, 300);
 
         })
@@ -63,7 +74,12 @@ class BasicAI implements AI {
     }
 
 
-    ChooseActionMonteCarlo() {
+    async ChooseActionAsync() {
+        this.ChooseActionMonteCarlo();
+    }
+
+
+    async ChooseActionMonteCarlo() {
         /*
             The process, we will go over all valid game actions
                 Valid Game Actions (Should be 9 total in a normal game state if we aren't counting items)
@@ -108,66 +124,94 @@ class BasicAI implements AI {
 
         //FIGURE OUT MOST LIKELY MOVE FOR OPPONENT.
 
-        const calculatedOppPoints = this.SimulateManyTechs(beforeOtherPlayer, beforeField, undefined);
-        const predictedOppAction: UseMoveAction = {
-            playerId: beforeOtherPlayer.id,
-            pokemonId: beforeOtherPlayer.currentPokemonId,
-            moveId: calculatedOppPoints[0].moveId,
-            type: Actions.UseTechnique
-        };
-        console.error('Ally Calculations:', calculatedOppPoints);
+        let calculatedOppPoints;
+        await this.SimulateManyTechs(beforeOtherPlayer, beforeField, undefined).then((result) => {
+            calculatedOppPoints = result;
+            const predictedOppAction: UseMoveAction = {
+                playerId: beforeOtherPlayer.id,
+                pokemonId: beforeOtherPlayer.currentPokemonId,
+                moveId: calculatedOppPoints[0].moveId,
+                type: Actions.UseTechnique
+            };
+            //console.error('Ally Calculations:', calculatedOppPoints);
 
-        const calculatedAIPoints = this.SimulateManyTechs(beforeAIPlayer, beforeField, predictedOppAction);
-        console.error(calculatedAIPoints);
-
-        //NOW we choose the best action
-        const chosenAction: UseMoveAction = {
-            type: Actions.UseTechnique,
-            playerId: this.GetPlayerFromTurn().id,
-            pokemonId: this.GetPlayerFromTurn().currentPokemonId,
-            moveId: calculatedAIPoints[0].moveId
-        }
-        this._service.SetInitialAction(chosenAction);
+            this.SimulateManyTechs(beforeAIPlayer, beforeField, predictedOppAction).then(e => {
+                //NOW we choose the best action
+                const chosenAction: UseMoveAction = {
+                    type: Actions.UseTechnique,
+                    playerId: this.GetPlayerFromTurn().id,
+                    pokemonId: this.GetPlayerFromTurn().currentPokemonId,
+                    moveId: e[0].moveId
+                }
+                this._service.SetInitialAction(chosenAction);
+            })
+        });
     }
 
-    private SimulateManyTechs(simmedPlayer: Player, beforeField: Field, oppAction?: BattleAction) {
-        const simIterations = 7;
+    private async SimulateManyTechs(simmedPlayer: Player, beforeField: Field, oppAction?: BattleAction) {
+        const simIterations = 10;
         const activePokemon = GetActivePokemon(simmedPlayer);
-        const calculatedPoints = activePokemon.techniques.map(tech => {
+
+        const addPointCalcs = (a: PointCalcInfo, b: PointCalcInfo) => {
+            let newPointCalcs = { ...a.pointCalcs };
+            Object.values(PointCalculationTypes).forEach(pct => {
+                newPointCalcs[pct] = a.pointCalcs[pct] + b.pointCalcs[pct]
+            });
+
+            return {
+                moveId: a.moveId, moveName: a.moveName, points: a.points + b.points, pointCalcs: newPointCalcs
+            }
+        }
+
+        const averagePointCalcs = (totals: PointCalcInfo, iterations: number) => {
+
+            let averageCalculation: PointCalcInfo = {
+                moveId: totals.moveId,
+                moveName: totals.moveName,
+                points: totals.points / iterations,
+                pointCalcs: totals.pointCalcs
+
+            }
+            const pointCalculationTypes: Array<PointCalculationTypes> = Object.values(PointCalculationTypes);
+            pointCalculationTypes.forEach(s => {
+                averageCalculation.pointCalcs[s] = totals.pointCalcs[s] / simIterations;
+            });
+            return averageCalculation
+        }
+
+
+        let calculatedPoints = await Promise.all(activePokemon.techniques.map(async tech => {
             const arr = [];
             for (var i = 1; i < simIterations; i++) {
                 arr.push(i);
             }
 
-            const totalCalculation = arr.map(i => this.Simulate1Tech(simmedPlayer, tech, beforeField, oppAction))
-                .reduce((a, b) => {
-
-                    let newPointCalcs = {...a.pointCalcs};
-                    Object.values(PointCalculationTypes).forEach(pct=>{
-                        newPointCalcs[pct] = a.pointCalcs[pct] + b.pointCalcs[pct]
-                    });
-
-                    return {
-                        moveId: a.moveId, moveName: a.moveName, points: a.points + b.points, pointCalcs:newPointCalcs
+            let totals;
+            await Promise.all(
+                arr.map(
+                    async i => {
+                         return this.Simulate1Tech(simmedPlayer, tech, beforeField, oppAction)
                     }
+                ))
+                .then((result) => {
+                    totals = result.reduce(addPointCalcs)
+                })
+                .catch((result) => {
+                    throw new Error(`Error in calculation`);
                 });
 
-            totalCalculation.points = totalCalculation.points / simIterations;
-
-            const pointCalculationTypes :Array<PointCalculationTypes> = Object.values(PointCalculationTypes);
-            pointCalculationTypes.forEach(s => {
-                totalCalculation.pointCalcs[s] = totalCalculation.pointCalcs[s] / simIterations;
-            });
-            //const averagedPoints = totalPoints / 100;
-
-            //now we don't have the pointsCalc... :( we will need to figure that out as well.
-            return {
-                moveId: tech.id,
-                moveName: tech.name,
-                points: totalCalculation.points,
-                pointsCalc: totalCalculation.pointCalcs
+            if (totals === undefined) {
+                throw new Error(`totals was undefined in ai!`);
             }
-        }).sort((a, b) => b.points - a.points);
+
+            return averagePointCalcs(totals, simIterations);
+
+
+        }));
+
+        calculatedPoints = calculatedPoints.sort((a, b) => b.points - a.points);
+
+        await waitForSeconds(0.01);
         return calculatedPoints;
     }
 
@@ -178,7 +222,7 @@ class BasicAI implements AI {
 
         const testGame = new BattleGame(beforeField.players, false);
         testGame.gameState = beforeField;
-        testGame.Initialize();     
+        testGame.Initialize();
 
         //Setting Action for Simmed Player
         const action: UseMoveAction = {
@@ -191,7 +235,7 @@ class BasicAI implements AI {
 
 
         //find a random move for this playr
-        const opponentPlayer =beforeField.players.find(p => p.id !== simmedPlayer.id);
+        const opponentPlayer = beforeField.players.find(p => p.id !== simmedPlayer.id);
         if (opponentPlayer === undefined) {
             throw new Error(`Could not find opponent player for simulation`);
         }
@@ -220,7 +264,7 @@ class BasicAI implements AI {
         testGame.GetCurrentTurn().SetInitialPlayerAction(opponentAction);
 
 
-        function GetAmountOfFaintedPokemon(player:Player){
+        function GetAmountOfFaintedPokemon(player: Player) {
             return player.pokemon.filter(poke => poke.currentStats.hp <= 0).length;
         }
 
@@ -230,8 +274,8 @@ class BasicAI implements AI {
             return currentHP / totalHP;
         }
 
-        function GetStatBoostsAmount(player:Player){
-            const statBoostsAmount = player.pokemon.map(p=>p.statBoosts.attack+p.statBoosts.defense+p.statBoosts["special-attack"]+p.statBoosts["special-defense"]+p.statBoosts.speed).reduce((a,b)=>a+b);
+        function GetStatBoostsAmount(player: Player) {
+            const statBoostsAmount = player.pokemon.map(p => p.statBoosts.attack + p.statBoosts.defense + p.statBoosts["special-attack"] + p.statBoosts["special-defense"] + p.statBoosts.speed).reduce((a, b) => a + b);
             return statBoostsAmount;
         }
 
@@ -242,11 +286,11 @@ class BasicAI implements AI {
 
         let points = 0;
 
-        const initializePointCalcRecord = function(){
+        const initializePointCalcRecord = function () {
             const keys = Object.values(PointCalculationTypes);
-            const genericObject : any = {};
+            const genericObject: any = {};
 
-            keys.forEach(key=>{
+            keys.forEach(key => {
                 genericObject[key] = 0;
             })
 
@@ -266,9 +310,9 @@ class BasicAI implements AI {
         }
 
         //Our own pokemon fainting
-        if (GetAmountOfFaintedPokemon(simmedPlayerAfter) > GetAmountOfFaintedPokemon(simmedPlayer)){
-            points-=1000;
-            pointCalcs[PointCalculationTypes.AllyPokemonFainted]=1000;
+        if (GetAmountOfFaintedPokemon(simmedPlayerAfter) > GetAmountOfFaintedPokemon(simmedPlayer)) {
+            points -= 1000;
+            pointCalcs[PointCalculationTypes.AllyPokemonFainted] = 1000;
         }
         //Needs to be opposite.
         const opphealthDiff = CalculateTeamHealthPercentage(opponentPlayer) - CalculateTeamHealthPercentage(simmedOpponentAfter);
@@ -282,28 +326,28 @@ class BasicAI implements AI {
 
         //We had a status inflicted onto us.
         if (GetActivePokemon(simmedPlayer).status === Status.None &&
-        [Status.Burned,Status.ToxicPoison,Status.Resting,Status.Frozen,Status.Paralyzed,Status.Poison].includes(GetActivePokemon(simmedPlayerAfter).status)){
-            points-=10;
-            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus]-=45;
+            [Status.Burned, Status.ToxicPoison, Status.Resting, Status.Frozen, Status.Paralyzed, Status.Poison].includes(GetActivePokemon(simmedPlayerAfter).status)) {
+            points -= 10;
+            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus] -= 45;
         }
 
         //Enemy had a status inflicted onto them
         if (GetActivePokemon(opponentPlayer).status === Status.None &&
-        [Status.Burned,Status.ToxicPoison,Status.Resting,Status.Frozen,Status.Paralyzed,Status.Poison].includes(GetActivePokemon(simmedOpponentAfter).status)){
-            points+=10;
-            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus]+=45;
+            [Status.Burned, Status.ToxicPoison, Status.Resting, Status.Frozen, Status.Paralyzed, Status.Poison].includes(GetActivePokemon(simmedOpponentAfter).status)) {
+            points += 10;
+            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus] += 45;
         }
 
         //We got a stat boost while still having more than 70% health
-        if ( (GetActivePokemon(simmedPlayerAfter).currentStats.hp / GetActivePokemon(simmedPlayerAfter).originalStats.hp) * 100 >=70
-         && GetStatBoostsAmount(simmedPlayerAfter) > GetStatBoostsAmount(simmedPlayer)){
-             //give it 45 points stat boosts are pretty important;
-             points+=45;
-             pointCalcs[PointCalculationTypes.AllyStatBoost]+=15;
-         }
+        if ((GetActivePokemon(simmedPlayerAfter).currentStats.hp / GetActivePokemon(simmedPlayerAfter).originalStats.hp) * 100 >= 70
+            && GetStatBoostsAmount(simmedPlayerAfter) > GetStatBoostsAmount(simmedPlayer)) {
+            //give it 45 points stat boosts are pretty important;
+            points += 45;
+            pointCalcs[PointCalculationTypes.AllyStatBoost] += 15;
+        }
 
 
-        
+
 
         if (gameState.winningPlayerId === opponentPlayer.id) {
             points -= 99999;
@@ -326,6 +370,7 @@ class BasicAI implements AI {
             pokemonId: this.GetPlayerFromTurn().currentPokemonId,
             moveId: moveId2
         }
+        console.log("setting action to ", action);
         this._service.SetInitialAction(action);
     }
 
@@ -350,25 +395,25 @@ class BasicAI implements AI {
 
         }
         else {
+            //this.ChooseActionAsync();
             this.ChooseRandomAction();
-            //this.ChooseActionMonteCarlo();
         }
     }
     ChoosePokemonToSwitchInto() {
         //Allowing the AI player to switch his fainted pokemon to something else.
 
-        
+
         const isAwaitingSwitchAction = this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action';
         const AIShouldSwitch = this._service.GetCurrentTurn().playersWhoNeedToSwitch.filter(p => p.id === this.GetPlayerFromTurn().id).length > 0;
 
         if (isAwaitingSwitchAction && AIShouldSwitch) {
 
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
-            if (validPokemon.length === 0 ){
+            if (validPokemon.length === 0) {
                 throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
             }
             const pokemonChosen = shuffle(validPokemon)[0]
-            if (validPokemon.length>0) {
+            if (validPokemon.length > 0) {
                 const switchPokemonAction: SwitchPokemonAction = {
                     playerId: this.GetPlayerFromTurn().id,
                     type: 'switch-pokemon-action',
@@ -377,8 +422,8 @@ class BasicAI implements AI {
                 this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);
             }
         }
-        else{
-            
+        else {
+
         }
     }
 

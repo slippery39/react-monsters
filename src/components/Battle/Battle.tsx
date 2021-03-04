@@ -659,7 +659,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }} />
 
         const attackMenu = <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onAttackClick={(tech: any) => { SetBattleAction(tech.id); }}
+            onAttackClick={(tech: any) => {  console.log(tech); SetBattleAction(tech.id); }}
             techniques={getAllyPokemon().techniques} />
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}

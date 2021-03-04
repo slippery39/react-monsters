@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import Battle from "components/Battle/Battle";
 import StartGameScreen from 'components/StartGameScreen/StartGameScreen';
@@ -6,10 +6,12 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
+import { waitForSecondsExample } from 'game/AI/CoroutineTest';
 
 enum AppState {
   StartMenu = 'start-menu',
-  InBattle = 'in-battle'
+  InBattle = 'in-battle',
+  SimulatingAIGames = 'sim-ai-games'
 }
 
 function App() {
@@ -25,8 +27,73 @@ function App() {
   }
 
 
+function RunAIvsAIBattle(){
 
-  function initializeBattle() {
+    const ai1= new PlayerBuilder(1)
+      .WithName("AI John")
+      .WithRandomPokemon(6)
+      .Build();
+    
+    const ai2 =  new PlayerBuilder(2)
+    .WithName("AI Bob")
+    .WithRandomPokemon(6)
+    .Build();
+
+
+    let battleService = new BattleService(ai1, ai2);   
+    new BasicAI(ai1,battleService);
+    new BasicAI(ai2,battleService);
+
+
+    let logs =0;
+
+    const finalGameInfo : {
+      notEnded:boolean,
+      noWinningPlayer:boolean,
+      winningPokemon:Array<string>
+      losingPokemon:Array<string>
+    } = {
+      notEnded:false,
+      noWinningPlayer:false,
+      winningPokemon:[],
+      losingPokemon:[]
+    }
+  
+    battleService.onNewTurnLog.on((args)=>{
+      logs++;
+      console.log(logs);
+       if (logs >=1000){ //put a limit here for now in case of never ending games...
+          finalGameInfo.notEnded = true;
+         battleService.EndGame();
+      }
+      if (args.currentTurnState === 'game-over'){
+        battleService.EndGame();
+        //get the names of the winning pokemon
+        const winningPlayer = battleService.GetPlayers().find(p=>p.id ===args.winningPlayerId);
+        if (winningPlayer === undefined){
+          finalGameInfo.noWinningPlayer = true;
+        }
+        else{
+          //grab the winners pokemon names
+          const winningPokemon = winningPlayer.pokemon.map(poke=>poke.name);
+          //grab the losers pokemon names
+          const losingPokemon = battleService.GetPlayers().find(p=>p.id !==args.winningPlayerId)!.pokemon.map(poke=>poke.name);
+          
+          finalGameInfo.winningPokemon = winningPokemon;
+          finalGameInfo.losingPokemon = losingPokemon;
+        }
+
+        console.warn(finalGameInfo);
+      }
+    });
+
+    battleService.Initialize();
+    battleService.Start();
+
+    return finalGameInfo;
+  }
+
+function initializeBattle() {
 
     //MISSINGNO!
     /*
@@ -38,6 +105,20 @@ function App() {
       //testPokemon.currentStats.hp = 1;
       */
 
+      /*
+      const results = [];
+      
+ for (var i=0;i<1000;i++){
+   try{
+  results.push(RunAIvsAIBattle());
+   }
+   catch(e){
+     console.error("error in running battle...",e);
+   }
+ };
+ */
+   //waitForSecondsExample();
+ 
 
     const testPokemon2 = PokemonBuilder().GetPremadePokemon("Ampharos").WithTechniques([
       "Volt Switch"
@@ -56,28 +137,24 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("Scizor")
-      .WithPokemon("Ampharos")
-      .WithItem("Full Restore", 3)
-      .WithItem("Antidote", 2)
-      .WithItem("Hyper Potion", 3)
-      .WithItem("Max Potion", 1)
+       .WithRandomPokemon(6)
       .Build();
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithCustomPokemon(testPokemon2)
-      .WithCustomPokemon(testPokemon3)
+      .WithRandomPokemon(6)
       .Build();
 
     let battleService = new BattleService(player1, player2);
-    new BasicAI(player2, battleService);
+    new BasicAI(player2,battleService);
     battleService.Initialize();
     //battleService.Start();
    
 
     return battleService;
   }
+
+
 
   return (
     <div className='app-window'>

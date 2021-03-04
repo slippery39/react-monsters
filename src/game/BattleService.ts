@@ -32,6 +32,7 @@ class BattleService {
     OnNewTurn = new TypedEvent<OnNewTurnArgs>();
     OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
 
+    gameEnded:boolean = false;
 
 
     constructor(player1: Player, player2: Player) {
@@ -71,6 +72,10 @@ class BattleService {
     Start(){
         this.battle.StartGame();
     }
+    //Used for our AI vs AI, so we have an off switch in case of never ending games.
+    EndGame(){
+        this.gameEnded = true;
+    }
 
     SetInitialAction(action: BattleAction) {
         this.GetCurrentTurn().SetInitialPlayerAction(action);
@@ -85,8 +90,12 @@ class BattleService {
         this.GetCurrentTurn().SetSwitchPromptAction(action);
      }
     SetPlayerAction(action: BattleAction) {
-
+        if (this.gameEnded){
+            console.log("game ended for some reason?");
+            return;
+        }
         if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {
+            console.log("setting initial action");
             this.SetInitialAction(action);
         }
         else if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {

@@ -107,6 +107,7 @@ export class Turn {
 
     SetInitialPlayerAction(action: BattleAction) {
         const actionExistsForPlayer = this.initialActions.filter(act => act.playerId === action.playerId);
+
         if (actionExistsForPlayer.length === 0) {
 
             if (action.type === Actions.UseTechnique) {
@@ -332,8 +333,7 @@ export class Turn {
         //TODO - This needs to be a prompt now, not just for fainted pokemon.
         this.playersWhoNeedToSwitch.push(owner);
         this.currentState = { type: 'awaiting-switch-action' }
-        this.OnSwitchNeeded.emit({});
-    }
+     }
 
     private PokemonFainted(pokemon: Pokemon) {
         const faintedPokemonEffect: FaintedPokemonEvent = {
@@ -354,6 +354,7 @@ export class Turn {
                 type: 'game-over',
                 winningPlayerId: winningPlayer.id
             }
+            //TODO - need to fire a "Game Over" event here.
         }
         else {
             this.PromptForSwitch(pokemon);
@@ -467,9 +468,10 @@ export class Turn {
 
 
     private CalculateTurn() {
-
         //Any action overrides for choice band or the technique "struggle" would need to happen here...
         //this needs to be cached.
+
+        console.error("BEGINNING NEW TURN CALC",this.currentBattleStep,this.currentState);
         const actionOrder = this.GetMoveOrder();
 
         const firstAction = actionOrder[0];
@@ -502,6 +504,7 @@ export class Turn {
             if ((action.type === Actions.UseTechnique || action.type === Actions.ForcedTechnique) && currentPokemon.id !== action.pokemonId) {
                 return;
             }
+            console.log("action step action ", action);
             this.DoAction(action);
         }
 
@@ -550,22 +553,33 @@ export class Turn {
         ];
 
         while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished' && this.currentState.type !== 'game-over') {
+            
+            
             var startStep = nextStateLookups.find((e) => {
                 return e.current === this.currentBattleStep
             });
+            console.warn("starting step",startStep);
             if (startStep === undefined) {
                 throw new Error("Could not find proper battle step state");
             }
             startStep.func();
+            console.log(this.currentBattleStep);
+      
             this.Update();
             //Go to the next state
             if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
+                console.warn("current step is",this.currentBattleStep);
             }
         }
 
         this.EmitNewTurnLog();
+
+        if (this.currentState.type ==='awaiting-switch-action'){
+            this.OnSwitchNeeded.emit({});
+        }
         if (this.currentState.type === 'turn-finished') {
+            console.log("turn finished");
             this.OnTurnFinished.emit({});
         }
     }
