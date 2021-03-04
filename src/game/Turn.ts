@@ -111,6 +111,10 @@ export class Turn {
         if (actionExistsForPlayer.length === 0) {
 
             if (action.type === Actions.UseTechnique) {
+
+                //if the pp of the used tecnique is 0.. then use struggle
+
+
                 this.GetBehavioursForPokemon(this.GetPokemon(action.pokemonId)).forEach(b => {
                     if (action.type !== Actions.UseTechnique) {
                         return;
@@ -471,7 +475,7 @@ export class Turn {
         //Any action overrides for choice band or the technique "struggle" would need to happen here...
         //this needs to be cached.
 
-        console.error("BEGINNING NEW TURN CALC",this.currentBattleStep,this.currentState);
+     
         const actionOrder = this.GetMoveOrder();
 
         const firstAction = actionOrder[0];
@@ -492,7 +496,7 @@ export class Turn {
                 currentTechnique = action.technique;
             }
             if (currentTechnique === undefined) {
-                throw new Error(`Could not find technique`);
+                throw new Error(`Could not find technique: ${JSON.stringify(action)}`);
             }
             this.BeforeAttack(currentPokemon, currentTechnique);
         }
@@ -504,7 +508,7 @@ export class Turn {
             if ((action.type === Actions.UseTechnique || action.type === Actions.ForcedTechnique) && currentPokemon.id !== action.pokemonId) {
                 return;
             }
-            console.log("action step action ", action);
+ 
             this.DoAction(action);
         }
 
@@ -558,18 +562,17 @@ export class Turn {
             var startStep = nextStateLookups.find((e) => {
                 return e.current === this.currentBattleStep
             });
-            console.warn("starting step",startStep);
+
             if (startStep === undefined) {
                 throw new Error("Could not find proper battle step state");
             }
             startStep.func();
-            console.log(this.currentBattleStep);
+     
       
             this.Update();
             //Go to the next state
             if (startStep.next !== undefined) {
                 this.currentBattleStep = startStep.next;
-                console.warn("current step is",this.currentBattleStep);
             }
         }
 
@@ -578,8 +581,7 @@ export class Turn {
         if (this.currentState.type ==='awaiting-switch-action'){
             this.OnSwitchNeeded.emit({});
         }
-        if (this.currentState.type === 'turn-finished') {
-            console.log("turn finished");
+        if (this.currentState.type === 'turn-finished') {              
             this.OnTurnFinished.emit({});
         }
     }

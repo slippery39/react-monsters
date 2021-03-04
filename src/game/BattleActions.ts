@@ -6,7 +6,9 @@ Battle Actions
 export interface UseMoveAction {
     playerId: number,
     pokemonId: number,
-    moveId: number
+    pokemonName?:string
+    moveId: number,
+    moveName?:string,
     type: Actions.UseTechnique
 }
 

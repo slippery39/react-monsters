@@ -530,10 +530,19 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
+
+        const currentPokemon = state.field.players[0].pokemon.find(p=>p.id === state.field.players[0].currentPokemonId);
+
+        const pokemonName = currentPokemon?.name;
+        const moveName = currentPokemon?.techniques.find(t=>t.id === techniqueId)?.name
+
+
         battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
-            pokemonId: state.field.players[0].currentPokemonId, //todo: get proper pokemon id
+            pokemonId: state.field.players[0].currentPokemonId, //todo: get proper pokemon id,
+            pokemonName : pokemonName,
             moveId: techniqueId,
+            moveName:moveName,
             type: Actions.UseTechnique
         });
     }
