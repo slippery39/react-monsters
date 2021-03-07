@@ -5,7 +5,7 @@ import {
     BattleEvent,
     StatusChangeEvent
 } from "./BattleEvents";
-import { SwitchPokemonAction, BattleAction, Actions } from "./BattleActions";
+import { SwitchPokemonAction, BattleAction, Actions, UseMoveAction, ForcedTechniqueAction } from "./BattleActions";
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { CalculateStatWithBoost, Pokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
@@ -23,6 +23,7 @@ import { Stat } from './Stat';
 import { TypedEvent } from './TypedEvent/TypedEvent';
 import { Weather } from './Weather/Weather';
 import { FieldEffect } from './FieldEffects/FieldEffects';
+import { GetTech } from './Techniques/PremadeTechniques';
 
 export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
 
@@ -30,11 +31,8 @@ export interface Field {
     players: Array<Player>,
     entryHazards?: Array<EntryHazard>,
     weather?: Weather,
-    fieldEffects?:Array<FieldEffect>, //for effects like light screen / reflect / wish etc.
+    fieldEffects?: Array<FieldEffect>, //for effects like light screen / reflect / wish etc.
 }
-
-
-
 
 
 enum TurnStep {
@@ -51,6 +49,11 @@ enum TurnStep {
 interface State {
     type: TurnState,
     winningPlayerId?: number
+}
+
+export interface OnGameOverArgs{
+    winningPlayer?:Player,
+    losingPlayer?:Player,
 }
 
 export interface OnNewTurnLogArgs {
@@ -83,14 +86,18 @@ export class Turn {
     //Turn State Variables
     currentBattleStep = TurnStep.PreAction1;
     currentState: State = { type: 'awaiting-initial-actions' }
+    turnOver:boolean = false;
 
     OnTurnFinished = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
     OnSwitchNeeded = new TypedEvent<{}>();
+    OnGameOver = new TypedEvent<OnGameOverArgs>();
 
-    shouldProcessEvents:boolean = true;
+    //This is used for our AI vs AI battles, processing our game events takes a while due to us using a _deepClone to save state whenever we add an event. Since the AI doesn't need 
+    //to use these events we should be able to turn it off to save a lot of time.
+    shouldProcessEvents: boolean = false;
 
-    constructor(turnId: Number, initialState: Field,shouldProcessEvents:boolean) {
+    constructor(turnId: Number, initialState: Field, shouldProcessEvents: boolean) {
         this.id = turnId;
         if (initialState.entryHazards === undefined) {
             initialState.entryHazards = [];
@@ -98,6 +105,7 @@ export class Turn {
         this.field = _.cloneDeep(initialState);
         GetActivePokemon(this.field.players[0]).canAttackThisTurn = true;
         GetActivePokemon(this.field.players[1]).canAttackThisTurn = true;
+        this.shouldProcessEvents = shouldProcessEvents;
     }
 
 
@@ -105,7 +113,12 @@ export class Turn {
         return this.eventLog;
     }
 
+
+
     SetInitialPlayerAction(action: BattleAction) {
+        if (this.currentState.type === 'game-over'){
+            return;
+        }
         const actionExistsForPlayer = this.initialActions.filter(act => act.playerId === action.playerId);
 
         if (actionExistsForPlayer.length === 0) {
@@ -114,20 +127,41 @@ export class Turn {
 
                 //if the pp of the used tecnique is 0.. then use struggle
 
+                const actionPokemon = this.GetPokemon(action.pokemonId);
 
-                this.GetBehavioursForPokemon(this.GetPokemon(action.pokemonId)).forEach(b => {
-                    if (action.type !== Actions.UseTechnique) {
-                        return;
+                const technique = actionPokemon.techniques.find(tech => tech.id === (action as UseMoveAction).moveId);
+                if (technique === undefined) {
+                    throw new Error(`Could not find technique to use in set initial player action action: ${JSON.stringify(action)}, pokemon: ${JSON.stringify(actionPokemon)}, techId: ${action.moveId}`);
+                }
+                if (technique.currentPP <= 0) {
+                    const forcedStruggleAction: ForcedTechniqueAction = {
+                        playerId: action.playerId,
+                        pokemonId: action.pokemonId,
+                        type: Actions.ForcedTechnique,
+                        technique: GetTech("struggle")
                     }
-                    action = b.OverrideAction(this, this.GetPlayer(action.playerId), this.GetPokemon(action.pokemonId), action)
-                })
+                   
+                    this.initialActions.push(forcedStruggleAction);
+                }
+                else {
+                    this.GetBehavioursForPokemon(this.GetPokemon(action.pokemonId)).forEach(b => {
+                        if (action.type !== Actions.UseTechnique) {
+                            return;
+                        }
+                        action = b.OverrideAction(this, this.GetPlayer(action.playerId), this.GetPokemon(action.pokemonId), action)
+                    })
+                    this.initialActions.push(action);
+                }
             }
+            else{
             this.initialActions.push(action);
+            }
+
         }
         else {
             return;
         }
-        if (this.initialActions.length === 2 && this.currentState.type==='awaiting-initial-actions') {
+        if (this.initialActions.length === 2 && this.currentState.type === 'awaiting-initial-actions') {
             this.currentState = {
                 type: 'calculating-turn'
             }
@@ -150,8 +184,8 @@ export class Turn {
         this.GetBehavioursForPokemon(pokemon2).forEach(b => b.Update(this, pokemon2));
     }
 
-    SetSwitchPromptAction(action: SwitchPokemonAction) {        
-        if (action.type!=='switch-pokemon-action'){
+    SetSwitchPromptAction(action: SwitchPokemonAction) {
+        if (action.type !== 'switch-pokemon-action') {
             throw new Error(`Invalid action type being processed in SetSwitchPromptAction....`);
         }
 
@@ -206,14 +240,14 @@ export class Turn {
         return this.field.players;
     }
 
-     //Use this when we need to have a BattleBehaviour operate on a specific pokemon
-    
+    //Use this when we need to have a BattleBehaviour operate on a specific pokemon
+
     //The weather  here is a big issue, we really only want it to run once and not for each pokemon, thats we have these 2 different functions,
     //it is possible the way we are doing things needs to be updated to make sense for weather.
     GetBehavioursForPokemon(pokemon: Pokemon) {
         //const weather = this.field.weather ? [this.field.weather] : [];
-        return (     
-            this.field.fieldEffects!.filter(fe=>fe.playerId === this.GetPokemonOwner(pokemon).id) as Array<BattleBehaviour>)
+        return (
+            this.field.fieldEffects!.filter(fe => fe.playerId === this.GetPokemonOwner(pokemon).id) as Array<BattleBehaviour>)
             .concat(pokemon.volatileStatuses as Array<BattleBehaviour>)
             //.concat(weather)
             .concat([GetAbility(pokemon.ability)] as Array<BattleBehaviour>)
@@ -235,7 +269,7 @@ export class Turn {
         //weather gets put here.
         //this is requiring a pokemon when we don't need one....
         //So this is an anti pattern...
-        if (this.field.weather!==undefined){
+        if (this.field.weather !== undefined) {
             this.field.weather.EndOfTurn(this)
         }
     }
@@ -337,7 +371,7 @@ export class Turn {
         //TODO - This needs to be a prompt now, not just for fainted pokemon.
         this.playersWhoNeedToSwitch.push(owner);
         this.currentState = { type: 'awaiting-switch-action' }
-     }
+    }
 
     private PokemonFainted(pokemon: Pokemon) {
         const faintedPokemonEffect: FaintedPokemonEvent = {
@@ -358,6 +392,7 @@ export class Turn {
                 type: 'game-over',
                 winningPlayerId: winningPlayer.id
             }
+            this.turnOver = true;
             //TODO - need to fire a "Game Over" event here.
         }
         else {
@@ -474,8 +509,11 @@ export class Turn {
     private CalculateTurn() {
         //Any action overrides for choice band or the technique "struggle" would need to happen here...
         //this needs to be cached.
+        if (this.turnOver){
+            return;
+        }
+       
 
-     
         const actionOrder = this.GetMoveOrder();
 
         const firstAction = actionOrder[0];
@@ -508,7 +546,7 @@ export class Turn {
             if ((action.type === Actions.UseTechnique || action.type === Actions.ForcedTechnique) && currentPokemon.id !== action.pokemonId) {
                 return;
             }
- 
+
             this.DoAction(action);
         }
 
@@ -557,8 +595,8 @@ export class Turn {
         ];
 
         while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished' && this.currentState.type !== 'game-over') {
-            
-            
+
+
             var startStep = nextStateLookups.find((e) => {
                 return e.current === this.currentBattleStep
             });
@@ -567,8 +605,8 @@ export class Turn {
                 throw new Error("Could not find proper battle step state");
             }
             startStep.func();
-     
-      
+
+
             this.Update();
             //Go to the next state
             if (startStep.next !== undefined) {
@@ -578,11 +616,23 @@ export class Turn {
 
         this.EmitNewTurnLog();
 
-        if (this.currentState.type ==='awaiting-switch-action'){
+
+        if (this.currentState.type === 'awaiting-switch-action') {
             this.OnSwitchNeeded.emit({});
         }
-        if (this.currentState.type === 'turn-finished') {              
+        if (this.currentState.type === 'turn-finished') {            
             this.OnTurnFinished.emit({});
+        }
+        if (this.currentState.type === 'game-over'){
+            const winningPlayer = this.currentState.winningPlayerId? this.GetPlayer(this.currentState.winningPlayerId!) : undefined;
+            const losingPlayer = this.GetPlayers().find(p=>p.id!==this.currentState.winningPlayerId);
+
+            //console.log(winningPlayer,losingPlayer);
+
+            this.OnGameOver.emit({
+                winningPlayer:winningPlayer,
+                losingPlayer:losingPlayer
+            });
         }
     }
 
@@ -707,13 +757,13 @@ export class Turn {
         const ability = GetAbility(pokemon.ability);
         technique = ability.ModifyTechnique(pokemon, technique);
 
-        if (this.field.weather){
-           technique =  this.field.weather.ModifyTechnique(pokemon,technique);
+        if (this.field.weather) {
+            technique = this.field.weather.ModifyTechnique(pokemon, technique);
         }
-        this.GetBehavioursForPokemon(pokemon).forEach(b=>{
-            technique = b.ModifyTechnique(pokemon,technique);
+        this.GetBehavioursForPokemon(pokemon).forEach(b => {
+            technique = b.ModifyTechnique(pokemon, technique);
         })
-        
+
         this.GetBehavioursForPokemon(pokemon).forEach(b => {
             b.OnTechniqueUsed(this, pokemon, technique);
         })
@@ -803,16 +853,16 @@ export class Turn {
         }
 
         let infoForDamageCalculating = {
-            pokemon:pokemon,
-            defendingPokemon:defendingPokemon,
-            technique:technique
+            pokemon: pokemon,
+            defendingPokemon: defendingPokemon,
+            technique: technique
         }
         /*TODO - be able to modify what gets put in here*/
-        if (technique.damageEffect){
-             infoForDamageCalculating =GetDamageEffect(technique.damageEffect.type).ModifyDamageCalculationInfo(this,infoForDamageCalculating)
+        if (technique.damageEffect) {
+            infoForDamageCalculating = GetDamageEffect(technique.damageEffect.type).ModifyDamageCalculationInfo(this, infoForDamageCalculating)
         }
 
-        const baseDamage = GetBaseDamage(infoForDamageCalculating.pokemon,infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
+        const baseDamage = GetBaseDamage(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
         const damageModifierInfo = GetDamageModifier(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
 
@@ -824,7 +874,7 @@ export class Turn {
         });
 
         //for the weather as well
-        if (this.field.weather){
+        if (this.field.weather) {
             newDamage = this.field.weather.OnAfterDamageCalculated(pokemon, technique, defendingPokemon, newDamage, damageModifierInfo, this)
         }
 
@@ -880,7 +930,7 @@ export class Turn {
         return Math.round(Math.random() * 100);
     }
     public AddEvent(effect: BattleEvent) {
-        if (!this.shouldProcessEvents){
+        if (!this.shouldProcessEvents) {
             return;
         }
         effect.id = this.nextEventId++;
@@ -889,8 +939,8 @@ export class Turn {
         this.eventLogSinceLastAction.push(effect);
     }
 
-    public GetValidSwitchIns(player:Player){
-        return player.pokemon.filter(poke=>poke.id!==player.currentPokemonId && poke.currentStats.hp>0);
+    public GetValidSwitchIns(player: Player) {
+        return player.pokemon.filter(poke => poke.id !== player.currentPokemonId && poke.currentStats.hp > 0);
     }
 
     private GetDefendingPokemon(attackingPlayer: Player): Pokemon {

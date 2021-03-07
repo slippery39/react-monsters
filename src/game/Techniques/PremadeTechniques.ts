@@ -31,6 +31,23 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Struggle",
+            description:"An attack that is used in desperation only if the user has no PP. It also hurts the user slightly",
+            pp:1,
+            power:50,
+            accuracy:99999,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            elementalType:ElementType.Rock, //TODO - fix this.
+            effects:[
+                {
+                    type:EffectType.Recoil,
+                    recoilType:RecoilDamageType.PercentMaxHealth,
+                    amount:25
+                }
+            ]
+        },
+        {
             name:"Foul Play",
             description:"The user turns the target's power against it. The higher the target's Attack stat, the greater the move's power.",
             pp:24,

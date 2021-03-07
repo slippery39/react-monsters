@@ -1,4 +1,4 @@
-import { Field, OnNewTurnLogArgs, Turn } from "./Turn";
+import { Field, OnGameOverArgs, OnNewTurnLogArgs, Turn } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import _ from "lodash";
 
@@ -31,12 +31,13 @@ class BattleService {
     //the number type is temporary
     OnNewTurn = new TypedEvent<OnNewTurnArgs>();
     OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
+    OnGameOver = new TypedEvent<OnGameOverArgs>();
 
     gameEnded:boolean = false;
 
 
     constructor(player1: Player, player2: Player) {
-        this.battle = new BattleGame([player1, player2],true);
+        this.battle = new BattleGame([player1, player2],false);
     }
 
     GetCurrentTurn(): Turn {
@@ -60,13 +61,14 @@ class BattleService {
     Initialize() {
         this.battle.Initialize();
         //TODO - working on this.
-        this.battle.OnNewTurn.on(() => {
-            this.OnNewTurn.emit({});
+        this.battle.OnNewTurn.on((args) => {
+            this.OnNewTurn.emit(args);
         });
         this.battle.OnNewLogReady.on((info) => {
             this.onNewTurnLog.emit(info);
         });
-        this.battle.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit({}));
+        this.battle.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args));
+        this.battle.OnGameOver.on(args=>this.OnGameOver.emit(args));
     }
 
     Start(){

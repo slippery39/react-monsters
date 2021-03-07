@@ -1,8 +1,7 @@
 import _ from "lodash";
-import { OnSwitchNeededArgs } from "./BattleService";
 import { GetActivePokemon, GetPokemonOwner } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
-import { Field, OnNewTurnLogArgs, Turn } from "./Turn";
+import { Field, OnGameOverArgs, OnNewTurnLogArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 
 /*
@@ -71,7 +70,8 @@ class BattleGame {
     OnNewTurn = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
     OnSwitchNeeded = new TypedEvent<{}>();
-    shouldProcessEvents : boolean = true;
+    OnGameOver = new TypedEvent<OnGameOverArgs>();
+    shouldProcessEvents : boolean = false;
 
     constructor(players: Array<Player>,processEvents:boolean) {
         if (players.length !== 2) {
@@ -97,11 +97,14 @@ class BattleGame {
         const firstTurn = new Turn(1, this.gameState,this.shouldProcessEvents);
         this.turnHistory.push(firstTurn);
         firstTurn.OnTurnFinished.on(() => {
-            this.NextTurn();
             this.OnNewTurn.emit({});
+            this.NextTurn();            
         })
         firstTurn.OnNewLogReady.on((args) => {
             this.OnNewLogReady.emit(args);
+        });
+        firstTurn.OnGameOver.on( (args)=>{
+            this.OnGameOver.emit(args);
         });
         firstTurn.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args))
 
@@ -122,11 +125,12 @@ class BattleGame {
         turn.OnNewLogReady.on((args) => {
             this.OnNewLogReady.emit(args);
         });
-        turn.OnTurnFinished.on(() => {
-            this.NextTurn();           
+        turn.OnTurnFinished.on(() => {             
             this.OnNewTurn.emit({});
+            this.NextTurn();  
         });
         turn.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args))
+        turn.OnGameOver.on(args=>this.OnGameOver.emit(args));
 
         const pokemon1 = GetActivePokemon(initialState.players[0]);
         const pokemon2 = GetActivePokemon(initialState.players[1]);

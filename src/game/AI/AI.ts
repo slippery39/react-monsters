@@ -1,4 +1,4 @@
-import { before, shuffle } from "lodash";
+import { shuffle } from "lodash";
 import { Actions, BattleAction, SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
 import BattleService from "game/BattleService";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
@@ -8,7 +8,6 @@ import { Field } from "game/Turn";
 import { Technique } from "game/Techniques/Technique";
 import { Status } from "game/HardStatus/HardStatus";
 import waitForSeconds from "./CoroutineTest";
-import { formatDiagnosticsWithColorAndContext } from "typescript";
 import _ from "lodash";
 
 
@@ -53,13 +52,13 @@ class BasicAI implements AI {
         this._playerID = aiPlayer.id;
         this._service = service;
 
-        this._service.OnNewTurn.on((arg) => {
+        this._service.OnNewTurn.on(() => {
             //setTimeout(() => {
             this.ChooseAction()
             //}, 300);
 
         })
-        this._service.OnSwitchNeeded.on((arg) => {
+        this._service.OnSwitchNeeded.on(() => {
             this.ChoosePokemonToSwitchInto();
         })
     }
@@ -81,8 +80,8 @@ class BasicAI implements AI {
 
 
     async ChooseActionMonteCarlo() {
-        await waitForSeconds(0.1)
-        console.warn(`CHOOSING MONTE CARLO ACTION FOR PLAYER ${this.GetPlayerFromTurn().name}`)
+        await waitForSeconds(0.01)
+        //console.warn(`CHOOSING MONTE CARLO ACTION FOR PLAYER ${this.GetPlayerFromTurn().name}`)
         /*
             The process, we will go over all valid game actions
                 Valid Game Actions (Should be 9 total in a normal game state if we aren't counting items)
@@ -126,9 +125,9 @@ class BasicAI implements AI {
 
 
         //FIGURE OUT MOST LIKELY MOVE FOR OPPONENT.
-        console.error("-----");
-       console.log(this._service.GetCurrentTurn().id,this._playerID);
-        console.log("first many techs started....",beforeField);
+        //console.error("-----");
+       //console.log(this._service.GetCurrentTurn().id,this._playerID);
+        //console.log("first many techs started....",beforeField);
         const calculatedOppPoints= await this.SimulateManyTechs(beforeOtherPlayer,beforeField,undefined);
         const predictedOppAction: UseMoveAction = {
             playerId: beforeOtherPlayer.id,
@@ -136,13 +135,23 @@ class BasicAI implements AI {
             moveId: calculatedOppPoints[0].moveId,
             type: Actions.UseTechnique
         };
-        console.log("second many techs started",beforeField,this._playerID);
+        //console.log("second many techs started",beforeField,this._playerID);
         const e = await this.SimulateManyTechs(beforeAIPlayer, beforeField, predictedOppAction);
-        const currentPokemon = GetActivePokemon(this.GetPlayerFromTurn());
+        const currentPokemon = GetActivePokemon(beforeAIPlayer);
+
+        if (this.GetPlayerFromTurn().currentPokemonId !== beforeAIPlayer.currentPokemonId){
+
+            //const activePokemon = GetActivePokemon(this.GetPlayerFromTurn());
+            //const activePokemon2 = GetActivePokemon(beforeAIPlayer);
+            this.ChooseActionMonteCarlo(); //hack, lets try aagin.
+            return;
+
+
+            //throw new Error(`FOr some reason our things are different.... wtf happened. Game Player: ${JSON.stringify(activePokemon)},\r\n\r\n Saved Player in AI: ${JSON.stringify(activePokemon2)}`);
+        }
         let techniqueName = currentPokemon.techniques.find(t=>t.id === e[0].moveId)?.name
         if (!techniqueName){
-            console.log(e);
-            console.error(`technique not found for ${beforeAIPlayer.name}, looking for technique id ${e[0].moveId}`,currentPokemon);
+            //console.error(`technique not found for ${beforeAIPlayer.name}, looking for technique id ${e[0].moveId}`,e,currentPokemon);
         }
         const chosenAction: UseMoveAction = {
             type: Actions.UseTechnique,
@@ -152,42 +161,9 @@ class BasicAI implements AI {
             moveName:techniqueName ? techniqueName : "move not found...",
             moveId: e[0].moveId
         }
-        console.error("about to set action into the service",_.cloneDeep(chosenAction));
+        //console.error("about to set action into the service",_.cloneDeep(chosenAction));
         this._service.SetInitialAction(chosenAction);
 
-
-/*
-        await this.SimulateManyTechs(beforeOtherPlayer, beforeField, undefined).then(async (result) => {
-            calculatedOppPoints = result;
-            const predictedOppAction: UseMoveAction = {
-                playerId: beforeOtherPlayer.id,
-                pokemonId: beforeOtherPlayer.currentPokemonId,
-                moveId: calculatedOppPoints[0].moveId,
-                type: Actions.UseTechnique
-            };
-            //console.error('Ally Calculations:', calculatedOppPoints);
-            console.log("second many techs started")
-            await this.SimulateManyTechs(beforeAIPlayer, beforeField, predictedOppAction).then(e => {
-                //NOW we choose the best action
-                
-                const currentPokemon = GetActivePokemon(this.GetPlayerFromTurn());
-                let techniqueName = currentPokemon.techniques.find(t=>t.id === e[0].moveId)?.name
-                if (!techniqueName){
-                    console.log(e);
-                    console.error(`technique not found, looking for technique id ${e[0].moveId}`,currentPokemon);
-                }
-                const chosenAction: UseMoveAction = {
-                    type: Actions.UseTechnique,
-                    playerId: this.GetPlayerFromTurn().id,
-                    pokemonId: this.GetPlayerFromTurn().currentPokemonId,
-                    pokemonName:currentPokemon.name,
-                    moveName:techniqueName ? techniqueName : "move not found...",
-                    moveId: e[0].moveId
-                }
-                this._service.SetInitialAction(chosenAction);
-            })
-        });
-        */
     }
 
     private async SimulateManyTechs(simmedPlayer: Player, beforeField: Field, oppAction?: BattleAction) {
@@ -235,8 +211,8 @@ class BasicAI implements AI {
             let totals;
             await Promise.all(
                 arr.map(
-                    async i => {
-                        await waitForSeconds(0.1);
+                    async () => {
+                        await waitForSeconds(0.05);
                          return await this.Simulate1Tech(simmedPlayer, tech, beforeField, oppAction)
                     }
                 )).then((result) => {
@@ -258,7 +234,7 @@ class BasicAI implements AI {
         calculatedPoints = calculatedPoints.sort((a, b) => b.points - a.points);
 
         //await waitForSeconds(0.01);
-        console.log(`calculated points for ${simmedPlayer.name} have returned!`,calculatedPoints);
+        //console.log(`calculated points for ${simmedPlayer.name} have returned!`,calculatedPoints);
         return calculatedPoints;
     }
 
@@ -413,16 +389,6 @@ class BasicAI implements AI {
         };
     }
 
-    private ChooseRandomAction() {
-        const moveId2 = shuffle(this.GetPlayerFromTurn().pokemon.find(p => p.id === this.GetPlayerFromTurn().currentPokemonId)?.techniques)[0].id || -1;
-        const action: UseMoveAction = {
-            type: Actions.UseTechnique,
-            playerId: this.GetPlayerFromTurn().id,
-            pokemonId: this.GetPlayerFromTurn().currentPokemonId,
-            moveId: moveId2
-        }
-        this._service.SetInitialAction(action);
-    }
 
     ChooseAction() {
         //NEW AI if current pokemon has 40% health use a potion

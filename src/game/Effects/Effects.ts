@@ -104,8 +104,10 @@ export interface RecoilDamageEffect {
     amount: number
 }
 
+
 export enum RecoilDamageType {
-    PercentDamageDealt = 'percent-damage-dealt'
+    PercentDamageDealt = 'percent-damage-dealt',
+    PercentMaxHealth = "percent-max-health"
 }
 
 export interface RemoveStatBoostEffect {
@@ -525,6 +527,9 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
 
             if (effect.recoilType === RecoilDamageType.PercentDamageDealt) {
                 RecoilEffect(turn, source.sourcePokemon, source.sourceDamage * (effect.amount / 100))
+            }
+            else if (effect.recoilType === RecoilDamageType.PercentMaxHealth){
+                RecoilEffect(turn,source.sourcePokemon,source.sourcePokemon.originalStats.hp * (effect.amount/100))
             }
             break;
         }
