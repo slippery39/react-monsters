@@ -654,6 +654,11 @@ const premades: Array<PremadePokemon> = [
     }
 ]
 
+
+export function GetAllPokemonInfo(){
+   return premades;
+}
+
 function BuildPokemonFromPremadeInfo(pokemonInfo:PremadePokemon){
     return PokemonBuilder()
     .OfSpecies(pokemonInfo.species)

@@ -354,15 +354,15 @@ class BasicAI implements AI {
         //We had a status inflicted onto us.
         if (GetActivePokemon(simmedPlayer).status === Status.None &&
             [Status.Burned, Status.ToxicPoison, Status.Resting, Status.Frozen, Status.Paralyzed, Status.Poison].includes(GetActivePokemon(simmedPlayerAfter).status)) {
-            points -= 10;
-            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus] -= 45;
+            points -= 50;
+            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus] -= 50;
         }
 
         //Enemy had a status inflicted onto them
         if (GetActivePokemon(opponentPlayer).status === Status.None &&
             [Status.Burned, Status.ToxicPoison, Status.Resting, Status.Frozen, Status.Paralyzed, Status.Poison].includes(GetActivePokemon(simmedOpponentAfter).status)) {
-            points += 10;
-            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus] += 45;
+            points += 50;
+            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus] += 50;
         }
 
         //We got a stat boost while still having more than 70% health
@@ -370,7 +370,7 @@ class BasicAI implements AI {
             && GetStatBoostsAmount(simmedPlayerAfter) > GetStatBoostsAmount(simmedPlayer)) {
             //give it 45 points stat boosts are pretty important;
             points += 45;
-            pointCalcs[PointCalculationTypes.AllyStatBoost] += 15;
+            pointCalcs[PointCalculationTypes.AllyStatBoost] += 45;
         }
 
 
