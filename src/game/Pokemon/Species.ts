@@ -452,6 +452,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:65
             },
             weight:27
+        },
+        {
+            name:"Zapdos",
+            elementalTypes:[ElementType.Electric,ElementType.Flying],
+            baseStats:{
+                hp:90,
+                attack:90,
+                defense:85,
+                spAttack:125,
+                spDefense:90,
+                speed:100
+            },
+            weight:52.6
         }
     ];
 

@@ -651,6 +651,23 @@ const premades: Array<PremadePokemon> = [
             defense: 4,
             spDefense: 252
         }
+    },
+    {
+        species:"Zapdos",
+        heldItem:"Life Orb",
+        ability:"Pressure",
+        nature:NatureType.Timid,
+        techniques:[
+            "Thunderbolt",
+            "Heat Wave",
+            "Hidden Power Grass",
+            "Roost"
+        ],
+        evs:{
+            hp:4,
+            spAttack:252,
+            speed:252
+        }
     }
 ]
 

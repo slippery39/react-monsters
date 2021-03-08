@@ -2,12 +2,10 @@ import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import BattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
-import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
+import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { OnGameOverArgs } from 'game/Turn';
-import { shuffle } from 'lodash';
+import { cloneDeep } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Simulate } from 'react-dom/test-utils';
-import { resolve } from 'url';
 
 interface Props {
 }
@@ -22,74 +20,29 @@ interface WinLoss {
 type SimmedStats = Record<string, WinLoss>;
 
 
-async function RoundRobin1v1(onBattleEnded:(args:SimmedStats)=>void) {
-    const pokemonList = GetAllPokemonInfo().map(poke => poke.species);
-    //generate an array of round robin info
-    /*var allMatchups = pokemonList.flatMap(
-        (v, i) => pokemonList.slice(i+1).map( w => v + ' ' + w )
-    );*/
-
-    var allMatchups = pokemonList.flatMap(
-        (v, i) => pokemonList.slice(i + 1).map(w => { return { pokemon1: v, pokemon2: w } })
-    );
-
-    allMatchups = shuffle(allMatchups);
-
-
-    let currentStats:SimmedStats = {};
-
-    for (let i in allMatchups){
-        const matchup = allMatchups[i];
-        console.log("simming matchup",matchup);
-        const result = await RunRoundRobinBattle1v1(matchup.pokemon1,matchup.pokemon2);
-        UpdateStats(currentStats,result);
-        onBattleEnded(currentStats);
-    }
-}
 
 
 //Testing promise resolving here
-async function RunRoundRobinBattle1v1(pokemon1: string, pokemon2: string) : Promise<OnGameOverArgs> {
-
-    return new Promise(resolve => {
-        const ai1 = new PlayerBuilder(1)
-            .WithName("AI Joe")
-            .WithPokemon(pokemon1)
-            .Build();
-
-        const ai2 = new PlayerBuilder(2)
-            .WithName("AI Shayne")
-            .WithPokemon(pokemon2)
-            .Build();
 
 
-        let battleService = new BattleService(ai1, ai2);
-        new BasicAI(ai1, battleService);
-        new BasicAI(ai2, battleService);
+async function RunAIvsAIBattle():Promise<OnGameOverArgs>{
 
-
-        battleService.OnGameOver.on((args) => {
-            console.log("round robin game is over");
-            resolve(args);
-            console.log("promise has resolved?");
-        })
-
-        battleService.Initialize();
-        battleService.Start();
-    });
-}
-
-
-async function RunAIvsAIBattle(battleID: number, onFinished: (args: OnGameOverArgs) => void) {
+    return new Promise(resolve=>{
 
     const ai1 = new PlayerBuilder(1)
         .WithName("AI John")
-        .WithRandomPokemon(1)
+        .WithPokemon("Sharpedo")
+        .WithPokemon("Sharpedo")
+        .WithPokemon("Sharpedo")
+        .WithPokemon("Sharpedo")
         .Build();
 
     const ai2 = new PlayerBuilder(2)
         .WithName("AI Bob")
-        .WithRandomPokemon(1)
+        .WithPokemon("Sharpedo")
+        .WithPokemon("Sharpedo")
+        .WithPokemon("Sharpedo")
+        .WithPokemon("Sharpedo")
         .Build();
 
 
@@ -97,14 +50,17 @@ async function RunAIvsAIBattle(battleID: number, onFinished: (args: OnGameOverAr
     new BasicAI(ai1, battleService);
     new BasicAI(ai2, battleService);
 
-
-    battleService.OnGameOver.on(onFinished);
+    battleService.OnGameOver.on( (args)=>{
+        console.log("game is over");
+        resolve(args);
+    })
 
     battleService.Initialize();
-    battleService.Start()
+    battleService.Start();
 
+    }
 
-
+    );
 }
 
 
@@ -146,24 +102,13 @@ function UpdateStats(previousStats: SimmedStats, args: OnGameOverArgs) {
 
 async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: SimmedStats) => void) {
     let stats: Record<string, WinLoss> = {};
-    let bid = 1;
 
-
-    const onBattleEnded = (args: OnGameOverArgs) => {
-        UpdateStats(stats, args);
-        battleEndedFunc(stats)
-        bid++;
-        if (bid <= numberOfBattles) {
-            setTimeout(() => {
-                RunAIvsAIBattle(bid, onBattleEnded);
-            }, 0.01)
-        }
+    for (var i=0;i<numberOfBattles;i++){
+        console.log("running battle" + i);
+        const results = await RunAIvsAIBattle();
+        UpdateStats(stats,results);
+        battleEndedFunc(stats);
     }
-    await RunAIvsAIBattle(bid, onBattleEnded);
-
-    //need a way to return the stats.
-
-
     return stats;
 }
 
@@ -174,21 +119,19 @@ async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: Simm
 const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
 
     const [simStats, setSimStats] = useState<SimmedStats>({});
-
-
-
+ 
     const battleEndedFunc = useCallback((stats: Record<string, WinLoss>) => {
         const newStats = { ...stats };
         setSimStats(newStats);
     }, [setSimStats])
 
     useEffect(() => {
-        //RunNBattles(100, battleEndedFunc);
+        RunNBattles(300, battleEndedFunc);
     }, [battleEndedFunc]);
 
 
     useEffect(() => {
-        RoundRobin1v1(battleEndedFunc);
+        //RoundRobin1v1(battleEndedFunc);
     }, []);
 
     const displayStats = function () {

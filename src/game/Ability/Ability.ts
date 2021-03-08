@@ -5,7 +5,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { DamageType, Technique } from "game/Techniques/Technique";
+import { DamageType, Technique, TechniqueBuilder } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { RainingWeather } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
@@ -431,6 +431,15 @@ class LightningRodAbility extends AbstractAbility{
         }  
 }
 
+class PressureAbility extends AbstractAbility{
+    name = "Pressure"
+    description = "The Pokémon raises the foe's PP usage."
+
+    OnOppTechniqueUsed(turn: Turn, pokemon: Pokemon, tech: Technique){
+        tech.pp-=1; //additional 
+    }
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -507,6 +516,9 @@ function GetAbility(name: String) {
         }
         case 'lightning rod':{
             return new LightningRodAbility();
+        }
+        case 'pressure':{
+            return new PressureAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

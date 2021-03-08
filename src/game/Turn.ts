@@ -116,7 +116,7 @@ export class Turn {
 
 
     SetInitialPlayerAction(action: BattleAction) {
-        if (this.currentState.type === 'game-over'){
+         if (this.currentState.type === 'game-over'){
             return;
         }
         const actionExistsForPlayer = this.initialActions.filter(act => act.playerId === action.playerId);
@@ -507,12 +507,7 @@ export class Turn {
 
 
     private CalculateTurn() {
-        //Any action overrides for choice band or the technique "struggle" would need to happen here...
-        //this needs to be cached.
-        if (this.turnOver){
-            return;
-        }
-       
+      
 
         const actionOrder = this.GetMoveOrder();
 
@@ -606,7 +601,7 @@ export class Turn {
             }
             startStep.func();
 
-
+            
             this.Update();
             //Go to the next state
             if (startStep.next !== undefined) {
@@ -735,6 +730,11 @@ export class Turn {
         this.AddEvent(useTechniqueEffect);
 
         technique.currentPP -= 1;
+
+        //quick hack for the pressure ability, perhaps we want an OnOppTechniqueUsed event?
+        this.GetBehavioursForPokemon(defendingPokemon).forEach(b=>{
+            b.OnOppTechniqueUsed(this,pokemon,technique);
+        })
 
         //Make sure we only store the technique used last as a technique the pokemon actually has. (in case of forced actions or any metronome type effects)
         if (pokemon.techniques.find(tech => tech.name === technique.name)) {

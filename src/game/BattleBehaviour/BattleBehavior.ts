@@ -74,6 +74,9 @@ abstract class BattleBehaviour{
     OnSwitchedOut(turn:Turn,pokemon:Pokemon){
 
     }
+    OnOppTechniqueUsed(turn:Turn,pokemon:Pokemon,technique:Technique){
+        
+    }
 
     
 }

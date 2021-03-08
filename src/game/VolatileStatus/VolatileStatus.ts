@@ -422,6 +422,10 @@ export class EncoredVolatileStatus extends VolatileStatus{
         return `${pokemon.name} got an encore!`
     }
 
+    CanApply(turn:Turn,pokemon:Pokemon){
+        return super.CanApply(turn,pokemon) && pokemon.techniqueUsedLast !== undefined
+    }
+
     OverrideAction(turn:Turn,player:Player,pokemon:Pokemon,action:UseMoveAction):UseMoveAction{
          //Overrides an action, i.e. for Choice items
          const encoreTechniqueName = pokemon.techniques.find(t=>t.name === pokemon.techniqueUsedLast);      

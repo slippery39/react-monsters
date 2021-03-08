@@ -31,6 +31,23 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Heat Wave",
+            description:"The user attacks by exhaling hot breath on the opposing team. It may also leave targets with a burn.",
+            pp:16,
+            power:95,
+            accuracy:90,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Fire,
+            effects:[
+                {
+                    type:EffectType.InflictStatus,
+                    status:Status.Burned,
+                    target:TargetType.Enemy,
+                    chance:10
+                }
+            ]
+        },
+        {
             name:"Struggle",
             description:"An attack that is used in desperation only if the user has no PP. It also hurts the user slightly",
             pp:1,

@@ -80,13 +80,9 @@ class BattleService {
     }
 
     SetInitialAction(action: BattleAction) {
+        console.error("setting initial action");
+        console.log(this.GetCurrentTurn())
         this.GetCurrentTurn().SetInitialPlayerAction(action);
-        //TODO - remove this
-        /*
-        if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
-            this.OnSwitchNeeded.emit({});
-        }
-        */
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
         this.GetCurrentTurn().SetSwitchPromptAction(action);

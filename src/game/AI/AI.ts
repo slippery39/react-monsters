@@ -1,8 +1,8 @@
-import { shuffle } from "lodash";
+import { before, shuffle } from "lodash";
 import { Actions, BattleAction, SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
 import BattleService from "game/BattleService";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
-import { Player } from "game/Player/PlayerBuilder";
+import { Player, PlayerBuilder } from "game/Player/PlayerBuilder";
 import BattleGame from "game/BattleGame";
 import { Field } from "game/Turn";
 import { Technique } from "game/Techniques/Technique";
@@ -54,6 +54,8 @@ class BasicAI implements AI {
 
         this._service.OnNewTurn.on(() => {
             //setTimeout(() => {
+            
+            //Do we need to select an action here?
             this.ChooseAction()
             //}, 300);
 
@@ -80,7 +82,8 @@ class BasicAI implements AI {
 
 
     async ChooseActionMonteCarlo() {
-        await waitForSeconds(0.01)
+        //console.log("Beginning to choose action for player " + this._playerID);
+        //console.warn("turn id at start:" + this._service.GetCurrentTurn().id)
         //console.warn(`CHOOSING MONTE CARLO ACTION FOR PLAYER ${this.GetPlayerFromTurn().name}`)
         /*
             The process, we will go over all valid game actions
@@ -128,6 +131,7 @@ class BasicAI implements AI {
         //console.error("-----");
        //console.log(this._service.GetCurrentTurn().id,this._playerID);
         //console.log("first many techs started....",beforeField);
+        //console.warn("turn id right before predicint opp move", this._service.GetCurrentTurn().id)
         const calculatedOppPoints= await this.SimulateManyTechs(beforeOtherPlayer,beforeField,undefined);
         const predictedOppAction: UseMoveAction = {
             playerId: beforeOtherPlayer.id,
@@ -136,18 +140,30 @@ class BasicAI implements AI {
             type: Actions.UseTechnique
         };
         //console.log("second many techs started",beforeField,this._playerID);
+        //console.warn("turn id right before simming result" + this._service.GetCurrentTurn().id)
         const e = await this.SimulateManyTechs(beforeAIPlayer, beforeField, predictedOppAction);
+        //console.warn("recieved sim result for ai" +this._playerID,e);
+        //console.warn("turn id after simming result" + this._service.GetCurrentTurn().id)
         const currentPokemon = GetActivePokemon(beforeAIPlayer);
 
-        if (this.GetPlayerFromTurn().currentPokemonId !== beforeAIPlayer.currentPokemonId){
 
-            //const activePokemon = GetActivePokemon(this.GetPlayerFromTurn());
-            //const activePokemon2 = GetActivePokemon(beforeAIPlayer);
-            this.ChooseActionMonteCarlo(); //hack, lets try aagin.
+
+        //WE NEED TO FIX THIS FIRST... ONCE WE FIX THIS WE WILL SEE IF THERE THE OTHER PROBLEM STILL EXISTS.
+        if (this.GetPlayerFromTurn().currentPokemonId !== beforeAIPlayer.currentPokemonId){
+            /*
+
+
+            const activePokemon = GetActivePokemon(this.GetPlayerFromTurn());
+            const activePokemon2 = GetActivePokemon(beforeAIPlayer);
+            //console.error("we need to choose another action :(",this._service.GetCurrentTurn().field,activePokemon,activePokemon2);
+
+            setTimeout(()=>{
+            this.ChooseActionMonteCarlo(); 
+            },20);//hack, lets try aagin.
             return;
 
 
-            //throw new Error(`FOr some reason our things are different.... wtf happened. Game Player: ${JSON.stringify(activePokemon)},\r\n\r\n Saved Player in AI: ${JSON.stringify(activePokemon2)}`);
+           */
         }
         let techniqueName = currentPokemon.techniques.find(t=>t.id === e[0].moveId)?.name
         if (!techniqueName){
@@ -162,12 +178,13 @@ class BasicAI implements AI {
             moveId: e[0].moveId
         }
         //console.error("about to set action into the service",_.cloneDeep(chosenAction));
-        this._service.SetInitialAction(chosenAction);
+  
+        this._service.SetPlayerAction(chosenAction);
 
     }
 
     private async SimulateManyTechs(simmedPlayer: Player, beforeField: Field, oppAction?: BattleAction) {
-        const simIterations = 3;
+        const simIterations = 2;
         const activePokemon = GetActivePokemon(simmedPlayer);
 
         beforeField = _.cloneDeep(beforeField);
@@ -200,7 +217,6 @@ class BasicAI implements AI {
         }
 
 
-
         let calculatedPoints = await Promise.all(activePokemon.techniques.map(async tech => {
             const arr = [];
             for (var i = 1; i < simIterations; i++) {
@@ -218,9 +234,10 @@ class BasicAI implements AI {
                 )).then((result) => {
                     totals = result.reduce(addPointCalcs)
                 })
+                /*
                 .catch((result) => {
                     throw new Error(`Error in calculation ${result}`);
-                });
+                });*/
 
             if (totals === undefined) {
                 throw new Error(`totals was undefined in ai!`);
@@ -411,6 +428,9 @@ class BasicAI implements AI {
 
         }
         else {
+
+            //if we currently do not have an action already stored.
+            
             this.ChooseActionAsync();
             //this.ChooseRandomAction();
         }
@@ -422,7 +442,12 @@ class BasicAI implements AI {
         const isAwaitingSwitchAction = this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action';
         const AIShouldSwitch = this._service.GetCurrentTurn().playersWhoNeedToSwitch.filter(p => p.id === this.GetPlayerFromTurn().id).length > 0;
 
+
+  
+        
         if (isAwaitingSwitchAction && AIShouldSwitch) {
+
+            console.log("ai is choosing pokemon to switch");
 
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
             if (validPokemon.length === 0) {
