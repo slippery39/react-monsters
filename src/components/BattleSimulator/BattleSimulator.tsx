@@ -2,9 +2,7 @@ import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import BattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
-import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { OnGameOverArgs } from 'game/Turn';
-import { cloneDeep } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
 interface Props {
@@ -28,25 +26,41 @@ type SimmedStats = Record<string, WinLoss>;
 async function RunAIvsAIBattle():Promise<OnGameOverArgs>{
 
     return new Promise(resolve=>{
-
+/*
     const ai1 = new PlayerBuilder(1)
         .WithName("AI John")
-        .WithPokemon("Sharpedo")
-        .WithPokemon("Sharpedo")
-        .WithPokemon("Sharpedo")
-        .WithPokemon("Sharpedo")
+        .WithPokemon("Dragonite")
+        .WithPokemon("Dragonite")
+        .WithPokemon("Dragonite")
+        .WithPokemon("Dragonite")
         .Build();
 
     const ai2 = new PlayerBuilder(2)
         .WithName("AI Bob")
-        .WithPokemon("Sharpedo")
-        .WithPokemon("Sharpedo")
-        .WithPokemon("Sharpedo")
-        .WithPokemon("Sharpedo")
+        .WithPokemon("Dragonite")
+        .WithPokemon("Dragonite")
+        .WithPokemon("Dragonite")
+        .WithPokemon("Dragonite")
         .Build();
+    */
+        
 
 
-    let battleService = new BattleService(ai1, ai2);
+
+       const ai1 = new PlayerBuilder(1)
+       .WithName("AI John")
+       .WithRandomPokemon(3)
+       .Build();
+
+   const ai2 = new PlayerBuilder(2)
+       .WithName("AI Bob")
+       .WithRandomPokemon(3)
+       .Build();
+       
+       
+
+
+    let battleService = new BattleService(ai1, ai2,false);
     new BasicAI(ai1, battleService);
     new BasicAI(ai2, battleService);
 
@@ -126,7 +140,7 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
     }, [setSimStats])
 
     useEffect(() => {
-        RunNBattles(300, battleEndedFunc);
+        RunNBattles(5000, battleEndedFunc);
     }, [battleEndedFunc]);
 
 

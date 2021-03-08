@@ -50,16 +50,18 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("Zapdos")
+      .WithPokemon("Sceptile")
+      .WithPokemon("Sceptile")
       .WithRandomPokemon(6)
       .Build();
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithRandomPokemon(6)
+      .WithPokemon("Dragonite")
+      .WithPokemon("Dragonite")
       .Build();
 
-    let battleService = new BattleService(player1, player2);
+    let battleService = new BattleService(player1, player2,true);
     new BasicAI(player2, battleService);
     battleService.Initialize();
     //battleService.Start();

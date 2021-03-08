@@ -9,7 +9,7 @@ import { SwitchPokemonAction, BattleAction, Actions, UseMoveAction, ForcedTechni
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { CalculateStatWithBoost, Pokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
-import { GetActivePokemon } from './HelperFunctions';
+import { GetActivePokemon, GetPokemonOwner } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
 import { BattleEffect, DoEffect, EffectType, InflictVolatileStatus, TargetType } from './Effects/Effects';
@@ -51,9 +51,9 @@ interface State {
     winningPlayerId?: number
 }
 
-export interface OnGameOverArgs{
-    winningPlayer?:Player,
-    losingPlayer?:Player,
+export interface OnGameOverArgs {
+    winningPlayer?: Player,
+    losingPlayer?: Player,
 }
 
 export interface OnNewTurnLogArgs {
@@ -64,9 +64,14 @@ export interface OnNewTurnLogArgs {
     waitingForSwitchIds: Array<number>
     winningPlayerId?: number | undefined
 }
+export interface OnActionNeededArgs {
+    turnId:number,
+    playerIDsNeeded: Array<number>,
+    currentlyStoredActions: Array<BattleAction>,
+}
 
 export class Turn {
-    id: Number; //Turn specific property
+    id: number; //Turn specific property
     field: Field; //Battle specific property
 
     eventLog: Array<BattleEvent> = [];
@@ -83,21 +88,27 @@ export class Turn {
     //Stores the fainted pokemon actions if a player needs to switch thier pokemon.
     private _switchNeededActions: Array<SwitchPokemonAction> = [];
 
+
+
     //Turn State Variables
     currentBattleStep = TurnStep.PreAction1;
     currentState: State = { type: 'awaiting-initial-actions' }
-    turnOver:boolean = false;
+    turnOver: boolean = false;
 
     OnTurnFinished = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
     OnSwitchNeeded = new TypedEvent<{}>();
+    OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
+
+    //HACK to see if this fixes an issue, not sure of the exact cause of the issue though
+    turnFinishedEventFired: boolean = false;
 
     //This is used for our AI vs AI battles, processing our game events takes a while due to us using a _deepClone to save state whenever we add an event. Since the AI doesn't need 
     //to use these events we should be able to turn it off to save a lot of time.
     shouldProcessEvents: boolean = false;
 
-    constructor(turnId: Number, initialState: Field, shouldProcessEvents: boolean) {
+    constructor(turnId: number, initialState: Field, shouldProcessEvents: boolean) {
         this.id = turnId;
         if (initialState.entryHazards === undefined) {
             initialState.entryHazards = [];
@@ -116,7 +127,7 @@ export class Turn {
 
 
     SetInitialPlayerAction(action: BattleAction) {
-         if (this.currentState.type === 'game-over'){
+        if (this.currentState.type === 'game-over') {
             return;
         }
         const actionExistsForPlayer = this.initialActions.filter(act => act.playerId === action.playerId);
@@ -140,7 +151,7 @@ export class Turn {
                         type: Actions.ForcedTechnique,
                         technique: GetTech("struggle")
                     }
-                   
+
                     this.initialActions.push(forcedStruggleAction);
                 }
                 else {
@@ -153,18 +164,24 @@ export class Turn {
                     this.initialActions.push(action);
                 }
             }
-            else{
-            this.initialActions.push(action);
+            else {
+                this.initialActions.push(action);
             }
 
         }
-        else {
+        else {       
             return;
         }
         if (this.initialActions.length === 2 && this.currentState.type === 'awaiting-initial-actions') {
+           if (this.id>1){
+            console.log("initial actions have been set");
+           }
             this.currentState = {
                 type: 'calculating-turn'
             }
+
+            
+            
             this.CalculateTurn();
         }
     }
@@ -175,6 +192,46 @@ export class Turn {
         this.initialActions = this.initialActions.filter(act => act.playerId !== action.playerId);
         //push the new action in.
         this.initialActions.push(action);
+    }
+
+    StartTurn() {
+        //StartTurn() method - place in forced actions
+        //StartTurn() method - check which players still need to choose an action
+        //StartTurn() method - fire an event with the information needed for players to choose an action
+        /*
+    Forced Actions i.e. moves that must be repeated like Rollout or Outrage happen here.
+    ForcedActions mean's the user won't even get to select any action for their turn.
+*/
+
+        const pokemon1 = GetActivePokemon(this.field.players[0]);
+        const pokemon2 = GetActivePokemon(this.field.players[1]);
+
+        this.GetBehavioursForPokemon(pokemon1).forEach(b => {
+            b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon1), pokemon1);
+        });
+        this.GetBehavioursForPokemon(pokemon2).forEach(b => {
+            b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon2), pokemon2);
+        });
+
+        //Check which players still need to choose an action
+
+        const playersWithActions= this.initialActions.map(act => act.playerId);
+        const playersWeNeedActionsFor = this.GetPlayers().filter(player=>{
+            if (!playersWithActions.includes(player.id)){
+                return true
+            }
+            return false;
+        }).map(player=>player.id);
+
+
+        if (playersWeNeedActionsFor.length > 0) {
+            this.OnActionNeeded.emit({
+                turnId:this.id,
+                playerIDsNeeded: playersWeNeedActionsFor,
+                currentlyStoredActions: [...this.initialActions]
+            });
+        }
+
     }
 
     Update() {
@@ -219,7 +276,8 @@ export class Turn {
             this.currentState = {
                 type: 'calculating-turn'
             };
-            //continue calculating the turn
+
+            
             this.CalculateTurn();
         }
     }
@@ -392,8 +450,7 @@ export class Turn {
                 type: 'game-over',
                 winningPlayerId: winningPlayer.id
             }
-            this.turnOver = true;
-            //TODO - need to fire a "Game Over" event here.
+            console.log("game over check lets see if we calculate the turn after this");
         }
         else {
             this.PromptForSwitch(pokemon);
@@ -443,6 +500,10 @@ export class Turn {
         const substitute = defendingPokemon.volatileStatuses.find(vStat => {
             return vStat.type === VolatileStatusType.Substitute
         }) as SubstituteVolatileStatus;
+
+        if (substitute === undefined){
+            console.error("substitute was undefined",this);
+        }
         substitute.Damage(this, defendingPokemon, damage);
 
         this.GetBehavioursForPokemon(attackingPokemon).forEach(bBehaviour => {
@@ -507,7 +568,10 @@ export class Turn {
 
 
     private CalculateTurn() {
-      
+
+        if (this.id>1){
+            console.log(".");
+        }     
 
         const actionOrder = this.GetMoveOrder();
 
@@ -589,7 +653,7 @@ export class Turn {
             }
         ];
 
-        while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished' && this.currentState.type !== 'game-over') {
+        while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished' && this.currentState.type !== 'game-over' && this.turnOver === false) {
 
 
             var startStep = nextStateLookups.find((e) => {
@@ -601,7 +665,7 @@ export class Turn {
             }
             startStep.func();
 
-            
+
             this.Update();
             //Go to the next state
             if (startStep.next !== undefined) {
@@ -611,23 +675,48 @@ export class Turn {
 
         this.EmitNewTurnLog();
 
-
-        if (this.currentState.type === 'awaiting-switch-action') {
+        
+     
+        if (this.currentState.type === 'awaiting-switch-action' && this.turnOver === false) {
+            if (this.id>1){
+                console.log("awaiting switch action!",this);
+            }
             this.OnSwitchNeeded.emit({});
         }
-        if (this.currentState.type === 'turn-finished') {            
+        //THE REASON WAS HERE! FORGOT AN ELSE STATEMENT.... IT IS POSSIBLE THAT OUR ON SWITCH NEEDED EVENT IS HANDLEDED RIGHT AWAY.
+        else if (this.currentState.type === 'turn-finished'&& this.turnOver === false)  { 
+            
+
+            //When we run our AI vs AI events, this can somehow fire twice for one turn.... the question is why?.... I've written so many console messages and i'm not sure what is going on.
+            //It must be some sort of race condition, but it doens't make sense.... This is a simple hack to fix the issue, although the cause of the problem remains unknown.
+            //Basically this fires twice, causing an entire turn to be skipped but yet the AI will still try to use a move for the turn that was skipped while at the same time use a move for the current turn as well.
+            //this will eventually error out as we will have an invalid technique used (usually due to a pokemon fainting and needing to be switched out)
+           // if (this.turnFinishedEventFired === false){
+            
+            this.turnFinishedEventFired = true;
+            this.turnOver = true;    
+            if (this.id>1){
+                console.log("turn is finished!");
+            }
             this.OnTurnFinished.emit({});
+            
+               
+            //}
         }
-        if (this.currentState.type === 'game-over'){
-            const winningPlayer = this.currentState.winningPlayerId? this.GetPlayer(this.currentState.winningPlayerId!) : undefined;
-            const losingPlayer = this.GetPlayers().find(p=>p.id!==this.currentState.winningPlayerId);
+        else if (this.currentState.type === 'game-over' && this.turnOver === false) {
+            const winningPlayer = this.currentState.winningPlayerId ? this.GetPlayer(this.currentState.winningPlayerId!) : undefined;
+            const losingPlayer = this.GetPlayers().find(p => p.id !== this.currentState.winningPlayerId);        
+            this.turnOver = true;
 
-            //console.log(winningPlayer,losingPlayer);
-
+            if (this.id>1){
+                console.log("game is over!");
+            }
             this.OnGameOver.emit({
-                winningPlayer:winningPlayer,
-                losingPlayer:losingPlayer
+                winningPlayer: winningPlayer,
+                losingPlayer: losingPlayer
             });
+            
+            
         }
     }
 
@@ -648,6 +737,7 @@ export class Turn {
         const switchOutPokemonId = player.currentPokemonId;
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
         switchOutPokemon.volatileStatuses = []; //easy peasy
+        switchOutPokemon.hasSubstitute = false; //need to update this as well.. although lets remove it now and make this a function instead.
 
         const switchInPokemonPos = player.pokemon.indexOf(pokemonIn);
         if (switchInPokemonPos < 0) {
@@ -732,8 +822,8 @@ export class Turn {
         technique.currentPP -= 1;
 
         //quick hack for the pressure ability, perhaps we want an OnOppTechniqueUsed event?
-        this.GetBehavioursForPokemon(defendingPokemon).forEach(b=>{
-            b.OnOppTechniqueUsed(this,pokemon,technique);
+        this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
+            b.OnOppTechniqueUsed(this, pokemon, technique);
         })
 
         //Make sure we only store the technique used last as a technique the pokemon actually has. (in case of forced actions or any metronome type effects)

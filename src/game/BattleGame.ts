@@ -1,7 +1,7 @@
 import _ from "lodash";
-import { GetActivePokemon, GetPokemonOwner } from "./HelperFunctions";
+import { GetActivePokemon } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
-import { Field, OnGameOverArgs, OnNewTurnLogArgs, Turn } from "./Turn";
+import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 
 /*
@@ -55,33 +55,33 @@ function AutoAssignTechniqueIds(players: Array<Player>): void {
 }
 
 
-interface GameOptions{
-    processEvents:boolean
+interface GameOptions {
+    processEvents: boolean
 }
 
 
 
 
 class BattleGame {
-
     //note this variable gets set at the start but doesn't get updated at the moment, once we move more of the turn stuff over into here we can deal with that.
     gameState: Field;
     turnHistory: Array<Turn> = [];
     OnNewTurn = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
     OnSwitchNeeded = new TypedEvent<{}>();
+    OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
-    shouldProcessEvents : boolean = false;
+    shouldProcessEvents: boolean = false;
 
-    constructor(players: Array<Player>,processEvents:boolean) {
+    constructor(players: Array<Player>, processEvents: boolean) {
         if (players.length !== 2) {
             throw new Error(`Need exactly 2 players to properly initialize a battle`);
         }
         this.gameState = {
             players: _.cloneDeep(players), //TODO: testing non clone deeped vs clone deeped.
             entryHazards: [],
-            weather:undefined,
-            fieldEffects:[]
+            weather: undefined,
+            fieldEffects: []
         }
         this.shouldProcessEvents = processEvents;
     }
@@ -91,23 +91,7 @@ class BattleGame {
         AutoAssignCurrentPokemonIds(this.gameState.players);
         AutoAssignItemIds(this.gameState.players);
         AutoAssignTechniqueIds(this.gameState.players);
-
-        
-
-        const firstTurn = new Turn(1, this.gameState,this.shouldProcessEvents);
-        this.turnHistory.push(firstTurn);
-        firstTurn.OnTurnFinished.on(() => {
-            this.OnNewTurn.emit({});
-            this.NextTurn();            
-        })
-        firstTurn.OnNewLogReady.on((args) => {
-            this.OnNewLogReady.emit(args);
-        });
-        firstTurn.OnGameOver.on( (args)=>{
-            this.OnGameOver.emit(args);
-        });
-        firstTurn.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args))
-
+        this.NextTurn(this.gameState);
     }
 
     GetCurrentTurn(): Turn {
@@ -115,51 +99,35 @@ class BattleGame {
         return this.turnHistory[index];
     }
 
-    private NextTurn() {
-        //This is leftover from the BattleService class, but we are going to handle the state directly in the battle class instead.
-        const initialState = _.cloneDeep(this.GetCurrentTurn().field);
-
-        const turn = new Turn(this.turnHistory.length + 1, initialState,this.shouldProcessEvents);
+    private NextTurn(initialState: Field) {
+         const turn = new Turn(this.turnHistory.length + 1, initialState, this.shouldProcessEvents);
         this.turnHistory.push(turn);
-     
+
         turn.OnNewLogReady.on((args) => {
             this.OnNewLogReady.emit(args);
         });
-        turn.OnTurnFinished.on(() => {             
+        turn.OnTurnFinished.on(() => {
             this.OnNewTurn.emit({});
-            this.NextTurn();  
+            this.NextTurn(_.cloneDeep(this.GetCurrentTurn().field));
         });
-        turn.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args))
-        turn.OnGameOver.on(args=>this.OnGameOver.emit(args));
-
-        const pokemon1 = GetActivePokemon(initialState.players[0]);
-        const pokemon2 = GetActivePokemon(initialState.players[1]);
-
-        /*
-            Forced Actions i.e. moves that must be repeated like Rollout or Outrage happen here.
-            ForcedActions mean's the user won't even get to select any action for their turn.
-        */
-        turn.GetBehavioursForPokemon(pokemon1).forEach(b => {
-            b.ForceAction(turn, GetPokemonOwner(initialState.players, pokemon1), pokemon1);
-         });
-         turn.GetBehavioursForPokemon(pokemon2).forEach(b => {
-            b.ForceAction(turn, GetPokemonOwner(initialState.players, pokemon2), pokemon2);
-         });
+        turn.OnSwitchNeeded.on(args => this.OnSwitchNeeded.emit(args))
+        turn.OnGameOver.on(args => this.OnGameOver.emit(args));
+        turn.OnActionNeeded.on(args=>this.OnActionNeeded.emit(args));
+        turn.StartTurn();
     }
 
     GetPlayers(): Array<Player> {
         return this.GetCurrentTurn().field.players;
     }
-    GetPlayerById(id:number){
-        const player =this.GetCurrentTurn().field.players.find(p=>p.id === id);
-        if (player === undefined){
+    GetPlayerById(id: number) {
+        const player = this.GetCurrentTurn().field.players.find(p => p.id === id);
+        if (player === undefined) {
             throw new Error(`Could not find player with id ${id} in GetPlayerById`);
         }
         return player;
     }
 
     StartGame() {
-
         const firstTurn = this.turnHistory[0];
         //Pokemon will enter the battle, and trigger any on entry ability effects
         const pokemon1 = GetActivePokemon(firstTurn.GetPlayers()[0]);
@@ -174,7 +142,7 @@ class BattleGame {
         //something like this to emit the turn logs...
 
         //todo, make this into a function on the turn class.
-        if (firstTurn.eventLogSinceLastAction.length>0){
+        if (firstTurn.eventLogSinceLastAction.length > 0) {
             firstTurn.EmitNewTurnLog();
         }
         this.OnNewTurn.emit({});

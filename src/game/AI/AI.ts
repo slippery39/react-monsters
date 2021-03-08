@@ -1,8 +1,8 @@
-import { before, shuffle } from "lodash";
+import { shuffle } from "lodash";
 import { Actions, BattleAction, SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
 import BattleService from "game/BattleService";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
-import { Player, PlayerBuilder } from "game/Player/PlayerBuilder";
+import { Player } from "game/Player/PlayerBuilder";
 import BattleGame from "game/BattleGame";
 import { Field } from "game/Turn";
 import { Technique } from "game/Techniques/Technique";
@@ -51,17 +51,14 @@ class BasicAI implements AI {
     constructor(aiPlayer: Player, service: BattleService) {
         this._playerID = aiPlayer.id;
         this._service = service;
-
-        this._service.OnNewTurn.on(() => {
-            //setTimeout(() => {
-            
-            //Do we need to select an action here?
-            this.ChooseAction()
-            //}, 300);
-
+        this._service.OnActionNeeded.on((args) => {
+           if (args.playerIDsNeeded.includes(this._playerID)){     
+                this.ChooseAction();           
+            }
         })
         this._service.OnSwitchNeeded.on(() => {
             this.ChoosePokemonToSwitchInto();
+    
         })
     }
 
@@ -77,7 +74,7 @@ class BasicAI implements AI {
 
 
     async ChooseActionAsync() {
-        this.ChooseActionMonteCarlo();
+        await this.ChooseActionMonteCarlo();
     }
 
 
@@ -177,8 +174,7 @@ class BasicAI implements AI {
             moveName:techniqueName ? techniqueName : "move not found...",
             moveId: e[0].moveId
         }
-        //console.error("about to set action into the service",_.cloneDeep(chosenAction));
-  
+
         this._service.SetPlayerAction(chosenAction);
 
     }
@@ -228,8 +224,8 @@ class BasicAI implements AI {
             await Promise.all(
                 arr.map(
                     async () => {
-                        await waitForSeconds(0.05);
-                         return await this.Simulate1Tech(simmedPlayer, tech, beforeField, oppAction)
+                         await waitForSeconds(0.05);
+                         return this.Simulate1Tech(simmedPlayer, tech, beforeField, oppAction)
                     }
                 )).then((result) => {
                     totals = result.reduce(addPointCalcs)
@@ -407,7 +403,7 @@ class BasicAI implements AI {
     }
 
 
-    ChooseAction() {
+   ChooseAction() {
         //NEW AI if current pokemon has 40% health use a potion
         const AIpokemon = GetActivePokemon(this.GetPlayerFromTurn());
 
@@ -431,7 +427,7 @@ class BasicAI implements AI {
 
             //if we currently do not have an action already stored.
             
-            this.ChooseActionAsync();
+             this.ChooseActionAsync();
             //this.ChooseRandomAction();
         }
     }
@@ -440,19 +436,16 @@ class BasicAI implements AI {
 
 
         const isAwaitingSwitchAction = this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action';
-        const AIShouldSwitch = this._service.GetCurrentTurn().playersWhoNeedToSwitch.filter(p => p.id === this.GetPlayerFromTurn().id).length > 0;
-
-
-  
+        const AIShouldSwitch = this._service.GetCurrentTurn().playersWhoNeedToSwitch.filter(p => p.id === this.GetPlayerFromTurn().id).length > 0;  
         
         if (isAwaitingSwitchAction && AIShouldSwitch) {
 
-            console.log("ai is choosing pokemon to switch");
 
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
             if (validPokemon.length === 0) {
                 throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
             }
+    
             const pokemonChosen = shuffle(validPokemon)[0]
             if (validPokemon.length > 0) {
                 const switchPokemonAction: SwitchPokemonAction = {
@@ -460,8 +453,12 @@ class BasicAI implements AI {
                     type: 'switch-pokemon-action',
                     switchPokemonId: pokemonChosen
                 }
+
+                
                 this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);
+    
             }
+            
         }
         else {
 

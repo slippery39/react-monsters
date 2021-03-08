@@ -1,4 +1,4 @@
-import { Field, OnGameOverArgs, OnNewTurnLogArgs, Turn } from "./Turn";
+import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, Turn } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import _ from "lodash";
 
@@ -31,13 +31,14 @@ class BattleService {
     //the number type is temporary
     OnNewTurn = new TypedEvent<OnNewTurnArgs>();
     OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
+    OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
 
     gameEnded:boolean = false;
 
 
-    constructor(player1: Player, player2: Player) {
-        this.battle = new BattleGame([player1, player2],false);
+    constructor(player1: Player, player2: Player,saveTurnLog:boolean) {
+        this.battle = new BattleGame([player1, player2],saveTurnLog);
     }
 
     GetCurrentTurn(): Turn {
@@ -59,8 +60,6 @@ class BattleService {
 
     //eventually this will run a start event or something.
     Initialize() {
-        this.battle.Initialize();
-        //TODO - working on this.
         this.battle.OnNewTurn.on((args) => {
             this.OnNewTurn.emit(args);
         });
@@ -69,6 +68,12 @@ class BattleService {
         });
         this.battle.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args));
         this.battle.OnGameOver.on(args=>this.OnGameOver.emit(args));
+        this.battle.OnActionNeeded.on(args=>{
+            this.OnActionNeeded.emit(args);
+        });
+        this.battle.Initialize();
+        //TODO - working on this.
+
     }
 
     Start(){
@@ -80,8 +85,6 @@ class BattleService {
     }
 
     SetInitialAction(action: BattleAction) {
-        console.error("setting initial action");
-        console.log(this.GetCurrentTurn())
         this.GetCurrentTurn().SetInitialPlayerAction(action);
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
@@ -93,7 +96,6 @@ class BattleService {
             return;
         }
         if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {
-            console.log("setting initial action");
             this.SetInitialAction(action);
         }
         else if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
@@ -105,12 +107,6 @@ class BattleService {
             }
             let switchAction = (action as SwitchPokemonAction);
             this.SetSwitchFaintedPokemonAction(switchAction);
-
-            /*
-            if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
-                this.OnSwitchNeeded.emit({});
-            }
-            */
         }
     }
 

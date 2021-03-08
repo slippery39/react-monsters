@@ -5,7 +5,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { DamageType, Technique, TechniqueBuilder } from "game/Techniques/Technique";
+import { DamageType, Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { RainingWeather } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
