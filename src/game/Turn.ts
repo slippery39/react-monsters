@@ -69,6 +69,13 @@ export interface OnActionNeededArgs {
     playerIDsNeeded: Array<number>,
     currentlyStoredActions: Array<BattleAction>,
 }
+export interface OnSwitchNeededArgs{
+    turnId:number,
+    playerIDsNeeded:Array<number>,
+    currentlyStoredSwitchActions:Array<BattleAction>
+}
+
+
 
 export class Turn {
     id: number; //Turn specific property
@@ -97,7 +104,7 @@ export class Turn {
 
     OnTurnFinished = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
-    OnSwitchNeeded = new TypedEvent<{}>();
+    OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
     OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
 
@@ -123,7 +130,6 @@ export class Turn {
     GetEventLog(): Array<BattleEvent> {
         return this.eventLog;
     }
-
 
 
     SetInitialPlayerAction(action: BattleAction) {
@@ -173,9 +179,6 @@ export class Turn {
             return;
         }
         if (this.initialActions.length === 2 && this.currentState.type === 'awaiting-initial-actions') {
-           if (this.id>1){
-            console.log("initial actions have been set");
-           }
             this.currentState = {
                 type: 'calculating-turn'
             }
@@ -242,6 +245,7 @@ export class Turn {
     }
 
     SetSwitchPromptAction(action: SwitchPokemonAction) {
+
         if (action.type !== 'switch-pokemon-action') {
             throw new Error(`Invalid action type being processed in SetSwitchPromptAction....`);
         }
@@ -261,9 +265,12 @@ export class Turn {
         if (player === undefined) {
             throw new Error('could not find player');
         }
-        const index = this.playersWhoNeedToSwitch.indexOf(player);
-        this.playersWhoNeedToSwitch.splice(index, 1);
 
+        const index = this.playersWhoNeedToSwitch.indexOf(player);
+        this.playersWhoNeedToSwitch = [...this.playersWhoNeedToSwitch];
+        this.playersWhoNeedToSwitch.splice(index,1);
+
+   
         if (this.playersWhoNeedToSwitch.length === 0) {
             this._switchNeededActions.forEach(act => {
                 const player = this.GetPlayer(act.playerId);
@@ -425,10 +432,17 @@ export class Turn {
     }
 
     PromptForSwitch(pokemon: Pokemon) {
-        const owner = this.GetPokemonOwner(pokemon);
-        //TODO - This needs to be a prompt now, not just for fainted pokemon.
-        this.playersWhoNeedToSwitch.push(owner);
-        this.currentState = { type: 'awaiting-switch-action' }
+        if (this.currentState.type!=='game-over'){
+            const owner = this.GetPokemonOwner(pokemon);
+            //TODO - This needs to be a prompt now, not just for fainted pokemon.
+            if (this.playersWhoNeedToSwitch.map(p=>p.id).includes(owner.id)){
+                return; //make sure player is not added to switch their pokemon twice at the same time.
+            }
+            else{
+                this.playersWhoNeedToSwitch.push(owner);
+                this.currentState = { type: 'awaiting-switch-action' }
+            }
+        }
     }
 
     private PokemonFainted(pokemon: Pokemon) {
@@ -450,7 +464,6 @@ export class Turn {
                 type: 'game-over',
                 winningPlayerId: winningPlayer.id
             }
-            console.log("game over check lets see if we calculate the turn after this");
         }
         else {
             this.PromptForSwitch(pokemon);
@@ -502,7 +515,7 @@ export class Turn {
         }) as SubstituteVolatileStatus;
 
         if (substitute === undefined){
-            console.error("substitute was undefined",this);
+            console.error("substitute was undefined when we tried to apply damage to it",this);
         }
         substitute.Damage(this, defendingPokemon, damage);
 
@@ -568,10 +581,6 @@ export class Turn {
 
 
     private CalculateTurn() {
-
-        if (this.id>1){
-            console.log(".");
-        }     
 
         const actionOrder = this.GetMoveOrder();
 
@@ -678,10 +687,12 @@ export class Turn {
         
      
         if (this.currentState.type === 'awaiting-switch-action' && this.turnOver === false) {
-            if (this.id>1){
-                console.log("awaiting switch action!",this);
+            const switchNeededInfo = {
+                turnId:this.id,
+                playerIDsNeeded:this.playersWhoNeedToSwitch.map(p=>p.id),
+                currentlyStoredSwitchActions:this._switchNeededActions
             }
-            this.OnSwitchNeeded.emit({});
+            this.OnSwitchNeeded.emit(switchNeededInfo);
         }
         //THE REASON WAS HERE! FORGOT AN ELSE STATEMENT.... IT IS POSSIBLE THAT OUR ON SWITCH NEEDED EVENT IS HANDLEDED RIGHT AWAY.
         else if (this.currentState.type === 'turn-finished'&& this.turnOver === false)  { 
@@ -695,11 +706,7 @@ export class Turn {
             
             this.turnFinishedEventFired = true;
             this.turnOver = true;    
-            if (this.id>1){
-                console.log("turn is finished!");
-            }
-            this.OnTurnFinished.emit({});
-            
+            this.OnTurnFinished.emit({});          
                
             //}
         }
@@ -708,9 +715,6 @@ export class Turn {
             const losingPlayer = this.GetPlayers().find(p => p.id !== this.currentState.winningPlayerId);        
             this.turnOver = true;
 
-            if (this.id>1){
-                console.log("game is over!");
-            }
             this.OnGameOver.emit({
                 winningPlayer: winningPlayer,
                 losingPlayer: losingPlayer

@@ -1,4 +1,4 @@
-import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, Turn } from "./Turn";
+import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs, Turn } from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import _ from "lodash";
 
@@ -16,10 +16,6 @@ export interface OnStateChangeArgs {
 export interface OnNewTurnArgs {
 
 }
-export interface OnSwitchNeededArgs {
-
-}
-
 
 
 class BattleService {
@@ -87,12 +83,11 @@ class BattleService {
     SetInitialAction(action: BattleAction) {
         this.GetCurrentTurn().SetInitialPlayerAction(action);
     }
-    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: Boolean) {
+    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction,diffLog?:boolean) {
         this.GetCurrentTurn().SetSwitchPromptAction(action);
      }
     SetPlayerAction(action: BattleAction) {
         if (this.gameEnded){
-            console.log("game ended for some reason?");
             return;
         }
         if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {

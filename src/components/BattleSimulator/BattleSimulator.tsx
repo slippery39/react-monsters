@@ -29,20 +29,20 @@ async function RunAIvsAIBattle():Promise<OnGameOverArgs>{
 /*
     const ai1 = new PlayerBuilder(1)
         .WithName("AI John")
-        .WithPokemon("Dragonite")
-        .WithPokemon("Dragonite")
-        .WithPokemon("Dragonite")
-        .WithPokemon("Dragonite")
+        .WithPokemon("Arcanine")
+        .WithPokemon("Arcanine")
+        .WithPokemon("Arcanine")
+        .WithPokemon("Arcanine")
         .Build();
 
     const ai2 = new PlayerBuilder(2)
         .WithName("AI Bob")
-        .WithPokemon("Dragonite")
-        .WithPokemon("Dragonite")
-        .WithPokemon("Dragonite")
-        .WithPokemon("Dragonite")
+        .WithPokemon("Milotic")
+        .WithPokemon("Milotic")
+        .WithPokemon("Milotic")
+        .WithPokemon("Milotic")
         .Build();
-    */
+  */  
         
 
 
@@ -56,6 +56,8 @@ async function RunAIvsAIBattle():Promise<OnGameOverArgs>{
        .WithName("AI Bob")
        .WithRandomPokemon(3)
        .Build();
+
+       
        
        
 
@@ -140,7 +142,7 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
     }, [setSimStats])
 
     useEffect(() => {
-        RunNBattles(5000, battleEndedFunc);
+        RunNBattles(1000, battleEndedFunc);
     }, [battleEndedFunc]);
 
 

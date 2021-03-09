@@ -4,7 +4,7 @@ import BattleService from "game/BattleService";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import BattleGame from "game/BattleGame";
-import { Field } from "game/Turn";
+import { Field, OnSwitchNeededArgs } from "game/Turn";
 import { Technique } from "game/Techniques/Technique";
 import { Status } from "game/HardStatus/HardStatus";
 import waitForSeconds from "./CoroutineTest";
@@ -14,7 +14,7 @@ import _ from "lodash";
 
 interface AI {
     ChooseAction: () => void
-    ChoosePokemonToSwitchInto: () => void
+    ChoosePokemonToSwitchInto: (args: OnSwitchNeededArgs) => void
 }
 
 enum PointCalculationTypes {
@@ -52,13 +52,13 @@ class BasicAI implements AI {
         this._playerID = aiPlayer.id;
         this._service = service;
         this._service.OnActionNeeded.on((args) => {
-           if (args.playerIDsNeeded.includes(this._playerID)){     
-                this.ChooseAction();           
+            if (args.playerIDsNeeded.includes(this._playerID)) {
+                this.ChooseAction();
             }
         })
-        this._service.OnSwitchNeeded.on(() => {
-            this.ChoosePokemonToSwitchInto();
-    
+        this._service.OnSwitchNeeded.on((args) => {
+            this.ChoosePokemonToSwitchInto(args);
+
         })
     }
 
@@ -117,61 +117,30 @@ class BasicAI implements AI {
 
         const activePokemon = this.GetPlayerFromTurn().pokemon.find(p => p.id === this.GetPlayerFromTurn().currentPokemonId);
 
-
-
         if (activePokemon === undefined) {
             throw new Error(`Could not find active pokemon for AI`);
         }
 
-
-        //FIGURE OUT MOST LIKELY MOVE FOR OPPONENT.
-        //console.error("-----");
-       //console.log(this._service.GetCurrentTurn().id,this._playerID);
-        //console.log("first many techs started....",beforeField);
-        //console.warn("turn id right before predicint opp move", this._service.GetCurrentTurn().id)
-        const calculatedOppPoints= await this.SimulateManyTechs(beforeOtherPlayer,beforeField,undefined);
+        const calculatedOppPoints = await this.SimulateManyTechs(beforeOtherPlayer, beforeField, undefined);
         const predictedOppAction: UseMoveAction = {
             playerId: beforeOtherPlayer.id,
             pokemonId: beforeOtherPlayer.currentPokemonId,
             moveId: calculatedOppPoints[0].moveId,
             type: Actions.UseTechnique
         };
-        //console.log("second many techs started",beforeField,this._playerID);
-        //console.warn("turn id right before simming result" + this._service.GetCurrentTurn().id)
         const e = await this.SimulateManyTechs(beforeAIPlayer, beforeField, predictedOppAction);
-        //console.warn("recieved sim result for ai" +this._playerID,e);
-        //console.warn("turn id after simming result" + this._service.GetCurrentTurn().id)
         const currentPokemon = GetActivePokemon(beforeAIPlayer);
 
-
-
-        //WE NEED TO FIX THIS FIRST... ONCE WE FIX THIS WE WILL SEE IF THERE THE OTHER PROBLEM STILL EXISTS.
-        if (this.GetPlayerFromTurn().currentPokemonId !== beforeAIPlayer.currentPokemonId){
-            /*
-
-
-            const activePokemon = GetActivePokemon(this.GetPlayerFromTurn());
-            const activePokemon2 = GetActivePokemon(beforeAIPlayer);
-            //console.error("we need to choose another action :(",this._service.GetCurrentTurn().field,activePokemon,activePokemon2);
-
-            setTimeout(()=>{
-            this.ChooseActionMonteCarlo(); 
-            },20);//hack, lets try aagin.
-            return;
-
-
-           */
-        }
-        let techniqueName = currentPokemon.techniques.find(t=>t.id === e[0].moveId)?.name
-        if (!techniqueName){
+        let techniqueName = currentPokemon.techniques.find(t => t.id === e[0].moveId)?.name
+        if (!techniqueName) {
             //console.error(`technique not found for ${beforeAIPlayer.name}, looking for technique id ${e[0].moveId}`,e,currentPokemon);
         }
         const chosenAction: UseMoveAction = {
             type: Actions.UseTechnique,
             playerId: this.GetPlayerFromTurn().id,
             pokemonId: this.GetPlayerFromTurn().currentPokemonId,
-            pokemonName:currentPokemon.name,
-            moveName:techniqueName ? techniqueName : "move not found...",
+            pokemonName: currentPokemon.name,
+            moveName: techniqueName ? techniqueName : "move not found...",
             moveId: e[0].moveId
         }
 
@@ -224,16 +193,16 @@ class BasicAI implements AI {
             await Promise.all(
                 arr.map(
                     async () => {
-                         await waitForSeconds(0.05);
-                         return this.Simulate1Tech(simmedPlayer, tech, beforeField, oppAction)
+                        await waitForSeconds(0.05);
+                        return this.Simulate1Tech(simmedPlayer, tech, beforeField, oppAction)
                     }
                 )).then((result) => {
                     totals = result.reduce(addPointCalcs)
                 })
-                /*
-                .catch((result) => {
-                    throw new Error(`Error in calculation ${result}`);
-                });*/
+            /*
+            .catch((result) => {
+                throw new Error(`Error in calculation ${result}`);
+            });*/
 
             if (totals === undefined) {
                 throw new Error(`totals was undefined in ai!`);
@@ -245,9 +214,6 @@ class BasicAI implements AI {
         }));
 
         calculatedPoints = calculatedPoints.sort((a, b) => b.points - a.points);
-
-        //await waitForSeconds(0.01);
-        //console.log(`calculated points for ${simmedPlayer.name} have returned!`,calculatedPoints);
         return calculatedPoints;
     }
 
@@ -265,10 +231,10 @@ class BasicAI implements AI {
         //Setting Action for Simmed Player
         const action: UseMoveAction = {
             playerId: simmedPlayer.id,
-            pokemonName:currentPokemon.name,
+            pokemonName: currentPokemon.name,
             pokemonId: simmedPlayer.currentPokemonId,
             moveId: techToSim.id,
-            moveName:techToSim.name,
+            moveName: techToSim.name,
             type: Actions.UseTechnique
         };
         testGame.GetCurrentTurn().SetInitialPlayerAction(action);
@@ -403,7 +369,7 @@ class BasicAI implements AI {
     }
 
 
-   ChooseAction() {
+    ChooseAction() {
         //NEW AI if current pokemon has 40% health use a potion
         const AIpokemon = GetActivePokemon(this.GetPlayerFromTurn());
 
@@ -424,28 +390,20 @@ class BasicAI implements AI {
 
         }
         else {
-
-            //if we currently do not have an action already stored.
-            
-             this.ChooseActionAsync();
-            //this.ChooseRandomAction();
+            this.ChooseActionAsync();
         }
     }
-    ChoosePokemonToSwitchInto() {
+    ChoosePokemonToSwitchInto(args: OnSwitchNeededArgs) {
         //Allowing the AI player to switch his fainted pokemon to something else.
 
-
-        const isAwaitingSwitchAction = this._service.GetCurrentTurn().currentState.type === 'awaiting-switch-action';
-        const AIShouldSwitch = this._service.GetCurrentTurn().playersWhoNeedToSwitch.filter(p => p.id === this.GetPlayerFromTurn().id).length > 0;  
-        
-        if (isAwaitingSwitchAction && AIShouldSwitch) {
-
+        const AIShouldSwitch = args.playerIDsNeeded.includes(this._playerID);
+        if (AIShouldSwitch) {
 
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
             if (validPokemon.length === 0) {
                 throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
             }
-    
+
             const pokemonChosen = shuffle(validPokemon)[0]
             if (validPokemon.length > 0) {
                 const switchPokemonAction: SwitchPokemonAction = {
@@ -453,12 +411,10 @@ class BasicAI implements AI {
                     type: 'switch-pokemon-action',
                     switchPokemonId: pokemonChosen
                 }
-
-                
                 this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);
-    
+
             }
-            
+
         }
         else {
 

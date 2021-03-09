@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { GetActivePokemon } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
-import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, Turn } from "./Turn";
+import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 
 /*
@@ -68,7 +68,7 @@ class BattleGame {
     turnHistory: Array<Turn> = [];
     OnNewTurn = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
-    OnSwitchNeeded = new TypedEvent<{}>();
+    OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
     OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
     shouldProcessEvents: boolean = false;
