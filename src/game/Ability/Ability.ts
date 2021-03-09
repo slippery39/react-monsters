@@ -1,3 +1,4 @@
+import { stat } from "fs";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";

@@ -2,7 +2,9 @@ import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import BattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
+import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 import { OnGameOverArgs } from 'game/Turn';
+import { shuffle } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 
 interface Props {
@@ -128,6 +130,61 @@ async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: Simm
     return stats;
 }
 
+//Testing promise resolving here
+async function RunRoundRobinBattle1v1(pokemon1: string, pokemon2: string) : Promise<OnGameOverArgs> {
+
+    return new Promise(resolve => {
+        const ai1 = new PlayerBuilder(1)
+            .WithName("AI Joe")
+            .WithPokemon(pokemon1)
+            .Build();
+
+        const ai2 = new PlayerBuilder(2)
+            .WithName("AI Shayne")
+            .WithPokemon(pokemon2)
+            .Build();
+
+
+        let battleService = new BattleService(ai1, ai2,false);
+        new BasicAI(ai1, battleService);
+        new BasicAI(ai2, battleService);
+
+
+        battleService.OnGameOver.on((args) => {
+            resolve(args);
+        })
+
+        battleService.Initialize();
+        battleService.Start();
+    });
+}
+
+
+async function RoundRobin1v1(onBattleEnded:(args:SimmedStats)=>void) {
+    const pokemonList = GetAllPokemonInfo().map(poke => poke.species);
+    //generate an array of round robin info
+    /*var allMatchups = pokemonList.flatMap(
+        (v, i) => pokemonList.slice(i+1).map( w => v + ' ' + w )
+    );*/
+
+    var allMatchups = pokemonList.flatMap(
+        (v, i) => pokemonList.slice(i + 1).map(w => { return { pokemon1: v, pokemon2: w } })
+    );
+
+    allMatchups = shuffle(allMatchups);
+
+
+    let currentStats:SimmedStats = {};
+
+    for (let i in allMatchups){
+        const matchup = allMatchups[i];
+        console.log("simming matchup",matchup);
+        const result = await RunRoundRobinBattle1v1(matchup.pokemon1,matchup.pokemon2);
+        UpdateStats(currentStats,result);
+        onBattleEnded(currentStats);
+    }
+}
+
 
 
 
@@ -142,12 +199,12 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
     }, [setSimStats])
 
     useEffect(() => {
-        RunNBattles(1000, battleEndedFunc);
+        //RunNBattles(1000, battleEndedFunc);
     }, [battleEndedFunc]);
 
 
     useEffect(() => {
-        //RoundRobin1v1(battleEndedFunc);
+        RoundRobin1v1(battleEndedFunc);
     }, []);
 
     const displayStats = function () {
