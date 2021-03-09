@@ -465,6 +465,32 @@ export function GetSpecies(name: string): ISpecies {
                 speed:100
             },
             weight:52.6
+        },
+        {
+            name:"Nidoking",
+            elementalTypes:[ElementType.Poison,ElementType.Ground],
+            baseStats:{
+               hp:81,
+               attack:102,
+               defense:77,
+               spAttack:85,
+               spDefense:75,
+               speed:85
+            },
+            weight:62.0
+        },
+        {
+            name:"Clefable",
+            elementalTypes:[ElementType.Fairy],
+            baseStats:{
+                hp:95,
+                attack:70,
+                defense:73,
+                spAttack:95,
+                spDefense:90,
+                speed:60
+            },
+            weight:40
         }
     ];
 

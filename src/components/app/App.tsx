@@ -34,15 +34,12 @@ function App() {
   function initializeBattle() {
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("Blaziken")
-      .WithPokemon("Blaziken")
       .WithRandomPokemon(6)
       .Build();
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithPokemon("Shuckle")
-      .WithPokemon("Shuckle")
+      .WithRandomPokemon(6)
       .Build();
 
     let battleService = new BattleService(player1, player2,true);

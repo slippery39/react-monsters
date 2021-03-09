@@ -225,13 +225,13 @@ const premades: Array<PremadePokemon> = [
             speed: 4,
         },
         techniques: [
-            "Iron Head",
+            "Brave Bird",
             "Spikes",
             "Roost",
             "Whirlwind"
         ],
         nature: NatureType.Impish,
-        heldItem: "Leftovers",
+        heldItem: "Rocky Helmet",
         ability: "Sturdy"
 
     },
@@ -667,6 +667,40 @@ const premades: Array<PremadePokemon> = [
             hp:4,
             spAttack:252,
             speed:252
+        }
+    },
+    {
+        species:"Nidoking",
+        heldItem:"Life Orb",
+        ability:"Sheer Force",
+        nature:NatureType.Naive,
+        techniques:[
+            "Sludge Wave",
+            "Earth Power",
+            "Ice Beam",
+            "Stealth Rock"
+        ],
+        evs:{
+            defense:4,
+            spAttack:252,
+            speed:252,
+        }
+    },
+    {
+        species:"Clefable",
+        heldItem:"Leftovers",
+        ability:"Magic Guard",
+        nature:NatureType.Bold,
+        techniques:[
+            "Calm Mind",
+            "Moonblast",
+            "Thunder Wave",
+            "Soft Boiled"
+        ],
+        evs:{
+            hp:252,
+            defense:252,
+            spDefense:4
         }
     }
 ]

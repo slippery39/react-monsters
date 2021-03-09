@@ -199,12 +199,12 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
     }, [setSimStats])
 
     useEffect(() => {
-        //RunNBattles(1000, battleEndedFunc);
+        RunNBattles(1000, battleEndedFunc);
     }, [battleEndedFunc]);
 
 
     useEffect(() => {
-        RoundRobin1v1(battleEndedFunc);
+        //RoundRobin1v1(battleEndedFunc);
     }, []);
 
     const displayStats = function () {

@@ -5,7 +5,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { Technique } from "game/Techniques/Technique";
+import { Technique, TechniqueBuilder } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import _ from "lodash";
@@ -224,6 +224,18 @@ export class FlyingGem extends HeldItem{
     }
 }
 
+export class RockyHelmet extends HeldItem{
+    name:string = "Rocky Helmet"
+    description:string="If the holder of this item takes damage, the attacker will also be damaged upon contact."
+
+
+    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
+        if (move.makesContact){
+            turn.ApplyIndirectDamage(attackingPokemon,attackingPokemon.originalStats.hp/6);
+            turn.AddMessage(`${attackingPokemon.name} took damage due to ${defendingPokemon.name}'s rocky helmet!`);
+        }
+    }
+}
 
 
 //Empty held item.
@@ -254,6 +266,9 @@ function GetHeldItem(name: string): HeldItem {
         }
         case "flying gem":{
             return new FlyingGem();
+        }
+        case "rocky helmet":{
+            return new RockyHelmet();
         }
         case "none": {
             return new NoHeldItem();

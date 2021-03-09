@@ -58,6 +58,7 @@ export abstract class EntryHazard {
 
     type: string = "";
     player?: Player = undefined;
+    stage:number = 0;
 
     constructor(player: Player) {
         this.player = player;
@@ -110,7 +111,7 @@ export class Spikes extends EntryHazard {
         else if (this.stage === 2) {
             damage = pokemon.originalStats.hp * 0.1667;
         }
-        else if (this.stage === 3) {
+        else if (this.stage >= 3) {
             damage = pokemon.originalStats.hp * 0.25;
         }
         turn.ApplyIndirectDamage(pokemon, damage);
@@ -159,7 +160,7 @@ export class StealthRock extends EntryHazard {
         }
 
         if (damageMod > 0) {
-            const damage = pokemon.originalStats.hp / damageMod;
+            const damage = pokemon.originalStats.hp * (damageMod/100);
             turn.ApplyIndirectDamage(pokemon, damage);
             turn.AddMessage(`${pokemon.name} was hurt by stealth rock.`);
         }

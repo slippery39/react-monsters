@@ -31,6 +31,57 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Moonblast",
+            description:"Borrowing the power of the moon, the user attacks the target. This may also lower the target's Sp. Atk stat.",
+            pp:24,
+            power:95,
+            accuracy:100,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Fairy,
+            effects:[
+                {
+                    type:EffectType.StatBoost,
+                    stat:Stat.SpecialAttack,
+                    amount:-1,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
+        {
+            name:"Earth Power",
+            description:"The user makes the ground under the foe erupt with power. It may also lower the target's Sp. Def.",
+            pp:16,
+            power:90,
+            accuracy:100,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Ground,
+            effects:[
+                {
+                    type:EffectType.StatBoost,
+                    stat:Stat.Accuracy,
+                    amount:-1,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
+        {
+            name:"Brave Bird",
+            description:"The user tucks in its wings and charges from a low altitude. The user also takes serious damage.",
+            pp:24,
+            power:120,
+            accuracy:100,
+            makesContact:true,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Flying,
+            effects:[
+                {
+                    type:EffectType.Recoil,
+                    recoilType:RecoilDamageType.PercentDamageDealt,
+                    amount:33.33
+                }
+            ]
+        },
+        {
             name:"Heat Wave",
             description:"The user attacks by exhaling hot breath on the opposing team. It may also leave targets with a burn.",
             pp:16,

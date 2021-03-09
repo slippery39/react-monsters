@@ -27,6 +27,7 @@ enum PointCalculationTypes {
     EnemyPokemonDeltaHealth = "enemy-pokemon-delta-health",
     AllyPokemonInflictedStatus = "ally-pokemon-has-status",
     EnemyPokemonHasStatus = "enemy-pokemon-has-status",
+    EnemyPlayerEntryHazards = "enemy-entry-hazards",
     AllyStatBoost = "ally-stat-boost",
     EnemyStatBoost = "enemy-stat-boost",
     LostGame = "lost-game"
@@ -149,7 +150,7 @@ class BasicAI implements AI {
     }
 
     private async SimulateManyTechs(simmedPlayer: Player, beforeField: Field, oppAction?: BattleAction) {
-        const simIterations = 2;
+        const simIterations = 3;
         const activePokemon = GetActivePokemon(simmedPlayer);
 
         beforeField = _.cloneDeep(beforeField);
@@ -333,25 +334,45 @@ class BasicAI implements AI {
         //We had a status inflicted onto us.
         if (GetActivePokemon(simmedPlayer).status === Status.None &&
             [Status.Burned, Status.ToxicPoison, Status.Resting, Status.Frozen, Status.Paralyzed, Status.Poison].includes(GetActivePokemon(simmedPlayerAfter).status)) {
-            points -= 50;
-            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus] -= 50;
+            points -= 60;
+            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus] -= 60;
         }
 
         //Enemy had a status inflicted onto them
         if (GetActivePokemon(opponentPlayer).status === Status.None &&
             [Status.Burned, Status.ToxicPoison, Status.Resting, Status.Frozen, Status.Paralyzed, Status.Poison].includes(GetActivePokemon(simmedOpponentAfter).status)) {
-            points += 50;
-            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus] += 50;
+            points += 60;
+            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus] += 60;
         }
 
         //We got a stat boost while still having more than 70% health
         if ((GetActivePokemon(simmedPlayerAfter).currentStats.hp / GetActivePokemon(simmedPlayerAfter).originalStats.hp) * 100 >= 70
             && GetStatBoostsAmount(simmedPlayerAfter) > GetStatBoostsAmount(simmedPlayer)) {
             //give it 45 points stat boosts are pretty important;
-            points += 45;
-            pointCalcs[PointCalculationTypes.AllyStatBoost] += 45;
+            points += 60;
+            pointCalcs[PointCalculationTypes.AllyStatBoost] += 60;
         }
 
+        
+        //We placed an entry hazard on the opponents size.
+        const getAmountOfEntryHazards = (player:Player,field:Field)=>{
+            if (!field.entryHazards){
+                return 0;
+            }
+            const amountOfHazards = field.entryHazards?.filter(haz=>haz.player?.id === player.id).length;
+            const hazardStages = field.entryHazards?.filter(haz=>haz.player?.id === player.id && haz.stage>0).map(haz=>haz.stage-1).reduce( (a,b)=>a+b,0)
+            return amountOfHazards+ hazardStages;
+        }
+
+        const GetAmountOfAlivePokemon = (player:Player)=>{
+            return player.pokemon.filter(poke=>poke.currentStats.hp>0).length;
+        }  
+
+        
+        if (getAmountOfEntryHazards(simmedOpponentAfter,newField) > getAmountOfEntryHazards(opponentPlayer,beforeField)){
+            points+=(12*GetAmountOfAlivePokemon(opponentPlayer));
+            pointCalcs[PointCalculationTypes.EnemyPlayerEntryHazards]+=points;
+        }
 
 
 
