@@ -24,11 +24,11 @@ const premades: Array<PremadePokemon> = [
         techniques: [
             "Fire Blast",
             "Air Slash",
-            "Focus Blast",
+            "Hidden Power Grass",
             "Earthquake",
         ],
         nature: NatureType.Timid,
-        heldItem: "Leftovers", //heldItem:"Life Orb"
+        heldItem: "Life Orb", 
         ability: "Blaze",
 
     },
@@ -44,7 +44,7 @@ const premades: Array<PremadePokemon> = [
         techniques: [
             "Surf",
             "Ice Beam",
-            "Rest",
+            "Protect",
             "Toxic"
         ],
         nature: NatureType.Bold,
@@ -57,18 +57,18 @@ const premades: Array<PremadePokemon> = [
         species: "Venusaur",
         evs: {
             hp: 4,
-            attack: 252,
+            spAttack:252,
             speed: 252
         },
         techniques: [
-            "Swords Dance",
-            "Power Whip",
-            "Earthquake",
-            "Sleep Powder"
+            "Giga Drain",
+            "Sludge Bomb",
+            "Synthesis",
+            "Knock Off"
         ],
-        heldItem: "Life Orb",
+        heldItem: "Black Sludge",
         ability: "Overgrow",
-        nature: NatureType.Calm //TODO - update this.
+        nature: NatureType.Timid
     },
 
 
@@ -82,12 +82,12 @@ const premades: Array<PremadePokemon> = [
         },
         techniques: [
             "Thunderbolt",
-            "Surf",
+            "Hidden Power Ice",
             "Nasty Plot",
             "Focus Blast"
         ],
         nature: NatureType.Timid,
-        heldItem: "Leftovers",
+        heldItem: "Life Orb",
         ability: "Lightning Rod"
 
     },
@@ -109,7 +109,6 @@ const premades: Array<PremadePokemon> = [
         nature: NatureType.Timid,
         heldItem: "Life Orb",
         ability: "Magic Guard"
-
     },
 
 
@@ -169,7 +168,7 @@ const premades: Array<PremadePokemon> = [
             "Fire Blast"
         ],
         nature: NatureType.Timid,
-        heldItem: "Leftovers",
+        heldItem: "Choice Specs",
         ability: "Flash Fire"
 
 
@@ -189,7 +188,7 @@ const premades: Array<PremadePokemon> = [
             "Crunch",
             "Ice Punch"
         ],
-        nature: NatureType.Jolly,
+        nature: NatureType.Adamant,
         heldItem: "Life Orb",
         ability: "Sheer Force"
 
@@ -206,11 +205,11 @@ const premades: Array<PremadePokemon> = [
         techniques: [
             "Heal Bell",
             "Volt Switch",
-            "Thunderbolt",
+            "Hidden Power Ice",
             "Focus Blast"
 
         ],
-        nature: NatureType.Calm,
+        nature: NatureType.Modest,
         heldItem: "Leftovers",
         ability: "Static"
 
@@ -270,7 +269,7 @@ const premades: Array<PremadePokemon> = [
             "Protect",
             "Waterfall",
             "Crunch",
-            "Earthquake"
+            "Ice Beam"
         ],
 
     },
@@ -291,7 +290,7 @@ const premades: Array<PremadePokemon> = [
             "Hydro Pump",
             "Thunderbolt",
             "Ice Beam",
-            "Rapid Spin"
+            "Recover"
         ],
     },
 
@@ -329,9 +328,9 @@ const premades: Array<PremadePokemon> = [
             speed: 252
         },
         techniques: [
-            "Substitute",
-            "Giga Drain",
+            "Leaf Storm",
             "Focus Blast",
+            "Giga Drain",
             "Hidden Power Rock"
         ],
 
@@ -341,8 +340,8 @@ const premades: Array<PremadePokemon> = [
 
         species: "Blaziken",
         ability: "Speed Boost",
-        nature: NatureType.Jolly,
-        heldItem: "Leftovers",
+        nature: NatureType.Adamant,
+        heldItem: "Life Orb",
         evs: {
             //EVs : 4 hp / 252 attack / 252 speed
             hp: 4,
@@ -381,13 +380,13 @@ const premades: Array<PremadePokemon> = [
 
         species: "Flygon",
         ability: "Levitate",
-        heldItem: "Life Orb",
+        heldItem: "Choice Band",
         nature: NatureType.Jolly,
         techniques: [
             "Earthquake",
             "Dragon Claw",
-            "Roost",
-            "Fire Punch"
+            "Outrage",
+            "U-turn"
         ],
         evs: {
             attack: 252,
@@ -410,9 +409,9 @@ const premades: Array<PremadePokemon> = [
             "Haze"
         ],
         evs: {
-            hp: 248,
+            hp: 252,
             defense: 252,
-            speed: 8
+            speed: 4
         },
 
     },
@@ -445,7 +444,7 @@ const premades: Array<PremadePokemon> = [
         heldItem: "Black Sludge",
         nature: NatureType.Bold,
         techniques: [
-            "Aromatherapy",
+            "Sleep Powder",
             "Giga Drain",
             "Sludge Bomb",
             "Moonlight"
@@ -462,7 +461,7 @@ const premades: Array<PremadePokemon> = [
 
         species: "Jolteon",
         ability: "Volt Absorb",
-        heldItem: "Life Orb",
+        heldItem: "Choice Specs",
         nature: NatureType.Timid,
         techniques: [
             "Thunderbolt",
@@ -481,13 +480,13 @@ const premades: Array<PremadePokemon> = [
     {
 
         species: "Dragonite",
-        heldItem: "Leftovers",
+        heldItem: "Lum Berry",
         nature: NatureType.Adamant,
         ability: "Multiscale",
         techniques: [
             "Dragon Dance",
             "Outrage",
-            "Fire Punch",
+            "Earthquake",
             "Extreme Speed"
         ],
         evs: {
@@ -499,26 +498,25 @@ const premades: Array<PremadePokemon> = [
     },
     {
         species: "Gyarados",
-        heldItem: "Leftovers",
+        heldItem: "Life Orb",
         nature: NatureType.Jolly,
         ability: "Intimidate",
         techniques: [
-            "Substitute",
+            "Earthquake",
             "Dragon Dance",
             "Waterfall",
             'Bounce'
         ],
         evs: {
-            hp: 88,
-            attack: 248,
+            attack: 252,
             defense: 4,
-            speed: 168
+            speed: 252
         }
     },
     {
         species: "Arcanine",
         heldItem: "Life Orb",
-        ability: "flash fire",
+        ability: "Intimidate",
         nature: NatureType.Adamant,
         techniques: [
             "Flare Blitz",
@@ -527,10 +525,9 @@ const premades: Array<PremadePokemon> = [
             "Close Combat"
         ],
         evs: {
-            hp: 72,
-            attack: 252,
-            spDefense: 8,
-            speed: 176
+           attack:252,
+           defense:4,
+           speed:252
         }
     },
     {
@@ -620,19 +617,19 @@ const premades: Array<PremadePokemon> = [
     },
     {
         species: "Metagross",
-        heldItem: "Leftovers",
+        heldItem: "Life Orb",
         ability: "Clear Body",
         nature: NatureType.Adamant,
         techniques: [
             "Stealth Rock",
             "Meteor Mash",
-            "Pursuit",
+            "Zen Headbutt",
             "Earthquake"
         ],
         evs: {
-            hp: 252,
-            attack: 96,
-            spDefense: 160
+            attack: 252,
+            defense: 4,
+            speed: 252
         }
     },
     {
@@ -654,19 +651,20 @@ const premades: Array<PremadePokemon> = [
     },
     {
         species:"Zapdos",
-        heldItem:"Life Orb",
+        heldItem:"Leftovers",
         ability:"Pressure",
-        nature:NatureType.Timid,
+        nature:NatureType.Bold,
         techniques:[
             "Thunderbolt",
             "Heat Wave",
-            "Hidden Power Grass",
+            "Hidden Power Ice",
             "Roost"
         ],
         evs:{
-            hp:4,
-            spAttack:252,
-            speed:252
+            hp:252,
+            spAttack:68,
+            speed:16,
+            defense:172
         }
     },
     {
@@ -678,7 +676,7 @@ const premades: Array<PremadePokemon> = [
             "Sludge Wave",
             "Earth Power",
             "Ice Beam",
-            "Stealth Rock"
+            "Superpower"
         ],
         evs:{
             defense:4,

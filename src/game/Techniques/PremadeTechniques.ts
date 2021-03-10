@@ -31,6 +31,36 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Zen Headbutt",
+            description:"The user focuses its willpower to its head and rams the foe. It may also make the target flinch.",
+            pp:24,
+            power:80,
+            accuracy:90,
+            elementalType:ElementType.Psychic,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            effects:[{
+                type:EffectType.InflictVolatileStatus,
+                status:VolatileStatusType.Flinch,
+                target:TargetType.Enemy
+            }]
+        },
+        {
+            name:"Leaf Storm",
+            description:"A storm of sharp leaves is whipped up. The attack's recoil sharply reduces the user's Sp. Atk stat.",
+            pp:8,
+            power:130,
+            accuracy:90,
+            elementalType:ElementType.Grass,
+            damageType:DamageType.Special,
+            effects:[{
+                type:EffectType.StatBoost,
+                stat:Stat.SpecialAttack,
+                amount:-2,
+                target:TargetType.Self
+            }]
+        },
+        {
             name:"Moonblast",
             description:"Borrowing the power of the moon, the user attacks the target. This may also lower the target's Sp. Atk stat.",
             pp:24,
