@@ -95,8 +95,6 @@ export class Turn {
     //Stores the fainted pokemon actions if a player needs to switch thier pokemon.
     private _switchNeededActions: Array<SwitchPokemonAction> = [];
 
-
-
     //Turn State Variables
     currentBattleStep = TurnStep.PreAction1;
     currentState: State = { type: 'awaiting-initial-actions' }
@@ -107,9 +105,6 @@ export class Turn {
     OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
     OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
-
-    //HACK to see if this fixes an issue, not sure of the exact cause of the issue though
-    turnFinishedEventFired: boolean = false;
 
     //This is used for our AI vs AI battles, processing our game events takes a while due to us using a _deepClone to save state whenever we add an event. Since the AI doesn't need 
     //to use these events we should be able to turn it off to save a lot of time.
@@ -129,6 +124,19 @@ export class Turn {
 
     GetEventLog(): Array<BattleEvent> {
         return this.eventLog;
+    }
+
+    Clone(){
+        const newTurn = new Turn(-1,this.field,this.shouldProcessEvents);
+        newTurn.initialActions = [...this.initialActions];
+        newTurn._moveOrder = [...this._moveOrder];
+        newTurn.playersWhoNeedToSwitch =  [...this.playersWhoNeedToSwitch];
+        newTurn._switchNeededActions = [...this._switchNeededActions];
+        newTurn.currentBattleStep = this.currentBattleStep;
+        newTurn.currentState = {...this.currentState};
+        newTurn.turnOver = this.turnOver;
+
+        return newTurn;
     }
 
 
@@ -703,8 +711,7 @@ export class Turn {
             //Basically this fires twice, causing an entire turn to be skipped but yet the AI will still try to use a move for the turn that was skipped while at the same time use a move for the current turn as well.
             //this will eventually error out as we will have an invalid technique used (usually due to a pokemon fainting and needing to be switched out)
            // if (this.turnFinishedEventFired === false){
-            
-            this.turnFinishedEventFired = true;
+   
             this.turnOver = true;    
             this.OnTurnFinished.emit({});          
                

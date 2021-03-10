@@ -108,6 +108,8 @@ class BattleGame {
         });
         turn.OnTurnFinished.on(() => {
             this.OnNewTurn.emit({});
+
+            //If we can eliminate this, then maybe we can save lots of time?
             this.NextTurn(_.cloneDeep(this.GetCurrentTurn().field));
         });
         turn.OnSwitchNeeded.on(args => this.OnSwitchNeeded.emit(args))

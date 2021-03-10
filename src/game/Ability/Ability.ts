@@ -437,7 +437,7 @@ class PressureAbility extends AbstractAbility{
     description = "The Pokémon raises the foe's PP usage."
 
     OnOppTechniqueUsed(turn: Turn, pokemon: Pokemon, tech: Technique){
-        tech.pp-=1; //additional 
+        tech.currentPP=1; //additional 
     }
 }
 

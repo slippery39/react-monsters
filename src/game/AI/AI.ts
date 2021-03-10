@@ -12,6 +12,7 @@ import _ from "lodash";
 
 
 
+
 interface AI {
     ChooseAction: () => void
     ChoosePokemonToSwitchInto: (args: OnSwitchNeededArgs) => void
@@ -414,28 +415,86 @@ class BasicAI implements AI {
             this.ChooseActionAsync();
         }
     }
-    ChoosePokemonToSwitchInto(args: OnSwitchNeededArgs) {
+
+    GetOtherPlayer(players:Array<Player>){
+        const otherPlayer = players.find(p=>p.id!==this._playerID);
+        if (otherPlayer === undefined){
+            throw new Error(`Could not find other player`);
+        }
+        return otherPlayer;
+    }
+
+    private CreateSwitchPokemonAction= function(player:Player,pokemonId:number){
+        const action :SwitchPokemonAction = {
+            playerId:player.id,
+            switchPokemonId:pokemonId,
+            type:"switch-pokemon-action"
+        }
+
+        return action;
+    }
+
+    private SwitchRandomPokemon(validPokemon:Array<number>){   
+        if (validPokemon.length === 0) {
+            throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
+        }
+
+        const pokemonChosen = shuffle(validPokemon)[0]
+        const switchPokemonAction: SwitchPokemonAction = {
+                playerId: this.GetPlayerFromTurn().id,
+                type: 'switch-pokemon-action',
+                switchPokemonId: pokemonChosen
+            }
+        this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);        
+    }
+
+    private async SwitchPokemonSmart(validPokemon:Array<number>){
+        let maxPoints = -999999999;
+        let bestPokemon = undefined;
+        for (var poke in validPokemon){
+            const p = validPokemon[poke];
+            const clonedTurn = this._service.GetCurrentTurn().Clone();       
+            const player = clonedTurn.GetPlayers().find(p=>p.id === this._playerID)!;
+            clonedTurn.SetSwitchPromptAction(this.CreateSwitchPokemonAction(player,p));
+            const afterSwitchField = clonedTurn.field;
+            const result = await this.SimulateManyTechs(player,afterSwitchField,undefined);     
+            console.log("result for smart switch",p,result)           
+            if (result[0].points>maxPoints){
+                maxPoints = result[0].points;
+                bestPokemon = p;
+            }
+        }
+
+        if (bestPokemon === undefined){
+            throw new Error(`Could not find best pokemon to switch into... choosing at random instead`);
+        }
+
+       //we found the best pokemon lets switch into it!
+       const pokemonSwitchActionSelected = this.CreateSwitchPokemonAction(this.GetPlayerFromTurn(),bestPokemon);
+       this._service.SetSwitchFaintedPokemonAction(pokemonSwitchActionSelected, false);
+    }
+
+
+    async ChoosePokemonToSwitchInto(args: OnSwitchNeededArgs) {
         //Allowing the AI player to switch his fainted pokemon to something else.
 
         const AIShouldSwitch = args.playerIDsNeeded.includes(this._playerID);
         if (AIShouldSwitch) {
 
+            //TODO - If both players switch, pick randomly.
+
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
-            if (validPokemon.length === 0) {
-                throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
+
+            //in the case where both players are switching at the same time then we should just pick randomly, also no need to use smart switch if we only have 1 pokemon left.
+            if (args.playerIDsNeeded.length>1 || validPokemon.length === 1){
+                console.log("choosing the random switch path");
+                this.SwitchRandomPokemon(validPokemon);
+                return;
             }
-
-            const pokemonChosen = shuffle(validPokemon)[0]
-            if (validPokemon.length > 0) {
-                const switchPokemonAction: SwitchPokemonAction = {
-                    playerId: this.GetPlayerFromTurn().id,
-                    type: 'switch-pokemon-action',
-                    switchPokemonId: pokemonChosen
-                }
-                this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);
-
+            else{
+                console.log("choosing the smart switch path");
+                await this.SwitchPokemonSmart(validPokemon);
             }
-
         }
         else {
 
