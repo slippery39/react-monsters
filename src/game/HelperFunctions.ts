@@ -49,5 +49,9 @@ export function GetPokemonOwner(players:Array<Player>,pokemon:Pokemon): Player{
     return owner;
 }
 
+export function GetAlivePokemon(player:Player){
+    return player.pokemon.filter(poke=>poke.currentStats.hp>0);
+}
+
 
 

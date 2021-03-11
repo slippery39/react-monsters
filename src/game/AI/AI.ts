@@ -1,5 +1,5 @@
 import { shuffle } from "lodash";
-import { Actions, BattleAction, SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
+import { Actions, BattleAction, CreateSwitchAction, SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
 import BattleService from "game/BattleService";
 import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
@@ -55,6 +55,8 @@ class BasicAI implements AI {
         this._service = service;
         this._service.OnActionNeeded.on((args) => {
             if (args.playerIDsNeeded.includes(this._playerID)) {
+
+                console.log("valid actions for ai : " , this._service.GetValidActions(this._playerID));
                 this.ChooseAction();
             }
         })
@@ -184,6 +186,9 @@ class BasicAI implements AI {
         }
 
 
+        
+
+
         let calculatedPoints = await Promise.all(activePokemon.techniques.map(async tech => {
             const arr = [];
             for (var i = 1; i < simIterations; i++) {
@@ -195,7 +200,7 @@ class BasicAI implements AI {
             await Promise.all(
                 arr.map(
                     async () => {
-                        await waitForSeconds(0.05);
+                        await waitForSeconds(0.01);
                         return this.Simulate1Tech(simmedPlayer, tech, beforeField, oppAction)
                     }
                 )).then((result) => {
@@ -424,16 +429,6 @@ class BasicAI implements AI {
         return otherPlayer;
     }
 
-    private CreateSwitchPokemonAction= function(player:Player,pokemonId:number){
-        const action :SwitchPokemonAction = {
-            playerId:player.id,
-            switchPokemonId:pokemonId,
-            type:"switch-pokemon-action"
-        }
-
-        return action;
-    }
-
     private SwitchRandomPokemon(validPokemon:Array<number>){   
         if (validPokemon.length === 0) {
             throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
@@ -451,26 +446,25 @@ class BasicAI implements AI {
     private async SwitchPokemonSmart(validPokemon:Array<number>){
         let maxPoints = -999999999;
         let bestPokemon = undefined;
-        for (var poke in validPokemon){
-            const p = validPokemon[poke];
+        for (var key in validPokemon){
+            const pokeId = validPokemon[key];
             const clonedTurn = this._service.GetCurrentTurn().Clone();       
             const player = clonedTurn.GetPlayers().find(p=>p.id === this._playerID)!;
-            clonedTurn.SetSwitchPromptAction(this.CreateSwitchPokemonAction(player,p));
+            clonedTurn.SetSwitchPromptAction(CreateSwitchAction(player,pokeId));
             const afterSwitchField = clonedTurn.field;
             const result = await this.SimulateManyTechs(player,afterSwitchField,undefined);     
-            console.log("result for smart switch",p,result)           
+            console.log("result for smart switch",pokeId,result)           
             if (result[0].points>maxPoints){
                 maxPoints = result[0].points;
-                bestPokemon = p;
+                bestPokemon = pokeId;
             }
         }
 
         if (bestPokemon === undefined){
             throw new Error(`Could not find best pokemon to switch into... choosing at random instead`);
         }
-
        //we found the best pokemon lets switch into it!
-       const pokemonSwitchActionSelected = this.CreateSwitchPokemonAction(this.GetPlayerFromTurn(),bestPokemon);
+       const pokemonSwitchActionSelected = CreateSwitchAction(this.GetPlayerFromTurn(),bestPokemon);
        this._service.SetSwitchFaintedPokemonAction(pokemonSwitchActionSelected, false);
     }
 
@@ -482,7 +476,6 @@ class BasicAI implements AI {
         if (AIShouldSwitch) {
 
             //TODO - If both players switch, pick randomly.
-
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
 
             //in the case where both players are switching at the same time then we should just pick randomly, also no need to use smart switch if we only have 1 pokemon left.

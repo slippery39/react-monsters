@@ -1,5 +1,6 @@
 import _ from "lodash";
-import { GetActivePokemon } from "./HelperFunctions";
+import { BattleAction, CreateTechniqueAction, CreateSwitchAction } from "./BattleActions";
+import { GetActivePokemon, GetAlivePokemon } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
@@ -117,6 +118,24 @@ class BattleGame {
         turn.OnActionNeeded.on(args=>this.OnActionNeeded.emit(args));
         turn.StartTurn();
     }
+
+        //Get the valid actions for a player
+        GetValidActions(player:Player) : Array<BattleAction>{ 
+            //valid actions -> using any technique, any items, any switch actions. Will return an array of BattleActions.
+            
+            //create each of the valid tech actions:
+            const activePokemon = GetActivePokemon(player);
+            const validTechniqueActions = activePokemon.techniques.map(tech=>{
+                return CreateTechniqueAction(player,tech);
+            });
+
+            const validSwitchActions = GetAlivePokemon(player).filter(poke=>poke.id!==GetActivePokemon(player).id).map(poke=>{                
+                return CreateSwitchAction(player,poke.id);
+            });
+            const validActions = [validTechniqueActions,validSwitchActions].flat();
+
+            return validActions;
+        }
 
     GetPlayers(): Array<Player> {
         return this.GetCurrentTurn().field.players;

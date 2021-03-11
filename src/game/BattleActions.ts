@@ -1,3 +1,6 @@
+import { GetActivePokemon } from "./HelperFunctions";
+import { Player } from "./Player/PlayerBuilder";
+import { Pokemon } from "./Pokemon/Pokemon";
 import { Technique } from "./Techniques/Technique";
 
 /*
@@ -36,5 +39,27 @@ export enum Actions {
     UseTechnique = 'use-move-action',
     ForcedTechnique = 'forced-technique-action'
 }
+
+
+
+export function CreateTechniqueAction(player:Player,technique:Technique):UseMoveAction{
+    const action: UseMoveAction = {
+        playerId:player.id,
+        moveId:technique.id,
+        pokemonId:GetActivePokemon(player).id,
+        type:Actions.UseTechnique
+    }
+    return action;
+}
+
+export function CreateSwitchAction(player:Player,pokemonId:number):SwitchPokemonAction{
+    const action :SwitchPokemonAction = {
+        playerId:player.id,
+        switchPokemonId:pokemonId,
+        type:"switch-pokemon-action"
+    }
+    return action;
+}
+
 
 export type BattleAction = UseMoveAction | SwitchPokemonAction | UseItemAction | ForcedTechniqueAction

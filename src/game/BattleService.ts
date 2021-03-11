@@ -30,11 +30,11 @@ class BattleService {
     OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
 
-    gameEnded:boolean = false;
+    gameEnded: boolean = false;
 
 
-    constructor(player1: Player, player2: Player,saveTurnLog:boolean) {
-        this.battle = new BattleGame([player1, player2],saveTurnLog);
+    constructor(player1: Player, player2: Player, saveTurnLog: boolean) {
+        this.battle = new BattleGame([player1, player2], saveTurnLog);
     }
 
     GetCurrentTurn(): Turn {
@@ -54,6 +54,8 @@ class BattleService {
         return this.GetPlayers().filter(player => player.id !== this.allyPlayerId)[0];
     }
 
+
+
     //eventually this will run a start event or something.
     Initialize() {
         this.battle.OnNewTurn.on((args) => {
@@ -62,9 +64,9 @@ class BattleService {
         this.battle.OnNewLogReady.on((info) => {
             this.onNewTurnLog.emit(info);
         });
-        this.battle.OnSwitchNeeded.on(args=>this.OnSwitchNeeded.emit(args));
-        this.battle.OnGameOver.on(args=>this.OnGameOver.emit(args));
-        this.battle.OnActionNeeded.on(args=>{
+        this.battle.OnSwitchNeeded.on(args => this.OnSwitchNeeded.emit(args));
+        this.battle.OnGameOver.on(args => this.OnGameOver.emit(args));
+        this.battle.OnActionNeeded.on(args => {
             this.OnActionNeeded.emit(args);
         });
         this.battle.Initialize();
@@ -72,22 +74,22 @@ class BattleService {
 
     }
 
-    Start(){
+    Start() {
         this.battle.StartGame();
     }
     //Used for our AI vs AI, so we have an off switch in case of never ending games.
-    EndGame(){
+    EndGame() {
         this.gameEnded = true;
     }
 
     SetInitialAction(action: BattleAction) {
         this.GetCurrentTurn().SetInitialPlayerAction(action);
     }
-    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction,diffLog?:boolean) {
+    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean) {
         this.GetCurrentTurn().SetSwitchPromptAction(action);
-     }
+    }
     SetPlayerAction(action: BattleAction) {
-        if (this.gameEnded){
+        if (this.gameEnded) {
             return;
         }
         if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {
@@ -96,7 +98,7 @@ class BattleService {
         else if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
             //RIGHT HERE IS WHERE IT'S HAPPENING!, WE NEED TO VALIDATE HERE....
 
-            if (action.type!=='switch-pokemon-action'){
+            if (action.type !== 'switch-pokemon-action') {
                 console.error(`Somehow a wrong action type got into the awaiting-switch-action branch of SetPlayerAction...`);
                 return;
             }
@@ -110,13 +112,21 @@ class BattleService {
         return _.cloneDeep(this.GetCurrentTurn().GetPlayers());
     }
 
-    GetValidPokemonToSwitchInto(playerId:number){
+    GetValidPokemonToSwitchInto(playerId: number) {
         const player = this.battle.GetPlayerById(playerId);
-        return player.pokemon.filter(poke=>poke.id!==player.currentPokemonId && poke.currentStats.hp>0).map(poke=>poke.id);
+        return player.pokemon.filter(poke => poke.id !== player.currentPokemonId && poke.currentStats.hp > 0).map(poke => poke.id)
     }
 
-    GetField():Field{
+    GetField(): Field {
         return _.cloneDeep(this.GetCurrentTurn().field);
+    }
+
+    GetValidActions(playerId: number) {
+        const player = this.GetCurrentTurn().GetPlayers().find(p => p.id === playerId);
+        if (player === undefined) {
+            throw new Error(`Could not find player`);
+        }
+        return this.battle.GetValidActions(player);
     }
 }
 
