@@ -115,6 +115,7 @@ export class Turn {
         if (initialState.entryHazards === undefined) {
             initialState.entryHazards = [];
         }
+        //For some reason, we do need to clone stuff here... not sure why I thought we would be cloning stuff in the turn.
         this.field = _.cloneDeep(initialState);
         GetActivePokemon(this.field.players[0]).canAttackThisTurn = true;
         GetActivePokemon(this.field.players[1]).canAttackThisTurn = true;
@@ -732,10 +733,13 @@ export class Turn {
     }
 
     EmitNewTurnLog() {
+        if (!this.shouldProcessEvents){
+            return;
+        }
         const newTurnLogArgs: OnNewTurnLogArgs = {
             currentTurnLog: [...this.GetEventLog()],
             eventsSinceLastTime: [...this.eventLogSinceLastAction],
-            field: /*_.cloneDeep*/(this.field),
+            field: _.cloneDeep(this.field),
             winningPlayerId: this.currentState.winningPlayerId,
             currentTurnState: this.currentState.type,
             waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id)

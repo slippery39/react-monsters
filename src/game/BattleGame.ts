@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { BattleAction, CreateTechniqueAction, CreateSwitchAction } from "./BattleActions";
-import { GetActivePokemon, GetAlivePokemon } from "./HelperFunctions";
+import { CloneField, GetActivePokemon, GetAlivePokemon } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs, Turn } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
@@ -111,7 +111,7 @@ class BattleGame {
             this.OnNewTurn.emit({});
 
             //If we can eliminate this, then maybe we can save lots of time?
-            this.NextTurn(_.cloneDeep(this.GetCurrentTurn().field));
+            this.NextTurn(CloneField(this.GetCurrentTurn().field));
         });
         turn.OnSwitchNeeded.on(args => this.OnSwitchNeeded.emit(args))
         turn.OnGameOver.on(args => this.OnGameOver.emit(args));

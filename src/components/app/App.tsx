@@ -6,6 +6,8 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
+import _ from 'lodash';
+import { CloneField } from 'game/HelperFunctions';
 
 enum AppState {
   MainMenu = 'main-menu',
@@ -47,6 +49,29 @@ function App() {
     let battleService = new BattleService(player1, player2,true);
     new BasicAI(player2, battleService);
     battleService.Initialize();
+
+
+    const testIterations = 10000;
+    console.time("cloneDeep")
+    for (var i=0;i<testIterations;i++){
+      _.cloneDeep(battleService.GetCurrentTurn().field);
+    }
+    console.timeEnd("cloneDeep");
+
+
+    console.time("clone field");
+    for (var i=0;i<testIterations;i++){
+      CloneField(battleService.GetCurrentTurn().field);
+    }
+    console.timeEnd("clone field");
+
+
+    
+
+
+
+
+
     //battleService.Start();
 
     return battleService;
