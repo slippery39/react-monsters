@@ -112,8 +112,16 @@ export function CloneField(originalField:Field){
             return newPoke as Pokemon;
         });
 
-        p.pokemon = newPokemons;
-        return p;
+        const newPlayer:Player = {
+            pokemon:newPokemons,
+            currentPokemonId:p.currentPokemonId,
+            id:p.id,
+            items:p.items,
+            name:p.name
+        }
+
+        
+        return newPlayer;
 
     });
     const newField = {

@@ -9,7 +9,7 @@ import { SwitchPokemonAction, BattleAction, Actions, UseMoveAction, ForcedTechni
 import GetHardStatus, { Status } from './HardStatus/HardStatus';
 import { CalculateStatWithBoost, Pokemon } from './Pokemon/Pokemon';
 import { Technique } from './Techniques/Technique';
-import { GetActivePokemon, GetPokemonOwner } from './HelperFunctions';
+import { CloneField, GetActivePokemon, GetPokemonOwner } from './HelperFunctions';
 import { Player } from './Player/PlayerBuilder';
 import GetAbility from './Ability/Ability';
 import { BattleEffect, DoEffect, EffectType, InflictVolatileStatus, TargetType } from './Effects/Effects';
@@ -110,13 +110,14 @@ export class Turn {
     //to use these events we should be able to turn it off to save a lot of time.
     shouldProcessEvents: boolean = false;
 
-    constructor(turnId: number, initialState: Field, shouldProcessEvents: boolean) {
+    constructor(turnId: number, initialField: Field, shouldProcessEvents: boolean) {
         this.id = turnId;
-        if (initialState.entryHazards === undefined) {
-            initialState.entryHazards = [];
+        if (initialField.entryHazards === undefined) {
+            initialField.entryHazards = [];
         }
         //For some reason, we do need to clone stuff here... not sure why I thought we would be cloning stuff in the turn.
-        this.field = _.cloneDeep(initialState);
+        //clone field not working for here?
+        this.field = CloneField(initialField);
         GetActivePokemon(this.field.players[0]).canAttackThisTurn = true;
         GetActivePokemon(this.field.players[1]).canAttackThisTurn = true;
         this.shouldProcessEvents = shouldProcessEvents;
@@ -1105,3 +1106,4 @@ export class Turn {
 
     }
 };
+

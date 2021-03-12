@@ -113,6 +113,10 @@ export class ChoiceBand extends HeldItem{
         //save the technique used to the item slot
         //for sanity purposes the technique saved should be on the pokemon as well.
         //Check to make sure the technique actually exists on the pokemon (in case of custom moves or whatnot)
+
+        if (technique.name.toLowerCase() === "struggle"){
+            return;
+        }
         if (this.techniqueUsed === undefined){
             if (pokemon.techniques.find(tech=>tech.id === technique.id || tech.name === technique.name) === undefined){
                 throw new Error(`Could not find technique for pokemon to save to choice band... Technique name we tried to save was ${technique.name}`)
@@ -171,6 +175,11 @@ export class ChoiceSpecs extends HeldItem{
         //save the technique used to the item slot
         //for sanity purposes the technique saved should be on the pokemon as well.
         //Check to make sure the technique actually exists on the pokemon (in case of custom moves or whatnot)
+
+        if (technique.name.toLowerCase() === "struggle"){
+            return;
+        }
+
         if (this.techniqueUsed === undefined){
             if (pokemon.techniques.find(tech=>tech.id === technique.id || tech.name === technique.name) === undefined){
                 throw new Error(`Could not find technique for pokemon to save to choice band... Technique name we tried to save was ${technique.name}`)
