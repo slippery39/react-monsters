@@ -29,8 +29,7 @@ enum PointCalculationTypes {
 type PointCalcRecord = Record<PointCalculationTypes, number>;
 
 interface PointCalcInfo {
-    moveId: number,
-    moveName: string,
+    action:BattleAction,
     points: number,
     pointCalcs: PointCalcRecord
 }
@@ -86,22 +85,26 @@ class MiniMax {
             throw new Error(`Could not find other player to simulate turn`);
         }
         const calculatedOppPoints = await this.SimulateAllActions(otherPlayer, field, undefined);
-        const predictedOppAction: UseMoveAction = {
-            playerId: otherPlayer.id,
-            pokemonId: otherPlayer.currentPokemonId,
-            moveId: calculatedOppPoints[0].moveId,
-            type: Actions.UseTechnique
-        };
+        const predictedOppAction = calculatedOppPoints[0].action;
        return await this.SimulateAllActions(player,field,predictedOppAction);
     }
     async SimulateAllActions(simmedPlayer: Player, beforeField: Field, oppAction?: BattleAction) {
-        const simIterations = 20;
-        const activePokemon = GetActivePokemon(simmedPlayer);
+        const simIterations = 3;
 
         beforeField = _.cloneDeep(beforeField);
 
+        /*
+        Make an initial game,
+        Get all of the legal actions;
+        */
+
+        const originalGame = new BattleGame(beforeField.players,false);
+        originalGame.gameState = beforeField;
+
+        const validActions = originalGame.GetValidActions(simmedPlayer);
+
         //TODO - this should change to all actions instead.
-        let calculatedPoints = await Promise.all(activePokemon.techniques.map(async tech => {
+        let calculatedPoints = await Promise.all(validActions.map(async tech => {
             const arr = [];
             for (var i = 0; i < simIterations; i++) {
                 arr.push(i);
@@ -124,29 +127,14 @@ class MiniMax {
         }));
 
         calculatedPoints = calculatedPoints.sort((a, b) => b.points - a.points);
-        console.log(calculatedPoints);
         return calculatedPoints;
     }
 
-    private Simulate1Action(simmedPlayer: Player, techToSim: Technique, beforeField: Field, oppAction?: BattleAction) {
-
+    private Simulate1Action(simmedPlayer: Player, simmedAction:BattleAction, beforeField: Field, oppAction?: BattleAction) {
         const testGame = new BattleGame(beforeField.players, false);
         testGame.gameState = beforeField;
         testGame.Initialize();
-
-
-        const currentPokemon = GetActivePokemon(simmedPlayer);
-        //Setting Action for Simmed Player
-        const action: UseMoveAction = {
-            playerId: simmedPlayer.id,
-            pokemonName: currentPokemon.name,
-            pokemonId: simmedPlayer.currentPokemonId,
-            moveId: techToSim.id,
-            moveName: techToSim.name,
-            type: Actions.UseTechnique
-        };
-        testGame.GetCurrentTurn().SetInitialPlayerAction(action);
-
+        testGame.GetCurrentTurn().SetInitialPlayerAction(simmedAction);
 
         //find a random move for this playr
         const opponentPlayer = beforeField.players.find(p => p.id !== simmedPlayer.id);
@@ -180,8 +168,7 @@ class MiniMax {
         //terminate if - we have reached our maximum depth,both players are going to switch pokemon,or the game has ended.
 
         const finalInfo :PointCalcInfo = {
-           moveId:techToSim.id,
-           moveName:techToSim.name,
+           action:simmedAction,
            pointCalcs:pointCalcInfo.pointCalcs,
            points:pointCalcInfo.points
        }
@@ -246,9 +233,9 @@ class MiniMax {
         const pointValues = initializePointValues();
         pointValues[PointCalculationTypes.WonGame] = 99999;
         pointValues[PointCalculationTypes.LostGame] = -99999;
-        pointValues[PointCalculationTypes.EnemyPokemonFainted] = 1000;
-        pointValues[PointCalculationTypes.AllyPokemonFainted] = -1000;
-        pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] = -500; //* the difference
+        pointValues[PointCalculationTypes.EnemyPokemonFainted] = 100;
+        pointValues[PointCalculationTypes.AllyPokemonFainted] = -100;
+        pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] = -510; //* the difference
         pointValues[PointCalculationTypes.AllyTeamDeltaHealth] = 500; //* the difference
         pointValues[PointCalculationTypes.AllyPokemonInflictedStatus] = -60;
         pointValues[PointCalculationTypes.EnemyPokemonHasStatus] = 60;
@@ -331,15 +318,14 @@ class MiniMax {
         });
 
         return {
-            moveId: a.moveId, moveName: a.moveName, points: a.points + b.points, pointCalcs: newPointCalcs
+            action:a.action, points: a.points + b.points, pointCalcs: newPointCalcs
         }
     }
 
     private AveragePointCalcs = (totals: PointCalcInfo, iterations: number) => {
 
         let averageCalculation: PointCalcInfo = {
-            moveId: totals.moveId,
-            moveName: totals.moveName,
+            action:totals.action,
             points: totals.points / iterations,
             pointCalcs: totals.pointCalcs
 

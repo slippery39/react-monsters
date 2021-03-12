@@ -51,12 +51,12 @@ async function RunAIvsAIBattle():Promise<OnGameOverArgs>{
 
        const ai1 = new PlayerBuilder(1)
        .WithName("AI John")
-       .WithRandomPokemon(3)
+       .WithRandomPokemon(6)
        .Build();
 
    const ai2 = new PlayerBuilder(2)
        .WithName("AI Bob")
-       .WithRandomPokemon(3)
+       .WithRandomPokemon(6)
        .Build();
 
        

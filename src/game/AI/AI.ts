@@ -30,8 +30,6 @@ class BasicAI implements AI {
         this._service = service;
         this._service.OnActionNeeded.on((args) => {
             if (args.playerIDsNeeded.includes(this._playerID)) {
-
-                console.log("valid actions for ai : ", this._service.GetValidActions(this._playerID));
                 this.ChooseAction();
             }
         })
@@ -52,24 +50,10 @@ class BasicAI implements AI {
     }
 
     async ChooseAction() { //this is run simulation
-
         const aiPlayer = this.GetPlayerFromTurn();
         const minMaxAlgo = new MiniMax();
-        const calculatedPointsForUs =  await minMaxAlgo.RunSimulation(aiPlayer,this._service.GetCurrentTurn().field,3,2);
-       
-        const techniqueName = calculatedPointsForUs[0].moveName;
-        const techId = calculatedPointsForUs[0].moveId;
-        const currentPokemon = GetActivePokemon(aiPlayer);
-
-        const chosenAction: UseMoveAction = {
-            type: Actions.UseTechnique,
-            playerId: aiPlayer.id,
-            pokemonId: aiPlayer.currentPokemonId,
-            pokemonName: currentPokemon.name,
-            moveName: techniqueName ? techniqueName : "move not found...",
-            moveId: calculatedPointsForUs[0].moveId
-        }
-
+        const calculatedPointsForUs =  await minMaxAlgo.RunSimulation(aiPlayer,this._service.GetCurrentTurn().field,3,2);       
+        const chosenAction = calculatedPointsForUs[0].action;
         this._service.SetPlayerAction(chosenAction);
     }
 
@@ -106,7 +90,6 @@ class BasicAI implements AI {
             clonedTurn.SetSwitchPromptAction(CreateSwitchAction(player, pokeId));
             const afterSwitchField = clonedTurn.field;            
             const result = await miniMax.SimulateAllActions(player, afterSwitchField, undefined);
-            console.log("result for smart switch", pokeId, result)
             if (result[0].points > maxPoints) {
                 maxPoints = result[0].points;
                 bestPokemon = pokeId;
@@ -133,12 +116,10 @@ class BasicAI implements AI {
 
             //in the case where both players are switching at the same time then we should just pick randomly, also no need to use smart switch if we only have 1 pokemon left.
             if (args.playerIDsNeeded.length > 1 || validPokemon.length === 1) {
-                console.log("choosing the random switch path");
                 this.SwitchRandomPokemon(validPokemon);
                 return;
             }
             else {
-                console.log("choosing the smart switch path");
                 await this.SwitchPokemonSmart(validPokemon);
             }
         }
