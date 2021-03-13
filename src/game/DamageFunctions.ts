@@ -109,7 +109,7 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
         if (attackingPokemon.elementalTypes.filter(e => {
             return e === techUsed.elementalType
         }).length > 0) {
-            return 1.25
+            return 1.5;
         }
         else {
             return 1.0;

@@ -118,11 +118,10 @@ function UpdateStats(previousStats: SimmedStats, args: OnGameOverArgs) {
 }
 
 
-async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: SimmedStats) => void) {
+async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: SimmedStats) => void,battleStartedFunc:(id:number)=>void) {
     let stats: Record<string, WinLoss> = {};
-
     for (var i=0;i<numberOfBattles;i++){
-        console.log("running battle" + i);
+        battleStartedFunc((i+1));
         const results = await RunAIvsAIBattle();
         UpdateStats(stats,results);
         battleEndedFunc(stats);
@@ -192,20 +191,26 @@ async function RoundRobin1v1(onBattleEnded:(args:SimmedStats)=>void) {
 const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
 
     const [simStats, setSimStats] = useState<SimmedStats>({});
+    const [numberOfBattles,setNumberOfBattles] = useState<string>("50"); //its a string for compatibility issues.
+    const [simText,setSimText] = useState<string>("")
  
     const battleEndedFunc = useCallback((stats: Record<string, WinLoss>) => {
         console.log(stats);
         const newStats = { ...stats };
           setSimStats(newStats);
+          setSimText("All battles simulated!");
     }, [setSimStats])
 
+
+
+/*
     useEffect(() => {
         RunNBattles(1000, battleEndedFunc);
     }, [battleEndedFunc]);
-
+*/
 
     useEffect(() => {
-        //RoundRobin1v1(battleEndedFunc);
+        RoundRobin1v1(battleEndedFunc);
     }, []);
 
     const displayStats = function () {
@@ -229,10 +234,19 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
     }
 
 
+    const simSettings = (<div> Number of Battles : <input type="text" pattern="[0-9]" onChange={(e)=>setNumberOfBattles(e.target.value)} value={numberOfBattles}/></div>)
+    const startButton = (<button onClick={()=>{RunNBattles(parseFloat(numberOfBattles),battleEndedFunc,(num)=>setSimText("Simulating Battle " + num))}} type="button" value="Run!">Simulate Battles!</button>)
+    const simTextDiv = (<div>{simText}</div>)
+    
+
+
 
     return (
         <div className="battle-simulator-menu">
             <div> Battle Simulator!</div>
+            {simSettings}
+            {startButton}
+            {simTextDiv}
             <table><tbody><tr><td></td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
                 {displayStats()}
             </tbody>
