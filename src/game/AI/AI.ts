@@ -1,15 +1,13 @@
-import { before, initial, shuffle } from "lodash";
-import { Actions, BattleAction, CreateSwitchAction, SwitchPokemonAction, UseItemAction, UseMoveAction } from "game/BattleActions";
+import { shuffle } from "lodash";
+import { CreateSwitchAction, SwitchPokemonAction, } from "game/BattleActions";
 import BattleService from "game/BattleService";
-import { GetActivePokemon, GetPercentageHealth } from "game/HelperFunctions";
+
 import { Player } from "game/Player/PlayerBuilder";
-import BattleGame from "game/BattleGame";
-import { Field, OnSwitchNeededArgs } from "game/Turn";
-import { Technique } from "game/Techniques/Technique";
-import { Status } from "game/HardStatus/HardStatus";
-import waitForSeconds from "./CoroutineTest";
+
+import { OnSwitchNeededArgs } from "game/Turn";
+
 import _ from "lodash";
-import { Stat } from "game/Stat";
+
 import MiniMax from "./MiniMax";
 
 
@@ -52,7 +50,7 @@ class BasicAI implements AI {
     async ChooseAction() { //this is run simulation
         const aiPlayer = this.GetPlayerFromTurn();
         const minMaxAlgo = new MiniMax();
-        const calculatedPointsForUs =  await minMaxAlgo.RunSimulation(aiPlayer,this._service.GetCurrentTurn().field,3,2);       
+        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer, this._service.GetCurrentTurn().field, 3, 2);
         const chosenAction = calculatedPointsForUs[0].action;
         this._service.SetPlayerAction(chosenAction);
     }
@@ -69,13 +67,8 @@ class BasicAI implements AI {
         if (validPokemon.length === 0) {
             throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
         }
-
         const pokemonChosen = shuffle(validPokemon)[0]
-        const switchPokemonAction: SwitchPokemonAction = {
-            playerId: this.GetPlayerFromTurn().id,
-            type: 'switch-pokemon-action',
-            switchPokemonId: pokemonChosen
-        }
+        const switchPokemonAction = CreateSwitchAction(this.GetPlayerFromTurn(),pokemonChosen);
         this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);
     }
 
@@ -88,8 +81,8 @@ class BasicAI implements AI {
             const clonedTurn = this._service.GetCurrentTurn().Clone();
             const player = clonedTurn.GetPlayers().find(p => p.id === this._playerID)!;
             clonedTurn.SetSwitchPromptAction(CreateSwitchAction(player, pokeId));
-            const afterSwitchField = clonedTurn.field;            
-            const result = await miniMax.SimulateAllActions(player, afterSwitchField, undefined);
+            const afterSwitchField = clonedTurn.field;
+            const result = await miniMax.SimulateAllActions(player, afterSwitchField, true, undefined);
             if (result[0].points > maxPoints) {
                 maxPoints = result[0].points;
                 bestPokemon = pokeId;

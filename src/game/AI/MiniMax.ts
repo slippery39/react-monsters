@@ -1,13 +1,14 @@
-import { UseMoveAction, Actions, BattleAction } from "game/BattleActions";
+
+import { Actions, BattleAction } from "game/BattleActions";
 import BattleGame from "game/BattleGame";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Stat } from "game/Stat";
-import { Technique } from "game/Techniques/Technique";
 import { Field } from "game/Turn";
 import _, { shuffle } from "lodash";
 import waitForSeconds from "./CoroutineTest";
+
 
 
 enum PointCalculationTypes {
@@ -30,8 +31,10 @@ type PointCalcRecord = Record<PointCalculationTypes, number>;
 
 interface PointCalcInfo {
     action:BattleAction,
+    action2?:BattleAction,
     points: number,
-    pointCalcs: PointCalcRecord
+    pointCalcs: PointCalcRecord,
+    depth?:number
 }
 
 
@@ -74,6 +77,7 @@ class MiniMax {
     //depth is how many turns deep we want to go.
     //To start lets get it working with 1 turn deep.
     async RunSimulation(simmedPlayer:Player,field:Field,iterations:number,depth:number){
+        await waitForSeconds(0);
         const player = field.players.find(player => player.id === simmedPlayer.id);
         const otherPlayer = field.players.find(player => player.id !== simmedPlayer.id);
 
@@ -84,53 +88,54 @@ class MiniMax {
         if (otherPlayer === undefined) {
             throw new Error(`Could not find other player to simulate turn`);
         }
-        const calculatedOppPoints = await this.SimulateAllActions(otherPlayer, field, undefined);
+        const calculatedOppPoints = await this.SimulateAllActions(otherPlayer, field, true,undefined);
         const predictedOppAction = calculatedOppPoints[0].action;
-       return await this.SimulateAllActions(player,field,predictedOppAction);
+       return await this.SimulateAllActions(player,field,false,predictedOppAction);
     }
-    async SimulateAllActions(simmedPlayer: Player, beforeField: Field, oppAction?: BattleAction) {
-        const simIterations = 3;
-
+    async SimulateAllActions(simmedPlayer: Player, beforeField: Field,techsOnly:Boolean, oppAction?: BattleAction) { 
         beforeField = _.cloneDeep(beforeField);
 
-        /*
-        Make an initial game,
-        Get all of the legal actions;
-        */
+        
 
         const originalGame = new BattleGame(beforeField.players,false);
         originalGame.gameState = beforeField;
 
-        const validActions = originalGame.GetValidActions(simmedPlayer);
+        let validActions = originalGame.GetValidActions(simmedPlayer);
+        const validTechActions = originalGame.GetValidActions(simmedPlayer).filter(vAct=>vAct.type===Actions.UseTechnique || vAct.type === Actions.ForcedTechnique);
 
-        //TODO - this should change to all actions instead.
-        let calculatedPoints = await Promise.all(validActions.map(async tech => {
-            const arr = [];
-            for (var i = 0; i < simIterations; i++) {
-                arr.push(i);
+        
+        let calculatedPoints = [];
+        for (let key in validTechActions){
+            const action = validActions[key];
+            //If necessary we can change simulate 1 action to have multiple iterations;
+            let total = await this.Simulate1Action(simmedPlayer,action,beforeField,oppAction);     
+            calculatedPoints.push(total);    
+        }
+        calculatedPoints = calculatedPoints.sort( (a,b)=>b.points-a.points);
+
+        const beforePoints = this.EvaluateField(simmedPlayer,beforeField);
+        //No good moves lets look for a good switch
+
+        let switchPoints = [];
+        if (beforePoints.points > calculatedPoints[0].points){
+            const validSwitchActions = originalGame.GetValidActions(simmedPlayer).filter(vAct=>vAct.type === 'switch-pokemon-action');
+            for (let key in validSwitchActions){
+                const action = validSwitchActions[key];
+                let total = await this.Simulate1Action(simmedPlayer,action,beforeField,oppAction);
+                switchPoints.push(total);
             }
-            let totals;
-            await Promise.all(
-                arr.map(
-                    async () => {
-                        await waitForSeconds(0.01);
-                        return this.Simulate1Action(simmedPlayer, tech, beforeField, oppAction)
-                    }
-                )).then((result) => {
-                    totals = result.reduce(this.AddPointCalcs)
-                })
-            if (totals === undefined) {
-                throw new Error(`totals was undefined in ai!`);
-            }
+        }
+        switchPoints = switchPoints.sort( (a,b)=>b.points - a.points);
 
-            return this.AveragePointCalcs(totals, simIterations);
-        }));
-
-        calculatedPoints = calculatedPoints.sort((a, b) => b.points - a.points);
-        return calculatedPoints;
+        if (switchPoints.length>0 && switchPoints[0].points > calculatedPoints[0].points){
+            return switchPoints;
+        }
+        else{
+            return calculatedPoints;
+        }
     }
 
-    private Simulate1Action(simmedPlayer: Player, simmedAction:BattleAction, beforeField: Field, oppAction?: BattleAction) {
+    private async Simulate1Action(simmedPlayer: Player, simmedAction:BattleAction, beforeField: Field, oppAction?: BattleAction) {
         const testGame = new BattleGame(beforeField.players, false);
         testGame.gameState = beforeField;
         testGame.Initialize();
@@ -163,14 +168,37 @@ class MiniMax {
 
         const opponentAction = getOpponentAction(opponentPlayer);
         testGame.GetCurrentTurn().SetInitialPlayerAction(opponentAction);
-        const pointCalcInfo = this.EvaluateField(simmedPlayer,testGame.GetCurrentTurn().field);
+
+
+        let pointCalcInfo;
+        let depth = 1;
+        let info: Array<PointCalcInfo> | undefined = undefined;
+        let action2: BattleAction | undefined = undefined;
+          //TODO : if the simmed action was a switch action, look forward one more turn to see if it was the best choice.
+        if ( (simmedAction.type === 'switch-pokemon-action' && testGame.GetCurrentTurn().currentState.type==='awaiting-initial-actions') && testGame.GetCurrentTurn().id===2){
+
+            const newSImmedPlayer = testGame.GetPlayers().find(p=>p.id === simmedPlayer.id);
+            if (newSImmedPlayer === undefined){
+                throw new Error(`Could not find player`);
+            }
+            info = await this.SimulateAllActions(newSImmedPlayer,testGame.GetCurrentTurn().field,true,undefined);            
+            pointCalcInfo=info[0];
+            action2 = info[0].action
+            depth = 2;
+        }
+        else{
+            pointCalcInfo = this.EvaluateField(simmedPlayer,testGame.GetCurrentTurn().field);
+        }
+        
 
         //terminate if - we have reached our maximum depth,both players are going to switch pokemon,or the game has ended.
 
         const finalInfo :PointCalcInfo = {
            action:simmedAction,
+           action2: action2,
            pointCalcs:pointCalcInfo.pointCalcs,
-           points:pointCalcInfo.points
+           points:pointCalcInfo.points,
+           depth: depth
        }
 
        return finalInfo;

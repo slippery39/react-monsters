@@ -36,13 +36,11 @@ function App() {
   function initializeBattle() {
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
-      .WithPokemon("Umbreon")
       .WithRandomPokemon(6)
       .Build();
 
     const player2 = new PlayerBuilder(2)
       .WithName("Bob")
-      .WithPokemon("Meganium")
       .WithRandomPokemon(6)
       .Build();
 
@@ -50,7 +48,7 @@ function App() {
     new BasicAI(player2, battleService);
     battleService.Initialize();
 
-
+/*
     const testIterations = 10000;
     console.time("cloneDeep")
     for (var i=0;i<testIterations;i++){
@@ -67,7 +65,7 @@ function App() {
 
 
     
-
+*/
 
 
 

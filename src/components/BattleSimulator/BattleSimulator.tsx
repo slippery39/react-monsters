@@ -194,8 +194,9 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
     const [simStats, setSimStats] = useState<SimmedStats>({});
  
     const battleEndedFunc = useCallback((stats: Record<string, WinLoss>) => {
+        console.log(stats);
         const newStats = { ...stats };
-        setSimStats(newStats);
+          setSimStats(newStats);
     }, [setSimStats])
 
     useEffect(() => {
