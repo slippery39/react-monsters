@@ -8,6 +8,7 @@ import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
 import _ from 'lodash';
 import { CloneField } from 'game/HelperFunctions';
+import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 
 enum AppState {
   MainMenu = 'main-menu',
@@ -34,6 +35,7 @@ function App() {
 
 
   function initializeBattle() {
+
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
       .WithRandomPokemon(6)

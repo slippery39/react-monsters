@@ -45,12 +45,14 @@ export function GetTypeMod(defendingElements: Array<ElementType>, elementOfAttac
     //the default value is fucking up our not effective typing.
     let effectiveness = effectivenessMap.get(elementOfAttack + "-" + defendingElements[0]);
     if (effectiveness===undefined){
+        return 1; //we have a new none type, this should return 1 since it won't be found in the chart above.
         throw new Error(`Could not find effectiveness for types: ${elementOfAttack} and ${defendingElements}`);
     }
     //The default value is to satisfy typescript, but we should never get it.
     if (defendingElements.length > 1) {
         const effectiveness2 = effectivenessMap.get(elementOfAttack + "-" + defendingElements[1]);
         if (effectiveness2 === undefined){
+            return 1; //we have a new none type, this should return 1 since it won't be found in the chart above.
             throw new Error(`Could not find effectiveness for types: ${elementOfAttack} and ${defendingElements}`);
         } 
         effectiveness *=effectiveness2;

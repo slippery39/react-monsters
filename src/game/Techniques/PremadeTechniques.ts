@@ -136,12 +136,10 @@ export function GetTech(name: string) {
             accuracy:99999,
             damageType:DamageType.Physical,
             makesContact:true,
-            elementalType:ElementType.Rock, //TODO - fix this.
+            elementalType:ElementType.None, //TODO - fix this.
             effects:[
                 {
-                    type:EffectType.Recoil,
-                    recoilType:RecoilDamageType.PercentMaxHealth,
-                    amount:25
+                    type:EffectType.StruggleRecoilDamage
                 }
             ]
         },

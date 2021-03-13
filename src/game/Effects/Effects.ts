@@ -36,7 +36,8 @@ export enum EffectType {
     RemoveStatBoosts = 'remove-stat-boosts',
     PainSplit = 'pain-split',
     RemoveHeldItem = 'remove-held-item',
-    CreateFieldEffect = 'create-field-effect'
+    CreateFieldEffect = 'create-field-effect',
+    StruggleRecoilDamage = 'struggle-damage'
 }
 
 export interface InflictStatusEffect {
@@ -104,6 +105,10 @@ export interface RecoilDamageEffect {
     amount: number
 }
 
+export interface StruggleRecoilEffect{
+    type:EffectType.StruggleRecoilDamage
+}
+
 
 export enum RecoilDamageType {
     PercentDamageDealt = 'percent-damage-dealt',
@@ -132,7 +137,7 @@ export interface CreateFieldEffect{
 export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
     | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect |
     AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect
-    |PainSplitEffect | RemoveHeldItemEffect | CreateFieldEffect);
+    |PainSplitEffect | RemoveHeldItemEffect | CreateFieldEffect | StruggleRecoilEffect);
 
 
 
@@ -425,6 +430,13 @@ export function ApplyCreateFieldEffect(turn:Turn,pokenon:Pokemon,fieldEffectType
     }
 }
 
+export function StruggleRecoilEffect(turn:Turn,pokemon:Pokemon){
+    const damage = pokemon.originalStats.hp/4;
+    turn.ApplyStruggleDamage(pokemon,damage);
+    turn.AddMessage(`${pokemon.name} hurt itself from struggling!`);
+   
+}
+
 export interface EffectSource {
     sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
@@ -550,6 +562,14 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
         }
         case EffectType.CreateFieldEffect:{
             ApplyCreateFieldEffect(turn,pokemon,effect.effectType)
+            break;
+        }
+
+        case EffectType.StruggleRecoilDamage:{
+            if (source.sourcePokemon === undefined){
+             throw new Error(`Could not find source for struggle recoil damage`);
+            }
+            StruggleRecoilEffect(turn,source.sourcePokemon);
             break;
         }
         default: {

@@ -16,5 +16,6 @@ export enum ElementType{
     Ice ='ICE',
     Dragon = 'DRAGON',
     Dark ='DARK',
-    Fairy ='FAIRY'
+    Fairy ='FAIRY',
+    None = 'NONE'
 }

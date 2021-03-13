@@ -493,6 +493,28 @@ export class Turn {
         this.AddEvent(itemEffect);
     }
 
+    //WHy not indirect damage? We had "bugs" where abilities that negate indirect damage made it so 2 pokemon could continue attacking eachother and never die.
+    //This is an easy way to fix this. If we had some sort of damage source system we could check whether the indirect damage is from struggle before continuing..
+    //but we will leave that for another day.
+    ApplyStruggleDamage(pokemon:Pokemon,damage:number){
+        pokemon.currentStats.hp -= Math.ceil(damage);
+        pokemon.currentStats.hp = Math.max(0, pokemon.currentStats.hp);
+
+        const damageEffect: DamageEvent = {
+            type: BattleEventType.Damage,
+            targetPokemonId: pokemon.id,
+            attackerPokemonId: pokemon.id, //this is wrong, we need a way to pass this into this function 
+            targetFinalHealth: pokemon.currentStats.hp,
+            targetDamageTaken: damage,
+            didCritical: false,
+            effectivenessAmt: 1
+        }
+        this.AddEvent(damageEffect);
+        if (pokemon.currentStats.hp <= 0) {
+            this.PokemonFainted(pokemon);
+        }
+    }
+
     ApplyIndirectDamage(pokemon: Pokemon, damage: number) {
 
 
