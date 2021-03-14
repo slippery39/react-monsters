@@ -26,3 +26,14 @@
     display:flex;
     left:220px;
 }
+
+#Rain{
+position:absolute;
+width:100%;
+height:100%;
+background-color:rgba(0,0,1,0.5);
+}
+.drop{
+    background-color:blue;
+    height:40px;
+}

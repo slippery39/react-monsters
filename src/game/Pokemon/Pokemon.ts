@@ -18,6 +18,13 @@ export interface StatMultiplier{
 }
 
 
+export enum FieldPosition{
+    InAir = 'in-air',
+    GroundLevel = 'ground-level',
+    BelowGround = 'below-ground'
+}
+
+
 export interface Pokemon {
     id: number,
     name: string,
@@ -38,6 +45,7 @@ export interface Pokemon {
     ability: string,
     nature: NatureType,
     weight:number,
+    fieldPosition:FieldPosition
     /*
     These variables below are temporary until i can figure out a better way to encapsulate these.
     */
@@ -110,7 +118,8 @@ class _PokemonBuilder {
             ability: "",
             nature: NatureType.Bashful, //Neutral Nature as default in case it is not specified. 
             heldItem: GetHeldItem("none"),
-            evs: CreateEmptyStats()
+            evs: CreateEmptyStats(),
+            fieldPosition: FieldPosition.GroundLevel
         }
     }
 

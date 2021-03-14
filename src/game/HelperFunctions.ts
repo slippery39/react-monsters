@@ -106,6 +106,7 @@ export function CloneField(originalField:Field){
             newPoke.flashFireActivated = poke.flashFireActivated;
             newPoke.hasSubstitute = poke.hasSubstitute;
             newPoke.id = poke.id;
+            newPoke.fieldPosition = poke.fieldPosition;
                 
 
             return newPoke as Pokemon;

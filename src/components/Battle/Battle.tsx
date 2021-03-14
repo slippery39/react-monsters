@@ -29,6 +29,10 @@ import PokemonInfo from 'components/PokemonInfoScreen/PokemonInfoScreen';
 import { ElementType } from 'game/ElementType';
 import { Field, OnNewTurnLogArgs } from 'game/Turn';
 
+import ReactRain from "react-rain-animation";
+import "react-rain-animation/lib/style.css";
+import { WeatherType } from 'game/Weather/Weather';
+
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
 
@@ -317,7 +321,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
 
         //we need to delay these calls because the state needs to update per animation.
-
+        console.log(effect.type,getAllyPokemon().fieldPosition);
 
         switch (effect.type) {
 
@@ -745,6 +749,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
+                        {state.field.weather?.name === WeatherType.Rain && <ReactRain id="react-rain" numDrops="100"/>}
                         {enemyPartyPokeballs()}
                         {enemyPokemonDisplay()}
                         {allyPokemonDisplay()}

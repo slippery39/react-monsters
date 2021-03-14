@@ -6,8 +6,15 @@ import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import _ from "lodash";
 
+
+
+export enum WeatherType{
+    Rain='Rain',
+    None = 'None'
+}
+
 export abstract class Weather {
-    name: string = "None";
+    name:WeatherType = WeatherType.None;
     duration: number = 5;
     currentTurn: number = 0;
 
@@ -24,7 +31,7 @@ export abstract class Weather {
 
 
 export class RainingWeather extends Weather {
-    name:string = "Rain"
+    name:WeatherType = WeatherType.Rain;
     //Moves Thunder and Hurricane should always hit.
     ModifyTechnique(pokemon: Pokemon, tech: Technique) {
         // Moonlight, Synthesis and Morning sun 

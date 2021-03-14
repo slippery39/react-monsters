@@ -1,8 +1,8 @@
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
-import { HasVolatileStatus, Pokemon } from "game/Pokemon/Pokemon";
+import { FieldPosition, HasVolatileStatus, Pokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
-import _, { shuffle } from "lodash";
+import _, { shuffle, truncate } from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { BattleEventType } from "game/BattleEvents";
 import { DamageType, Technique } from "game/Techniques/Technique";
@@ -372,6 +372,16 @@ export class BouncingVolatileStatus extends VolatileStatus {
         return `${pokemon.name} bounced high up in the air`;
     }
 
+
+    OnApply(turn:Turn,pokemon:Pokemon){
+            pokemon.fieldPosition = FieldPosition.InAir;
+    }
+
+    OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique){
+        pokemon.fieldPosition = FieldPosition.GroundLevel;
+        turn.AddMessage("");
+    }
+
     ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
         let bounceTechnique = GetTech("bounce");
         //remove the 2 turn move part so that it doesn't inflict the "bounce" status again.
@@ -389,11 +399,13 @@ export class BouncingVolatileStatus extends VolatileStatus {
 
 
     AfterActionStep(turn:Turn,pokemon:Pokemon){
+        //this is triggering even when its not the pokemon's action.
+
         if (this.flaggedForRemoval === false){
             this.flaggedForRemoval = true;
         }
         else{
-            this.Remove(turn,pokemon);
+             this.Remove(turn,pokemon);
         }
     }
 

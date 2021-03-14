@@ -2,7 +2,7 @@ import React from 'react'
 import BattleHealthDisplay from 'components/BattleHealthDisplay/BattleHealthDisplay';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import "./BattlePokemonDisplay.css";
-import { Pokemon } from 'game/Pokemon/Pokemon';
+import { FieldPosition, Pokemon } from 'game/Pokemon/Pokemon';
 
 export enum OwnerType {
     Ally = "ALLY",
@@ -39,11 +39,22 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
         styles.top = "100px";
     }
 
+    const pokemonImage = (pokemon:Pokemon,type:"small" | "back" | "front")=>{
+        const image = props.pokemon.hasSubstitute? <img alt="substitute" src='./images/misc/substitute_back.png'/> : <PokemonImage type={type} name={props.pokemon.name} /> 
+        
+        if ([FieldPosition.BelowGround,FieldPosition.InAir].includes(pokemon.fieldPosition)){
+            return (<></>)
+        }
+        else{
+            return image;
+        }
+    }
+
     //basically the health bar is flipped for allies / enemies.
     const allyDisplay = (<div className="ally-display" style={{ position: "relative" }}>
         <div ref={props.imageRef} style={styles}>
             <div ref={props.potionRef} className="potion-healing">+++</div>
-            {props.pokemon.hasSubstitute? <img alt="substitute" src='./images/misc/substitute_back.png'/> : <PokemonImage type="back" name={props.pokemon.name} />}
+            {pokemonImage(props.pokemon,"back")}
         </div>
         <div className="pokemon-health-display" style={{ left: "20px", position: 'absolute', top: "70px" }}>
             <BattleHealthDisplay onHealthAnimateComplete={() => { if (props.onHealthAnimateComplete) { props.onHealthAnimateComplete() } }} pokemon={props.pokemon} />
@@ -56,7 +67,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
         </div>
         <div  ref={props.imageRef} style={styles}>
             <div ref={props.potionRef} className="potion-healing">+++</div>
-            {props.pokemon.hasSubstitute? <img alt="substitute" src='./images/misc/substitute_front.png'/>:<PokemonImage type="front" name={props.pokemon.name} />}
+            {pokemonImage(props.pokemon,"front")}
         </div>
     </div>)
 
