@@ -349,7 +349,7 @@ const premades: Array<PremadePokemon> = [
             speed: 252
         },
         techniques: [
-            "Swords Dance",
+            "Stone Edge",
             "Low Kick",
             "Protect",
             "Flare Blitz"
