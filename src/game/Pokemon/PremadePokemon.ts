@@ -700,6 +700,23 @@ const premades: Array<PremadePokemon> = [
             defense:252,
             spDefense:4
         }
+    },
+    {
+        species:"Togekiss",
+        heldItem:"Leftovers",
+        ability:"Serene Grace",
+        nature:NatureType.Timid,
+        techniques:[
+            "Nasty Plot",
+            "Air Slash",
+            "Thunder Wave",
+            "Roost"
+        ],
+        evs:{
+            hp:252,
+            defense:80,
+            speed:176
+        }
     }
 ]
 

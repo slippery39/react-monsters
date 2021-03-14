@@ -40,7 +40,7 @@ function App() {
   function initializeTestBattle(){
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("Feraligatr")
+    .WithPokemon("Togekiss")
     .WithRandomPokemon(6)
     .Build();
 

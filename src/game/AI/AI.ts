@@ -45,7 +45,7 @@ class BasicAI implements AI {
     async ChooseAction() { //this is run simulation
         const aiPlayer = this.GetPlayerFromTurn();
         const minMaxAlgo = new MiniMax();
-        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer, this._service.GetCurrentTurn().field, 3, 2);
+        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer, this._service.GetCurrentTurn().field);
         const chosenAction = calculatedPointsForUs[0].action;
         this._service.SetPlayerAction(chosenAction);
     }

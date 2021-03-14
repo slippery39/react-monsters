@@ -76,7 +76,7 @@ class MiniMax {
     //Iterations is the number of iterations we will run per "node"
     //depth is how many turns deep we want to go.
     //To start lets get it working with 1 turn deep.
-    async RunSimulation(simmedPlayer:Player,field:Field,iterations:number,depth:number){
+    async RunSimulation(simmedPlayer:Player,field:Field){
         await waitForSeconds(0);
         const player = field.players.find(player => player.id === simmedPlayer.id);
         const otherPlayer = field.players.find(player => player.id !== simmedPlayer.id);
@@ -111,7 +111,7 @@ class MiniMax {
             let total = await this.Simulate1Action(simmedPlayer,action,beforeField,oppAction);     
             calculatedPoints.push(total);    
         }
-        calculatedPoints = calculatedPoints.sort( (a,b)=>b.points-a.points);
+        calculatedPoints = shuffle(calculatedPoints).sort( (a,b)=>b.points-a.points);
 
         const beforePoints = this.EvaluateField(simmedPlayer,beforeField);
         //No good moves lets look for a good switch

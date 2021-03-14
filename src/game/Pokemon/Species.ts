@@ -491,6 +491,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:60
             },
             weight:40
+        },
+        {
+            name:"Togekiss",
+            elementalTypes:[ElementType.Fairy,ElementType.Flying],
+            baseStats:{
+                hp:85,
+                attack:50,
+                defense:95,
+                spAttack:120,
+                spDefense:115,
+                speed:80
+            },
+            weight:38
         }
     ];
 
