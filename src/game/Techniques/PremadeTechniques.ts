@@ -32,6 +32,20 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Sticky Web",
+            description:"The user weaves a sticky net around the opposing team, which lowers their Speed stat upon switching into battle.",
+            pp:32,
+            power:0,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Bug,
+            effects:[
+                {
+                    type:EffectType.PlaceEntryHazard,
+                    hazard:EntryHazardType.StickyWeb
+                }
+            ]
+        },
+        {
            name:"Stone Edge",
            description:"The user stabs the target from below with sharpened stones. Critical hits land more easily.",
            pp:8,

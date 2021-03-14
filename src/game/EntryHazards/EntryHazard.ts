@@ -1,22 +1,31 @@
 import { GetTypeMod } from "game/DamageFunctions";
+import { DoStatBoost } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
+import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
+import { Stat } from "game/Stat";
 import { Turn } from "game/Turn";
 
 
 
 export enum EntryHazardType {
     Spikes = 'spikes',
-    StealthRock = 'stealth-rock'
+    StealthRock = 'stealth-rock',
+    StickyWeb = 'sticky-web'
 }
 
 
 export function ApplyEntryHazard(turn: Turn, player: Player, type: EntryHazardType) {
+
+
+    const getEntryHazard = function(type:EntryHazardType,player:Player){
+        return turn.GetEntryHazards().find(hazard=>hazard.type === type && hazard.player!.id === player.id)
+    }
+
     switch (type) {
         case EntryHazardType.Spikes: {
-
-            let spikes = turn.GetEntryHazards().find(hazard => hazard.type === EntryHazardType.Spikes && hazard.player!.id === player.id);
+            let spikes = getEntryHazard(EntryHazardType.Spikes,player);
             if (spikes === undefined) {
                 spikes = new Spikes(player);
                 turn.GetEntryHazards().push(spikes);
@@ -36,17 +45,29 @@ export function ApplyEntryHazard(turn: Turn, player: Player, type: EntryHazardTy
             break;
         }
         case EntryHazardType.StealthRock: {
-            let stealthRock = turn.GetEntryHazards().find(hazard => hazard.type === EntryHazardType.StealthRock && hazard.player!.id === player.id)
+            let stealthRock = getEntryHazard(EntryHazardType.StealthRock,player);
             if (stealthRock === undefined) {
                 stealthRock = new StealthRock(player);
                 turn.GetEntryHazards().push(stealthRock);
-                stealthRock?.OnApplied(turn, player);
+                stealthRock.OnApplied(turn, player);
             }
             else {
                 stealthRock.OnApplyFail(turn, player);
             }
             break;
 
+        }
+        case EntryHazardType.StickyWeb:{
+            let stickyWeb = getEntryHazard(EntryHazardType.StickyWeb,player);
+            if (stickyWeb === undefined){
+                stickyWeb = new StickyWeb(player);
+                turn.GetEntryHazards().push(stickyWeb);
+                stickyWeb.OnApplied(turn,player);
+            }
+            else{
+                stickyWeb.OnApplyFail(turn,player);
+            }
+            break;
         }
         default: {
             throw new Error(`Entry hazard cannot be applied : ${type}`)
@@ -118,6 +139,45 @@ export class Spikes extends EntryHazard {
         turn.AddMessage(`${pokemon.name} was hurt by spikes`);
     }
 }
+
+
+export class StickyWeb extends EntryHazard {
+    type: EntryHazardType = EntryHazardType.StickyWeb
+    player: Player;
+    private sourcePokemon:Pokemon; //hack here because we need a source pokemon to do the stat boost.... really strongly consider having a source system implemented.
+
+    constructor(player: Player) {
+        super(player);
+        this.player = player;
+        this.sourcePokemon = GetActivePokemon(player);
+    }
+    
+    OnApplied(turn: Turn, player: Player) {
+        turn.AddMessage(`A sticky web was placed below ${player.name}'s team.`);
+    }
+    OnApplyFail(turn: Turn, player: Player) {
+        turn.AddMessage("But it failed!");
+    }
+    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+        if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
+            return;
+        }
+        if (pokemon.ability.toLowerCase() === "levitate" || pokemon.elementalTypes.includes(ElementType.Flying)){
+            return;
+        }
+        
+        DoStatBoost({
+            turn:turn,
+            pokemon:pokemon,
+            stat:Stat.Speed,
+            amount:-1,
+            sourcePokemon:this.sourcePokemon,
+            messageOverride:`The sticky web lowered ${pokemon.name}'s speed!`
+        })
+    }
+}
+
+
 
 export class StealthRock extends EntryHazard {
     type: EntryHazardType = EntryHazardType.StealthRock

@@ -572,7 +572,7 @@ const premades: Array<PremadePokemon> = [
         techniques: [
             "Stealth Rock",
             "Toxic",
-            "Encore",
+            "Sticky Web",
             "Knock Off"
         ],
         evs: {
