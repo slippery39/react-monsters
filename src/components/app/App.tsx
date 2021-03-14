@@ -6,15 +6,15 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
-import { PokemonBuilder } from 'game/Pokemon/Pokemon';
-import { ElementType } from 'game/ElementType';
+
 
 
 
 enum AppState {
   MainMenu = 'main-menu',
   InBattle = 'in-battle',
-  SimulatingAIGames = 'sim-ai-games'
+  SimulatingAIGames = 'sim-ai-games',
+  TestGame = 'test-game'
 }
 
 
@@ -29,8 +29,30 @@ function App() {
   function handleBattleSimClick(){
     setAppState(AppState.SimulatingAIGames);
   }
+  function handleTestGameClick(){
+    setAppState(AppState.TestGame);
+  }
   function handleEndGame() {
     setAppState(AppState.MainMenu);
+  }
+
+
+  function initializeTestBattle(){
+    const player1 = new PlayerBuilder(1)
+    .WithName("Shayne")
+    .WithRandomPokemon(6)
+    .Build();
+
+  const player2 = new PlayerBuilder(2)
+    .WithName("Bob")
+    .WithRandomPokemon(6)
+    .Build();
+
+    let battleService = new BattleService(player1, player2,true);
+    new BasicAI(player2, battleService);
+    battleService.Initialize();
+
+    return battleService;
   }
 
 
@@ -85,6 +107,7 @@ function App() {
         return (<StartGameScreen 
           onStartClick={handleStartClick}
           onBattleSimClick={handleBattleSimClick}
+          onTestGameClick={handleTestGameClick}
           />)
       }
       case AppState.InBattle: {
@@ -92,6 +115,9 @@ function App() {
       }
       case AppState.SimulatingAIGames: {
         return <BattleSimulator />
+      }
+      case AppState.TestGame:{
+        return <Battle battle={initializeTestBattle()} onEnd={handleEndGame}/>
       }
       default:{
         return <div> Error: Invalid App State </div>
