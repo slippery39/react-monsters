@@ -368,6 +368,8 @@ export function CalculateStatWithBoost(pokemon: Pokemon, stat: Stat) {
 }
 
 
+
+
 export function ApplyStatBoost(pokemon: Pokemon, stat: Stat, amount: number) {
     pokemon.statBoosts[stat] += amount;
     //clamp it to -6 or 6

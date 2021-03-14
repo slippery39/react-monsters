@@ -211,7 +211,7 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
 
     useEffect(() => {
         RoundRobin1v1(battleEndedFunc);
-    }, []);
+    }, [battleEndedFunc]);
 
     const displayStats = function () {
         const recordsAsArr = [];

@@ -10,10 +10,12 @@ export enum DamageType {
     Status = 'status'
 }
 
+
+//May need to indicate al
 export interface Technique extends BaseTechnique {
     id: number,
     currentPP: number,
-    accuracy: number
+    accuracy: number,
 }
 
 

@@ -17,6 +17,7 @@ export interface BaseTechnique {
     power: number,
     damageType: DamageType,
     elementalType: ElementType,
+    critChanceStage?:number,
     accuracy?: number,
     priority?: number,
     beforeExecuteEffect?: BattleEffect,
@@ -30,6 +31,16 @@ export interface BaseTechnique {
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        {
+           name:"Stone Edge",
+           description:"The user stabs the target from below with sharpened stones. Critical hits land more easily.",
+           pp:8,
+           power:100,
+           accuracy:80,
+           damageType:DamageType.Physical,
+           elementalType:ElementType.Rock,
+           critChanceStage:1 
+        },
         {
             name:"Zen Headbutt",
             description:"The user focuses its willpower to its head and rams the foe. It may also make the target flinch.",

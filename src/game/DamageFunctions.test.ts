@@ -2,6 +2,7 @@ import {ElementType} from './ElementType';
 import {GetBaseDamage,GetTypeMod,GetDamageModifier} from './DamageFunctions';
 import {  Pokemon, PokemonBuilder } from './Pokemon/Pokemon';
 import { DamageType, Technique } from './Techniques/Technique';
+import { Stat } from './Stat';
 
 
 /*
@@ -58,6 +59,42 @@ const createEarthquake = function(): Technique{
 }
 
 
+describe('crit attacks ignore stat boost stages in base damage calculations',()=>{
+    it('ignores stat boost calculations for attack / defense',()=>{
+        const attackingPokemon = PokemonBuilder()
+        .UseGenericPokemon()
+        .OfElementalTypes([ElementType.Normal])
+        .WithTechniques([
+            "Earthquake"
+        ])
+        .Build();
+
+        const defendingPokemon = PokemonBuilder()
+        .UseGenericPokemon()
+        .OfElementalTypes([ElementType.Normal])
+        .WithTechniques([
+            "Earthquake"
+        ])
+        .Build();
+
+        //set the attack and defence accordingly
+
+        attackingPokemon.currentStats.attack = 100;
+        attackingPokemon.statBoosts[Stat.Attack] = -3;
+
+        defendingPokemon.currentStats.defense = 100;
+        defendingPokemon.statBoosts[Stat.Defense] = +3;
+
+
+
+        //With out crit ignoring the stat boosts.
+        expect(GetBaseDamage(attackingPokemon,defendingPokemon,attackingPokemon.techniques[0],false)).toBe(23);
+        //With crit ignoring the stat boosts.
+        expect(GetBaseDamage(attackingPokemon,defendingPokemon,attackingPokemon.techniques[0],true)).toBe(86);
+    });         
+});
+
+
 describe(`No effectiveness attacks don't crit`,()=>{
     it('does not crit when it is 0 effectiveness',()=>{
         //export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique,options?:{autoCrit?:boolean,autoAmt?:boolean}) 
@@ -103,7 +140,7 @@ describe('GetBaseDamage tests', ()=>{
         const attackingPokemon = CreateFirePokemon();
         const defendingPokemon = CreateWaterPokemon();
         const techUsed = createFireblast();
-        const baseDamage = GetBaseDamage(attackingPokemon,defendingPokemon,techUsed);
+        const baseDamage = GetBaseDamage(attackingPokemon,defendingPokemon,techUsed,false);
 
         expect(baseDamage).toBe(103);
     });
@@ -163,7 +200,7 @@ describe('GetBaseDamage tests', ()=>{
                 autoAmt:true
             });
 
-            expect(damageModifier.stabBonus*damageModifier.typeEffectivenessBonus).toBe(0.5*1.25);
+            expect(damageModifier.stabBonus*damageModifier.typeEffectivenessBonus).toBe(0.5*1.5);
         });
 
         it ('modifies damage correctly with stab and crit', ()=>{
@@ -171,14 +208,14 @@ describe('GetBaseDamage tests', ()=>{
                 autoCrit:true,
                 autoAmt:true
             });
-            expect(damageModifier.critAmt*damageModifier.stabBonus*damageModifier.typeEffectivenessBonus).toBe(2*1.25*0.5);
+            expect(damageModifier.critAmt*damageModifier.stabBonus*damageModifier.typeEffectivenessBonus).toBe(1.5*1.5*0.5);
         });
         it('modifies damage correctly for crits', ()=>{
             const damageModifier = GetDamageModifier(CreateFirePokemon(),CreateWaterPokemon(),createEarthquake(),{
                 autoCrit:true,
                 autoAmt:true
             });
-            expect(damageModifier.critAmt).toBe(2);
+            expect(damageModifier.critAmt).toBe(1.5);
         });
     });
 

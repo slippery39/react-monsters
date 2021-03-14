@@ -5,15 +5,38 @@ import { Stat } from "./Stat";
 import { Technique } from "./Techniques/Technique";
 
 //Calculates the base damage before any modifiers (type effectiveness, crit etc.)
-export function GetBaseDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique) {
+export function GetBaseDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, techUsed: Technique,goingToCrit:boolean) {
     const level = 100; //constant for level since we aren't dealing with that stuff now.
-    const Power = techUsed.power;
-    const Attack = techUsed.damageType === 'physical' ? CalculateStatWithBoost(attackingPokemon,Stat.Attack) : CalculateStatWithBoost(attackingPokemon,Stat.SpecialAttack);
-    const Defence = techUsed.damageType === 'physical' ? CalculateStatWithBoost(defendingPokemon,Stat.Defense): CalculateStatWithBoost(defendingPokemon,Stat.SpecialDefense);
+    const power = techUsed.power;
+
+    //Crit will ignore stat boosts when determining base damage.
+   if (goingToCrit){
+       attackingPokemon = {...attackingPokemon};
+       defendingPokemon = {...defendingPokemon};
+
+       if (attackingPokemon.statBoosts[Stat.Attack] < 0){
+           attackingPokemon.statBoosts= {...attackingPokemon.statBoosts,...{[Stat.Attack]:0}};
+       }
+       if (defendingPokemon.statBoosts[Stat.Defense]> 0){
+            defendingPokemon.statBoosts = {...defendingPokemon.statBoosts,...{[Stat.Defense]:0}}
+       }
+
+       if (attackingPokemon.statBoosts[Stat.SpecialAttack] < 0){
+        attackingPokemon.statBoosts= {...attackingPokemon.statBoosts,...{[Stat.SpecialAttack]:0}};
+       }
+        if (defendingPokemon.statBoosts[Stat.SpecialDefense]> 0){
+         defendingPokemon.statBoosts = {...defendingPokemon.statBoosts,...{[Stat.SpecialDefense]:0}}
+       }
+     }
+
+
+
+    const attack = techUsed.damageType === 'physical' ? CalculateStatWithBoost(attackingPokemon,Stat.Attack) : CalculateStatWithBoost(attackingPokemon,Stat.SpecialAttack);
+    const defence = techUsed.damageType === 'physical' ? CalculateStatWithBoost(defendingPokemon,Stat.Defense): CalculateStatWithBoost(defendingPokemon,Stat.SpecialDefense);
 
 
     //todo: this is a mess, clean this up.
-    return Math.ceil(((((((2 * level) / 5) + 2) * Power * (Attack / Defence)) / 50) + 2));
+    return Math.ceil(((((((2 * level) / 5) + 2) * power * (attack / defence)) / 50) + 2));
 }
 
 //Gets the type effectiveness of the technique used on the defending pokemon.
@@ -46,14 +69,12 @@ export function GetTypeMod(defendingElements: Array<ElementType>, elementOfAttac
     let effectiveness = effectivenessMap.get(elementOfAttack + "-" + defendingElements[0]);
     if (effectiveness===undefined){
         return 1; //we have a new none type, this should return 1 since it won't be found in the chart above.
-        throw new Error(`Could not find effectiveness for types: ${elementOfAttack} and ${defendingElements}`);
     }
     //The default value is to satisfy typescript, but we should never get it.
     if (defendingElements.length > 1) {
         const effectiveness2 = effectivenessMap.get(elementOfAttack + "-" + defendingElements[1]);
         if (effectiveness2 === undefined){
             return 1; //we have a new none type, this should return 1 since it won't be found in the chart above.
-            throw new Error(`Could not find effectiveness for types: ${elementOfAttack} and ${defendingElements}`);
         } 
         effectiveness *=effectiveness2;
     }
@@ -85,7 +106,12 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
             return true;
         }
 
-        const chance = 6.25
+
+        //crit chances by stage
+        let critChances = [1/24,1/8,1/2,1];
+        const critChanceStage = techUsed.critChanceStage ? techUsed.critChanceStage : 0;    
+        const chance = critChances[critChanceStage];
+
         const roll = Math.random() * 100;
         if (roll <= chance) {
             return true;
@@ -121,7 +147,7 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
 
 
     let critStrike = GetCritical();
-    let critAmt = critStrike ? 2.0 : 1.0;
+    let critAmt = critStrike ? 1.5 : 1.0;
     const randomAmt = GetRandomAmt();
     const effectiveness = GetEffectiveness();
     const stabBonus = GetSTAB();

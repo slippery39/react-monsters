@@ -1,4 +1,3 @@
-import PokemonMiniInfoBox from "components/PokemonSwitchScreen/PokemonMiniInfoBox/PokemonMiniInfoBox";
 import _ from "lodash";
 import { ElementType } from "./ElementType";
 import { Player } from "./Player/PlayerBuilder";

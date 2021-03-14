@@ -1,13 +1,8 @@
 import { shuffle } from "lodash";
-import { CreateSwitchAction, SwitchPokemonAction, } from "game/BattleActions";
+import { CreateSwitchAction } from "game/BattleActions";
 import BattleService from "game/BattleService";
-
 import { Player } from "game/Player/PlayerBuilder";
-
 import { OnSwitchNeededArgs } from "game/Turn";
-
-import _ from "lodash";
-
 import MiniMax from "./MiniMax";
 
 

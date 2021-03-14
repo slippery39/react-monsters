@@ -990,8 +990,11 @@ export class Turn {
             infoForDamageCalculating = GetDamageEffect(technique.damageEffect.type).ModifyDamageCalculationInfo(this, infoForDamageCalculating)
         }
 
-        const baseDamage = GetBaseDamage(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
         const damageModifierInfo = GetDamageModifier(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
+
+        //Note - we are adding in the if crit ignore stat boosts clause into here... until we figure out a cleaner way.
+        const baseDamage = GetBaseDamage(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique,damageModifierInfo.critStrike);
+        
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
 
         //Abilities/Statuses/VolatileStatuses might be able to modify damage

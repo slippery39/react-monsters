@@ -6,9 +6,10 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
-import _ from 'lodash';
-import { CloneField } from 'game/HelperFunctions';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
+import { ElementType } from 'game/ElementType';
+
+
 
 enum AppState {
   MainMenu = 'main-menu',
@@ -34,7 +35,7 @@ function App() {
 
 
 
-  function initializeBattle() {
+  function initialize6v6Battle() {
 
     const player1 = new PlayerBuilder(1)
       .WithName("Shayne")
@@ -87,7 +88,7 @@ function App() {
           />)
       }
       case AppState.InBattle: {
-        return <Battle battle={initializeBattle()} onEnd={handleEndGame} />
+        return <Battle battle={initialize6v6Battle()} onEnd={handleEndGame} />
       }
       case AppState.SimulatingAIGames: {
         return <BattleSimulator />

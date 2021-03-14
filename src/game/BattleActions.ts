@@ -1,6 +1,5 @@
 import { GetActivePokemon } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
-import { Pokemon } from "./Pokemon/Pokemon";
 import { Technique } from "./Techniques/Technique";
 
 /*
