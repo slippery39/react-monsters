@@ -125,7 +125,7 @@ class SheerForceAbility extends AbstractAbility {
 
     ModifyTechnique(pokemon: Pokemon, technique: Technique) {
 
-        if (!technique.effects) {
+        if (!technique.effects || technique.damageType === DamageType.Status) {
             return technique;
         }
         const hasEFfect = technique.effects.filter(eff => eff.target && eff.target === TargetType.Enemy);
