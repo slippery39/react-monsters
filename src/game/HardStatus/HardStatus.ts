@@ -5,6 +5,7 @@ import { ElementType } from "game/ElementType";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { Technique } from "game/Techniques/Technique";
+import { WeatherType } from "game/Weather/Weather";
 
 
 export enum Status{
@@ -117,7 +118,7 @@ class FrozenStatus extends HardStatus{
     private thawChance: number = 25;
 
     CanApply(turn: Turn, pokemon: Pokemon) {
-        return !HasElementType(pokemon, ElementType.Ice);
+        return !HasElementType(pokemon, ElementType.Ice) && turn.field.weather?.name !== WeatherType.Sunny;
     }
 
     BeforeAttack(turn: Turn, pokemon: Pokemon) {

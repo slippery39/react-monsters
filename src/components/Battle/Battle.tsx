@@ -749,6 +749,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
+                        {state.field.weather?.name === WeatherType.Sunny && <div className='sunny-container'></div>}
                         {state.field.weather?.name === WeatherType.Rain && <ReactRain id="react-rain" numDrops="100"/>}
                         {enemyPartyPokeballs()}
                         {enemyPokemonDisplay()}

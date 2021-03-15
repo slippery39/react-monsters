@@ -12,7 +12,7 @@ import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
-import { Weather } from "game/Weather/Weather";
+import { Weather, WeatherType } from "game/Weather/Weather";
 import { shuffle } from "lodash";
 
 export enum TargetType {
@@ -416,6 +416,7 @@ function RemoveHeldItemEffect(turn:Turn,pokemon:Pokemon){
 
 export function ApplyWeather(turn:Turn,weather:Weather){
     turn.field.weather = weather;
+    weather.OnApply(turn);
 }
 
 export function ApplyCreateFieldEffect(turn:Turn,pokenon:Pokemon,fieldEffectType:FieldEffectType){
@@ -436,6 +437,7 @@ export function StruggleRecoilEffect(turn:Turn,pokemon:Pokemon){
     turn.AddMessage(`${pokemon.name} hurt itself from struggling!`);
    
 }
+
 
 export interface EffectSource {
     sourcePokemon?: Pokemon,
@@ -564,7 +566,6 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
             ApplyCreateFieldEffect(turn,pokemon,effect.effectType)
             break;
         }
-
         case EffectType.StruggleRecoilDamage:{
             if (source.sourcePokemon === undefined){
              throw new Error(`Could not find source for struggle recoil damage`);

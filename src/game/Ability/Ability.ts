@@ -7,8 +7,9 @@ import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
-import { RainingWeather } from "game/Weather/Weather";
+import { RainingWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
+import { stringify } from "querystring";
 
 
 
@@ -354,7 +355,19 @@ class DrizzleAbility extends AbstractAbility{
         const rainWeather = new RainingWeather();
         rainWeather.duration = 5;
         ApplyWeather(turn,rainWeather);
-        turn.AddMessage(`${pokemon.name}'s Drizzle made it rain!`);
+    }
+}
+
+class DroughtAbility extends AbstractAbility{
+    name="Drought"
+    description="Turns the sunlight harsh when the Pokémon enters a battle."
+
+    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+        //find out what the other pokemon is
+        //this should only effect the current pokemon
+        const sunWeather = new SunnyWeather();
+        sunWeather.duration = 5;
+        ApplyWeather(turn,sunWeather);
     }
 }
 
@@ -367,7 +380,7 @@ class ChlorophyllAbility extends AbstractAbility{
             return;
         }
         //TODO: at the time we made this ability, sunlight was not implemented yet.... double check and remove this comment once we implement sunlight.
-        if (turn.field.weather.name.toLowerCase() ==="harsh sunlight"){
+        if (turn.field.weather.name === WeatherType.Sunny){
             pokemon.statMultipliers.push({
                 stat:Stat.Speed,
                 multiplier:2,
@@ -519,6 +532,9 @@ function GetAbility(name: String) {
         }
         case 'pressure':{
             return new PressureAbility();
+        }
+        case 'drought':{
+            return new DroughtAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

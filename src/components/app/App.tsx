@@ -6,6 +6,7 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
+import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 
 
 
@@ -38,9 +39,16 @@ function App() {
 
 
   function initializeTestBattle(){
+
+    const customPokemon = PokemonBuilder()
+    .GetPremadePokemon("Charizard")
+    .WithAbility("Drought")
+    .Build();
+  
+
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("Politoed")
+    .WithCustomPokemon(customPokemon)
     .WithRandomPokemon(6)
     .Build();
 
