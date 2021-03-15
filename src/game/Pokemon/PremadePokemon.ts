@@ -717,6 +717,23 @@ const premades: Array<PremadePokemon> = [
             defense:80,
             speed:176
         }
+    },
+    {
+        species:"Ninetales",
+        heldItem:"Leftovers",
+        ability:"Drought",
+        nature:NatureType.Timid,
+        techniques:[
+            "Sunny Day",
+            "Solar Beam",
+            "Fire Blast",
+            "Hidden Power Ice"
+        ],
+        evs:{
+            spAttack:252,
+            spDefense:4,
+            speed:252
+        }
     }
 ]
 

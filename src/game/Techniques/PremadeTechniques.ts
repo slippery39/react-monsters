@@ -6,6 +6,7 @@ import { FieldEffectType } from "game/FieldEffects/FieldEffects";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
+import { WeatherType } from "game/Weather/Weather";
 import { ElementType } from "../ElementType";
 import { DamageType } from "./Technique";
 
@@ -31,6 +32,30 @@ export interface BaseTechnique {
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Solar Beam",
+            description:"In this two-turn attack, the user gathers light, then blasts a bundled beam on the next turn.",
+            pp:16,
+            power:120,
+            elementalType:ElementType.Grass,
+            damageType:DamageType.Special,
+            twoTurnMove:true,
+            firstTurnStatus:VolatileStatusType.ChargingSolarBeam
+        },
+        {
+            name:"Sunny Day",
+            description:"The user intensifies the sun for five turns, powering up Fire-type moves. It lowers the power of Water-type moves.",
+            pp:8,
+            power:0,
+            elementalType:ElementType.Fire,
+            damageType:DamageType.Status,
+            effects:[
+                {
+                    type:EffectType.ApplyWeather,
+                    weather:WeatherType.Sunny
+                }
+            ]
+        },
         {
             name:"Sticky Web",
             description:"The user weaves a sticky net around the opposing team, which lowers their Speed stat upon switching into battle.",

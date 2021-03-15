@@ -869,25 +869,23 @@ export class Turn {
             pokemon.techniqueUsedLast = technique.name;
         }
 
+        const ability = GetAbility(pokemon.ability);
+        technique = ability.ModifyTechnique(pokemon, technique);
+        if (this.field.weather) {
+            technique = this.field.weather.ModifyTechnique(pokemon, technique);
+        }
 
         //2 turn move should apply here?
         if (technique.twoTurnMove) {
+
             if (technique.firstTurnStatus === undefined) {
                 throw new Error(`Need a first turn status defined if using a twoTurnMove. Move name : ${technique.name}`);
             }
             //all two turn moves should inflict a volatile status on the first turn.
             InflictVolatileStatus(this, pokemon, technique.firstTurnStatus, pokemon);
             return;
-        }
-
-
-
-        const ability = GetAbility(pokemon.ability);
-        technique = ability.ModifyTechnique(pokemon, technique);
-
-        if (this.field.weather) {
-            technique = this.field.weather.ModifyTechnique(pokemon, technique);
-        }
+        }     
+    
         this.GetBehavioursForPokemon(pokemon).forEach(b => {
             technique = b.ModifyTechnique(pokemon, technique);
         })

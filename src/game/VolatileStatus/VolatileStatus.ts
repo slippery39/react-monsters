@@ -22,7 +22,8 @@ export enum VolatileStatusType {
     Protection = 'protection',
     Outraged = "outraged",
     Bouncing = "bouncing",
-    Encored = "encored",    
+    Encored = "encored", 
+    ChargingSolarBeam = 'charging-solar-beam'   
 }
 
 
@@ -435,7 +436,7 @@ export class EncoredVolatileStatus extends VolatileStatus{
     }
 
     CanApply(turn:Turn,pokemon:Pokemon){
-        return super.CanApply(turn,pokemon) && pokemon.techniqueUsedLast !== undefined
+        return super.CanApply(turn,pokemon) && pokemon.techniqueUsedLast !== undefined &&  pokemon.techniques.find(t=>t.name === pokemon.techniqueUsedLast)!==undefined;   
     }
 
     OverrideAction(turn:Turn,player:Player,pokemon:Pokemon,action:UseMoveAction):UseMoveAction{
@@ -443,7 +444,8 @@ export class EncoredVolatileStatus extends VolatileStatus{
          const encoreTechniqueName = pokemon.techniques.find(t=>t.name === pokemon.techniqueUsedLast);      
 
          if (encoreTechniqueName === undefined){
-             throw new Error(`Could not find technique to encore`);
+            return action; 
+            //throw new Error(`Could not find technique to encore`);
          }
 
          const newAction = {...action};
@@ -462,6 +464,44 @@ export class EncoredVolatileStatus extends VolatileStatus{
         }
         //Remove Outraged Status if Attack missed for whatever reason.
     }
+}
+
+export class ChargingSolarBeamVolatileStatus extends VolatileStatus{
+    flaggedForRemoval:boolean = false;
+    type = VolatileStatusType.ChargingSolarBeam;
+    name="Charging-Solar-Beam"
+
+    InflictedMessage(pokemon: Pokemon) {
+        return `${pokemon.name} is gathering sunlight`;
+    }
+
+    ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
+        let solarBeamTechnique = GetTech("solar beam");
+        //remove the 2 turn move part so that it doesn't inflict the "charging solar beam" status again
+        solarBeamTechnique.firstTurnStatus = undefined;
+        solarBeamTechnique.twoTurnMove = false;
+
+        const forcedTechnique: ForcedTechniqueAction = {
+            playerId: player.id,
+            pokemonId: pokemon.id,
+            technique: solarBeamTechnique,
+            type: Actions.ForcedTechnique
+        }
+        turn.SetInitialPlayerAction(forcedTechnique);     
+    }
+
+
+    AfterActionStep(turn:Turn,pokemon:Pokemon){
+        //this is triggering even when its not the pokemon's action.
+
+        if (this.flaggedForRemoval === false){
+            this.flaggedForRemoval = true;
+        }
+        else{
+             this.Remove(turn,pokemon);
+        }
+    }
+
 }
 
 
@@ -496,6 +536,9 @@ export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
         }
         case VolatileStatusType.Encored:{
             return new EncoredVolatileStatus();
+        }
+        case VolatileStatusType.ChargingSolarBeam:{
+            return new ChargingSolarBeamVolatileStatus();
         }
         default: {
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

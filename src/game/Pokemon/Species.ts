@@ -504,6 +504,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:80
             },
             weight:38
+        },
+        {
+            name:"Ninetales",
+            elementalTypes:[ElementType.Fire],
+            baseStats:{
+                hp:73,
+                attack:76,
+                defense:75,
+                spAttack:81,
+                spDefense:100,
+                speed:10
+            },
+            weight:19.9
         }
     ];
 

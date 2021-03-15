@@ -60,6 +60,15 @@ export class SunnyWeather extends Weather{
             newTech.accuracy = 50; //hack to make the move bypass the accuracy check. think about having a flag to do so anyways.
             return newTech;
         }
+        if (["solar beam"].includes(tech.name.toLowerCase())){
+            console.log("we are finding solar beam here!");
+            //Solar beam becomes a non charging move.
+            const newTech = _.cloneDeep(tech);
+            newTech.twoTurnMove = false;
+            newTech.firstTurnStatus = undefined;
+            console.log(newTech);
+            return newTech;
+        }
         return tech;
     }
 

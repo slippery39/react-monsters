@@ -12,7 +12,7 @@ import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
-import { Weather, WeatherType } from "game/Weather/Weather";
+import { RainingWeather, SunnyWeather, Weather, WeatherType } from "game/Weather/Weather";
 import { shuffle } from "lodash";
 
 export enum TargetType {
@@ -37,7 +37,8 @@ export enum EffectType {
     PainSplit = 'pain-split',
     RemoveHeldItem = 'remove-held-item',
     CreateFieldEffect = 'create-field-effect',
-    StruggleRecoilDamage = 'struggle-damage'
+    StruggleRecoilDamage = 'struggle-damage',
+    ApplyWeather = 'apply-weather'
 }
 
 export interface InflictStatusEffect {
@@ -132,12 +133,17 @@ export interface CreateFieldEffect{
     effectType:FieldEffectType
 }
 
+export interface ApplyWeatherEffect{
+    type:EffectType.ApplyWeather,
+    weather:WeatherType
+}
+
 
 
 export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
     | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect |
     AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect
-    |PainSplitEffect | RemoveHeldItemEffect | CreateFieldEffect | StruggleRecoilEffect);
+    |PainSplitEffect | RemoveHeldItemEffect | CreateFieldEffect | StruggleRecoilEffect | ApplyWeatherEffect);
 
 
 
@@ -439,6 +445,8 @@ export function StruggleRecoilEffect(turn:Turn,pokemon:Pokemon){
 }
 
 
+
+
 export interface EffectSource {
     sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
@@ -571,6 +579,18 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
              throw new Error(`Could not find source for struggle recoil damage`);
             }
             StruggleRecoilEffect(turn,source.sourcePokemon);
+            break;
+        }
+        case EffectType.ApplyWeather:{
+            if (effect.weather === WeatherType.Rain){
+                ApplyWeather(turn,new RainingWeather())
+            }
+            else if (effect.weather === WeatherType.Sunny){
+                ApplyWeather(turn,new SunnyWeather())
+            }
+            else{
+                throw new Error(`Could not find weather to apply`);
+            }
             break;
         }
         default: {

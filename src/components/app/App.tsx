@@ -41,7 +41,7 @@ function App() {
   function initializeTestBattle(){
 
     const customPokemon = PokemonBuilder()
-    .GetPremadePokemon("Charizard")
+    .GetPremadePokemon("Ninetales")
     .WithAbility("Drought")
     .Build();
   
