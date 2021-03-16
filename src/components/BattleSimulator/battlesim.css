@@ -1,0 +1,7 @@
+.tab{
+    cursor:pointer;
+    border:1px solid black;   
+    display:inline-block;
+    margin-right:5px;
+}
+
