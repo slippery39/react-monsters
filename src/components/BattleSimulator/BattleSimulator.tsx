@@ -159,6 +159,7 @@ async function RunRoundRobinBattle1v1(pokemon1: string, pokemon2: string) : Prom
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function RoundRobin1v1(onBattleEnded:(args:SimmedStats)=>void) {
     const pokemonList = GetAllPokemonInfo().map(poke => poke.species);
     //generate an array of round robin info

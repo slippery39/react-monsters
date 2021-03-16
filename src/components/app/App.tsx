@@ -42,7 +42,7 @@ function App() {
 
     const customPokemon = PokemonBuilder()
     .GetPremadePokemon("Ninetales")
-    .WithAbility("Drought")
+    .WithAbility("Sand Stream")
     .Build();
   
 

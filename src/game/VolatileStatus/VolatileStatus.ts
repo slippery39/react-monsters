@@ -2,7 +2,7 @@ import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { FieldPosition, HasVolatileStatus, Pokemon } from "game/Pokemon/Pokemon";
 import { Turn } from "game/Turn";
-import _, { shuffle, truncate } from "lodash";
+import _, { shuffle } from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { BattleEventType } from "game/BattleEvents";
 import { DamageType, Technique } from "game/Techniques/Technique";

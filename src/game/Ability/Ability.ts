@@ -7,9 +7,9 @@ import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
-import { RainingWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
+import { RainingWeather, SandstormWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
-import { stringify } from "querystring";
+
 
 
 
@@ -449,9 +449,25 @@ class PressureAbility extends AbstractAbility{
     description = "The Pokémon raises the foe's PP usage."
 
     OnOppTechniqueUsed(turn: Turn, pokemon: Pokemon, tech: Technique){
-        tech.currentPP=1; //additional 
+        tech.currentPP-=1;
     }
 }
+
+
+
+class SandStreamAbility extends AbstractAbility{
+    name="Sand Stream"
+    description="The Pokémon summons a sandstorm when it enters a battle."
+
+    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+        //find out what the other pokemon is
+        //this should only effect the current pokemon
+        const sandWeather = new SandstormWeather();
+        sandWeather.duration = 5;
+        ApplyWeather(turn,sandWeather);
+    }
+}
+
 
 class NoAbility extends AbstractAbility {
 
@@ -535,6 +551,9 @@ function GetAbility(name: String) {
         }
         case 'drought':{
             return new DroughtAbility();
+        }
+        case 'sand stream':{
+            return new SandStreamAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

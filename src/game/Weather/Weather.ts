@@ -1,7 +1,9 @@
 import { DamageModifierInfo } from "game/DamageFunctions";
 import { EffectType, HealthRestoreEffect } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
-import { Pokemon } from "game/Pokemon/Pokemon";
+import { GetActivePokemon } from "game/HelperFunctions";
+import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
+import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { Turn } from "game/Turn";
 import _ from "lodash";
@@ -11,6 +13,7 @@ import _ from "lodash";
 export enum WeatherType{
     Rain='Rain',
     Sunny='Sunny',
+    Sandstorm = 'Sandstorm',
     None = 'None'
 }
 
@@ -32,6 +35,87 @@ export abstract class Weather {
         
     }
 }
+
+export class SandstormWeather extends Weather{
+    name:WeatherType = WeatherType.Sandstorm
+
+    OnApply(turn:Turn){
+        turn.AddMessage("A sandstorm kicked up!");
+    }
+
+    ModifyTechnique(pokemon:Pokemon,tech:Technique){
+        if (["moonlight","synthesis","morning sun"].includes(tech.name.toLowerCase())){
+
+            const newTech = _.cloneDeep(tech);
+            if (!newTech.effects) {
+                throw new Error(`Expected effect healing effect for move ${tech.name} but could not find one`);
+            }
+            const healingEffect = newTech.effects.find(eff => eff.type === EffectType.HealthRestore);
+            if (healingEffect === undefined) {
+                throw new Error(`Expected healing effect for move ${tech.name} but could not find one`);
+            }   
+            (healingEffect as HealthRestoreEffect).amount = 25;
+             return newTech;
+        }
+        if (["solar beam"].includes(tech.name.toLowerCase())){
+            const newTech = _.cloneDeep(tech);
+            newTech.power = 60;
+            return newTech;
+        }
+        return tech;
+    }
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, turn: Turn) {
+        if (tech.elementalType === ElementType.Fire) {
+            return damage * 1.5;
+        }
+        if (tech.elementalType === ElementType.Water) {
+            return damage * 0.5;
+        }
+        return damage;
+    }
+
+    EndOfTurn(turn: Turn) {
+        this.currentTurn++;
+        if (this.currentTurn >=this.duration){
+            turn.AddMessage("The sandstorm subsided.");
+            const allPokemon = turn.GetPlayers().map(play=>play.pokemon).flat();
+            allPokemon.forEach(pokemon=>{
+                _.remove(pokemon.statMultipliers, function (mod) {
+                    return mod.tag === "sandstorm"
+                })
+            });
+            turn.field.weather = undefined //stops the weather.          
+        }
+        else{
+            //deal 1/16 max health damage to each active pokemon that is not ground steel or rock
+            const activePokemons = turn.GetPlayers().map(player=>GetActivePokemon(player));
+            activePokemons.forEach(poke=>{
+                const shouldDamage = poke.elementalTypes.filter(el=>[ElementType.Rock,ElementType.Steel,ElementType.Ground].includes(el)).length === 0
+                if (shouldDamage){
+                    turn.ApplyIndirectDamage(poke,poke.originalStats.hp/16);
+                    turn.AddMessage(`${poke.name} was buffeted by the sandstorm!`);
+                }
+            });
+            
+        }
+      }
+
+      Update(turn:Turn){
+          const allPokemon = turn.GetPlayers().map(play=>play.pokemon).flat();
+          allPokemon.forEach(pokemon=>{
+            if (pokemon.statMultipliers.find(multi=>multi.tag === "sandstorm") === undefined){
+                const multiplier: StatMultiplier = {
+                    stat: Stat.SpecialDefense,
+                    multiplier:1.5,
+                    tag:"sandstorm"
+                }
+                pokemon.statMultipliers.push(multiplier);
+            }           
+          });
+
+      }
+}
+
 
 
 export class SunnyWeather extends Weather{

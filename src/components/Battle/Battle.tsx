@@ -31,7 +31,7 @@ import { Field, OnNewTurnLogArgs } from 'game/Turn';
 
 import ReactRain from "react-rain-animation";
 import "react-rain-animation/lib/style.css";
-import { WeatherType } from 'game/Weather/Weather';
+import { SandstormWeather, WeatherType } from 'game/Weather/Weather';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -751,6 +751,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     <div className='battle-terrain'>
                         {state.field.weather?.name === WeatherType.Sunny && <div className='sunny-container'></div>}
                         {state.field.weather?.name === WeatherType.Rain && <ReactRain id="react-rain" numDrops="100"/>}
+                        {state.field.weather?.name === WeatherType.Sandstorm &&<div className='sandstorm-container'></div>}
                         {enemyPartyPokeballs()}
                         {enemyPokemonDisplay()}
                         {allyPokemonDisplay()}
