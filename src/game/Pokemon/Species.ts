@@ -156,7 +156,7 @@ export function GetSpecies(name: string): ISpecies {
         },
         {
             name: "Skarmory",
-            elementalTypes: [ElementType.Steel],
+            elementalTypes: [ElementType.Steel,ElementType.Flying],
             baseStats: {
                 hp: 65,
                 attack: 80,
@@ -517,6 +517,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:10
             },
             weight:19.9
+        },
+        {
+            name:"Tyranitar",
+            elementalTypes:[ElementType.Rock,ElementType.Dark],
+            baseStats:{
+                hp:100,
+                attack:134,
+                defense:110,
+                spAttack:95,
+                spDefense:100,
+                speed:61
+            },
+            weight:202.0
         }
     ];
 

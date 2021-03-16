@@ -734,6 +734,23 @@ const premades: Array<PremadePokemon> = [
             spDefense:4,
             speed:252
         }
+    },
+    {
+        species:"Tyranitar",
+        heldItem:"Assault Vest",
+        ability:"Sand Stream",
+        nature:NatureType.Careful,
+        techniques:[
+            "Rock Slide",
+            "Crunch",
+            "Pursuit",
+            "Earthquake"
+        ],
+        evs:{
+            hp:224,
+            attack:32,
+            speed:252
+        }
     }
 ]
 

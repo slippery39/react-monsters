@@ -247,6 +247,32 @@ export class RockyHelmet extends HeldItem{
 }
 
 
+//NOTE: For now we will just not put this on any pokemon with status moves, since our pokemon are all preset, it shouldn't be an issue.
+export class AssaultVest extends HeldItem{
+    name:string = "Assault Vest"
+    description:string = "An item to be held by a Pokémon. This offensive vest raises Sp. Def but prevents the use of status moves."
+
+
+    Update(turn: Turn, pokemon: Pokemon){
+        if (pokemon.statMultipliers.find(sm=>sm.tag === this.name) === undefined){
+            const statMultiplier : StatMultiplier = {
+                stat:Stat.SpecialDefense,
+                multiplier:1.5,
+                tag:this.name
+            }
+            pokemon.statMultipliers.push(statMultiplier)
+        }
+    }
+
+    OnRemoved(turn:Turn,pokemon:Pokemon){
+        //remove our stat multiplier.
+        _.remove(pokemon.statMultipliers,(sm=>sm.tag === this.name));
+    }
+
+
+}
+
+
 //Empty held item.
 export class NoHeldItem extends HeldItem {
 
@@ -278,6 +304,9 @@ function GetHeldItem(name: string): HeldItem {
         }
         case "rocky helmet":{
             return new RockyHelmet();
+        }
+        case "assault vest":{
+            return new AssaultVest();
         }
         case "none": {
             return new NoHeldItem();

@@ -48,7 +48,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithCustomPokemon(customPokemon)
+    .WithPokemon("Tyranitar")
     .WithRandomPokemon(6)
     .Build();
 

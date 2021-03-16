@@ -5,7 +5,7 @@ import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { FieldEffectType } from "game/FieldEffects/FieldEffects";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
-import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
+import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { WeatherType } from "game/Weather/Weather";
 import { ElementType } from "../ElementType";
 import { DamageType } from "./Technique";
@@ -32,6 +32,22 @@ export interface BaseTechnique {
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Rock Slide",
+            description:"Large boulders are hurled at opposing Pokémon to inflict damage. This may also make the opposing Pokémon flinch.",
+            pp:16,
+            power:75,
+            elementalType:ElementType.Rock,
+            damageType:DamageType.Physical,
+            effects:[
+                {
+                    type:EffectType.InflictVolatileStatus,
+                    status:VolatileStatusType.Flinch,
+                    chance:30,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
         {
             name:"Solar Beam",
             description:"In this two-turn attack, the user gathers light, then blasts a bundled beam on the next turn.",
