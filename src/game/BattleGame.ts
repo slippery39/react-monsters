@@ -163,7 +163,7 @@ class BattleGame {
         //something like this to emit the turn logs...
 
         //todo, make this into a function on the turn class.
-        if (firstTurn.eventLogSinceLastAction.length > 0) {
+        if (firstTurn.eventsSinceLastAction.length > 0) {
             firstTurn.EmitNewTurnLog();
         }
         this.OnNewTurn.emit({});

@@ -65,25 +65,71 @@ export interface OnNewTurnLogArgs {
     winningPlayerId?: number | undefined
 }
 export interface OnActionNeededArgs {
-    turnId:number,
+    turnId: number,
     playerIDsNeeded: Array<number>,
     currentlyStoredActions: Array<BattleAction>,
 }
-export interface OnSwitchNeededArgs{
-    turnId:number,
-    playerIDsNeeded:Array<number>,
-    currentlyStoredSwitchActions:Array<BattleAction>
+export interface OnSwitchNeededArgs {
+    turnId: number,
+    playerIDsNeeded: Array<number>,
+    currentlyStoredSwitchActions: Array<BattleAction>
+}
+
+
+interface NewGameInterface {
+    GetEvents: () => Array<BattleEvent>,
+    eventsSinceLastAction: Array<BattleEvent>,
+    //move order? - keep this in the turn?
+    //initial actions? - keep this in the turn?
+    playersWhoNeedToSwitch:Array<Player>,
+
+    //switch needed actions - keep this in the turn for now.
+    currentBattleStep:TurnStep,
+    currentState:State,
+    //turn over: -> not needed for game.
+    OnTurnFinished: TypedEvent<{}>;
+    OnNewLogReady: TypedEvent<OnNewTurnLogArgs>
+    OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs>
+    OnActionNeeded: TypedEvent<OnActionNeededArgs>
+    OnGameOver: TypedEvent<OnGameOverArgs>
+    shouldProcessEvents: Boolean
+    Clone: () => NewGameInterface
+    SetInitialPlayerAction: (action: BattleAction) => void
+    OverridePlayerAction: (action: BattleAction) => void
+    StartTurn: () => void
+    Update: () => void
+    SetSwitchPromptAction: (action: SwitchPokemonAction) => void;
+    AddMessage: (message: string) => void;
+    GetEntryHazards: () => Array<EntryHazard>;
+    GetPlayers: () => Array<Player>;
+    GetBehavioursForPokemon: (pokemon: Pokemon) => Array<BattleBehaviour>;
+    SetStatusOfPokemon:(pokemonId: number, status: Status)=>void;
+    PromptForSwitch:(pokemon: Pokemon)=>void;
+    ApplyHealing:(pokemon: Pokemon, amount: number)=>void;
+    ApplyStruggleDamage:(pokemon: Pokemon, damage: number)=>void;
+    ApplyIndirectDamage:(pokemon: Pokemon, damage: number)=>void; 
+    ApplyDamageToSubstitute:(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number)=>void;
+    ApplyDamage:(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any)=>void;
+    EmitNewTurnLog:()=>void;
+    SwitchPokemon:(player: Player, pokemonIn: Pokemon)=>void;
+    UseItem:(player: Player, item: Item)=>void;
+    UseTechnique:(pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique)=>void;
+    Roll:(chance: number) => void;
+    AddEvent:(effect: BattleEvent)=>void;
+    GetValidSwitchIns:(player: Player)=>void;
+    GetPokemonOwner:(pokemon: Pokemon)=>void;
+    GetMoveOrder:()=>Array<BattleAction>;
 }
 
 
 
-export class Turn {
+export class Turn implements NewGameInterface {
     id: number; //Turn specific property
     field: Field; //Battle specific property
 
     eventLog: Array<BattleEvent> = [];
     //Events that have occured since the last time it was calculated. (In case the turn stops calculating half way through due to a switch needed)
-    eventLogSinceLastAction: Array<BattleEvent> = [];
+    eventsSinceLastAction: Array<BattleEvent> = [];
     nextEventId: number = 1; //next id for when we have a new event.
 
     initialActions: Array<BattleAction> = [];
@@ -124,18 +170,21 @@ export class Turn {
     }
 
 
-    GetEventLog(): Array<BattleEvent> {
+    
+
+
+    GetEvents(): Array<BattleEvent> {
         return this.eventLog;
     }
 
-    Clone(){
-        const newTurn = new Turn(-1,this.field,this.shouldProcessEvents);
+    Clone() {
+        const newTurn = new Turn(-1, this.field, this.shouldProcessEvents);
         newTurn.initialActions = [...this.initialActions];
         newTurn._moveOrder = [...this._moveOrder];
-        newTurn.playersWhoNeedToSwitch =  [...this.playersWhoNeedToSwitch];
+        newTurn.playersWhoNeedToSwitch = [...this.playersWhoNeedToSwitch];
         newTurn._switchNeededActions = [...this._switchNeededActions];
         newTurn.currentBattleStep = this.currentBattleStep;
-        newTurn.currentState = {...this.currentState};
+        newTurn.currentState = { ...this.currentState };
         newTurn.turnOver = this.turnOver;
 
         return newTurn;
@@ -185,7 +234,7 @@ export class Turn {
             }
 
         }
-        else {       
+        else {
             return;
         }
         if (this.initialActions.length === 2 && this.currentState.type === 'awaiting-initial-actions') {
@@ -193,8 +242,8 @@ export class Turn {
                 type: 'calculating-turn'
             }
 
-            
-            
+
+
             this.CalculateTurn();
         }
     }
@@ -228,18 +277,18 @@ export class Turn {
 
         //Check which players still need to choose an action
 
-        const playersWithActions= this.initialActions.map(act => act.playerId);
-        const playersWeNeedActionsFor = this.GetPlayers().filter(player=>{
-            if (!playersWithActions.includes(player.id)){
+        const playersWithActions = this.initialActions.map(act => act.playerId);
+        const playersWeNeedActionsFor = this.GetPlayers().filter(player => {
+            if (!playersWithActions.includes(player.id)) {
                 return true
             }
             return false;
-        }).map(player=>player.id);
+        }).map(player => player.id);
 
 
         if (playersWeNeedActionsFor.length > 0) {
             this.OnActionNeeded.emit({
-                turnId:this.id,
+                turnId: this.id,
                 playerIDsNeeded: playersWeNeedActionsFor,
                 currentlyStoredActions: [...this.initialActions]
             });
@@ -278,9 +327,9 @@ export class Turn {
 
         const index = this.playersWhoNeedToSwitch.indexOf(player);
         this.playersWhoNeedToSwitch = [...this.playersWhoNeedToSwitch];
-        this.playersWhoNeedToSwitch.splice(index,1);
+        this.playersWhoNeedToSwitch.splice(index, 1);
 
-   
+
         if (this.playersWhoNeedToSwitch.length === 0) {
             this._switchNeededActions.forEach(act => {
                 const player = this.GetPlayer(act.playerId);
@@ -294,7 +343,7 @@ export class Turn {
                 type: 'calculating-turn'
             };
 
-            
+
             this.CalculateTurn();
         }
     }
@@ -442,13 +491,13 @@ export class Turn {
     }
 
     PromptForSwitch(pokemon: Pokemon) {
-        if (this.currentState.type!=='game-over'){
+        if (this.currentState.type !== 'game-over') {
             const owner = this.GetPokemonOwner(pokemon);
             //TODO - This needs to be a prompt now, not just for fainted pokemon.
-            if (this.playersWhoNeedToSwitch.map(p=>p.id).includes(owner.id)){
+            if (this.playersWhoNeedToSwitch.map(p => p.id).includes(owner.id)) {
                 return; //make sure player is not added to switch their pokemon twice at the same time.
             }
-            else{
+            else {
                 this.playersWhoNeedToSwitch.push(owner);
                 this.currentState = { type: 'awaiting-switch-action' }
             }
@@ -496,7 +545,7 @@ export class Turn {
     //WHy not indirect damage? We had "bugs" where abilities that negate indirect damage made it so 2 pokemon could continue attacking eachother and never die.
     //This is an easy way to fix this. If we had some sort of damage source system we could check whether the indirect damage is from struggle before continuing..
     //but we will leave that for another day.
-    ApplyStruggleDamage(pokemon:Pokemon,damage:number){
+    ApplyStruggleDamage(pokemon: Pokemon, damage: number) {
         pokemon.currentStats.hp -= Math.ceil(damage);
         pokemon.currentStats.hp = Math.max(0, pokemon.currentStats.hp);
 
@@ -546,8 +595,8 @@ export class Turn {
             return vStat.type === VolatileStatusType.Substitute
         }) as SubstituteVolatileStatus;
 
-        if (substitute === undefined){
-            console.error("substitute was undefined when we tried to apply damage to it",this);
+        if (substitute === undefined) {
+            console.error("substitute was undefined when we tried to apply damage to it", this);
         }
         substitute.Damage(this, defendingPokemon, damage);
 
@@ -716,58 +765,58 @@ export class Turn {
 
         this.EmitNewTurnLog();
 
-        
-     
+
+
         if (this.currentState.type === 'awaiting-switch-action' && this.turnOver === false) {
             const switchNeededInfo = {
-                turnId:this.id,
-                playerIDsNeeded:this.playersWhoNeedToSwitch.map(p=>p.id),
-                currentlyStoredSwitchActions:this._switchNeededActions
+                turnId: this.id,
+                playerIDsNeeded: this.playersWhoNeedToSwitch.map(p => p.id),
+                currentlyStoredSwitchActions: this._switchNeededActions
             }
             this.OnSwitchNeeded.emit(switchNeededInfo);
         }
         //THE REASON WAS HERE! FORGOT AN ELSE STATEMENT.... IT IS POSSIBLE THAT OUR ON SWITCH NEEDED EVENT IS HANDLEDED RIGHT AWAY.
-        else if (this.currentState.type === 'turn-finished'&& this.turnOver === false)  { 
-            
+        else if (this.currentState.type === 'turn-finished' && this.turnOver === false) {
+
 
             //When we run our AI vs AI events, this can somehow fire twice for one turn.... the question is why?.... I've written so many console messages and i'm not sure what is going on.
             //It must be some sort of race condition, but it doens't make sense.... This is a simple hack to fix the issue, although the cause of the problem remains unknown.
             //Basically this fires twice, causing an entire turn to be skipped but yet the AI will still try to use a move for the turn that was skipped while at the same time use a move for the current turn as well.
             //this will eventually error out as we will have an invalid technique used (usually due to a pokemon fainting and needing to be switched out)
-           // if (this.turnFinishedEventFired === false){
-   
-            this.turnOver = true;    
-            this.OnTurnFinished.emit({});          
-               
+            // if (this.turnFinishedEventFired === false){
+
+            this.turnOver = true;
+            this.OnTurnFinished.emit({});
+
             //}
         }
         else if (this.currentState.type === 'game-over' && this.turnOver === false) {
             const winningPlayer = this.currentState.winningPlayerId ? this.GetPlayer(this.currentState.winningPlayerId!) : undefined;
-            const losingPlayer = this.GetPlayers().find(p => p.id !== this.currentState.winningPlayerId);        
+            const losingPlayer = this.GetPlayers().find(p => p.id !== this.currentState.winningPlayerId);
             this.turnOver = true;
 
             this.OnGameOver.emit({
                 winningPlayer: winningPlayer,
                 losingPlayer: losingPlayer
             });
-            
-            
+
+
         }
     }
 
     EmitNewTurnLog() {
-        if (!this.shouldProcessEvents){
+        if (!this.shouldProcessEvents) {
             return;
         }
         const newTurnLogArgs: OnNewTurnLogArgs = {
-            currentTurnLog: [...this.GetEventLog()],
-            eventsSinceLastTime: [...this.eventLogSinceLastAction],
+            currentTurnLog: [...this.GetEvents()],
+            eventsSinceLastTime: [...this.eventsSinceLastAction],
             field: _.cloneDeep(this.field),
             winningPlayerId: this.currentState.winningPlayerId,
             currentTurnState: this.currentState.type,
             waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id)
         };
-        this.eventLogSinceLastAction = []; //clear the cached events
+        this.eventsSinceLastAction = []; //clear the cached events
         this.OnNewLogReady.emit(newTurnLogArgs);
     }
 
@@ -884,8 +933,8 @@ export class Turn {
             //all two turn moves should inflict a volatile status on the first turn.
             InflictVolatileStatus(this, pokemon, technique.firstTurnStatus, pokemon);
             return;
-        }     
-    
+        }
+
         this.GetBehavioursForPokemon(pokemon).forEach(b => {
             technique = b.ModifyTechnique(pokemon, technique);
         })
@@ -991,8 +1040,8 @@ export class Turn {
         const damageModifierInfo = GetDamageModifier(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
 
         //Note - we are adding in the if crit ignore stat boosts clause into here... until we figure out a cleaner way.
-        const baseDamage = GetBaseDamage(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique,damageModifierInfo.critStrike);
-        
+        const baseDamage = GetBaseDamage(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique, damageModifierInfo.critStrike);
+
         const totalDamage = Math.ceil(baseDamage * damageModifierInfo.modValue);
 
         //Abilities/Statuses/VolatileStatuses might be able to modify damage
@@ -1065,7 +1114,7 @@ export class Turn {
         effect.id = this.nextEventId++;
         effect.resultingState = _.cloneDeep(this.field); //TODO - potential bottleneck concern here.
         this.eventLog.push(effect);
-        this.eventLogSinceLastAction.push(effect);
+        this.eventsSinceLastAction.push(effect);
     }
 
     public GetValidSwitchIns(player: Player) {
