@@ -1,63 +1,73 @@
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
+import waitForSeconds from 'game/AI/CoroutineTest';
 import BattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { OnGameOverArgs } from 'game/Turn';
 import React, { useCallback, useEffect, useState } from 'react';
-import{ SimmedStats, WinLoss } from '../BattleSimulator';
+import { SimmedStats, WinLoss } from '../BattleSimulator';
+
+import "./randomTeams.css";
 
 
 
-async function RunAIvsAIBattle():Promise<OnGameOverArgs>{
+interface MatchResult {
+    winningPokemon: Array<string>,
+    losingPokemon: Array<string>,
+}
 
-    return new Promise(resolve=>{
-/*
-    const ai1 = new PlayerBuilder(1)
-        .WithName("AI John")
-        .WithPokemon("Arcanine")
-        .WithPokemon("Arcanine")
-        .WithPokemon("Arcanine")
-        .WithPokemon("Arcanine")
-        .Build();
 
-    const ai2 = new PlayerBuilder(2)
-        .WithName("AI Bob")
-        .WithPokemon("Milotic")
-        .WithPokemon("Milotic")
-        .WithPokemon("Milotic")
-        .WithPokemon("Milotic")
-        .Build();
-  */  
+
+async function RunAIvsAIBattle(): Promise<OnGameOverArgs> {
+
+    return new Promise(resolve => {
+        /*
+            const ai1 = new PlayerBuilder(1)
+                .WithName("AI John")
+                .WithPokemon("Arcanine")
+                .WithPokemon("Arcanine")
+                .WithPokemon("Arcanine")
+                .WithPokemon("Arcanine")
+                .Build();
         
+            const ai2 = new PlayerBuilder(2)
+                .WithName("AI Bob")
+                .WithPokemon("Milotic")
+                .WithPokemon("Milotic")
+                .WithPokemon("Milotic")
+                .WithPokemon("Milotic")
+                .Build();
+          */
 
 
 
-       const ai1 = new PlayerBuilder(1)
-       .WithName("AI John")
-       .WithRandomPokemon(6)
-       .Build();
 
-   const ai2 = new PlayerBuilder(2)
-       .WithName("AI Bob")
-       .WithRandomPokemon(6)
-       .Build();
+        const ai1 = new PlayerBuilder(1)
+            .WithName("AI John")
+            .WithRandomPokemon(6)
+            .Build();
 
-       
-       
-       
+        const ai2 = new PlayerBuilder(2)
+            .WithName("AI Bob")
+            .WithRandomPokemon(6)
+            .Build();
 
 
-    let battleService = new BattleService(ai1, ai2,false);
-    new BasicAI(ai1, battleService);
-    new BasicAI(ai2, battleService);
 
-    battleService.OnGameOver.on( (args)=>{
-        console.log("game is over");
-        resolve(args);
-    })
 
-    battleService.Initialize();
-    battleService.Start();
+
+
+        let battleService = new BattleService(ai1, ai2, false);
+        new BasicAI(ai1, battleService);
+        new BasicAI(ai2, battleService);
+
+        battleService.OnGameOver.on((args) => {
+            console.log("game is over");
+            resolve(args);
+        })
+
+        battleService.Initialize();
+        battleService.Start();
 
     }
 
@@ -99,34 +109,49 @@ function UpdateStats(previousStats: SimmedStats, args: OnGameOverArgs) {
 }
 
 
-async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: SimmedStats) => void,battleStartedFunc:(id:number)=>void) {
+async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: SimmedStats,results:Array<MatchResult>) => void, battleStartedFunc: (id: number) => void) {
+
+    let matchResults: Array<MatchResult> = [];
     let stats: Record<string, WinLoss> = {};
-    for (var i=0;i<numberOfBattles;i++){
-        battleStartedFunc((i+1));
+    await waitForSeconds(0);
+    for (var i = 0; i < numberOfBattles; i++) {
+        battleStartedFunc((i + 1));
         const results = await RunAIvsAIBattle();
-        UpdateStats(stats,results);
-        battleEndedFunc(stats);
+        UpdateStats(stats, results);
+        matchResults.push({
+            winningPokemon: results.winningPlayer!.pokemon.map(poke => poke.name),
+            losingPokemon: results.losingPlayer!.pokemon.map(poke => poke.name)
+        });
+
+        battleEndedFunc(stats,matchResults);
     }
-    return stats;
 }
 
 
-interface Props{
+interface Props {
 
 }
 
+
+enum MenuState{
+    ShowWinLoss = "ShowWinLoss",
+    ShowResults = "ShowResults"
+}
 
 const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
 
+    const [menuState,setMenuState] = useState<MenuState>(MenuState.ShowWinLoss);
     const [simStats, setSimStats] = useState<SimmedStats>({});
-    const [numberOfBattles,setNumberOfBattles] = useState<string>("50"); //its a string for compatibility issues.
-    const [simText,setSimText] = useState<string>("")
- 
-    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>) => {
+    const [numberOfBattles, setNumberOfBattles] = useState<string>("50"); //its a string for compatibility issues.
+    const [simText, setSimText] = useState<string>("")
+    const [results,setMatchResults] = useState<Array<MatchResult>>([]);
+
+    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>,results:Array<MatchResult>) => {
         console.log(stats);
         const newStats = { ...stats };
-          setSimStats(newStats);
-          setSimText("All battles simulated!");
+        setSimStats(newStats);
+        setMatchResults([...results]);
+        setSimText("All battles simulated!");
     }, [setSimStats])
 
 
@@ -150,9 +175,31 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
         return elements;
     }
 
+    const displayResults = function(){
+        const rows = results.map( (result,index)=>{
+            const winningPokemon = result.winningPokemon.map(p=>(<PokemonImage type="small" name={p}/>))
+            const losingPokemon = result.losingPokemon.map(p=><PokemonImage type="small" name={p}/>)
+            return (<tr key={index}><td>{winningPokemon}</td><td>{losingPokemon}</td></tr>)
+        });
 
-    const simSettings = (<div> Number of Battles : <input type="text" pattern="[0-9]" onChange={(e)=>setNumberOfBattles(e.target.value)} value={numberOfBattles}/></div>)
-    const startButton = (<button onClick={()=>{RunNBattles(parseFloat(numberOfBattles),battleEndedFunc,(num)=>setSimText("Simulating Battle " + num))}} type="button" value="Run!">Simulate Battles!</button>)
+        return (
+            <table className='match-results-table'>
+                <tbody>
+                    <th>Winning Pokemon</th><th>Losing Pokemon</th>
+                </tbody>
+                {rows}
+            </table>
+        )
+    }
+
+
+    const simSettings = (<div> Number of Battles : <input type="text" pattern="[0-9]" onChange={(e) => setNumberOfBattles(e.target.value)} value={numberOfBattles} /></div>)
+    const startButton = (<button onClick={() => {
+        RunNBattles(parseFloat(numberOfBattles), battleEndedFunc, (num) => setSimText("Simulating Battle " + num));
+
+    }}
+        type="button" value="Run!">
+        Simulate Battles!</button>)
     const simTextDiv = (<div>{simText}</div>)
 
 
@@ -163,10 +210,12 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
             {simSettings}
             {startButton}
             {simTextDiv}
-            <table><tbody><tr><td></td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
+            <div onClick={()=>setMenuState(MenuState.ShowWinLoss)}>Win Loss Table</div><div onClick={()=>setMenuState(MenuState.ShowResults)}>Match Results</div>
+            {menuState === MenuState.ShowWinLoss &&(<table><tbody><tr><td></td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
                 {displayStats()}
             </tbody>
-            </table>
+            </table>)}
+            {menuState === MenuState.ShowResults && displayResults()}
         </div>
     );
 }

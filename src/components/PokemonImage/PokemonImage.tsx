@@ -40,7 +40,7 @@ const PokemonImage: React.FunctionComponent<Props> = (props) => {
     }    
 
     return (
-        <img className="pokemon-sprite" src={imageToUse} alt="pokemon" />
+        <img className="pokemon-sprite" src={imageToUse} alt={props.name} />
     );
 }
 

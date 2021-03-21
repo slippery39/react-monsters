@@ -4,6 +4,7 @@ import BattleGame from "game/BattleGame";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
+import { Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Field } from "game/Turn";
 import _, { shuffle } from "lodash";
@@ -261,12 +262,12 @@ class MiniMax {
         const pointValues = initializePointValues();
         pointValues[PointCalculationTypes.WonGame] = 99999;
         pointValues[PointCalculationTypes.LostGame] = -99999;
-        pointValues[PointCalculationTypes.EnemyPokemonFainted] = 100;
+        pointValues[PointCalculationTypes.EnemyPokemonFainted] = 120;
         pointValues[PointCalculationTypes.AllyPokemonFainted] = -100;
-        pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] = -510; //* the difference
+        pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] = -520; //* the difference
         pointValues[PointCalculationTypes.AllyTeamDeltaHealth] = 500; //* the difference
         pointValues[PointCalculationTypes.AllyPokemonInflictedStatus] = -60;
-        pointValues[PointCalculationTypes.EnemyPokemonHasStatus] = 60;
+        pointValues[PointCalculationTypes.EnemyPokemonHasStatus] = 70;
         pointValues[PointCalculationTypes.AllyStatBoost] = 60;
         pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] = 12;
 
@@ -301,10 +302,12 @@ class MiniMax {
             pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus] = pointValues[PointCalculationTypes.EnemyPokemonHasStatus];
         }
 
-        //We got a stat boost while still having more than 70% health
-        if ((GetActivePokemon(simmedPlayer).currentStats.hp / GetActivePokemon(simmedPlayer).originalStats.hp) * 100 >= 70){
-            pointCalcs[PointCalculationTypes.AllyStatBoost] = pointValues[PointCalculationTypes.AllyStatBoost] * GetStatBoostsAmount(simmedPlayer);
+
+        const GetHealthRatio= function(pokemon:Pokemon){
+            return (pokemon.currentStats.hp / pokemon.originalStats.hp);
         }
+        pointCalcs[PointCalculationTypes.AllyStatBoost] = pointValues[PointCalculationTypes.AllyStatBoost] * GetStatBoostsAmount(simmedPlayer) * GetHealthRatio(GetActivePokemon(simmedPlayer)) ;
+        
 
         //TODO, speed stat boost should only care if they are faster than the opponent.
 

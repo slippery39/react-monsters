@@ -1,0 +1,6 @@
+.match-results-table{
+    border-collapse:collapse;
+}
+.match-results-table > tr{
+    border:1px solid black;
+}

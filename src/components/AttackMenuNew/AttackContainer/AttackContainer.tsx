@@ -1,7 +1,7 @@
 import React from 'react';
 import ElementIcon from "components/ElementIcon/ElementIcon";
 import "./AttackContainer.css";
-import { Technique } from 'game/Techniques/Technique';
+import {Technique } from 'game/Techniques/Technique';
 
 
 interface Props {
@@ -18,7 +18,7 @@ const AttackContainer: React.FunctionComponent<Props> = (props) => {
             <div className="attack-container">
                 <div className="attack-name">{props.technique.name}</div>
                 <ElementIcon element={props.technique.elementalType} />
-                <div className="attack-pp">PP: {props.technique.currentPP} / {props.technique.pp}</div>
+                 <div className="attack-pp">PP: {props.technique.currentPP} / {props.technique.pp}</div>
             </div>
         </div>
     );

@@ -10,6 +10,12 @@ import React, { useCallback, useState } from 'react';
 import { SimmedStats, WinLoss } from '../BattleSimulator';
 
 
+interface MatchResult {
+    winningPokemon: Array<string>,
+    losingPokemon: Array<string>,
+}
+
+
 function UpdateStats(previousStats: SimmedStats, args: OnGameOverArgs) {
     const newStats = previousStats;
     if (args.winningPlayer !== undefined) {
@@ -73,7 +79,7 @@ async function RunRoundRobinBattle1v1(pokemon1: string, pokemon2: string): Promi
     });
 }
 
-async function RoundRobin1v1(battleEndedFunc: (data: SimmedStats) => void, battleStartedFunc: (id: string) => void, numberOfBattles: number) {
+async function RoundRobin1v1(battleEndedFunc: (data: SimmedStats,results:Array<MatchResult>) => void, battleStartedFunc: (id: string) => void, numberOfBattles: number) {
     const pokemonList = GetAllPokemonInfo().map(poke => poke.species);
     //generate an array of round robin info
     /*var allMatchups = pokemonList.flatMap(
@@ -81,6 +87,7 @@ async function RoundRobin1v1(battleEndedFunc: (data: SimmedStats) => void, battl
     );*/
 
     let currentStats: SimmedStats = {};
+    let matchResults: Array<MatchResult> = [];
 
     for (var i = 0; i < numberOfBattles; i++) {
 
@@ -95,8 +102,12 @@ async function RoundRobin1v1(battleEndedFunc: (data: SimmedStats) => void, battl
             const matchup = allMatchups[i];
             console.log("simming matchup", matchup);
             const result = await RunRoundRobinBattle1v1(matchup.pokemon1, matchup.pokemon2);
+            matchResults.push({
+                winningPokemon: result.winningPlayer!.pokemon.map(poke => poke.name),
+                losingPokemon: result.losingPlayer!.pokemon.map(poke => poke.name)
+            });    
             UpdateStats(currentStats, result);
-            battleEndedFunc(currentStats);
+            battleEndedFunc(currentStats,matchResults);
         }
     }
 }
@@ -106,16 +117,24 @@ interface Props {
 
 }
 
+enum MenuState{
+    ShowWinLoss = "ShowWinLoss",
+    ShowResults = "ShowResults"
+}
 
 const RoundRobinSim: React.FunctionComponent<Props> = () => {
+
+    const [menuState,setMenuState] = useState<MenuState>(MenuState.ShowWinLoss);
     const [simStats, setSimStats] = useState<SimmedStats>({});
     const [numberOfBattles, setNumberOfBattles] = useState<string>("1"); //its a string for compatibility issues.
     const [simText, setSimText] = useState<string>("")
+    const [results,setMatchResults] = useState<Array<MatchResult>>([]);
 
-    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>) => {
+    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>,results:Array<MatchResult>) => {
         console.log(stats);
         const newStats = { ...stats };
         setSimStats(newStats);
+        setMatchResults([...results]);
         setSimText("All battles simulated!");
     }, [setSimStats])
 
@@ -140,6 +159,25 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
         return elements;
     }
 
+    const displayResults = function(){
+        const rows = results.map( (result,index)=>{
+            const winningPokemon = result.winningPokemon.map(p=>(<PokemonImage type="small" name={p}/>))
+            const losingPokemon = result.losingPokemon.map(p=><PokemonImage type="small" name={p}/>)
+            return (<tr key={index}><td>{winningPokemon}</td><td>{losingPokemon}</td></tr>)
+        });
+
+        return (
+            <table className='match-results-table'>
+                <tbody>
+                    <th>Winning Pokemon</th><th>Losing Pokemon</th>
+                </tbody>
+                {rows}
+            </table>
+        )
+    }
+
+
+
     const simSettings = (<div> Number of battles per matchup : <input type="text" pattern="[0-9]" onChange={(e) => setNumberOfBattles(e.target.value)} value={numberOfBattles} /></div>)
     const startButton = (<button onClick={() => { RoundRobin1v1(battleEndedFunc, (num) => setSimText("Simulating Battle " + num),parseFloat(numberOfBattles)) }} type="button" value="Run!">Simulate Battles!</button>)
     const simTextDiv = (<div>{simText}</div>)
@@ -149,10 +187,12 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
             {simSettings}
             {startButton}
             {simTextDiv}
-            <table><tbody><tr><td></td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
+            <div onClick={()=>setMenuState(MenuState.ShowWinLoss)}>Win Loss Table</div><div onClick={()=>setMenuState(MenuState.ShowResults)}>Match Results</div>
+            {menuState === MenuState.ShowWinLoss &&(<table><tbody><tr><td></td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
                 {displayStats()}
             </tbody>
-            </table>
+            </table>)}
+            {menuState === MenuState.ShowResults && displayResults()}
         </div>
     );
 }
