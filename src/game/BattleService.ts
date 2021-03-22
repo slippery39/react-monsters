@@ -78,13 +78,13 @@ class BattleService {
     }
 
     SetInitialAction(action: BattleAction) {
-        console.log("setting initial action in battle service",action);
         this.battle.SetInitialPlayerAction(action);
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean) {
         this.battle.SetSwitchPromptAction(action);
     }
     SetPlayerAction(action: BattleAction) {
+        
         if (this.gameEnded) {
             return;
         }

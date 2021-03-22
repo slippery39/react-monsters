@@ -10,7 +10,7 @@ import { BattleEffect, DoEffect, EffectType, InflictVolatileStatus, TargetType }
 import { EntryHazard } from "./EntryHazards/EntryHazard";
 import { FieldEffect } from "./FieldEffects/FieldEffects";
 import GetHardStatus, { Status } from "./HardStatus/HardStatus";
-import { GetActivePokemon, GetAlivePokemon, GetPokemonOwner } from "./HelperFunctions";
+import { ClonePlayer, GetActivePokemon, GetAlivePokemon, GetPokemonOwner } from "./HelperFunctions";
 import { Item } from "./Items/Item";
 import { Player } from "./Player/PlayerBuilder";
 import { CalculateStatWithBoost, Pokemon } from "./Pokemon/Pokemon";
@@ -215,7 +215,7 @@ class BattleGame implements NewGameInterface {
             throw new Error(`Need exactly 2 players to properly initialize a battle`);
         }
         this.field = {
-            players: _.cloneDeep(players), //TODO: testing non clone deeped vs clone deeped.
+            players: [ClonePlayer(players[0]),ClonePlayer(players[1])], //TODO: testing non clone deeped vs clone deeped.
             entryHazards: [],
             weather: undefined,
             fieldEffects: []
@@ -311,9 +311,6 @@ class BattleGame implements NewGameInterface {
             this.currentState = {
                 type: 'calculating-turn'
             }
-
-
-
             this.CalculateTurn();
         }
     }
@@ -523,7 +520,8 @@ class BattleGame implements NewGameInterface {
         }) as SubstituteVolatileStatus;
 
         if (substitute === undefined) {
-            console.error("substitute was undefined when we tried to apply damage to it", this);
+            console.error("substitute was undefined when we tried to apply damage to it",defendingPokemon);
+            throw new Error("substitute was undefined when we tried to apply damage to it");
         }
         substitute.Damage(this, defendingPokemon, damage);
 
@@ -543,7 +541,8 @@ class BattleGame implements NewGameInterface {
         //Round the damage to prevent decimals from showing up.
         damage = Math.max(1, Math.round(damage));
 
-        if (defendingPokemon.hasSubstitute) {
+        //There has to be someway to put this into the substitute instead... a redirect damage function?
+        if (defendingPokemon.volatileStatuses.find(vStat=>vStat.type===VolatileStatusType.Substitute)) {
             this.ApplyDamageToSubstitute(attackingPokemon, defendingPokemon, damage);
             return;
         }
@@ -1060,18 +1059,10 @@ class BattleGame implements NewGameInterface {
         }
         //THE REASON WAS HERE! FORGOT AN ELSE STATEMENT.... IT IS POSSIBLE THAT OUR ON SWITCH NEEDED EVENT IS HANDLEDED RIGHT AWAY.
         else if (this.currentState.type === 'turn-finished' && this.turnOver === false) {
-
-
-            //When we run our AI vs AI events, this can somehow fire twice for one turn.... the question is why?.... I've written so many console messages and i'm not sure what is going on.
-            //It must be some sort of race condition, but it doens't make sense.... This is a simple hack to fix the issue, although the cause of the problem remains unknown.
-            //Basically this fires twice, causing an entire turn to be skipped but yet the AI will still try to use a move for the turn that was skipped while at the same time use a move for the current turn as well.
-            //this will eventually error out as we will have an invalid technique used (usually due to a pokemon fainting and needing to be switched out)
-            // if (this.turnFinishedEventFired === false){
-
-            this.turnOver = true;
+            //this.turnOver = true;
             this.OnTurnFinished.emit({});
-
-            //}
+            //added in here, the turn-finished seems to make something work...
+            this.NextTurn();
         }
         else if (this.currentState.type === 'game-over' && this.turnOver === false) {
             const winningPlayer = this.currentState.winningPlayerId ? this.GetPlayer(this.currentState.winningPlayerId!) : undefined;
@@ -1082,15 +1073,13 @@ class BattleGame implements NewGameInterface {
                 winningPlayer: winningPlayer,
                 losingPlayer: losingPlayer
             });
-
-
         }
     }
 
     //should not be needed. this isn't really useful anymore    
     private EndTurn() {
         this.currentState = {
-            type: 'turn-finished'
+            type:'turn-finished'
         }
     }
 
@@ -1239,6 +1228,8 @@ class BattleGame implements NewGameInterface {
         this.currentTurnId++;
         //Resetting all the variables
         this.initialActions=[];
+        this._moveOrder = [];
+        this._switchNeededActions = [];
         this.currentState= {type:'awaiting-initial-actions'}
         this.currentBattleStep = TurnStep.PreAction1;
         //Yay

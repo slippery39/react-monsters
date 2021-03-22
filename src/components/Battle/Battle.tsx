@@ -541,7 +541,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const pokemonName = currentPokemon?.name;
         const moveName = currentPokemon?.techniques.find(t=>t.id === techniqueId)?.name
 
-
+        console.log("Setting a battle action in the service","yay");
         battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.field.players[0].currentPokemonId, //todo: get proper pokemon id,

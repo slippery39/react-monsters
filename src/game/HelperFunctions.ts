@@ -53,6 +53,72 @@ export function GetPokemonOwner(players:Array<Player>,pokemon:Pokemon): Player{
 }
 
 
+
+export function ClonePlayer(originalPlayer:Player){
+    const newPokemons = originalPlayer.pokemon.map(poke=>{
+        
+
+        const statBoosts : Record<Stat,number> = {
+            'accuracy':poke.statBoosts.accuracy,
+            'attack':poke.statBoosts.attack,
+            'defense':poke.statBoosts.defense,
+            'special-attack':poke.statBoosts["special-attack"],
+            'special-defense':poke.statBoosts["special-defense"],
+            'speed':poke.statBoosts.speed
+        }
+
+        const pokeTechniques : Array<Technique> = [];
+        for (var i=0;i<pokeTechniques.length;i++){
+            const tech = pokeTechniques[i];
+            pokeTechniques.push({...tech});
+        }
+   
+
+        const newPoke:any = {};
+        newPoke.name = poke.name;
+        newPoke.nature = poke.nature;
+        newPoke.originalStats = poke.originalStats;
+        newPoke.restTurnCount = poke.restTurnCount;
+        newPoke.status = poke.status;
+        newPoke.techniqueUsedLast = poke.techniqueUsedLast;
+        newPoke.toxicCount = poke.toxicCount;
+        newPoke.weight = poke.weight;
+
+        newPoke.statBoosts = statBoosts;
+        newPoke.techniques = [...poke.techniques];
+        newPoke.currentStats = {
+            hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
+        newPoke.heldItem = _.cloneDeep(poke.heldItem);
+        newPoke.statMultipliers = _.cloneDeep(poke.statMultipliers);
+        newPoke.volatileStatuses = _.cloneDeep(poke.volatileStatuses);  
+        newPoke.ivs = poke.ivs
+        newPoke.ability = poke.ability;
+        newPoke.baseStats = poke.baseStats;
+        newPoke.canAttackThisTurn = poke.canAttackThisTurn;
+        newPoke.elementalTypes = poke.elementalTypes;
+        newPoke.evs = poke.evs;
+        newPoke.flashFireActivated = poke.flashFireActivated;
+        newPoke.hasSubstitute = poke.hasSubstitute;
+        newPoke.id = poke.id;
+        newPoke.fieldPosition = poke.fieldPosition;
+            
+
+        return newPoke as Pokemon;
+    });
+
+    const newPlayer:Player = {
+        pokemon:newPokemons,
+        currentPokemonId:originalPlayer.currentPokemonId,
+        id:originalPlayer.id,
+        items:originalPlayer.items,
+        name:originalPlayer.name
+    }
+
+    
+    return newPlayer;
+
+}
+
 //Cloning our field for performance reasons
 //NOTE - Cloning the techniques seems to be taking up the majority of our time. we reduced our cloning time for 10000 iterations from around 4000 ms to 250 ms once we
 //changed the techniques not to be deep cloned every time. Perhaps we need to think about how our techniques are actually stored in our data...
