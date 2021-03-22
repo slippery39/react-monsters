@@ -43,8 +43,8 @@ class BattleService {
 
     //For testing purposes only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
-        this.GetCurrentTurn().SetStatusOfPokemon(pokemonId, status);
-        this.onStateChange.emit({ newField: _.cloneDeep(this.GetCurrentTurn().field) });
+        this.battle.SetStatusOfPokemon(pokemonId, status);
+        this.onStateChange.emit({ newField: _.cloneDeep(this.battle.field) });
     }
 
     GetAllyPlayer() {
@@ -83,19 +83,19 @@ class BattleService {
     }
 
     SetInitialAction(action: BattleAction) {
-        this.GetCurrentTurn().SetInitialPlayerAction(action);
+        this.battle.SetInitialPlayerAction(action);
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean) {
-        this.GetCurrentTurn().SetSwitchPromptAction(action);
+        this.battle.SetSwitchPromptAction(action);
     }
     SetPlayerAction(action: BattleAction) {
         if (this.gameEnded) {
             return;
         }
-        if (this.GetCurrentTurn().currentState.type === 'awaiting-initial-actions') {
+        if (this.battle.GetCurrentState().type === 'awaiting-initial-actions') {
             this.SetInitialAction(action);
         }
-        else if (this.GetCurrentTurn().currentState.type === 'awaiting-switch-action') {
+        else if (this.battle.GetCurrentState().type === 'awaiting-switch-action') {
             //RIGHT HERE IS WHERE IT'S HAPPENING!, WE NEED TO VALIDATE HERE....
 
             if (action.type !== 'switch-pokemon-action') {
@@ -118,11 +118,11 @@ class BattleService {
     }
 
     GetField(): Field {
-        return _.cloneDeep(this.GetCurrentTurn().field);
+        return _.cloneDeep(this.battle.field);
     }
 
     GetValidActions(playerId: number) {
-        const player = this.GetCurrentTurn().GetPlayers().find(p => p.id === playerId);
+        const player = this.battle.GetPlayers().find(p => p.id === playerId);
         if (player === undefined) {
             throw new Error(`Could not find player`);
         }
