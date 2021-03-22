@@ -33,7 +33,7 @@ class BasicAI implements AI {
     }
 
     private GetPlayerFromTurn(): Player {
-        const player = this._service.GetCurrentTurn().GetPlayers().find(player => player.id === this._playerID);
+        const player = this._service.battle.GetPlayers().find(player => player.id === this._playerID);
 
         if (player === undefined) {
             throw new Error(`Could not find player with id ${this._playerID} in the game state to use for AI Brain`);
@@ -45,7 +45,7 @@ class BasicAI implements AI {
     async ChooseAction() { //this is run simulation
         const aiPlayer = this.GetPlayerFromTurn();
         const minMaxAlgo = new MiniMax();
-        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer, this._service.GetCurrentTurn().field);
+        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer, this._service.battle.field);
         const chosenAction = calculatedPointsForUs[0].action;
         this._service.SetPlayerAction(chosenAction);
     }
@@ -73,7 +73,7 @@ class BasicAI implements AI {
         let bestPokemon = undefined;
         for (var key in validPokemon) {
             const pokeId = validPokemon[key];
-            const clonedTurn = this._service.GetCurrentTurn().Clone();
+            const clonedTurn = this._service.battle.Clone();
             const player = clonedTurn.GetPlayers().find(p => p.id === this._playerID)!;
             clonedTurn.SetSwitchPromptAction(CreateSwitchAction(player, pokeId));
             const afterSwitchField = clonedTurn.field;

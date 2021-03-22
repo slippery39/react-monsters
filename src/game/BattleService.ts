@@ -1,4 +1,4 @@
-import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs, Turn } from "./Turn";
+import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs} from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import _ from "lodash";
 
@@ -35,10 +35,6 @@ class BattleService {
 
     constructor(player1: Player, player2: Player, saveTurnLog: boolean) {
         this.battle = new BattleGame([player1, player2], saveTurnLog);
-    }
-
-    GetCurrentTurn(): Turn {
-        return this.battle.GetCurrentTurn();
     }
 
     //For testing purposes only
@@ -109,7 +105,7 @@ class BattleService {
 
     //Gets a cloned version of the game state, nobody outside of here should be able to modify the state directly.
     GetPlayers(): Array<Player> {
-        return _.cloneDeep(this.GetCurrentTurn().GetPlayers());
+        return _.cloneDeep(this.battle.GetPlayers());
     }
 
     GetValidPokemonToSwitchInto(playerId: number) {

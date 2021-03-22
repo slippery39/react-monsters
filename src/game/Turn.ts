@@ -170,10 +170,7 @@ export class Turn implements NewGameInterface {
         GetActivePokemon(this.field.players[0]).canAttackThisTurn = true;
         GetActivePokemon(this.field.players[1]).canAttackThisTurn = true;
         this.shouldProcessEvents = shouldProcessEvents;
-    }
-
-
-    
+    }   
 
 
     GetEvents(): Array<BattleEvent> {
