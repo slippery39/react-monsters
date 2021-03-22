@@ -1,12 +1,11 @@
 
 import { Actions, BattleAction } from "game/BattleActions";
-import BattleGame from "game/BattleGame";
+import BattleGame, { Field } from "game/BattleGame";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { Field } from "game/Turn";
 import _, { shuffle } from "lodash";
 import waitForSeconds from "./CoroutineTest";
 
@@ -140,7 +139,7 @@ class MiniMax {
         const testGame = new BattleGame(beforeField.players, false);
         testGame.field = beforeField;
         testGame.Initialize();
-        testGame.GetCurrentTurn().SetInitialPlayerAction(simmedAction);
+        testGame.SetInitialPlayerAction(simmedAction);
 
         //find a random move for this playr
         const opponentPlayer = beforeField.players.find(p => p.id !== simmedPlayer.id);
@@ -168,7 +167,7 @@ class MiniMax {
         }
 
         const opponentAction = getOpponentAction(opponentPlayer);
-        testGame.GetCurrentTurn().SetInitialPlayerAction(opponentAction);
+        testGame.SetInitialPlayerAction(opponentAction);
 
 
         let pointCalcInfo;
@@ -176,19 +175,19 @@ class MiniMax {
         let info: Array<PointCalcInfo> | undefined = undefined;
         let action2: BattleAction | undefined = undefined;
           //TODO : if the simmed action was a switch action, look forward one more turn to see if it was the best choice.
-        if ( (simmedAction.type === 'switch-pokemon-action' && testGame.GetCurrentTurn().currentState.type==='awaiting-initial-actions') && testGame.GetCurrentTurn().id===2){
+        if ( (simmedAction.type === 'switch-pokemon-action' && testGame.currentState.type==='awaiting-initial-actions') && testGame.currentTurnId===2){
 
             const newSImmedPlayer = testGame.GetPlayers().find(p=>p.id === simmedPlayer.id);
             if (newSImmedPlayer === undefined){
                 throw new Error(`Could not find player`);
             }
-            info = await this.SimulateAllActions(newSImmedPlayer,testGame.GetCurrentTurn().field,true,undefined);            
+            info = await this.SimulateAllActions(newSImmedPlayer,testGame.field,true,undefined);            
             pointCalcInfo=info[0];
             action2 = info[0].action
             depth = 2;
         }
         else{
-            pointCalcInfo = this.EvaluateField(simmedPlayer,testGame.GetCurrentTurn().field);
+            pointCalcInfo = this.EvaluateField(simmedPlayer,testGame.field);
         }
         
 
@@ -315,8 +314,8 @@ class MiniMax {
             if (!field.entryHazards) {
                 return 0;
             }
-            const amountOfHazards = field.entryHazards?.filter(haz => haz.player?.id === player.id).length;
-            const hazardStages = field.entryHazards?.filter(haz => haz.player?.id === player.id && haz.stage > 0).map(haz => haz.stage - 1).reduce((a, b) => a + b, 0)
+            const amountOfHazards = field.entryHazards.filter(haz => haz.player?.id === player.id).length;
+            const hazardStages = field.entryHazards.filter(haz => haz.player?.id === player.id && haz.stage > 0).map(haz => haz.stage - 1).reduce((a, b) => a + b, 0)
             return amountOfHazards + hazardStages;
         }
 

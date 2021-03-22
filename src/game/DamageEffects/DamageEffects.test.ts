@@ -3,7 +3,6 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { GetTech } from 'game/Techniques/PremadeTechniques';
 import { Technique } from 'game/Techniques/Technique';
-import { Turn } from 'game/Turn';
 import { GetDamageEffect } from './DamageEffects';
 
 

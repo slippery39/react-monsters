@@ -1,10 +1,9 @@
 import PokemonImage from 'components/PokemonImage/PokemonImage';
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 import BasicAI from 'game/AI/AI';
+import { OnGameOverArgs } from 'game/BattleGame';
 import BattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
-import { OnGameOverArgs } from 'game/Turn';
 import { shuffle } from 'lodash';
 import React, { useCallback, useState } from 'react';
 import { SimmedStats, WinLoss } from '../BattleSimulator';

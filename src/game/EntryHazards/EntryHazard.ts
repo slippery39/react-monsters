@@ -1,3 +1,4 @@
+import { NewGameInterface } from "game/BattleGame";
 import { GetTypeMod } from "game/DamageFunctions";
 import { DoStatBoost } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
@@ -5,9 +6,6 @@ import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { NewGameInterface} from "game/Turn";
-
-
 
 export enum EntryHazardType {
     Spikes = 'spikes',
@@ -20,7 +18,7 @@ export function ApplyEntryHazard(game: NewGameInterface, player: Player, type: E
 
 
     const getEntryHazard = function(type:EntryHazardType,player:Player){
-        return game.GetEntryHazards().find(hazard=>hazard.type === type && hazard.player!.id === player.id)
+        return game.field.entryHazards.find(hazard=>hazard.type === type && hazard.player!.id === player.id)
     }
 
     switch (type) {
@@ -28,7 +26,7 @@ export function ApplyEntryHazard(game: NewGameInterface, player: Player, type: E
             let spikes = getEntryHazard(EntryHazardType.Spikes,player);
             if (spikes === undefined) {
                 spikes = new Spikes(player);
-                game.GetEntryHazards().push(spikes);
+                game.field.entryHazards.push(spikes);
                 spikes.OnApplied(game, player);
             }
             else {
@@ -48,7 +46,7 @@ export function ApplyEntryHazard(game: NewGameInterface, player: Player, type: E
             let stealthRock = getEntryHazard(EntryHazardType.StealthRock,player);
             if (stealthRock === undefined) {
                 stealthRock = new StealthRock(player);
-                game.GetEntryHazards().push(stealthRock);
+                game.field.entryHazards.push(stealthRock);
                 stealthRock.OnApplied(game, player);
             }
             else {
@@ -61,7 +59,7 @@ export function ApplyEntryHazard(game: NewGameInterface, player: Player, type: E
             let stickyWeb = getEntryHazard(EntryHazardType.StickyWeb,player);
             if (stickyWeb === undefined){
                 stickyWeb = new StickyWeb(player);
-                game.GetEntryHazards().push(stickyWeb);
+                game.field.entryHazards.push(stickyWeb);
                 stickyWeb.OnApplied(game,player);
             }
             else{

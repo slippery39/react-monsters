@@ -1,12 +1,12 @@
 import { Actions, UseMoveAction as UseTechniqueAction } from "game/BattleActions";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
+import { NewGameInterface } from "game/BattleGame";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
-import { NewGameInterface } from "game/Turn";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import _ from "lodash";
 

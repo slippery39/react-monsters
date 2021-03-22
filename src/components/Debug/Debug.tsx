@@ -4,7 +4,8 @@ import { GetActivePokemon } from 'game/HelperFunctions';
 import './Debug.css'
 import { Pokemon } from 'game/Pokemon/Pokemon';
 import { Status } from 'game/HardStatus/HardStatus';
-import { Field } from 'game/Turn';
+import { Field } from 'game/BattleGame';
+
 
 
 function MakeStatusDropdown(poke: Pokemon, onChange: (evt: any) => void) {

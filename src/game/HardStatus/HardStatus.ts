@@ -1,4 +1,3 @@
-import { NewGameInterface } from "game/Turn";
 import { BattleEventType, CannotAttackEvent,StatusChangeEvent } from "game/BattleEvents";
 import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
@@ -6,6 +5,7 @@ import { Pokemon } from "game/Pokemon/Pokemon";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { Technique } from "game/Techniques/Technique";
 import { WeatherType } from "game/Weather/Weather";
+import { NewGameInterface } from "game/BattleGame";
 
 
 export enum Status{

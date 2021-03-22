@@ -1,4 +1,5 @@
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
+import { NewGameInterface } from "game/BattleGame";
 import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
@@ -6,7 +7,6 @@ import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/Hel
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
-import { NewGameInterface } from "game/Turn";
 import { RainingWeather, SandstormWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
 

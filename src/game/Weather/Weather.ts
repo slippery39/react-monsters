@@ -1,3 +1,4 @@
+import { NewGameInterface } from "game/BattleGame";
 import { DamageModifierInfo } from "game/DamageFunctions";
 import { EffectType, HealthRestoreEffect } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
@@ -5,7 +6,6 @@ import { GetActivePokemon } from "game/HelperFunctions";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
-import { NewGameInterface } from "game/Turn";
 import _ from "lodash";
 
 

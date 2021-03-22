@@ -1,10 +1,10 @@
 import _ from "lodash";
+import { Field } from "./BattleGame";
 import { ElementType } from "./ElementType";
 import { Player } from "./Player/PlayerBuilder";
 import { Pokemon } from "./Pokemon/Pokemon";
 import { Stat } from "./Stat";
 import { Technique } from "./Techniques/Technique";
-import { Field } from "./Turn";
 
 export function GetActivePokemon(player: Player) {
     const pokemon = player.pokemon.find(p => p.id === player.currentPokemonId);

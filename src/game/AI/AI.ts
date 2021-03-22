@@ -2,8 +2,8 @@ import { shuffle } from "lodash";
 import { CreateSwitchAction } from "game/BattleActions";
 import BattleService from "game/BattleService";
 import { Player } from "game/Player/PlayerBuilder";
-import { OnSwitchNeededArgs } from "game/Turn";
 import MiniMax from "./MiniMax";
+import { OnSwitchNeededArgs } from "game/BattleGame";
 
 
 
@@ -68,6 +68,8 @@ class BasicAI implements AI {
     }
 
     private async SwitchPokemonSmart(validPokemon: Array<number>) {
+        console.log("switching pokemon smart",validPokemon);
+
         const miniMax = new MiniMax();
         let maxPoints = -999999999;
         let bestPokemon = undefined;

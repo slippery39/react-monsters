@@ -27,11 +27,12 @@ import { Status } from 'game/HardStatus/HardStatus';
 import { Player } from 'game/Player/PlayerBuilder';
 import PokemonInfo from 'components/PokemonInfoScreen/PokemonInfoScreen';
 import { ElementType } from 'game/ElementType';
-import { Field, OnNewTurnLogArgs } from 'game/Turn';
+
 
 import ReactRain from "react-rain-animation";
 import "react-rain-animation/lib/style.css";
-import { SandstormWeather, WeatherType } from 'game/Weather/Weather';
+import {  WeatherType } from 'game/Weather/Weather';
+import { Field, OnNewTurnLogArgs } from 'game/BattleGame';
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);

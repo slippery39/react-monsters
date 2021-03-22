@@ -1,5 +1,6 @@
 import GetAbility from "game/Ability/Ability";
 import { StatusChangeEvent, BattleEventType } from "game/BattleEvents";
+import { NewGameInterface } from "game/BattleGame";
 import { ApplyEntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { FieldEffectType, WishFieldEffect } from "game/FieldEffects/FieldEffects";
 import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
@@ -10,7 +11,6 @@ import { Player } from "game/Player/PlayerBuilder";
 import { ApplyStatBoost, Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
-import { NewGameInterface } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { RainingWeather, SunnyWeather, Weather, WeatherType } from "game/Weather/Weather";
 import { shuffle } from "lodash";

@@ -7,10 +7,11 @@ This is the class that all classes that need to tap into the turn object will ca
 */
 
 import { UseMoveAction } from "game/BattleActions";
+import { NewGameInterface } from "game/BattleGame";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
-import { NewGameInterface } from "game/Turn";
+
 
 
 abstract class BattleBehaviour {

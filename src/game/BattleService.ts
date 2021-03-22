@@ -1,11 +1,10 @@
-import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs} from "./Turn";
 import { BattleAction, SwitchPokemonAction } from "./BattleActions";
 import _ from "lodash";
 
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
-import BattleGame from "./BattleGame";
+import BattleGame, { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
 
 
 
@@ -79,6 +78,7 @@ class BattleService {
     }
 
     SetInitialAction(action: BattleAction) {
+        console.log("setting initial action in battle service",action);
         this.battle.SetInitialPlayerAction(action);
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean) {

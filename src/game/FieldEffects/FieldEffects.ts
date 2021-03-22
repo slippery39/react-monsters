@@ -1,8 +1,8 @@
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
+import { NewGameInterface } from "game/BattleGame";
 import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
-import { NewGameInterface } from "game/Turn";
 import _ from "lodash";
 
 

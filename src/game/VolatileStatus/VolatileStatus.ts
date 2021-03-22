@@ -1,7 +1,6 @@
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { FieldPosition, HasVolatileStatus, Pokemon } from "game/Pokemon/Pokemon";
-import { NewGameInterface } from "game/Turn";
 import _, { shuffle } from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { BattleEventType } from "game/BattleEvents";
@@ -10,6 +9,7 @@ import { InflictVolatileStatus, TargetType } from "game/Effects/Effects";
 import { Player } from "game/Player/PlayerBuilder";
 import { GetTech } from "game/Techniques/PremadeTechniques";
 import { Actions, ForcedTechniqueAction, UseMoveAction } from "game/BattleActions";
+import { NewGameInterface } from "game/BattleGame";
 
 
 export enum VolatileStatusType {

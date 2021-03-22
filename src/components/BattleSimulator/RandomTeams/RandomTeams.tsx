@@ -1,10 +1,10 @@
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import waitForSeconds from 'game/AI/CoroutineTest';
+import { OnGameOverArgs } from 'game/BattleGame';
 import BattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
-import { OnGameOverArgs } from 'game/Turn';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback,useState } from 'react';
 import { SimmedStats, WinLoss } from '../BattleSimulator';
 
 import "./randomTeams.css";

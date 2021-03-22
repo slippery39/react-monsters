@@ -1,7 +1,7 @@
+import { NewGameInterface } from "game/BattleGame";
 import { GetPokemonOwner } from "game/HelperFunctions";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
-import { NewGameInterface } from "game/Turn";
 import _ from "lodash";
 
 export type DamageEffect = {
