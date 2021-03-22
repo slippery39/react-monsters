@@ -5,7 +5,7 @@ import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { Turn } from "game/Turn";
+import { NewGameInterface} from "game/Turn";
 
 
 
@@ -16,11 +16,11 @@ export enum EntryHazardType {
 }
 
 
-export function ApplyEntryHazard(turn: Turn, player: Player, type: EntryHazardType) {
+export function ApplyEntryHazard(game: NewGameInterface, player: Player, type: EntryHazardType) {
 
 
     const getEntryHazard = function(type:EntryHazardType,player:Player){
-        return turn.GetEntryHazards().find(hazard=>hazard.type === type && hazard.player!.id === player.id)
+        return game.GetEntryHazards().find(hazard=>hazard.type === type && hazard.player!.id === player.id)
     }
 
     switch (type) {
@@ -28,15 +28,15 @@ export function ApplyEntryHazard(turn: Turn, player: Player, type: EntryHazardTy
             let spikes = getEntryHazard(EntryHazardType.Spikes,player);
             if (spikes === undefined) {
                 spikes = new Spikes(player);
-                turn.GetEntryHazards().push(spikes);
-                spikes.OnApplied(turn, player);
+                game.GetEntryHazards().push(spikes);
+                spikes.OnApplied(game, player);
             }
             else {
-                if (spikes.CanApply(turn, player)) {
-                    spikes.OnApplied(turn, player);
+                if (spikes.CanApply(game, player)) {
+                    spikes.OnApplied(game, player);
                 }
                 else {
-                    spikes.OnApplyFail(turn, player);
+                    spikes.OnApplyFail(game, player);
                 }
             }
             //look if the turn already has an entry hazard of this type stored.
@@ -48,11 +48,11 @@ export function ApplyEntryHazard(turn: Turn, player: Player, type: EntryHazardTy
             let stealthRock = getEntryHazard(EntryHazardType.StealthRock,player);
             if (stealthRock === undefined) {
                 stealthRock = new StealthRock(player);
-                turn.GetEntryHazards().push(stealthRock);
-                stealthRock.OnApplied(turn, player);
+                game.GetEntryHazards().push(stealthRock);
+                stealthRock.OnApplied(game, player);
             }
             else {
-                stealthRock.OnApplyFail(turn, player);
+                stealthRock.OnApplyFail(game, player);
             }
             break;
 
@@ -61,11 +61,11 @@ export function ApplyEntryHazard(turn: Turn, player: Player, type: EntryHazardTy
             let stickyWeb = getEntryHazard(EntryHazardType.StickyWeb,player);
             if (stickyWeb === undefined){
                 stickyWeb = new StickyWeb(player);
-                turn.GetEntryHazards().push(stickyWeb);
-                stickyWeb.OnApplied(turn,player);
+                game.GetEntryHazards().push(stickyWeb);
+                stickyWeb.OnApplied(game,player);
             }
             else{
-                stickyWeb.OnApplyFail(turn,player);
+                stickyWeb.OnApplyFail(game,player);
             }
             break;
         }
@@ -85,16 +85,16 @@ export abstract class EntryHazard {
         this.player = player;
     }
 
-    CanApply(turn: Turn, player: Player) {
+    CanApply(turn: NewGameInterface, player: Player) {
         return true;
     }
-    OnApplied(turn: Turn, player: Player) {
+    OnApplied(turn: NewGameInterface, player: Player) {
 
     }
-    OnApplyFail(turn: Turn, player: Player) {
+    OnApplyFail(turn: NewGameInterface, player: Player) {
 
     }
-    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+    OnPokemonEntry(turn: NewGameInterface, pokemon: Pokemon) {
 
     }
 }
@@ -109,17 +109,17 @@ export class Spikes extends EntryHazard {
         this.player = player;
     }
 
-    CanApply(turn: Turn, player: Player) {
+    CanApply(turn: NewGameInterface, player: Player) {
         return this.stage < 3;
     }
 
-    OnApplied(turn: Turn, player: Player) {
+    OnApplied(turn: NewGameInterface, player: Player) {
         this.stage++;
     }
-    OnApplyFail(turn: Turn, player: Player) {
+    OnApplyFail(turn: NewGameInterface, player: Player) {
         turn.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+    OnPokemonEntry(turn: NewGameInterface, pokemon: Pokemon) {
 
         if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;
@@ -152,13 +152,13 @@ export class StickyWeb extends EntryHazard {
         this.sourcePokemon = GetActivePokemon(player);
     }
     
-    OnApplied(turn: Turn, player: Player) {
+    OnApplied(turn: NewGameInterface, player: Player) {
         turn.AddMessage(`A sticky web was placed below ${player.name}'s team.`);
     }
-    OnApplyFail(turn: Turn, player: Player) {
+    OnApplyFail(turn: NewGameInterface, player: Player) {
         turn.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+    OnPokemonEntry(turn: NewGameInterface, pokemon: Pokemon) {
         if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;
         }
@@ -167,7 +167,7 @@ export class StickyWeb extends EntryHazard {
         }
         
         DoStatBoost({
-            turn:turn,
+            game:turn,
             pokemon:pokemon,
             stat:Stat.Speed,
             amount:-1,
@@ -188,13 +188,13 @@ export class StealthRock extends EntryHazard {
         this.player = player;
     }
     
-    OnApplied(turn: Turn, player: Player) {
+    OnApplied(turn: NewGameInterface, player: Player) {
         turn.AddMessage(`Pointed stones float in the air around ${player.name}'s team.`);
     }
-    OnApplyFail(turn: Turn, player: Player) {
+    OnApplyFail(turn: NewGameInterface, player: Player) {
         turn.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+    OnPokemonEntry(turn: NewGameInterface, pokemon: Pokemon) {
 
         if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;

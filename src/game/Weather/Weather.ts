@@ -5,46 +5,46 @@ import { GetActivePokemon } from "game/HelperFunctions";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
-import { Turn } from "game/Turn";
+import { NewGameInterface } from "game/Turn";
 import _ from "lodash";
 
 
 
-export enum WeatherType{
-    Rain='Rain',
-    Sunny='Sunny',
+export enum WeatherType {
+    Rain = 'Rain',
+    Sunny = 'Sunny',
     Sandstorm = 'Sandstorm',
     None = 'None'
 }
 
 export abstract class Weather {
-    name:WeatherType = WeatherType.None;
+    name: WeatherType = WeatherType.None;
     duration: number = 5;
     currentTurn: number = 0;
 
-    OnApply(turn:Turn){
+    OnApply(game: NewGameInterface) {
     }
 
-    ModifyTechnique(pokemon:Pokemon,tech:Technique){
+    ModifyTechnique(pokemon: Pokemon, tech: Technique) {
         return tech;
     }
-    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, turn: Turn){
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: NewGameInterface) {
         return damage;
     }
-    EndOfTurn(turn:Turn){
-        
+    EndOfTurn(game: NewGameInterface) {
+
     }
 }
 
-export class SandstormWeather extends Weather{
-    name:WeatherType = WeatherType.Sandstorm
+export class SandstormWeather extends Weather {
+    name: WeatherType = WeatherType.Sandstorm
 
-    OnApply(turn:Turn){
+    OnApply(turn: NewGameInterface) {
         turn.AddMessage("A sandstorm kicked up!");
     }
 
-    ModifyTechnique(pokemon:Pokemon,tech:Technique){
-        if (["moonlight","synthesis","morning sun"].includes(tech.name.toLowerCase())){
+    ModifyTechnique(pokemon: Pokemon, tech: Technique) {
+        if (["moonlight", "synthesis", "morning sun"].includes(tech.name.toLowerCase())) {
 
             const newTech = _.cloneDeep(tech);
             if (!newTech.effects) {
@@ -53,18 +53,18 @@ export class SandstormWeather extends Weather{
             const healingEffect = newTech.effects.find(eff => eff.type === EffectType.HealthRestore);
             if (healingEffect === undefined) {
                 throw new Error(`Expected healing effect for move ${tech.name} but could not find one`);
-            }   
+            }
             (healingEffect as HealthRestoreEffect).amount = 25;
-             return newTech;
+            return newTech;
         }
-        if (["solar beam"].includes(tech.name.toLowerCase())){
+        if (["solar beam"].includes(tech.name.toLowerCase())) {
             const newTech = _.cloneDeep(tech);
             newTech.power = 60;
             return newTech;
         }
         return tech;
     }
-    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, turn: Turn) {
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: NewGameInterface) {
         if (tech.elementalType === ElementType.Fire) {
             return damage * 1.5;
         }
@@ -74,59 +74,59 @@ export class SandstormWeather extends Weather{
         return damage;
     }
 
-    EndOfTurn(turn: Turn) {
+    EndOfTurn(game: NewGameInterface) {
         this.currentTurn++;
-        if (this.currentTurn >=this.duration){
-            turn.AddMessage("The sandstorm subsided.");
-            const allPokemon = turn.GetPlayers().map(play=>play.pokemon).flat();
-            allPokemon.forEach(pokemon=>{
+        if (this.currentTurn >= this.duration) {
+            game.AddMessage("The sandstorm subsided.");
+            const allPokemon = game.GetPlayers().map(play => play.pokemon).flat();
+            allPokemon.forEach(pokemon => {
                 _.remove(pokemon.statMultipliers, function (mod) {
                     return mod.tag === "sandstorm"
                 })
             });
-            turn.field.weather = undefined //stops the weather.          
+            game.field.weather = undefined //stops the weather.          
         }
-        else{
+        else {
             //deal 1/16 max health damage to each active pokemon that is not ground steel or rock
-            const activePokemons = turn.GetPlayers().map(player=>GetActivePokemon(player));
-            activePokemons.forEach(poke=>{
-                const shouldDamage = poke.elementalTypes.filter(el=>[ElementType.Rock,ElementType.Steel,ElementType.Ground].includes(el)).length === 0
-                if (shouldDamage){
-                    turn.ApplyIndirectDamage(poke,poke.originalStats.hp/16);
-                    turn.AddMessage(`${poke.name} was buffeted by the sandstorm!`);
+            const activePokemons = game.GetPlayers().map(player => GetActivePokemon(player));
+            activePokemons.forEach(poke => {
+                const shouldDamage = poke.elementalTypes.filter(el => [ElementType.Rock, ElementType.Steel, ElementType.Ground].includes(el)).length === 0
+                if (shouldDamage) {
+                    game.ApplyIndirectDamage(poke, poke.originalStats.hp / 16);
+                    game.AddMessage(`${poke.name} was buffeted by the sandstorm!`);
                 }
             });
-            
-        }
-      }
 
-      Update(turn:Turn){
-          const allPokemon = turn.GetPlayers().map(play=>play.pokemon).flat();
-          allPokemon.forEach(pokemon=>{
-            if (pokemon.statMultipliers.find(multi=>multi.tag === "sandstorm") === undefined){
+        }
+    }
+
+    Update(game: NewGameInterface) {
+        const allPokemon = game.GetPlayers().map(play => play.pokemon).flat();
+        allPokemon.forEach(pokemon => {
+            if (pokemon.statMultipliers.find(multi => multi.tag === "sandstorm") === undefined) {
                 const multiplier: StatMultiplier = {
                     stat: Stat.SpecialDefense,
-                    multiplier:1.5,
-                    tag:"sandstorm"
+                    multiplier: 1.5,
+                    tag: "sandstorm"
                 }
                 pokemon.statMultipliers.push(multiplier);
-            }           
-          });
+            }
+        });
 
-      }
+    }
 }
 
 
 
-export class SunnyWeather extends Weather{
-    name:WeatherType = WeatherType.Sunny
+export class SunnyWeather extends Weather {
+    name: WeatherType = WeatherType.Sunny
 
-    OnApply(turn:Turn){
-        turn.AddMessage("The sunlight turned harsh!");
+    OnApply(game: NewGameInterface) {
+        game.AddMessage("The sunlight turned harsh!");
     }
 
-    ModifyTechnique(pokemon:Pokemon,tech:Technique){
-        if (["moonlight","synthesis","morning sun"].includes(tech.name.toLowerCase())){
+    ModifyTechnique(pokemon: Pokemon, tech: Technique) {
+        if (["moonlight", "synthesis", "morning sun"].includes(tech.name.toLowerCase())) {
 
             const newTech = _.cloneDeep(tech);
             if (!newTech.effects) {
@@ -135,16 +135,16 @@ export class SunnyWeather extends Weather{
             const healingEffect = newTech.effects.find(eff => eff.type === EffectType.HealthRestore);
             if (healingEffect === undefined) {
                 throw new Error(`Expected healing effect for move ${tech.name} but could not find one`);
-            }   
+            }
             (healingEffect as HealthRestoreEffect).amount = 66;
-             return newTech;
+            return newTech;
         }
         if (["thunder", "hurricane"].includes(tech.name.toLowerCase())) {
             const newTech = _.cloneDeep(tech);
             newTech.accuracy = 50; //hack to make the move bypass the accuracy check. think about having a flag to do so anyways.
             return newTech;
         }
-        if (["solar beam"].includes(tech.name.toLowerCase())){
+        if (["solar beam"].includes(tech.name.toLowerCase())) {
             console.log("we are finding solar beam here!");
             //Solar beam becomes a non charging move.
             const newTech = _.cloneDeep(tech);
@@ -156,7 +156,7 @@ export class SunnyWeather extends Weather{
         return tech;
     }
 
-    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, turn: Turn) {
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: NewGameInterface) {
         if (tech.elementalType === ElementType.Fire) {
             return damage * 1.5;
         }
@@ -166,21 +166,21 @@ export class SunnyWeather extends Weather{
         return damage;
     }
 
-    EndOfTurn(turn: Turn) {
+    EndOfTurn(game: NewGameInterface) {
         this.currentTurn++;
-        if (this.currentTurn >=this.duration){
-            turn.AddMessage("The harsh sunlight faded.")
-            turn.field.weather = undefined //stops the weather.          
-        }  
-      }
+        if (this.currentTurn >= this.duration) {
+            game.AddMessage("The harsh sunlight faded.")
+            game.field.weather = undefined //stops the weather.          
+        }
+    }
 }
 
 
 export class RainingWeather extends Weather {
-    name:WeatherType = WeatherType.Rain;
+    name: WeatherType = WeatherType.Rain;
     //Moves Thunder and Hurricane should always hit.
 
-    OnApply(turn:Turn){
+    OnApply(turn: NewGameInterface) {
         turn.AddMessage("It started to rain!");
     }
 
@@ -213,7 +213,7 @@ export class RainingWeather extends Weather {
         return tech;
     }
 
-    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, turn: Turn) {
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: NewGameInterface) {
 
         if (tech.elementalType === ElementType.Water) {
             return damage * 1.5;
@@ -223,11 +223,11 @@ export class RainingWeather extends Weather {
         }
         return damage;
     }
-    EndOfTurn(turn: Turn) {
+    EndOfTurn(game: NewGameInterface) {
         this.currentTurn++;
-        if (this.currentTurn >=this.duration){
-            turn.AddMessage("The rain stopped.")
-            turn.field.weather = undefined //stops the weather.          
-        }  
-      }
+        if (this.currentTurn >= this.duration) {
+            game.AddMessage("The rain stopped.")
+            game.field.weather = undefined //stops the weather.          
+        }
+    }
 }

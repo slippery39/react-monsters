@@ -1,7 +1,7 @@
 import { GetActivePokemon, HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { FieldPosition, HasVolatileStatus, Pokemon } from "game/Pokemon/Pokemon";
-import { Turn } from "game/Turn";
+import { NewGameInterface } from "game/Turn";
 import _, { shuffle } from "lodash";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { BattleEventType } from "game/BattleEvents";
@@ -22,44 +22,44 @@ export enum VolatileStatusType {
     Protection = 'protection',
     Outraged = "outraged",
     Bouncing = "bouncing",
-    Encored = "encored", 
-    ChargingSolarBeam = 'charging-solar-beam'   
+    Encored = "encored",
+    ChargingSolarBeam = 'charging-solar-beam'
 }
 
 
 export abstract class VolatileStatus extends BattleBehaviour {
     abstract type: VolatileStatusType
- 
+
 
     abstract InflictedMessage(pokemon: Pokemon): string
 
-    OnApply(turn: Turn, pokemon: Pokemon) {
+    OnApply(game: NewGameInterface, pokemon: Pokemon) {
 
     }
-    CanApply(turn: Turn, pokemon: Pokemon) {
-         return !HasVolatileStatus(pokemon, this.type)
+    CanApply(game: NewGameInterface, pokemon: Pokemon) {
+        return !HasVolatileStatus(pokemon, this.type)
     }
-    Remove(turn: Turn, pokemon: Pokemon) {
+    Remove(game: NewGameInterface, pokemon: Pokemon) {
         _.remove(pokemon.volatileStatuses, (vStat) =>
             vStat.type === this.type
         );
-        this.OnRemoved(turn, pokemon);
+        this.OnRemoved(game, pokemon);
     }
-    OnRemoved(turn: Turn, pokemon: Pokemon) {
+    OnRemoved(game: NewGameInterface, pokemon: Pokemon) {
 
     }
 }
 
 export class SubstituteVolatileStatus extends VolatileStatus {
     type = VolatileStatusType.Substitute
- 
+
 
     public substituteHealth: number = 999;
 
-    Damage(turn: Turn, pokemon: Pokemon, amount: number) {
+    Damage(game: NewGameInterface, pokemon: Pokemon, amount: number) {
         this.substituteHealth -= amount;
         if (this.substituteHealth <= 0) {
-            this.Remove(turn, pokemon);
+            this.Remove(game, pokemon);
         }
     }
     InflictedMessage(pokemon: Pokemon) {
@@ -70,29 +70,29 @@ export class SubstituteVolatileStatus extends VolatileStatus {
         return Math.ceil(pokemon.originalStats.hp / 4);
     }
 
-    CanApply(turn: Turn, pokemon: Pokemon) {
-        const canApply = super.CanApply(turn, pokemon) && (pokemon.currentStats.hp > this.HealthForSubstitute(pokemon));
+    CanApply(game: NewGameInterface, pokemon: Pokemon) {
+        const canApply = super.CanApply(game, pokemon) && (pokemon.currentStats.hp > this.HealthForSubstitute(pokemon));
 
         //Not ideal here, but works for now. 
         if (!canApply) {
-            turn.AddMessage('But it failed!');
+            game.AddMessage('But it failed!');
         }
         return canApply;
     }
 
-    OnRemoved(turn: Turn, pokemon: Pokemon) {
+    OnRemoved(game: NewGameInterface, pokemon: Pokemon) {
         pokemon.hasSubstitute = false;
-        turn.AddEvent({
+        game.AddEvent({
             type: BattleEventType.SubstituteBroken,
             targetPokemonId: pokemon.id
         });
-        turn.AddEvent({
+        game.AddEvent({
             type: BattleEventType.GenericMessage,
             defaultMessage: `${pokemon.name}'s substitute has broken!`
         })
     }
 
-    OnApply(turn: Turn, pokemon: Pokemon) {
+    OnApply(game: NewGameInterface, pokemon: Pokemon) {
         /*
             Create a substitute that has 1/4 the pokemon's health
             //all damage should go to the substiute until it breaks.
@@ -103,7 +103,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
         pokemon.hasSubstitute = true;
 
         //temporary, to show the damage animtion in the ui.
-        turn.AddEvent({
+        game.AddEvent({
             type: BattleEventType.Damage,
             targetPokemonId: pokemon.id,
             attackerPokemonId: pokemon.id,
@@ -112,7 +112,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
             targetFinalHealth: pokemon.currentStats.hp,
             effectivenessAmt: 1
         })
-        turn.AddEvent({
+        game.AddEvent({
             type: BattleEventType.SubstituteCreated,
             targetPokemonId: pokemon.id
         });
@@ -122,7 +122,7 @@ export class SubstituteVolatileStatus extends VolatileStatus {
 
 export class RoostedVolatileStatus extends VolatileStatus {
     type = VolatileStatusType.Roosted
-   
+
 
     private originalTypes: Array<ElementType> = [];
 
@@ -130,7 +130,7 @@ export class RoostedVolatileStatus extends VolatileStatus {
         return `${pokemon.name} has roosted!`
     }
 
-    OnApply(turn: Turn, pokemon: Pokemon) {
+    OnApply(game: NewGameInterface, pokemon: Pokemon) {
 
         this.originalTypes = [...pokemon.elementalTypes];
         //remove the flying element of the pokemon
@@ -139,12 +139,12 @@ export class RoostedVolatileStatus extends VolatileStatus {
         });
     }
 
-    OnRemoved(turn: Turn, pokemon: Pokemon) {
+    OnRemoved(game: NewGameInterface, pokemon: Pokemon) {
         pokemon.elementalTypes = this.originalTypes;
     }
 
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
-        this.Remove(turn, pokemon);
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
+        this.Remove(game, pokemon);
     }
 
 }
@@ -154,39 +154,39 @@ export class ProtectionVolatileStatus extends VolatileStatus {
     type = VolatileStatusType.Protection;
     private chanceToApply: number = 100;
     private isProtected: boolean = true;
-   
+
 
     InflictedMessage(pokemon: Pokemon) {
         //this is firing every single time.
         return `${pokemon.name} is protecting itself`;
     }
 
-    OnApply(){
+    OnApply() {
         this.isProtected = true;
     }
 
-    
 
-    OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique) {
-        if (move.name.toLowerCase() === "protect") {            
-            const isProtected = turn.Roll(this.chanceToApply);
+
+    OnTechniqueUsed(game: NewGameInterface, pokemon: Pokemon, move: Technique) {
+        if (move.name.toLowerCase() === "protect") {
+            const isProtected = game.Roll(this.chanceToApply);
             if (!isProtected) {
-                turn.AddMessage(`But it failed`);
+                game.AddMessage(`But it failed`);
                 this.isProtected = false;
-           }
+            }
             else {
-                turn.AddMessage(this.InflictedMessage(pokemon));
+                game.AddMessage(this.InflictedMessage(pokemon));
                 this.isProtected = true;
             }
         }
-        else{
+        else {
             this.isProtected = false;
         }
     }
     //defending against a technique.
-    NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
+    NegateTechnique(game: NewGameInterface, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
 
-        if (!this.isProtected){
+        if (!this.isProtected) {
             return false;
         }
         this.chanceToApply /= 2; //new: going to always lower the chance now to prevent protect spamming against
@@ -194,17 +194,17 @@ export class ProtectionVolatileStatus extends VolatileStatus {
         const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) !== undefined;
 
         if (isDamagingMove || isStatusMoveThatEffectsOpponent) {
-            turn.AddMessage(`${defendingPokemon.name} protected itself!`);
+            game.AddMessage(`${defendingPokemon.name} protected itself!`);
             return true;
         }
         return false;
     }
 
-    EndOfTurn(turn:Turn,pokemon:Pokemon){
-        if (!this.isProtected){
-            _.remove(pokemon.volatileStatuses,(vStat=>vStat.type === this.type))
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
+        if (!this.isProtected) {
+            _.remove(pokemon.volatileStatuses, (vStat => vStat.type === this.type))
         }
-        else{
+        else {
             this.isProtected = false;
         }
     }
@@ -212,22 +212,22 @@ export class ProtectionVolatileStatus extends VolatileStatus {
 
 export class AquaRingVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.AquaRing;
-   
+
 
     InflictedMessage(pokemon: Pokemon): string {
         return `${pokemon.name} has surrounded itself in a veil of water!`
     }
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
         //heal 1/16 of hp
-        turn.ApplyHealing(pokemon, pokemon.originalStats.hp / 16);
-        turn.AddMessage(`${pokemon.name} restored a little health due to aqua veil!`);
+        game.ApplyHealing(pokemon, pokemon.originalStats.hp / 16);
+        game.AddMessage(`${pokemon.name} restored a little health due to aqua veil!`);
     }
 }
 
 
 export class FlinchVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.Flinch
-   
+
 
     InflictedMessage(pokemon: Pokemon): string {
         //hack here. we may need an "on apply" method
@@ -235,15 +235,15 @@ export class FlinchVolatileStatus extends VolatileStatus {
     }
 
     //Not sure if we should apply here or we should apply on attack.
-    OnApply(turn: Turn, pokemon: Pokemon) {
+    OnApply(game: NewGameInterface, pokemon: Pokemon) {
     }
 
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
+    BeforeAttack(game: NewGameInterface, pokemon: Pokemon) {
         pokemon.canAttackThisTurn = false;
-        turn.AddMessage(`${pokemon.name} has flinched`);
+        game.AddMessage(`${pokemon.name} has flinched`);
     }
 
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
         _.remove(pokemon.volatileStatuses, (vStat) =>
             vStat.type === this.type
         );
@@ -252,56 +252,56 @@ export class FlinchVolatileStatus extends VolatileStatus {
 
 export class LeechSeedVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.LeechSeed;
-   
+
 
     InflictedMessage(pokemon: Pokemon): string {
         return `${pokemon.name} has been seeded!`;
     }
 
-    CanApply(turn: Turn, pokemon: Pokemon) {
-        return super.CanApply(turn, pokemon) && !HasElementType(pokemon, ElementType.Grass);
+    CanApply(game: NewGameInterface, pokemon: Pokemon) {
+        return super.CanApply(game, pokemon) && !HasElementType(pokemon, ElementType.Grass);
     }
 
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
         const leechSeedDamage = pokemon.originalStats.hp / 16;
         //deal the leech seed damage to the pokemon
         //heal the opponent pokemon
-        const opponentPlayer = turn.GetPlayers().find(player => player.currentPokemonId !== pokemon.id);
+        const opponentPlayer = game.GetPlayers().find(player => player.currentPokemonId !== pokemon.id);
         if (opponentPlayer === undefined) {
             throw new Error('Could not find player for leech seed end of turn');
         }
 
         const opponentPokemon = GetActivePokemon(opponentPlayer);
-        turn.ApplyIndirectDamage(pokemon, leechSeedDamage);
-        turn.ApplyHealing(opponentPokemon, leechSeedDamage);
-        turn.AddMessage(`${pokemon.name} had its health drained a little due to leech seed!`);
+        game.ApplyIndirectDamage(pokemon, leechSeedDamage);
+        game.ApplyHealing(opponentPokemon, leechSeedDamage);
+        game.AddMessage(`${pokemon.name} had its health drained a little due to leech seed!`);
     }
 }
 
 
 export class ConfusionVolatileStatus extends VolatileStatus {
     type: VolatileStatusType = VolatileStatusType.Confusion;
-   
+
 
     private unconfuseChance: number = 25;
     private damageSelfChance: number = 50
 
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
+    BeforeAttack(game: NewGameInterface, pokemon: Pokemon) {
 
         if (pokemon.canAttackThisTurn === false) {
             return;
         }
 
-        if (turn.Roll(this.unconfuseChance)) {
+        if (game.Roll(this.unconfuseChance)) {
             //the attacking pokemon is no longer confused
             _.remove(pokemon.volatileStatuses, (vstatus) => vstatus.type === 'confusion');
-            turn.AddMessage(`${pokemon.name} has snapped out of its confusion!`);
+            game.AddMessage(`${pokemon.name} has snapped out of its confusion!`);
         }
         else {
-            turn.AddMessage(`${pokemon.name} is confused!`);
-            if (turn.Roll(this.damageSelfChance)) {
-                turn.AddMessage(`${pokemon.name} has hurt itself in its confusion`);
-                turn.ApplyIndirectDamage(pokemon, 40);
+            game.AddMessage(`${pokemon.name} is confused!`);
+            if (game.Roll(this.damageSelfChance)) {
+                game.AddMessage(`${pokemon.name} has hurt itself in its confusion`);
+                game.ApplyIndirectDamage(pokemon, 40);
                 //pokemon skips the turn as well
                 pokemon.canAttackThisTurn = false;
             }
@@ -324,11 +324,11 @@ export class OutragedVolatileStatus extends VolatileStatus {
         return "";
     }
 
-    OnApply(turn: Turn, pokemon: Pokemon) {
+    OnApply(game: NewGameInterface, pokemon: Pokemon) {
         this.amountOfTurns = shuffle([2, 3])[0];
     }
 
-    ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
+    ForceAction(game: NewGameInterface, player: Player, pokemon: Pokemon) {
         //force an overwrite of whatever action might be in there.
         const outrageTechnique = GetTech("outrage");
 
@@ -338,52 +338,52 @@ export class OutragedVolatileStatus extends VolatileStatus {
             technique: outrageTechnique,
             type: Actions.ForcedTechnique
         }
-        turn.SetInitialPlayerAction(forcedTechnique);
+        game.SetInitialPlayerAction(forcedTechnique);
     }
 
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
+    BeforeAttack(game: NewGameInterface, pokemon: Pokemon) {
         if (pokemon.canAttackThisTurn === false) {
-            this.Remove(turn, pokemon);
+            this.Remove(game, pokemon);
             return;
         }
-        turn.AddMessage(`${pokemon.name} is outraged!`);
+        game.AddMessage(`${pokemon.name} is outraged!`);
         this.currentTurn++
     }
 
-    OnTechniqueMissed(turn: Turn, pokemon: Pokemon) {
-        this.Remove(turn, pokemon);
+    OnTechniqueMissed(game: NewGameInterface, pokemon: Pokemon) {
+        this.Remove(game, pokemon);
     }
 
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
         if (this.currentTurn >= this.amountOfTurns) {
-            this.Remove(turn, pokemon);
-            turn.AddMessage(`${pokemon.name} is no longer outraged.`);
-            InflictVolatileStatus(turn, pokemon, VolatileStatusType.Confusion, pokemon);
+            this.Remove(game, pokemon);
+            game.AddMessage(`${pokemon.name} is no longer outraged.`);
+            InflictVolatileStatus(game, pokemon, VolatileStatusType.Confusion, pokemon);
         }
         //Remove Outraged Status if Attack missed for whatever reason.
     }
 }
 
 export class BouncingVolatileStatus extends VolatileStatus {
-    flaggedForRemoval:boolean = false;
+    flaggedForRemoval: boolean = false;
     type = VolatileStatusType.Bouncing;
-    name="Bouncing"
+    name = "Bouncing"
 
     InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} bounced high up in the air`;
     }
 
 
-    OnApply(turn:Turn,pokemon:Pokemon){
-            pokemon.fieldPosition = FieldPosition.InAir;
+    OnApply(game: NewGameInterface, pokemon: Pokemon) {
+        pokemon.fieldPosition = FieldPosition.InAir;
     }
 
-    OnTechniqueUsed(turn: Turn, pokemon: Pokemon, move: Technique){
+    OnTechniqueUsed(game: NewGameInterface, pokemon: Pokemon, move: Technique) {
         pokemon.fieldPosition = FieldPosition.GroundLevel;
-        turn.AddMessage("");
+        game.AddMessage("");
     }
 
-    ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
+    ForceAction(game: NewGameInterface, player: Player, pokemon: Pokemon) {
         let bounceTechnique = GetTech("bounce");
         //remove the 2 turn move part so that it doesn't inflict the "bounce" status again.
         bounceTechnique.firstTurnStatus = undefined;
@@ -395,28 +395,28 @@ export class BouncingVolatileStatus extends VolatileStatus {
             technique: bounceTechnique,
             type: Actions.ForcedTechnique
         }
-        turn.SetInitialPlayerAction(forcedTechnique);     
+        game.SetInitialPlayerAction(forcedTechnique);
     }
 
 
-    AfterActionStep(turn:Turn,pokemon:Pokemon){
+    AfterActionStep(game: NewGameInterface, pokemon: Pokemon) {
         //this is triggering even when its not the pokemon's action.
 
-        if (this.flaggedForRemoval === false){
+        if (this.flaggedForRemoval === false) {
             this.flaggedForRemoval = true;
         }
-        else{
-             this.Remove(turn,pokemon);
+        else {
+            this.Remove(game, pokemon);
         }
     }
 
     //This status prevents it from getting hit by any move except for 
-    NegateTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
+    NegateTechnique(game: NewGameInterface, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique) {
         const isDamagingMove = move.damageType === DamageType.Physical || move.damageType === DamageType.Special;
         const isStatusMoveThatEffectsOpponent = move.damageType === DamageType.Status && move.effects?.find(eff => eff.target === undefined || eff.target === TargetType.Enemy) !== undefined;
 
         if (isDamagingMove || isStatusMoveThatEffectsOpponent) {
-            turn.AddMessage(`it had no effect because ${defendingPokemon.name} is in the air!`);
+            game.AddMessage(`it had no effect because ${defendingPokemon.name} is in the air!`);
             return true;
         }
 
@@ -424,58 +424,58 @@ export class BouncingVolatileStatus extends VolatileStatus {
     }
 }
 
-export class EncoredVolatileStatus extends VolatileStatus{
+export class EncoredVolatileStatus extends VolatileStatus {
     type = VolatileStatusType.Encored
-    numTurns:number = 3;
-    currentTurnNum:number = 1;
+    numTurns: number = 3;
+    currentTurnNum: number = 1;
 
 
 
-    InflictedMessage(pokemon:Pokemon){
+    InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} got an encore!`
     }
 
-    CanApply(turn:Turn,pokemon:Pokemon){
-        return super.CanApply(turn,pokemon) && pokemon.techniqueUsedLast !== undefined &&  pokemon.techniques.find(t=>t.name === pokemon.techniqueUsedLast)!==undefined;   
+    CanApply(game: NewGameInterface, pokemon: Pokemon) {
+        return super.CanApply(game, pokemon) && pokemon.techniqueUsedLast !== undefined && pokemon.techniques.find(t => t.name === pokemon.techniqueUsedLast) !== undefined;
     }
 
-    OverrideAction(turn:Turn,player:Player,pokemon:Pokemon,action:UseMoveAction):UseMoveAction{
-         //Overrides an action, i.e. for Choice items
-         const encoreTechniqueName = pokemon.techniques.find(t=>t.name === pokemon.techniqueUsedLast);      
+    OverrideAction(game: NewGameInterface, player: Player, pokemon: Pokemon, action: UseMoveAction): UseMoveAction {
+        //Overrides an action, i.e. for Choice items
+        const encoreTechniqueName = pokemon.techniques.find(t => t.name === pokemon.techniqueUsedLast);
 
-         if (encoreTechniqueName === undefined){
-            return action; 
+        if (encoreTechniqueName === undefined) {
+            return action;
             //throw new Error(`Could not find technique to encore`);
-         }
+        }
 
-         const newAction = {...action};
-         newAction.moveId = encoreTechniqueName.id;
-         this.currentTurnNum++;
+        const newAction = { ...action };
+        newAction.moveId = encoreTechniqueName.id;
+        this.currentTurnNum++;
 
         return newAction;
     }
 
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
         if (this.currentTurnNum > this.numTurns) {
-            turn.AddMessage(`${pokemon.name}'s encore has ended!`);
-            turn.AddMessage("");
-            this.Remove(turn, pokemon);
-            
+            game.AddMessage(`${pokemon.name}'s encore has ended!`);
+            game.AddMessage("");
+            this.Remove(game, pokemon);
+
         }
         //Remove Outraged Status if Attack missed for whatever reason.
     }
 }
 
-export class ChargingSolarBeamVolatileStatus extends VolatileStatus{
-    flaggedForRemoval:boolean = false;
+export class ChargingSolarBeamVolatileStatus extends VolatileStatus {
+    flaggedForRemoval: boolean = false;
     type = VolatileStatusType.ChargingSolarBeam;
-    name="Charging-Solar-Beam"
+    name = "Charging-Solar-Beam"
 
     InflictedMessage(pokemon: Pokemon) {
         return `${pokemon.name} is gathering sunlight`;
     }
 
-    ForceAction(turn: Turn, player: Player, pokemon: Pokemon) {
+    ForceAction(game: NewGameInterface, player: Player, pokemon: Pokemon) {
         let solarBeamTechnique = GetTech("solar beam");
         //remove the 2 turn move part so that it doesn't inflict the "charging solar beam" status again
         solarBeamTechnique.firstTurnStatus = undefined;
@@ -487,18 +487,18 @@ export class ChargingSolarBeamVolatileStatus extends VolatileStatus{
             technique: solarBeamTechnique,
             type: Actions.ForcedTechnique
         }
-        turn.SetInitialPlayerAction(forcedTechnique);     
+        game.SetInitialPlayerAction(forcedTechnique);
     }
 
 
-    AfterActionStep(turn:Turn,pokemon:Pokemon){
+    AfterActionStep(game: NewGameInterface, pokemon: Pokemon) {
         //this is triggering even when its not the pokemon's action.
 
-        if (this.flaggedForRemoval === false){
+        if (this.flaggedForRemoval === false) {
             this.flaggedForRemoval = true;
         }
-        else{
-             this.Remove(turn,pokemon);
+        else {
+            this.Remove(game, pokemon);
         }
     }
 
@@ -534,10 +534,10 @@ export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
         case VolatileStatusType.Bouncing: {
             return new BouncingVolatileStatus();
         }
-        case VolatileStatusType.Encored:{
+        case VolatileStatusType.Encored: {
             return new EncoredVolatileStatus();
         }
-        case VolatileStatusType.ChargingSolarBeam:{
+        case VolatileStatusType.ChargingSolarBeam: {
             return new ChargingSolarBeamVolatileStatus();
         }
         default: {

@@ -99,7 +99,7 @@ class MiniMax {
         
 
         const originalGame = new BattleGame(beforeField.players,false);
-        originalGame.gameState = beforeField;
+        originalGame.field = beforeField;
 
         let validActions = originalGame.GetValidActions(simmedPlayer);
         const validTechActions = originalGame.GetValidActions(simmedPlayer).filter(vAct=>vAct.type===Actions.UseTechnique || vAct.type === Actions.ForcedTechnique);
@@ -138,7 +138,7 @@ class MiniMax {
 
     private async Simulate1Action(simmedPlayer: Player, simmedAction:BattleAction, beforeField: Field, oppAction?: BattleAction) {
         const testGame = new BattleGame(beforeField.players, false);
-        testGame.gameState = beforeField;
+        testGame.field = beforeField;
         testGame.Initialize();
         testGame.GetCurrentTurn().SetInitialPlayerAction(simmedAction);
 

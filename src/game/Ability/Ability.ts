@@ -6,7 +6,7 @@ import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/Hel
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
-import { Turn } from "game/Turn";
+import { NewGameInterface } from "game/Turn";
 import { RainingWeather, SandstormWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
 
@@ -18,7 +18,7 @@ abstract class AbstractAbility extends BattleBehaviour {
     name: string = "";
     description: string = "";
 
-    OnStatusChange(turn:Turn,pokemon:Pokemon,status:Status,source:Pokemon){
+    OnStatusChange(game: NewGameInterface, pokemon: Pokemon, status: Status, source: Pokemon) {
 
     }
 }
@@ -27,17 +27,17 @@ abstract class AbstractAbility extends BattleBehaviour {
 class SpeedBoostAbility extends AbstractAbility {
     name = "Speed Boost"
     description = "Its Speed stat is boosted every turn."
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
         if (pokemon.statBoosts[Stat.Speed] >= 6) {
             return;
         }
         DoStatBoost({
-           turn:turn,
-           stat:Stat.Speed,
-           amount:1,
-           pokemon:pokemon,
-           sourcePokemon:pokemon,
-           messageOverride:`${pokemon.name} speed has increased due to Speed Boost!`
+            game: game,
+            stat: Stat.Speed,
+            amount: 1,
+            pokemon: pokemon,
+            sourcePokemon: pokemon,
+            messageOverride: `${pokemon.name} speed has increased due to Speed Boost!`
         })
     }
 }
@@ -46,10 +46,10 @@ class SpeedBoostAbility extends AbstractAbility {
 class LevitateAbility extends AbstractAbility {
     name = "Levitate";
     description = "By floating in the air, the Pokémon receives full immunity to all Ground-type moves.";
-    NegateDamage(turn: Turn, move: Technique, pokemon: Pokemon): boolean {
+    NegateDamage(game: NewGameInterface, move: Technique, pokemon: Pokemon): boolean {
         if (move.elementalType === ElementType.Ground) {
             //no damage taken, maybe write a message
-            turn.AddMessage(`It had no effect due to the pokemon's levitate!`);
+            game.AddMessage(`It had no effect due to the pokemon's levitate!`);
             return true;
         }
         return false;
@@ -61,7 +61,7 @@ class BlazeAbility extends AbstractAbility {
     name = "Blaze";
     description = "Powers up Fire-type moves when the Pokémon's HP is low"
 
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, turn?: Turn) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game?: NewGameInterface) {
         if (move.elementalType === ElementType.Fire && GetPercentageHealth(attackingPokemon) <= 33) {
             return damage * 1.5;
         }
@@ -72,7 +72,7 @@ class BlazeAbility extends AbstractAbility {
 class TorrentAbility extends AbstractAbility {
     name = "Torrent"
     description = "Powers up Water-type moves when the Pokémon's HP is low."
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, turn?: Turn) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game?: NewGameInterface) {
         if (move.elementalType === ElementType.Water && GetPercentageHealth(attackingPokemon) <= 33) {
             return damage * 1.5;
         }
@@ -85,7 +85,7 @@ class OvergrowAbility extends AbstractAbility {
     description = "Powers up Grass-type moves when the Pokémon's HP is low."
 
 
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, turn?: Turn) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game?: NewGameInterface) {
         if (move.elementalType === ElementType.Grass && GetPercentageHealth(attackingPokemon) <= 33) {
             return damage * 1.5;
         }
@@ -98,12 +98,12 @@ class FlashFireAbility extends AbstractAbility {
     name = "Flash Fire"
     description = "Powers up the Pokémon's Fire-type moves if it's hit by one."
 
-    NegateDamage(turn: Turn, move: Technique, pokemon: Pokemon): boolean {
+    NegateDamage(game: NewGameInterface, move: Technique, pokemon: Pokemon): boolean {
         if (move.elementalType === ElementType.Fire) {
             //no damage taken, maybe write a message
-            turn.AddMessage(`It had no effect due to the pokemon's flash fire ability!`);
+            game.AddMessage(`It had no effect due to the pokemon's flash fire ability!`);
             if (pokemon.flashFireActivated === false) {
-                turn.AddMessage(`${pokemon.name}'s fire moves have been bposted due to flash fire!`);
+                game.AddMessage(`${pokemon.name}'s fire moves have been bposted due to flash fire!`);
             }
             //activate flash fire
             pokemon.flashFireActivated = true;
@@ -147,11 +147,11 @@ class StaticAbility extends AbstractAbility {
     name = "Static"
     description = "The Pokémon is charged with static electricity, so contact with it may cause paralysis."
 
-    OnDamageTakenFromTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+    OnDamageTakenFromTechnique(game:NewGameInterface, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
         if (move.makesContact) {
-            const shouldParalyze = turn.Roll(30);
+            const shouldParalyze = game.Roll(30);
             if (shouldParalyze) {
-                InflictStatus(turn, attackingPokemon, Status.Paralyzed, defendingPokemon)
+                InflictStatus(game, attackingPokemon, Status.Paralyzed, defendingPokemon)
             }
         }
     }
@@ -162,7 +162,7 @@ class SturdyAbility extends AbstractAbility {
     name = "Sturdy"
     description = "It cannot be knocked out with one hit."
 
-    ModifyDamageTaken(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
+    ModifyDamageTaken(turn: NewGameInterface, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
         let modifiedDamage = originalDamage;
         if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp && originalDamage >= defendingPokemon.currentStats.hp) {
             modifiedDamage = defendingPokemon.originalStats.hp - 1;
@@ -170,7 +170,7 @@ class SturdyAbility extends AbstractAbility {
         return modifiedDamage;
     }
     //Little hacky but will work for now.
-    OnDamageTakenFromTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+    OnDamageTakenFromTechnique(turn: NewGameInterface, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
         if (defendingPokemon.currentStats.hp === 1 && damage === defendingPokemon.originalStats.hp - 1) {
             turn.AddMessage(`${defendingPokemon.name} has survived due to its Sturdy ability!`);
         }
@@ -183,7 +183,7 @@ class AnalyticAbility extends AbstractAbility {
     name = "Analytic"
     description = "Boosts move power when the Pokémon moves last."
 
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, turn: Turn) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, turn: NewGameInterface) {
         const attackingOwner = GetPokemonOwner(turn.GetPlayers(), attackingPokemon);
 
         if (turn.GetMoveOrder()[1].playerId === attackingOwner.id) {
@@ -224,7 +224,7 @@ class MarvelScaleAbility extends AbstractAbility {
     //May need to call 
 
     //This gets recalculated on every "step"
-    Update(turn: Turn, pokemon: Pokemon) {
+    Update(game: NewGameInterface, pokemon: Pokemon) {
         const multiplierTag = "MarvelScale";
 
         if (pokemon.status !== Status.None) {
@@ -250,11 +250,11 @@ class IntimidateAbility extends AbstractAbility {
     name = "Intimidate"
     description = "The Pokémon intimidates opposing Pokémon upon entering battle, lowering their Attack stat."
 
-    OnPokemonEntry(turn: Turn, pokemon: Pokemon,) {
+    OnPokemonEntry(game: NewGameInterface, pokemon: Pokemon,) {
         //find out what the other pokemon is
         //this should only effect the current pokemon
-        const trainer = GetPokemonOwner(turn.GetPlayers(), pokemon);
-        const otherTrainer = turn.GetPlayers().find(player => player.id !== trainer.id);
+        const trainer = GetPokemonOwner(game.GetPlayers(), pokemon);
+        const otherTrainer = game.GetPlayers().find(player => player.id !== trainer.id);
 
         if (otherTrainer === undefined) {
             throw new Error(`Could not find nother trainer in intimidate ability OnPokemonEntry`)
@@ -262,26 +262,26 @@ class IntimidateAbility extends AbstractAbility {
 
         const otherTrainersPokemon = GetActivePokemon(otherTrainer);
 
-        const params :DoStatBoostParameters = {
-            turn:turn,
-            pokemon:otherTrainersPokemon,
-            stat:Stat.Attack,
-            amount:-1,
-            sourcePokemon:pokemon,
-            messageOverride: `${pokemon.name}'s Intimidate cuts ${otherTrainersPokemon.name}'s attack!`         
+        const params: DoStatBoostParameters = {
+            game: game,
+            pokemon: otherTrainersPokemon,
+            stat: Stat.Attack,
+            amount: -1,
+            sourcePokemon: pokemon,
+            messageOverride: `${pokemon.name}'s Intimidate cuts ${otherTrainersPokemon.name}'s attack!`
         }
         DoStatBoost(params);
-      }
+    }
 
 
 }
 
 
-class MagicGuardAbility extends AbstractAbility{
-    name="Magic Guard"
-    description="The Pokémon only takes damage from attacks."
+class MagicGuardAbility extends AbstractAbility {
+    name = "Magic Guard"
+    description = "The Pokémon only takes damage from attacks."
 
-    ModifyIndirectDamage(turn:Turn,pokemon:Pokemon,damage:number){
+    ModifyIndirectDamage(turn: NewGameInterface, pokemon: Pokemon, damage: number) {
         return 0;
     }
 }
@@ -290,117 +290,117 @@ class EffectSporeAbility extends AbstractAbility {
     name = "Effect Spore"
     description = "Contact with the Pokémon may inflict poison, sleep, or paralysis on its attacker."
 
-    OnDamageTakenFromTechnique(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+    OnDamageTakenFromTechnique(game: NewGameInterface, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
         if (move.makesContact) {
-            const shouldInflictStatus = turn.Roll(30);
+            const shouldInflictStatus = game.Roll(30);
             if (shouldInflictStatus) {
-                const statusToInflict = shuffle([Status.Poison,Status.Sleep,Status.Paralyzed])[0];    
-                turn.AddMessage(`${defendingPokemon.name} has released spores from contact!`);               
-                InflictStatus(turn,attackingPokemon,statusToInflict,defendingPokemon);                           
+                const statusToInflict = shuffle([Status.Poison, Status.Sleep, Status.Paralyzed])[0];
+                game.AddMessage(`${defendingPokemon.name} has released spores from contact!`);
+                InflictStatus(game, attackingPokemon, statusToInflict, defendingPokemon);
             }
         }
     }
 }
 
-class VoltAbsorbAbility extends AbstractAbility{
-    name="Volt Absorb"
-    description="Restores HP if hit by an Electric-type move, instead of taking damage."
+class VoltAbsorbAbility extends AbstractAbility {
+    name = "Volt Absorb"
+    description = "Restores HP if hit by an Electric-type move, instead of taking damage."
 
-    NegateDamage(turn: Turn, move: Technique, pokemon: Pokemon): boolean {
+    NegateDamage(game: NewGameInterface, move: Technique, pokemon: Pokemon): boolean {
         if (move.elementalType === ElementType.Electric) {
             //no damage taken, maybe write a message
-            turn.AddMessage(`It had no effect due to the pokemon's Volt Absorb Ability!`);
-            turn.AddMessage(`${pokemon.name} regained a bit of health due to Volt Absorb!`);
+            game.AddMessage(`It had no effect due to the pokemon's Volt Absorb Ability!`);
+            game.AddMessage(`${pokemon.name} regained a bit of health due to Volt Absorb!`);
             return true;
         }
         return false;
     }
 }
 
-class MultiscaleAbility extends AbstractAbility{
-    name="Multiscale"
-    description='Reduces the amount of damage the Pokémon takes when its HP is full.'
+class MultiscaleAbility extends AbstractAbility {
+    name = "Multiscale"
+    description = 'Reduces the amount of damage the Pokémon takes when its HP is full.'
 
-    ModifyDamageTaken(turn: Turn, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
-        if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp){
-            return originalDamage/2;
+    ModifyDamageTaken(game: NewGameInterface, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
+        if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp) {
+            return originalDamage / 2;
         }
-        else{
+        else {
             return originalDamage;
         }
     }
 }
 
-class TechnicianAbility extends AbstractAbility{
-    name="Technician";
-    description="Powers up the Pokémon's weaker moves.";
+class TechnicianAbility extends AbstractAbility {
+    name = "Technician";
+    description = "Powers up the Pokémon's weaker moves.";
 
-    ModifyTechnique(pokemon: Pokemon, technique:Technique){
-        if (technique.power<=60){
-            let newTech = {...technique}
-            newTech.power = newTech.power*1.5;
+    ModifyTechnique(pokemon: Pokemon, technique: Technique) {
+        if (technique.power <= 60) {
+            let newTech = { ...technique }
+            newTech.power = newTech.power * 1.5;
             return newTech;
         }
         return technique;
     }
 }
 
-class DrizzleAbility extends AbstractAbility{
-    name="Drizzle"
-    description="The Pokémon makes it rain when it enters a battle."
+class DrizzleAbility extends AbstractAbility {
+    name = "Drizzle"
+    description = "The Pokémon makes it rain when it enters a battle."
 
-    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+    OnPokemonEntry(game: NewGameInterface, pokemon: Pokemon) {
         //find out what the other pokemon is
         //this should only effect the current pokemon
         const rainWeather = new RainingWeather();
         rainWeather.duration = 5;
-        ApplyWeather(turn,rainWeather);
+        ApplyWeather(game, rainWeather);
     }
 }
 
-class DroughtAbility extends AbstractAbility{
-    name="Drought"
-    description="Turns the sunlight harsh when the Pokémon enters a battle."
+class DroughtAbility extends AbstractAbility {
+    name = "Drought"
+    description = "Turns the sunlight harsh when the Pokémon enters a battle."
 
-    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+    OnPokemonEntry(game: NewGameInterface, pokemon: Pokemon) {
         //find out what the other pokemon is
         //this should only effect the current pokemon
         const sunWeather = new SunnyWeather();
         sunWeather.duration = 5;
-        ApplyWeather(turn,sunWeather);
+        ApplyWeather(game, sunWeather);
     }
 }
 
-class ChlorophyllAbility extends AbstractAbility{
-    name="Chlorophyll"
+class ChlorophyllAbility extends AbstractAbility {
+    name = "Chlorophyll"
     description = "Boosts the Pokémon's Speed stat in sunshine"
 
-    Update(turn:Turn, pokemon: Pokemon){
-        if (!turn.field.weather){
+    Update(game: NewGameInterface, pokemon: Pokemon) {
+        if (!game.field.weather) {
             return;
         }
         //TODO: at the time we made this ability, sunlight was not implemented yet.... double check and remove this comment once we implement sunlight.
-        if (turn.field.weather.name === WeatherType.Sunny){
+        if (game.field.weather.name === WeatherType.Sunny) {
             pokemon.statMultipliers.push({
-                stat:Stat.Speed,
-                multiplier:2,
-                tag:this.name
+                stat: Stat.Speed,
+                multiplier: 2,
+                tag: this.name
             })
         }
-        else{
-            _.remove(pokemon.statMultipliers,(sm=>sm.tag===this.name));
+        else {
+            _.remove(pokemon.statMultipliers, (sm => sm.tag === this.name));
         }
     }
 }
 
-class ClearBodyAbility extends AbstractAbility{
-    name="Clear Body"
+class ClearBodyAbility extends AbstractAbility {
+    name = "Clear Body"
     description = "Prevents other Pokémon from lowering its stats."
 
-    ModifyStatBoostAmount(turn: Turn, pokemon: Pokemon, amount: number, sourcePokemon: Pokemon){
-        if (sourcePokemon.id!==pokemon.id){
-            if (amount <= -1){
-                turn.AddMessage(`${pokemon.name}'s clear body prevents negative stat boosts!`)
+    ModifyStatBoostAmount(game: NewGameInterface, pokemon: Pokemon, amount: number, sourcePokemon: Pokemon) {
+        if (sourcePokemon.id !== pokemon.id) {
+            if (amount <= -1) {
+                game.AddMessage(`${pokemon.name}'s clear body prevents negative stat boosts!`)
                 return 0; //cannot have negative stat boosts done 
             }
         }
@@ -408,63 +408,63 @@ class ClearBodyAbility extends AbstractAbility{
     }
 }
 
-class SynchronizeAbility extends AbstractAbility{
-    name="Synchronize"
+class SynchronizeAbility extends AbstractAbility {
+    name = "Synchronize"
     description = "The attacker will receive the same status condition if it inflicts a burn, poison, or paralysis to the Pokémon."
 
-    OnStatusChange(turn: Turn, pokemon: Pokemon, status: Status, source: Pokemon){
-        if (source.id !== pokemon.id && [Status.Burned,Status.Paralyzed,Status.Poison,Status.ToxicPoison].includes(status)){
-            if (source.status === Status.None){
+    OnStatusChange(game: NewGameInterface, pokemon: Pokemon, status: Status, source: Pokemon) {
+        if (source.id !== pokemon.id && [Status.Burned, Status.Paralyzed, Status.Poison, Status.ToxicPoison].includes(status)) {
+            if (source.status === Status.None) {
                 source.status = status;
-                turn.AddMessage(`${pokemon.name} copied its status onto its foe due to the Synchronize ability!`);
+                game.AddMessage(`${pokemon.name} copied its status onto its foe due to the Synchronize ability!`);
             }
         }
     }
 }
 
-class LightningRodAbility extends AbstractAbility{
-        name = "Lightning Rod"
-        description = "The Pokémon draws in all Electric-type moves. Instead of being hit by Electric-type moves, it boosts its Sp. Atk."
-    
-        NegateDamage(turn: Turn, move: Technique, pokemon: Pokemon): boolean {
-            if (move.elementalType === ElementType.Electric) {
-                //no damage taken, maybe write a message
-                turn.AddMessage(`${pokemon.name}'s lightning rod absorbed the electric move!`);
-                DoStatBoost({
-                   turn:turn,
-                   pokemon:pokemon,
-                   stat:Stat.SpecialAttack,
-                   amount:1,
-                   sourcePokemon:pokemon,
-                })
-                
-                return true;
-            }
-            return false;
-        }  
+class LightningRodAbility extends AbstractAbility {
+    name = "Lightning Rod"
+    description = "The Pokémon draws in all Electric-type moves. Instead of being hit by Electric-type moves, it boosts its Sp. Atk."
+
+    NegateDamage(game: NewGameInterface, move: Technique, pokemon: Pokemon): boolean {
+        if (move.elementalType === ElementType.Electric) {
+            //no damage taken, maybe write a message
+            game.AddMessage(`${pokemon.name}'s lightning rod absorbed the electric move!`);
+            DoStatBoost({
+                game: game,
+                pokemon: pokemon,
+                stat: Stat.SpecialAttack,
+                amount: 1,
+                sourcePokemon: pokemon,
+            })
+
+            return true;
+        }
+        return false;
+    }
 }
 
-class PressureAbility extends AbstractAbility{
+class PressureAbility extends AbstractAbility {
     name = "Pressure"
     description = "The Pokémon raises the foe's PP usage."
 
-    OnOppTechniqueUsed(turn: Turn, pokemon: Pokemon, tech: Technique){
-        tech.currentPP-=1;
+    OnOppTechniqueUsed(turn: NewGameInterface, pokemon: Pokemon, tech: Technique) {
+        tech.currentPP -= 1;
     }
 }
 
 
 
-class SandStreamAbility extends AbstractAbility{
-    name="Sand Stream"
-    description="The Pokémon summons a sandstorm when it enters a battle."
+class SandStreamAbility extends AbstractAbility {
+    name = "Sand Stream"
+    description = "The Pokémon summons a sandstorm when it enters a battle."
 
-    OnPokemonEntry(turn: Turn, pokemon: Pokemon) {
+    OnPokemonEntry(game: NewGameInterface, pokemon: Pokemon) {
         //find out what the other pokemon is
         //this should only effect the current pokemon
         const sandWeather = new SandstormWeather();
         sandWeather.duration = 5;
-        ApplyWeather(turn,sandWeather);
+        ApplyWeather(game, sandWeather);
     }
 }
 
@@ -516,43 +516,43 @@ function GetAbility(name: String) {
         case 'intimidate': {
             return new IntimidateAbility();
         }
-        case 'magic guard':{
+        case 'magic guard': {
             return new MagicGuardAbility();
         }
-        case 'effect spore':{
+        case 'effect spore': {
             return new EffectSporeAbility();
         }
-        case 'volt absorb':{
+        case 'volt absorb': {
             return new VoltAbsorbAbility();
         }
-        case 'multiscale':{
+        case 'multiscale': {
             return new MultiscaleAbility();
         }
-        case 'technician':{
+        case 'technician': {
             return new TechnicianAbility();
         }
-        case 'drizzle':{
+        case 'drizzle': {
             return new DrizzleAbility();
         }
-        case 'chlorophyll':{
+        case 'chlorophyll': {
             return new ChlorophyllAbility();
         }
-        case 'clear body':{
+        case 'clear body': {
             return new ClearBodyAbility();
         }
-        case 'synchronize':{
+        case 'synchronize': {
             return new SynchronizeAbility();
         }
-        case 'lightning rod':{
+        case 'lightning rod': {
             return new LightningRodAbility();
         }
-        case 'pressure':{
+        case 'pressure': {
             return new PressureAbility();
         }
-        case 'drought':{
+        case 'drought': {
             return new DroughtAbility();
         }
-        case 'sand stream':{
+        case 'sand stream': {
             return new SandStreamAbility();
         }
         default: {

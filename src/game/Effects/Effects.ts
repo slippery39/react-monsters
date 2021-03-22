@@ -10,7 +10,7 @@ import { Player } from "game/Player/PlayerBuilder";
 import { ApplyStatBoost, Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
-import { Turn } from "game/Turn";
+import { NewGameInterface } from "game/Turn";
 import { GetVolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { RainingWeather, SunnyWeather, Weather, WeatherType } from "game/Weather/Weather";
 import { shuffle } from "lodash";
@@ -106,8 +106,8 @@ export interface RecoilDamageEffect {
     amount: number
 }
 
-export interface StruggleRecoilEffect{
-    type:EffectType.StruggleRecoilDamage
+export interface StruggleRecoilEffect {
+    type: EffectType.StruggleRecoilDamage
 }
 
 
@@ -121,21 +121,21 @@ export interface RemoveStatBoostEffect {
 }
 
 export interface PainSplitEffect {
-    type:EffectType.PainSplit
+    type: EffectType.PainSplit
 }
 
-export interface RemoveHeldItemEffect{
-    type:EffectType.RemoveHeldItem
+export interface RemoveHeldItemEffect {
+    type: EffectType.RemoveHeldItem
 }
 
-export interface CreateFieldEffect{
-    type:EffectType.CreateFieldEffect
-    effectType:FieldEffectType
+export interface CreateFieldEffect {
+    type: EffectType.CreateFieldEffect
+    effectType: FieldEffectType
 }
 
-export interface ApplyWeatherEffect{
-    type:EffectType.ApplyWeather,
-    weather:WeatherType
+export interface ApplyWeatherEffect {
+    type: EffectType.ApplyWeather,
+    weather: WeatherType
 }
 
 
@@ -143,12 +143,12 @@ export interface ApplyWeatherEffect{
 export type BattleEffect = { target?: TargetType, chance?: number } & (InflictStatusEffect | StatBoostEffect
     | InflictVolatileStatusEffect | HealthRestoreEffect | StatusRestoreEffect | DrainEffect |
     AromatherapyEffect | SwitchPokemonEffect | PlaceEntryHazard | WhirlwindEffect | ClearHazardsEffect | RecoilDamageEffect | RemoveStatBoostEffect
-    |PainSplitEffect | RemoveHeldItemEffect | CreateFieldEffect | StruggleRecoilEffect | ApplyWeatherEffect);
+    | PainSplitEffect | RemoveHeldItemEffect | CreateFieldEffect | StruggleRecoilEffect | ApplyWeatherEffect);
 
 
 
 
-export function InflictStatus(turn: Turn, pokemon: Pokemon, status: Status, source: Pokemon) {
+export function InflictStatus(game: NewGameInterface, pokemon: Pokemon, status: Status, source: Pokemon) {
     const targetPokemon = pokemon;
     //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
     if (targetPokemon.status !== Status.None || targetPokemon.currentStats.hp === 0) {
@@ -160,13 +160,13 @@ export function InflictStatus(turn: Turn, pokemon: Pokemon, status: Status, sour
     }
 
     const hardStatus = GetHardStatus(status);
-    if (!hardStatus.CanApply(turn, targetPokemon)) {
+    if (!hardStatus.CanApply(game, targetPokemon)) {
         return;
     }
 
     targetPokemon.status = status;
 
-  
+
 
     const statusInflictedEffect: StatusChangeEvent = {
         type: BattleEventType.StatusChange,
@@ -175,25 +175,25 @@ export function InflictStatus(turn: Turn, pokemon: Pokemon, status: Status, sour
         targetPokemonId: targetPokemon.id,
         defaultMessage: `${targetPokemon.name} ${hardStatus.inflictedMessage}`
     };
-    turn.AddEvent(statusInflictedEffect);
+    game.AddEvent(statusInflictedEffect);
 
-      //TODO: OnStatusChange could be a BattleBehavior
-      GetAbility(targetPokemon.ability).OnStatusChange(turn,pokemon,status,source);
+    //TODO: OnStatusChange could be a BattleBehavior
+    GetAbility(targetPokemon.ability).OnStatusChange(game, pokemon, status, source);
 }
 
 
-export interface DoStatBoostParameters{
-    turn:Turn,
-    pokemon:Pokemon,
-    stat:Stat,
-    amount:number,
-    sourcePokemon:Pokemon,
-    messageOverride?:string
+export interface DoStatBoostParameters {
+    game: NewGameInterface,
+    pokemon: Pokemon,
+    stat: Stat,
+    amount: number,
+    sourcePokemon: Pokemon,
+    messageOverride?: string
 }
 
-export function DoStatBoost(params:DoStatBoostParameters) {
+export function DoStatBoost(params: DoStatBoostParameters) {
 
-    const turn = params.turn;
+    const turn = params.game;
     const pokemon = params.pokemon;
     let amount = params.amount;
     const sourcePokemon = params.sourcePokemon;
@@ -201,8 +201,8 @@ export function DoStatBoost(params:DoStatBoostParameters) {
     const messageOverride = params.messageOverride;
 
     const targetPokemon = pokemon;
-    amount = GetAbility(pokemon.ability).ModifyStatBoostAmount(turn,pokemon,amount,sourcePokemon);
-    if (amount === 0){
+    amount = GetAbility(pokemon.ability).ModifyStatBoostAmount(turn, pokemon, amount, sourcePokemon);
+    if (amount === 0) {
         return;
     }
 
@@ -241,17 +241,17 @@ export function DoStatBoost(params:DoStatBoostParameters) {
     }
 
     let message = messageOverride;
-    if (message === undefined){
+    if (message === undefined) {
         message = ` ${targetPokemon.name} has had its ${statString} boosted!`
         if (amount < 0) {
-        message = ` ${targetPokemon.name} has had its ${statString} decreased!`
+            message = ` ${targetPokemon.name} has had its ${statString} decreased!`
         }
     }
 
     turn.AddMessage(message);
 }
 
-export function InflictVolatileStatus(turn: Turn, pokemon: Pokemon, status: VolatileStatusType, source: Pokemon) {
+export function InflictVolatileStatus(turn: NewGameInterface, pokemon: Pokemon, status: VolatileStatusType, source: Pokemon) {
     const targetPokemon = pokemon;
     const vStatus = GetVolatileStatus(status);
 
@@ -268,7 +268,7 @@ export function InflictVolatileStatus(turn: Turn, pokemon: Pokemon, status: Vola
     turn.AddMessage(vStatus.InflictedMessage(targetPokemon));
 }
 
-function ApplyHealingEffect(turn: Turn, pokemon: Pokemon, effect: HealthRestoreEffect) {
+function ApplyHealingEffect(turn: NewGameInterface, pokemon: Pokemon, effect: HealthRestoreEffect) {
     if (effect.restoreType === HealthRestoreType.Flat) {
         turn.ApplyHealing(pokemon, effect.amount);
     }
@@ -278,7 +278,7 @@ function ApplyHealingEffect(turn: Turn, pokemon: Pokemon, effect: HealthRestoreE
     }
 }
 
-function ApplyStatusRestoreEffect(turn: Turn, pokemon: Pokemon, effect: StatusRestoreEffect) {
+function ApplyStatusRestoreEffect(turn: NewGameInterface, pokemon: Pokemon, effect: StatusRestoreEffect) {
     if (effect.forStatus === 'any' && pokemon.status !== Status.None) {
         let statusRestoreEffect: StatusChangeEvent = {
             type: BattleEventType.StatusChange,
@@ -301,13 +301,13 @@ function ApplyStatusRestoreEffect(turn: Turn, pokemon: Pokemon, effect: StatusRe
     }
 }
 
-function DrainEffect(turn: Turn, pokemonToHeal: Pokemon, effect: DrainEffect, damage: number) {
+function DrainEffect(turn: NewGameInterface, pokemonToHeal: Pokemon, effect: DrainEffect, damage: number) {
     const drainAmount = damage * (effect.amount * 0.01);
     turn.ApplyHealing(pokemonToHeal, drainAmount);
     turn.AddMessage(`${pokemonToHeal.name} drained some energy.`)
 }
 
-function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: Pokemon) {
+function ApplyAromatherapyEffect(turn: NewGameInterface, sourcePokemon: Pokemon) {
     /*
     Heals all pokemon in the user pokemons party.
     */
@@ -333,19 +333,19 @@ function ApplyAromatherapyEffect(turn: Turn, sourcePokemon: Pokemon) {
     });
 }
 
-function SwitchPokemonEffect(turn: Turn, sourcePokemon: Pokemon) {
+function SwitchPokemonEffect(turn: NewGameInterface, sourcePokemon: Pokemon) {
     //check to see if there is valid pokemon to switch into
-    if (turn.GetValidSwitchIns(turn.GetPokemonOwner(sourcePokemon)).length===0){
+    if (turn.GetValidSwitchIns(turn.GetPokemonOwner(sourcePokemon)).length === 0) {
         return;
     }
     turn.PromptForSwitch(sourcePokemon);
 }
 
-function PlaceEntryHazardEffect(turn: Turn, type: EntryHazardType, player: Player) {
+function PlaceEntryHazardEffect(turn: NewGameInterface, type: EntryHazardType, player: Player) {
     ApplyEntryHazard(turn, player, type);
 }
 
-function WhirlwindEffect(turn: Turn, player: Player) {
+function WhirlwindEffect(turn: NewGameInterface, player: Player) {
     //Choose a random pokemon other than the current one
     //Switch that pokemon in
     const otherValidPokemon = player.pokemon.filter(poke => poke.currentStats.hp > 0 && poke.id !== player.currentPokemonId);
@@ -358,7 +358,7 @@ function WhirlwindEffect(turn: Turn, player: Player) {
 }
 
 
-function ClearHazards(turn: Turn, player: Player) {
+function ClearHazards(turn: NewGameInterface, player: Player) {
     const hasHazards = (turn.field.entryHazards!.filter(hazard => {
         return hazard.player === player;
     }).length > 0)
@@ -370,12 +370,12 @@ function ClearHazards(turn: Turn, player: Player) {
     });
 }
 
-function RecoilEffect(turn: Turn, pokemon: Pokemon, recoilDamage: number) {
+function RecoilEffect(turn: NewGameInterface, pokemon: Pokemon, recoilDamage: number) {
     turn.ApplyIndirectDamage(pokemon, recoilDamage);
     turn.AddMessage(`${pokemon.name} has damaged itself due to recoil`);
 }
 
-function RemoveStatBoosts(turn: Turn) {
+function RemoveStatBoosts(turn: NewGameInterface) {
     const player1 = turn.GetPlayers()[0];
     const player2 = turn.GetPlayers()[1];
 
@@ -389,20 +389,20 @@ function RemoveStatBoosts(turn: Turn) {
 
 }
 
-function PainSplitEffect(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon){
+function PainSplitEffect(turn: NewGameInterface, attackingPokemon: Pokemon, defendingPokemon: Pokemon) {
 
     /*Pain Split adds the current HP of the user and target Pokémon. It then divides this value by two and increases or decreases the HP of each Pokémon to become equal to the result (limited by each Pokémon's maximum HP).*/
-    
+
     //todo: handle substitute fail clause
     const totalHealth = attackingPokemon.currentStats.hp + defendingPokemon.currentStats.hp;
-    const healthToSet = Math.ceil(totalHealth/2);
+    const healthToSet = Math.ceil(totalHealth / 2);
     /*
     const pokemon1HPBefore = attackingPokemon.currentStats.hp;
     const pokemon2HPBefore = defendingPokemon.currentStats.hp;
     */
 
-    attackingPokemon.currentStats.hp = Math.min(healthToSet,attackingPokemon.originalStats.hp);
-    defendingPokemon.currentStats.hp = Math.min(healthToSet,defendingPokemon.originalStats.hp);
+    attackingPokemon.currentStats.hp = Math.min(healthToSet, attackingPokemon.originalStats.hp);
+    defendingPokemon.currentStats.hp = Math.min(healthToSet, defendingPokemon.originalStats.hp);
 
     //todo: add in animation triggers for the direct hp loss / gain.
 
@@ -411,37 +411,37 @@ function PainSplitEffect(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pok
 
 }
 
-function RemoveHeldItemEffect(turn:Turn,pokemon:Pokemon){
-    if (pokemon.heldItem.name!==""){       
+function RemoveHeldItemEffect(turn: NewGameInterface, pokemon: Pokemon) {
+    if (pokemon.heldItem.name !== "") {
         turn.AddMessage(`${pokemon.name} dropped it's ${pokemon.heldItem.name}`);
         //removing the held item here not sure if we should have this for everything.
-        pokemon.heldItem.OnRemoved(turn,pokemon);
+        pokemon.heldItem.OnRemoved(turn, pokemon);
         pokemon.heldItem = new NoHeldItem();
-    } 
+    }
 }
 
-export function ApplyWeather(turn:Turn,weather:Weather){
+export function ApplyWeather(turn: NewGameInterface, weather: Weather) {
     turn.field.weather = weather;
     weather.OnApply(turn);
 }
 
-export function ApplyCreateFieldEffect(turn:Turn,pokenon:Pokemon,fieldEffectType:FieldEffectType){
+export function ApplyCreateFieldEffect(turn: NewGameInterface, pokenon: Pokemon, fieldEffectType: FieldEffectType) {
     const pokemonOwner = turn.GetPokemonOwner(pokenon);
 
-    if (fieldEffectType === FieldEffectType.Wish){
+    if (fieldEffectType === FieldEffectType.Wish) {
         const wishEffect = new WishFieldEffect();
         wishEffect.playerId = pokemonOwner.id;
-        wishEffect.OnCreated(turn,pokemonOwner);
+        wishEffect.OnCreated(turn, pokemonOwner);
         turn.field.fieldEffects!.push(wishEffect);
-        
+
     }
 }
 
-export function StruggleRecoilEffect(turn:Turn,pokemon:Pokemon){
-    const damage = pokemon.originalStats.hp/4;
-    turn.ApplyStruggleDamage(pokemon,damage);
+export function StruggleRecoilEffect(turn: NewGameInterface, pokemon: Pokemon) {
+    const damage = pokemon.originalStats.hp / 4;
+    turn.ApplyStruggleDamage(pokemon, damage);
     turn.AddMessage(`${pokemon.name} hurt itself from struggling!`);
-   
+
 }
 
 
@@ -456,7 +456,7 @@ export interface EffectSource {
 
 
 //need someting more abstract for the source, but for now just having the pokemon will do.
-export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, source: EffectSource) {
+export function DoEffect(turn: NewGameInterface, pokemon: Pokemon, effect: BattleEffect, source: EffectSource) {
 
 
     //TODO: We need a sourceInfo object,
@@ -471,15 +471,15 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
             break;
         }
         case EffectType.StatBoost: {
-            if (source.sourcePokemon === undefined){
+            if (source.sourcePokemon === undefined) {
                 throw new Error(`Need a source pokemon to DoEffect - effect.sourcePokemon`);
-            }            
-            const params :DoStatBoostParameters = {
-                turn:turn,
-                pokemon:pokemon,
-                stat:effect.stat,
-                amount:effect.amount,
-                sourcePokemon:source.sourcePokemon
+            }
+            const params: DoStatBoostParameters = {
+                game: turn,
+                pokemon: pokemon,
+                stat: effect.stat,
+                amount: effect.amount,
+                sourcePokemon: source.sourcePokemon
             }
             DoStatBoost(params);
             break;
@@ -550,8 +550,8 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
             if (effect.recoilType === RecoilDamageType.PercentDamageDealt) {
                 RecoilEffect(turn, source.sourcePokemon, source.sourceDamage * (effect.amount / 100))
             }
-            else if (effect.recoilType === RecoilDamageType.PercentMaxHealth){
-                RecoilEffect(turn,source.sourcePokemon,source.sourcePokemon.originalStats.hp * (effect.amount/100))
+            else if (effect.recoilType === RecoilDamageType.PercentMaxHealth) {
+                RecoilEffect(turn, source.sourcePokemon, source.sourcePokemon.originalStats.hp * (effect.amount / 100))
             }
             break;
         }
@@ -559,36 +559,36 @@ export function DoEffect(turn: Turn, pokemon: Pokemon, effect: BattleEffect, sou
             RemoveStatBoosts(turn);
             break;
         }
-        case EffectType.PainSplit:{
-            if (source.sourcePokemon === undefined){
+        case EffectType.PainSplit: {
+            if (source.sourcePokemon === undefined) {
                 throw new Error(`Could not find source pokemon for Pain Split effect`);
             }
-            PainSplitEffect(turn,source.sourcePokemon,pokemon);
+            PainSplitEffect(turn, source.sourcePokemon, pokemon);
             break;
         }
-        case EffectType.RemoveHeldItem:{
-            RemoveHeldItemEffect(turn,pokemon);
+        case EffectType.RemoveHeldItem: {
+            RemoveHeldItemEffect(turn, pokemon);
             break;
         }
-        case EffectType.CreateFieldEffect:{
-            ApplyCreateFieldEffect(turn,pokemon,effect.effectType)
+        case EffectType.CreateFieldEffect: {
+            ApplyCreateFieldEffect(turn, pokemon, effect.effectType)
             break;
         }
-        case EffectType.StruggleRecoilDamage:{
-            if (source.sourcePokemon === undefined){
-             throw new Error(`Could not find source for struggle recoil damage`);
+        case EffectType.StruggleRecoilDamage: {
+            if (source.sourcePokemon === undefined) {
+                throw new Error(`Could not find source for struggle recoil damage`);
             }
-            StruggleRecoilEffect(turn,source.sourcePokemon);
+            StruggleRecoilEffect(turn, source.sourcePokemon);
             break;
         }
-        case EffectType.ApplyWeather:{
-            if (effect.weather === WeatherType.Rain){
-                ApplyWeather(turn,new RainingWeather())
+        case EffectType.ApplyWeather: {
+            if (effect.weather === WeatherType.Rain) {
+                ApplyWeather(turn, new RainingWeather())
             }
-            else if (effect.weather === WeatherType.Sunny){
-                ApplyWeather(turn,new SunnyWeather())
+            else if (effect.weather === WeatherType.Sunny) {
+                ApplyWeather(turn, new SunnyWeather())
             }
-            else{
+            else {
                 throw new Error(`Could not find weather to apply`);
             }
             break;

@@ -1,8 +1,17 @@
+import PokemonMiniInfoBox from "components/PokemonSwitchScreen/PokemonMiniInfoBox/PokemonMiniInfoBox";
 import _ from "lodash";
-import { BattleAction, CreateTechniqueAction, CreateSwitchAction } from "./BattleActions";
+import { textChangeRangeIsUnchanged } from "typescript";
+import { BattleAction, CreateTechniqueAction, CreateSwitchAction, SwitchPokemonAction } from "./BattleActions";
+import BattleBehaviour from "./BattleBehaviour/BattleBehavior";
+import { BattleEvent } from "./BattleEvents";
+import { EntryHazard } from "./EntryHazards/EntryHazard";
+import { Status } from "./HardStatus/HardStatus";
 import { CloneField, GetActivePokemon, GetAlivePokemon } from "./HelperFunctions";
+import { Item } from "./Items/Item";
 import { Player } from "./Player/PlayerBuilder";
-import { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs, Turn } from "./Turn";
+import { Pokemon } from "./Pokemon/Pokemon";
+import { Technique } from "./Techniques/Technique";
+import { Field, NewGameInterface, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs, State, Turn, TurnStep } from "./Turn";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 
 /*
@@ -63,14 +72,15 @@ interface GameOptions {
 
 
 
-class BattleGame {
+class BattleGame implements NewGameInterface {
     //note this variable gets set at the start but doesn't get updated at the moment, once we move more of the turn stuff over into here we can deal with that.
-    gameState: Field;
+    field: Field;
     turnHistory: Array<Turn> = [];
     OnNewTurn = new TypedEvent<{}>();
     OnNewLogReady = new TypedEvent<OnNewTurnLogArgs>();
     OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
     OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
+    OnTurnFinished = new TypedEvent<{}>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
     shouldProcessEvents: boolean = false;
 
@@ -78,7 +88,7 @@ class BattleGame {
         if (players.length !== 2) {
             throw new Error(`Need exactly 2 players to properly initialize a battle`);
         }
-        this.gameState = {
+        this.field = {
             players: _.cloneDeep(players), //TODO: testing non clone deeped vs clone deeped.
             entryHazards: [],
             weather: undefined,
@@ -88,12 +98,110 @@ class BattleGame {
     }
 
     Initialize() {
-        AutoAssignPokemonIds(this.gameState.players);
-        AutoAssignCurrentPokemonIds(this.gameState.players);
-        AutoAssignItemIds(this.gameState.players);
-        AutoAssignTechniqueIds(this.gameState.players);
-        this.NextTurn(this.gameState);
+        AutoAssignPokemonIds(this.field.players);
+        AutoAssignCurrentPokemonIds(this.field.players);
+        AutoAssignItemIds(this.field.players);
+        AutoAssignTechniqueIds(this.field.players);
+        this.NextTurn(this.field);
     }
+
+    //New Interface Implementation Here
+    GetEvents():Array<BattleEvent>{
+        return this.GetCurrentTurn().GetEvents();
+    }
+    GetEventsSinceLastAction():Array<BattleEvent>{
+        return this.GetCurrentTurn().GetEventsSinceLastAction();
+    }
+
+        //move order? - keep this in the turn?
+    //initial actions? - keep this in the turn?
+    GetPlayersWhoNeedToSwitch():Array<Player>{
+        return this.GetCurrentTurn().GetPlayersWhoNeedToSwitch();
+    }
+    GetCurrentBattleStep():TurnStep{
+        return this.GetCurrentTurn().GetCurrentBattleStep();
+    }
+    GetCurrentState():State{
+        return this.GetCurrentTurn().GetCurrentState();
+    }
+
+    Clone():NewGameInterface{
+        return this.GetCurrentTurn().Clone();
+    }   
+
+    SetInitialPlayerAction(action: BattleAction){
+        this.GetCurrentTurn().SetInitialPlayerAction(action);
+    }
+    OverridePlayerAction(action:BattleAction){
+        this.GetCurrentTurn().OverridePlayerAction(action);
+    }
+    StartTurn(){
+        this.GetCurrentTurn().StartTurn();
+    }
+    Update(){
+        this.GetCurrentTurn().Update();
+    }
+    SetSwitchPromptAction(action:SwitchPokemonAction){
+        this.GetCurrentTurn().SetSwitchPromptAction(action);
+    }
+    AddMessage(message:string){
+        this.GetCurrentTurn().AddMessage(message);
+    }
+    GetEntryHazards():Array<EntryHazard>{
+        return this.GetCurrentTurn().GetEntryHazards();
+    }
+   
+    GetBehavioursForPokemon(pokemon:Pokemon):Array<BattleBehaviour>{
+        return this.GetCurrentTurn().GetBehavioursForPokemon(pokemon);
+    }
+    SetStatusOfPokemon(pokemonId:number,status:Status){
+        this.GetCurrentTurn().SetStatusOfPokemon(pokemonId,status);
+    }
+    PromptForSwitch(pokemon:Pokemon){
+        this.GetCurrentTurn().PromptForSwitch(pokemon);
+    }
+    ApplyHealing(pokemon:Pokemon,amount:number){
+        this.GetCurrentTurn().ApplyHealing(pokemon,amount);
+    }
+    ApplyStruggleDamage(pokemon:Pokemon,damage:number){
+        this.GetCurrentTurn().ApplyStruggleDamage(pokemon,damage);
+    }
+    ApplyIndirectDamage(pokemon:Pokemon,damage:number){
+        this.GetCurrentTurn().ApplyIndirectDamage(pokemon,damage);
+    }
+    ApplyDamageToSubstitute(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number){
+        this.GetCurrentTurn().ApplyDamageToSubstitute(attackingPokemon,defendingPokemon,damage);
+    }
+    ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any){
+        this.GetCurrentTurn().ApplyDamage(attackingPokemon,defendingPokemon,damage,damageInfo);
+    }
+    EmitNewTurnLog(){
+        this.GetCurrentTurn().EmitNewTurnLog();
+    }
+   SwitchPokemon(player: Player, pokemonIn: Pokemon){
+       this.GetCurrentTurn().SwitchPokemon(player,pokemonIn);
+   }
+   UseItem(player:Player,item:Item){
+       this.GetCurrentTurn().UseItem(player,item);
+   }
+   UseTechnique(pokemon:Pokemon,defendingPokemon:Pokemon,technique:Technique){
+        this.GetCurrentTurn().UseTechnique(pokemon,defendingPokemon,technique);
+   }
+   Roll(chance:number){
+       return this.GetCurrentTurn().Roll(chance);
+   }
+   AddEvent(effect:BattleEvent){
+       this.GetCurrentTurn().AddEvent(effect);
+   }
+  GetValidSwitchIns(player: Player){
+      return this.GetCurrentTurn().GetValidSwitchIns(player);
+  }
+  GetPokemonOwner(pokemon: Pokemon){
+      return this.GetCurrentTurn().GetPokemonOwner(pokemon);
+  }
+  GetMoveOrder(){
+      return this.GetCurrentTurn().GetMoveOrder();
+  }
 
     GetCurrentTurn(): Turn {
         const index = this.turnHistory.length - 1;

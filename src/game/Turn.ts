@@ -15,7 +15,7 @@ import GetAbility from './Ability/Ability';
 import { BattleEffect, DoEffect, EffectType, InflictVolatileStatus, TargetType } from './Effects/Effects';
 import { SubstituteVolatileStatus, VolatileStatusType } from './VolatileStatus/VolatileStatus';
 import { Item } from './Items/Item';
-import _ from 'lodash';
+import _, { initial } from 'lodash';
 import { GetDamageEffect } from './DamageEffects/DamageEffects';
 import { EntryHazard } from './EntryHazards/EntryHazard';
 import BattleBehaviour from './BattleBehaviour/BattleBehavior';
@@ -35,7 +35,7 @@ export interface Field {
 }
 
 
-enum TurnStep {
+export enum TurnStep {
     PreAction1 = 'pre-action-1',
     Action1 = 'action1',
     PostAction1 = 'post-action-1',
@@ -46,7 +46,7 @@ enum TurnStep {
     End = 'end'
 }
 
-interface State {
+export interface State {
     type: TurnState,
     winningPlayerId?: number
 }
@@ -76,17 +76,16 @@ export interface OnSwitchNeededArgs {
 }
 
 
-interface NewGameInterface {
+export interface NewGameInterface {
     GetEvents: () => Array<BattleEvent>,
-    eventsSinceLastAction: Array<BattleEvent>,
+    GetEventsSinceLastAction:()=>Array<BattleEvent>,
     //move order? - keep this in the turn?
     //initial actions? - keep this in the turn?
-    playersWhoNeedToSwitch:Array<Player>,
-
-    //switch needed actions - keep this in the turn for now.
-    currentBattleStep:TurnStep,
-    currentState:State,
+    GetPlayersWhoNeedToSwitch:()=>Array<Player>
+    GetCurrentBattleStep:()=>TurnStep
+    GetCurrentState:()=>State,
     //turn over: -> not needed for game.
+    field:Field,
     OnTurnFinished: TypedEvent<{}>;
     OnNewLogReady: TypedEvent<OnNewTurnLogArgs>
     OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs>
@@ -114,10 +113,10 @@ interface NewGameInterface {
     SwitchPokemon:(player: Player, pokemonIn: Pokemon)=>void;
     UseItem:(player: Player, item: Item)=>void;
     UseTechnique:(pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique)=>void;
-    Roll:(chance: number) => void;
+    Roll:(chance: number) => boolean;
     AddEvent:(effect: BattleEvent)=>void;
-    GetValidSwitchIns:(player: Player)=>void;
-    GetPokemonOwner:(pokemon: Pokemon)=>void;
+    GetValidSwitchIns:(player: Player)=>Array<Pokemon>;
+    GetPokemonOwner:(pokemon: Pokemon)=>Player;
     GetMoveOrder:()=>Array<BattleAction>;
 }
 
@@ -161,6 +160,10 @@ export class Turn implements NewGameInterface {
         if (initialField.entryHazards === undefined) {
             initialField.entryHazards = [];
         }
+
+        if (initialField.fieldEffects === undefined){
+            initialField.fieldEffects = [];
+        }
         //For some reason, we do need to clone stuff here... not sure why I thought we would be cloning stuff in the turn.
         //clone field not working for here?
         this.field = CloneField(initialField);
@@ -175,6 +178,18 @@ export class Turn implements NewGameInterface {
 
     GetEvents(): Array<BattleEvent> {
         return this.eventLog;
+    }
+    GetEventsSinceLastAction():Array<BattleEvent>{
+        return this.eventsSinceLastAction;
+    }
+    GetPlayersWhoNeedToSwitch():Array<Player>{
+        return this.playersWhoNeedToSwitch;
+    }
+    GetCurrentBattleStep():TurnStep{
+        return this.currentBattleStep;
+    }
+    GetCurrentState():State{
+        return this.currentState;
     }
 
     Clone() {

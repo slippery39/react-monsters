@@ -33,8 +33,9 @@ describe('Low Kick Tests', ()=>{
               //needed for our damage effects now sadly.
         const turn = new Turn(1,{
             players:[new PlayerBuilder(1).WithPokemon("Charizard").Build(),new PlayerBuilder(2).WithPokemon("Blastoise").Build()],
-            entryHazards:[]
-        });
+            entryHazards:[],
+            
+        },true);
 
             //lower test
             defendingPokemon.weight = val.lower;
@@ -72,7 +73,7 @@ describe('Eruption Tests',()=>{
         const turn = new Turn(1,{
             players:[new PlayerBuilder(1).WithPokemon("Charizard").Build(),new PlayerBuilder(2).WithPokemon("Blastoise").Build()],
             entryHazards:[]
-        });
+        },true);
 
 
     const newTechInfo : Technique  = eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,turn);

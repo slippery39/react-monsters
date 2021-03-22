@@ -94,7 +94,7 @@ describe('stealth rock tests',()=>{
         }
         InitializeGameState(gameState);
 
-        const turn = new Turn(1,gameState);
+        const turn = new Turn(1,gameState,true);
 
         ApplyEntryHazard(turn,turn.GetPlayers()[1],EntryHazardType.StealthRock);
         SwitchToOtherPokemon(turn,turn.GetPlayers()[0]);

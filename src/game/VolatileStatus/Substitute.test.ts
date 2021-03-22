@@ -41,7 +41,7 @@ function CreateMockTurn() {
     const initialState = {
         players:[player1,player2]
     }
-    return new Turn(1,initialState);
+    return new Turn(1,initialState,true);
 }
 
 

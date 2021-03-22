@@ -1,4 +1,4 @@
-import { Turn } from "game/Turn";
+import { NewGameInterface } from "game/Turn";
 import { BattleEventType, CannotAttackEvent,StatusChangeEvent } from "game/BattleEvents";
 import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
@@ -24,9 +24,9 @@ export abstract class HardStatus extends BattleBehaviour {
     abstract curedString:String
     abstract inflictedMessage:String
 
-    OnApply(turn:Turn,pokemon:Pokemon){
+    OnApply(game:NewGameInterface,pokemon:Pokemon){
     }
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(game:NewGameInterface, pokemon: Pokemon) {
         return true;
     }
 }
@@ -40,9 +40,8 @@ class RestingStatus extends HardStatus{
     CanApply(){
         return true;
     }
-
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
-        turn.AddMessage(`${pokemon.name} is sleeping!`);
+    BeforeAttack(game: NewGameInterface, pokemon: Pokemon) {
+        game.AddMessage(`${pokemon.name} is sleeping!`);
 
         if (pokemon.restTurnCount >= 2) {
             //Pokemon Wakes Up
@@ -55,15 +54,12 @@ class RestingStatus extends HardStatus{
                 status: Status.None,
                 defaultMessage: `${pokemon.name} has woken up!`
             }
-            turn.AddEvent(wakeupEffect);
+            game.AddEvent(wakeupEffect);
         }
         else {
             pokemon.canAttackThisTurn = false;
             pokemon.restTurnCount++;
         }
-    }
-    EndOfTurn(turn:Turn, pokemon:Pokemon){
-        
     }
 }
 
@@ -72,20 +68,17 @@ class ToxicStatus extends HardStatus{
     curedString= 'has been cured of poison!'
     inflictedMessage = 'has been badly poisoned!'
 
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(game:NewGameInterface, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Steel);
     }
-    BeforeAttack(turn: Turn, pokemon: Pokemon){
-        return;
-    }
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game:NewGameInterface, pokemon: Pokemon) {
                 //apply poison damage
         //poison damage is 1/16 of the pokemons max hp
         const maxHp = pokemon.originalStats.hp;
         const poisonDamage = pokemon.toxicCount * Math.ceil(maxHp / 16);
         pokemon.toxicCount++;
-        turn.AddMessage(`${pokemon.name} is badly hurt by poison.`);
-        turn.ApplyIndirectDamage(pokemon, poisonDamage)
+        game.AddMessage(`${pokemon.name} is badly hurt by poison.`);
+        game.ApplyIndirectDamage(pokemon, poisonDamage)
     }
 }
 
@@ -96,17 +89,17 @@ class BurnStatus extends HardStatus{
     curedString= 'has been cured of its burn!'
     inflictedMessage = 'has been burned!'
 
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(game:NewGameInterface, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Fire);
     }
-    BeforeAttack(turn: Turn, pokemon: Pokemon){
+    BeforeAttack(game:NewGameInterface, pokemon: Pokemon){
         return;
     }
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game:NewGameInterface, pokemon: Pokemon) {
         const maxHp = pokemon.originalStats.hp;
         const burnDamage = Math.ceil(maxHp / 8);
-        turn.AddMessage(`${pokemon.name} is hurt by its burn`);
-        turn.ApplyIndirectDamage(pokemon, burnDamage);
+        game.AddMessage(`${pokemon.name} is hurt by its burn`);
+        game.ApplyIndirectDamage(pokemon, burnDamage);
     }
 }
 
@@ -117,13 +110,13 @@ class FrozenStatus extends HardStatus{
     inflictedMessage = 'is frozen!'
     private thawChance: number = 25;
 
-    CanApply(turn: Turn, pokemon: Pokemon) {
-        return !HasElementType(pokemon, ElementType.Ice) && turn.field.weather?.name !== WeatherType.Sunny;
+    CanApply(game:NewGameInterface, pokemon: Pokemon) {
+        return !HasElementType(pokemon, ElementType.Ice) && game.field.weather?.name !== WeatherType.Sunny;
     }
 
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
-        turn.AddMessage(`${pokemon.name} is frozen!`);
-        if (turn.Roll(this.thawChance)) {
+    BeforeAttack(game:NewGameInterface, pokemon: Pokemon) {
+        game.AddMessage(`${pokemon.name} is frozen!`);
+        if (game.Roll(this.thawChance)) {
             //Pokemon Wakes Up
             pokemon.status = Status.None;
 
@@ -133,14 +126,14 @@ class FrozenStatus extends HardStatus{
                 status: Status.None,
                 defaultMessage: `${pokemon.name} is not frozen anymore!`
             }
-            turn.AddEvent(thawEffect);
+            game.AddEvent(thawEffect);
         }
         else {
             pokemon.canAttackThisTurn = false;
         }
     }
 
-    OnDamageTakenFromTechnique(turn:Turn,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
+    OnDamageTakenFromTechnique(game:NewGameInterface,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
         if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
             defendingPokemon.status = Status.None;
             const thawEffect: StatusChangeEvent = {
@@ -150,13 +143,8 @@ class FrozenStatus extends HardStatus{
                 attackerPokemonId: attackingPokemon.id,
                 defaultMessage: `${attackingPokemon.name}'s fire attack thawed ${defendingPokemon.name}!`
             }
-            turn.AddEvent(thawEffect);
+            game.AddEvent(thawEffect);
         }
-    }
-
-
-    EndOfTurn(turn: Turn, pokemon: Pokemon){
-        return;
     }
 }
 
@@ -168,16 +156,12 @@ class SleepStatus extends HardStatus{
     inflictedMessage = 'has fallen asleep!'
     private wakeUpChance: number = 25;
 
-    CanApply(turn: Turn, pokemon: Pokemon){
+    CanApply(game:NewGameInterface, pokemon: Pokemon){
         return true;
     }
-
-    EndOfTurn(turn: Turn, pokemon: Pokemon){
-        return;
-    }
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
-        turn.AddMessage(`${pokemon.name} is sleeping!`);
-        if (turn.Roll(this.wakeUpChance)) {
+    BeforeAttack(game:NewGameInterface, pokemon: Pokemon) {
+        game.AddMessage(`${pokemon.name} is sleeping!`);
+        if (game.Roll(this.wakeUpChance)) {
             //Pokemon Wakes Up
             pokemon.status = Status.None;
 
@@ -187,7 +171,7 @@ class SleepStatus extends HardStatus{
                 status: Status.None,
                 defaultMessage: `${pokemon.name} has woken up!`
             }
-            turn.AddEvent(wakeupEffect);
+            game.AddEvent(wakeupEffect);
         }
         else {
             pokemon.canAttackThisTurn = false;
@@ -203,51 +187,42 @@ class ParalyzeStatus extends HardStatus{
     inflictedMessage = 'is now paralyzed!'
     private cantMoveChance: number = 25;
 
-    EndOfTurn(turn: Turn, pokemon: Pokemon){
-        return;
-    }
-
-    BeforeAttack(turn: Turn, pokemon: Pokemon) {
-        if (turn.Roll(this.cantMoveChance)) {
+    BeforeAttack(game: NewGameInterface, pokemon: Pokemon) {
+        if (game.Roll(this.cantMoveChance)) {
             const cantAttackEffect: CannotAttackEvent = {
                 type: BattleEventType.CantAttack,
                 targetPokemonId: pokemon.id,
                 reason: Status.Paralyzed
             }
-            turn.AddEvent(cantAttackEffect);
+            game.AddEvent(cantAttackEffect);
             pokemon.canAttackThisTurn = false;
             return;
         }
         //do the before logic here.
     }
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(game: NewGameInterface, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Electric)
     }
 
 }
 
-class PoisonStatus extends HardStatus {
-    
+class PoisonStatus extends HardStatus {    
 
     statusType = Status.Poison;
     curedString= 'has been cured of poison!'
     inflictedMessage = ' has been poisoned!'
 
-    EndOfTurn(turn: Turn, pokemon: Pokemon) {
+    EndOfTurn(game: NewGameInterface, pokemon: Pokemon) {
         //apply poison damage
         //poison damage is 1/16 of the pokemons max hp
         const maxHp = pokemon.originalStats.hp;
         const poisonDamage = Math.ceil(maxHp / 8);
-        turn.AddMessage(`${pokemon.name} is hurt by poison`);
-        turn.ApplyIndirectDamage(pokemon, poisonDamage)
+        game.AddMessage(`${pokemon.name} is hurt by poison`);
+        game.ApplyIndirectDamage(pokemon, poisonDamage)
     }
-    CanApply(turn: Turn, pokemon: Pokemon) {
+    CanApply(game: NewGameInterface, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Poison);
     }
-    BeforeAttack(turn: Turn, pokemon: Pokemon){
-        return;
-    }
-
 }
 
 class NoneStatus extends HardStatus {
@@ -255,9 +230,7 @@ class NoneStatus extends HardStatus {
     statusType = Status.None;
     inflictedMessage = '';
     curedString= '';
-    BeforeAttack  = (turn: Turn, pokemon: Pokemon) => null;
-    CanApply =  (turn: Turn, pokemon: Pokemon) =>  true;
-    EndOfTurn =  (turn: Turn, pokemon: Pokemon) => null;
+    CanApply =  (game: NewGameInterface, pokemon: Pokemon) =>  true;
 }
 
 function GetHardStatus(status: Status): HardStatus {
