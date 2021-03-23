@@ -33,6 +33,32 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Defog",
+            description:"A strong wind blows away the target's barriers such as Reflect or Light Screen. This also lowers the target's evasiveness.",
+            pp:24,
+            power:0,
+            accuracy:99999,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Flying,
+            effects:[
+                {
+                    type:EffectType.ClearHazards,
+                    target:TargetType.Enemy
+                },
+                {
+                    type:EffectType.ClearHazards,
+                    target:TargetType.Self
+                },
+                //should be reducing enemy evasiveness, but i don't really care at the moment for programming that in.
+                {
+                    type:EffectType.StatBoost,
+                    target:TargetType.Self,
+                    stat:Stat.Accuracy,
+                    amount:1
+                }
+            ]
+        },
+        {
             name:"Rock Slide",
             description:"Large boulders are hurled at opposing Pokémon to inflict damage. This may also make the opposing Pokémon flinch.",
             pp:16,

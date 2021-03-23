@@ -751,6 +751,23 @@ const premades: Array<PremadePokemon> = [
             attack:32,
             speed:252
         }
+    },
+    {
+        species:"Crobat",
+        heldItem:"Black Sludge",
+        ability:"Infiltrator",
+        nature:NatureType.Jolly,
+        techniques:[
+            "Brave Bird",
+            "U-turn",
+            "Defog",
+            "Roost"
+        ],
+        evs:{
+            hp:248,
+            defense:48,
+            speed:212
+        }
     }
 ]
 

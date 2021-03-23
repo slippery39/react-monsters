@@ -469,6 +469,13 @@ class SandStreamAbility extends AbstractAbility {
 }
 
 
+//Note we have hard coded the work around for substitute inside the Game class itself... 
+class InfiltratorAbility extends AbstractAbility{
+    name = "Infiltrator";
+    description="Passes through the opposing Pokémon’s barrier, substitute, and the like and strikes."
+}
+
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -554,6 +561,9 @@ function GetAbility(name: String) {
         }
         case 'sand stream': {
             return new SandStreamAbility();
+        }
+        case 'infiltrator':{
+            return new InfiltratorAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

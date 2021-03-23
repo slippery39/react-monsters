@@ -542,7 +542,7 @@ class BattleGame implements IGame {
         damage = Math.max(1, Math.round(damage));
 
         //There has to be someway to put this into the substitute instead... a redirect damage function?
-        if (defendingPokemon.volatileStatuses.find(vStat => vStat.type === VolatileStatusType.Substitute)) {
+        if (defendingPokemon.volatileStatuses.find(vStat => vStat.type === VolatileStatusType.Substitute) &&attackingPokemon.ability.toLowerCase()!=="infiltrator")  {
             this.ApplyDamageToSubstitute(attackingPokemon, defendingPokemon, damage);
             return;
         }

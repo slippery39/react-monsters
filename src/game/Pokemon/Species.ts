@@ -530,6 +530,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:61
             },
             weight:202.0
+        },
+        {
+            name:"Crobat",
+            elementalTypes:[ElementType.Flying,ElementType.Poison],
+            baseStats:{
+                hp:85,
+                attack:90,
+                defense:80,
+                spAttack:70,
+                spDefense:80,
+                speed:130
+            },
+            weight:75
         }
     ];
 
