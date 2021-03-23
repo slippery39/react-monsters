@@ -1,4 +1,4 @@
-import { NewGameInterface } from "game/BattleGame";
+import { IGame } from "game/BattleGame";
 import { GetTypeMod } from "game/DamageFunctions";
 import { DoStatBoost } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
@@ -14,7 +14,7 @@ export enum EntryHazardType {
 }
 
 
-export function ApplyEntryHazard(game: NewGameInterface, player: Player, type: EntryHazardType) {
+export function ApplyEntryHazard(game: IGame, player: Player, type: EntryHazardType) {
 
 
     const getEntryHazard = function(type:EntryHazardType,player:Player){
@@ -83,16 +83,16 @@ export abstract class EntryHazard {
         this.player = player;
     }
 
-    CanApply(turn: NewGameInterface, player: Player) {
+    CanApply(turn: IGame, player: Player) {
         return true;
     }
-    OnApplied(turn: NewGameInterface, player: Player) {
+    OnApplied(turn: IGame, player: Player) {
 
     }
-    OnApplyFail(turn: NewGameInterface, player: Player) {
+    OnApplyFail(turn: IGame, player: Player) {
 
     }
-    OnPokemonEntry(turn: NewGameInterface, pokemon: Pokemon) {
+    OnPokemonEntry(turn: IGame, pokemon: Pokemon) {
 
     }
 }
@@ -107,17 +107,17 @@ export class Spikes extends EntryHazard {
         this.player = player;
     }
 
-    CanApply(turn: NewGameInterface, player: Player) {
+    CanApply(turn: IGame, player: Player) {
         return this.stage < 3;
     }
 
-    OnApplied(turn: NewGameInterface, player: Player) {
+    OnApplied(turn: IGame, player: Player) {
         this.stage++;
     }
-    OnApplyFail(turn: NewGameInterface, player: Player) {
+    OnApplyFail(turn: IGame, player: Player) {
         turn.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: NewGameInterface, pokemon: Pokemon) {
+    OnPokemonEntry(turn: IGame, pokemon: Pokemon) {
 
         if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;
@@ -150,13 +150,13 @@ export class StickyWeb extends EntryHazard {
         this.sourcePokemon = GetActivePokemon(player);
     }
     
-    OnApplied(turn: NewGameInterface, player: Player) {
+    OnApplied(turn: IGame, player: Player) {
         turn.AddMessage(`A sticky web was placed below ${player.name}'s team.`);
     }
-    OnApplyFail(turn: NewGameInterface, player: Player) {
+    OnApplyFail(turn: IGame, player: Player) {
         turn.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: NewGameInterface, pokemon: Pokemon) {
+    OnPokemonEntry(turn: IGame, pokemon: Pokemon) {
         if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;
         }
@@ -186,13 +186,13 @@ export class StealthRock extends EntryHazard {
         this.player = player;
     }
     
-    OnApplied(turn: NewGameInterface, player: Player) {
+    OnApplied(turn: IGame, player: Player) {
         turn.AddMessage(`Pointed stones float in the air around ${player.name}'s team.`);
     }
-    OnApplyFail(turn: NewGameInterface, player: Player) {
+    OnApplyFail(turn: IGame, player: Player) {
         turn.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: NewGameInterface, pokemon: Pokemon) {
+    OnPokemonEntry(turn: IGame, pokemon: Pokemon) {
 
         if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;

@@ -1,4 +1,4 @@
-import { NewGameInterface } from "game/BattleGame";
+import { IGame } from "game/BattleGame";
 import { DamageModifierInfo } from "game/DamageFunctions";
 import { EffectType, HealthRestoreEffect } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
@@ -22,16 +22,16 @@ export abstract class Weather {
     duration: number = 5;
     currentTurn: number = 0;
 
-    OnApply(game: NewGameInterface) {
+    OnApply(game: IGame) {
     }
 
     ModifyTechnique(pokemon: Pokemon, tech: Technique) {
         return tech;
     }
-    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: NewGameInterface) {
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: IGame) {
         return damage;
     }
-    EndOfTurn(game: NewGameInterface) {
+    EndOfTurn(game: IGame) {
 
     }
 }
@@ -39,7 +39,7 @@ export abstract class Weather {
 export class SandstormWeather extends Weather {
     name: WeatherType = WeatherType.Sandstorm
 
-    OnApply(turn: NewGameInterface) {
+    OnApply(turn: IGame) {
         turn.AddMessage("A sandstorm kicked up!");
     }
 
@@ -64,7 +64,7 @@ export class SandstormWeather extends Weather {
         }
         return tech;
     }
-    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: NewGameInterface) {
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: IGame) {
         if (tech.elementalType === ElementType.Fire) {
             return damage * 1.5;
         }
@@ -74,7 +74,7 @@ export class SandstormWeather extends Weather {
         return damage;
     }
 
-    EndOfTurn(game: NewGameInterface) {
+    EndOfTurn(game: IGame) {
         this.currentTurn++;
         if (this.currentTurn >= this.duration) {
             game.AddMessage("The sandstorm subsided.");
@@ -100,7 +100,7 @@ export class SandstormWeather extends Weather {
         }
     }
 
-    Update(game: NewGameInterface) {
+    Update(game: IGame) {
         const allPokemon = game.GetPlayers().map(play => play.pokemon).flat();
         allPokemon.forEach(pokemon => {
             if (pokemon.statMultipliers.find(multi => multi.tag === "sandstorm") === undefined) {
@@ -121,7 +121,7 @@ export class SandstormWeather extends Weather {
 export class SunnyWeather extends Weather {
     name: WeatherType = WeatherType.Sunny
 
-    OnApply(game: NewGameInterface) {
+    OnApply(game: IGame) {
         game.AddMessage("The sunlight turned harsh!");
     }
 
@@ -156,7 +156,7 @@ export class SunnyWeather extends Weather {
         return tech;
     }
 
-    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: NewGameInterface) {
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: IGame) {
         if (tech.elementalType === ElementType.Fire) {
             return damage * 1.5;
         }
@@ -166,7 +166,7 @@ export class SunnyWeather extends Weather {
         return damage;
     }
 
-    EndOfTurn(game: NewGameInterface) {
+    EndOfTurn(game: IGame) {
         this.currentTurn++;
         if (this.currentTurn >= this.duration) {
             game.AddMessage("The harsh sunlight faded.")
@@ -180,7 +180,7 @@ export class RainingWeather extends Weather {
     name: WeatherType = WeatherType.Rain;
     //Moves Thunder and Hurricane should always hit.
 
-    OnApply(turn: NewGameInterface) {
+    OnApply(turn: IGame) {
         turn.AddMessage("It started to rain!");
     }
 
@@ -213,7 +213,7 @@ export class RainingWeather extends Weather {
         return tech;
     }
 
-    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: NewGameInterface) {
+    OnAfterDamageCalculated(pokemon: Pokemon, tech: Technique, defendingPokemon: Pokemon, damage: number, damageModifier: DamageModifierInfo, game: IGame) {
 
         if (tech.elementalType === ElementType.Water) {
             return damage * 1.5;
@@ -223,7 +223,7 @@ export class RainingWeather extends Weather {
         }
         return damage;
     }
-    EndOfTurn(game: NewGameInterface) {
+    EndOfTurn(game: IGame) {
         this.currentTurn++;
         if (this.currentTurn >= this.duration) {
             game.AddMessage("The rain stopped.")

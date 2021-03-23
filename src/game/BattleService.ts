@@ -88,10 +88,10 @@ class BattleService {
         if (this.gameEnded) {
             return;
         }
-        if (this.battle.GetCurrentState().type === 'awaiting-initial-actions') {
+        if (this.battle.GetCurrentState()=== 'awaiting-initial-actions') {
             this.SetInitialAction(action);
         }
-        else if (this.battle.GetCurrentState().type === 'awaiting-switch-action') {
+        else if (this.battle.GetCurrentState()=== 'awaiting-switch-action') {
             //RIGHT HERE IS WHERE IT'S HAPPENING!, WE NEED TO VALIDATE HERE....
 
             if (action.type !== 'switch-pokemon-action') {

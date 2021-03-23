@@ -71,7 +71,14 @@ function AutoAssignTechniqueIds(players: Array<Player>): void {
     });
 }
 
-export type TurnState = 'awaiting-initial-actions' | 'awaiting-switch-action' | 'turn-finished' | 'game-over' | 'calculating-turn';
+
+export enum TurnState {
+    WaitingForInitialActions = 'awaiting-initial-actions',
+    WaitingForSwitchActions = 'awaiting-switch-action',
+    TurnFinished = 'turn-finished',
+    GameOver = 'game-over',
+    CalculatingTurn = 'calculating-turn'
+}
 
 export interface Field {
     players: Array<Player>,
@@ -90,11 +97,6 @@ export enum TurnStep {
     PostAction2 = 'post-action-2',
     BeforeEnd = 'before-end',
     End = 'end'
-}
-
-export interface State {
-    type: TurnState,
-    winningPlayerId?: number
 }
 
 export interface OnGameOverArgs {
@@ -122,22 +124,22 @@ export interface OnSwitchNeededArgs {
 }
 
 
-export interface NewGameInterface {
+export interface IGame {
     GetEvents: () => Array<BattleEvent>,
-    GetEventsSinceLastAction:()=>Array<BattleEvent>,
+    GetEventsSinceLastAction: () => Array<BattleEvent>,
     //move order? - keep this in the turn?
     //initial actions? - keep this in the turn?
-    GetPlayersWhoNeedToSwitch:()=>Array<Player>
-    GetCurrentState:()=>State,
+    GetPlayersWhoNeedToSwitch: () => Array<Player>
+    GetCurrentState: () => TurnState,
     //turn over: -> not needed for game.
-    field:Field,
+    field: Field,
     OnTurnFinished: TypedEvent<{}>;
     OnNewLogReady: TypedEvent<OnNewTurnLogArgs>
     OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs>
     OnActionNeeded: TypedEvent<OnActionNeededArgs>
     OnGameOver: TypedEvent<OnGameOverArgs>
     shouldProcessEvents: Boolean
-    Clone: () => NewGameInterface
+    Clone: () => IGame
     SetInitialPlayerAction: (action: BattleAction) => void
     OverridePlayerAction: (action: BattleAction) => void
     StartTurn: () => void
@@ -146,22 +148,22 @@ export interface NewGameInterface {
     AddMessage: (message: string) => void;
     GetPlayers: () => Array<Player>;
     GetBehavioursForPokemon: (pokemon: Pokemon) => Array<BattleBehaviour>;
-    SetStatusOfPokemon:(pokemonId: number, status: Status)=>void;
-    PromptForSwitch:(pokemon: Pokemon)=>void;
-    ApplyHealing:(pokemon: Pokemon, amount: number)=>void;
-    ApplyStruggleDamage:(pokemon: Pokemon, damage: number)=>void;
-    ApplyIndirectDamage:(pokemon: Pokemon, damage: number)=>void; 
-    ApplyDamageToSubstitute:(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number)=>void;
-    ApplyDamage:(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any)=>void;
-    EmitNewTurnLog:()=>void;
-    SwitchPokemon:(player: Player, pokemonIn: Pokemon)=>void;
-    UseItem:(player: Player, item: Item)=>void;
-    UseTechnique:(pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique)=>void;
-    Roll:(chance: number) => boolean;
-    AddEvent:(effect: BattleEvent)=>void;
-    GetValidSwitchIns:(player: Player)=>Array<Pokemon>;
-    GetPokemonOwner:(pokemon: Pokemon)=>Player;
-    GetMoveOrder:()=>Array<BattleAction>;
+    SetStatusOfPokemon: (pokemonId: number, status: Status) => void;
+    PromptForSwitch: (pokemon: Pokemon) => void;
+    ApplyHealing: (pokemon: Pokemon, amount: number) => void;
+    ApplyStruggleDamage: (pokemon: Pokemon, damage: number) => void;
+    ApplyIndirectDamage: (pokemon: Pokemon, damage: number) => void;
+    ApplyDamageToSubstitute: (attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number) => void;
+    ApplyDamage: (attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any) => void;
+    EmitNewTurnLog: () => void;
+    SwitchPokemon: (player: Player, pokemonIn: Pokemon) => void;
+    UseItem: (player: Player, item: Item) => void;
+    UseTechnique: (pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique) => void;
+    Roll: (chance: number) => boolean;
+    AddEvent: (effect: BattleEvent) => void;
+    GetValidSwitchIns: (player: Player) => Array<Pokemon>;
+    GetPokemonOwner: (pokemon: Pokemon) => Player;
+    GetMoveOrder: () => Array<BattleAction>;
 }
 
 
@@ -174,7 +176,7 @@ interface GameOptions {
 
 
 
-class BattleGame implements NewGameInterface {
+class BattleGame implements IGame {
     //note this variable gets set at the start but doesn't get updated at the moment, once we move more of the turn stuff over into here we can deal with that.
     currentTurnId: number = 0;
     nextEventId: number = 1;
@@ -204,7 +206,9 @@ class BattleGame implements NewGameInterface {
 
     //Turn State Variables
     currentBattleStep = TurnStep.PreAction1;
-    currentState: State = { type: 'awaiting-initial-actions' }
+    currentState: TurnState = TurnState.WaitingForInitialActions;
+    winningPlayerId: number = -1; //removed from the current state;
+
     turnOver: boolean = false;
 
 
@@ -215,7 +219,7 @@ class BattleGame implements NewGameInterface {
             throw new Error(`Need exactly 2 players to properly initialize a battle`);
         }
         this.field = {
-            players: [ClonePlayer(players[0]),ClonePlayer(players[1])], //TODO: testing non clone deeped vs clone deeped.
+            players: [ClonePlayer(players[0]), ClonePlayer(players[1])], //TODO: testing non clone deeped vs clone deeped.
             entryHazards: [],
             weather: undefined,
             fieldEffects: []
@@ -244,25 +248,26 @@ class BattleGame implements NewGameInterface {
     GetPlayersWhoNeedToSwitch(): Array<Player> {
         return this.playersWhoNeedToSwitch;
     }
-    GetCurrentState(): State {
+    GetCurrentState(): TurnState {
         return this.currentState;
     }
 
     //Double check this one... might be some spicy things here.
-    Clone(): NewGameInterface {
+    Clone(): IGame {
         const newGame = new BattleGame(this.field.players, this.shouldProcessEvents);
         newGame.initialActions = [...this.initialActions];
         newGame._moveOrder = [...this._moveOrder];
         newGame.playersWhoNeedToSwitch = [...this.playersWhoNeedToSwitch];
         newGame._switchNeededActions = [...this._switchNeededActions];
         newGame.currentBattleStep = this.currentBattleStep;
-        newGame.currentState = { ...this.currentState };
+        newGame.currentState = this.currentState;
+        newGame.winningPlayerId = this.winningPlayerId;
         newGame.turnOver = this.turnOver;
         return newGame;
     }
 
     SetInitialPlayerAction(action: BattleAction) {
-        if (this.currentState.type === 'game-over') {
+        if (this.currentState === TurnState.GameOver) {
             return;
         }
         const actionExistsForPlayer = this.initialActions.filter(act => act.playerId === action.playerId);
@@ -307,10 +312,8 @@ class BattleGame implements NewGameInterface {
         else {
             return;
         }
-        if (this.initialActions.length === 2 && this.currentState.type === 'awaiting-initial-actions') {
-            this.currentState = {
-                type: 'calculating-turn'
-            }
+        if (this.initialActions.length === 2 && this.currentState === TurnState.WaitingForInitialActions) {
+            this.currentState = TurnState.CalculatingTurn;
             this.CalculateTurn();
         }
     }
@@ -397,10 +400,7 @@ class BattleGame implements NewGameInterface {
 
             this._switchNeededActions = [];//reset the switch needed actions.
 
-            this.currentState = {
-                type: 'calculating-turn'
-            };
-
+            this.currentState = TurnState.CalculatingTurn;
 
             this.CalculateTurn();
         }
@@ -438,7 +438,7 @@ class BattleGame implements NewGameInterface {
     }
 
     PromptForSwitch(pokemon: Pokemon) {
-        if (this.currentState.type !== 'game-over') {
+        if (this.currentState !== TurnState.GameOver) {
             const owner = this.GetPokemonOwner(pokemon);
             //TODO - This needs to be a prompt now, not just for fainted pokemon.
             if (this.playersWhoNeedToSwitch.map(p => p.id).includes(owner.id)) {
@@ -446,7 +446,7 @@ class BattleGame implements NewGameInterface {
             }
             else {
                 this.playersWhoNeedToSwitch.push(owner);
-                this.currentState = { type: 'awaiting-switch-action' }
+                this.currentState = TurnState.WaitingForSwitchActions;
             }
         }
     }
@@ -520,7 +520,7 @@ class BattleGame implements NewGameInterface {
         }) as SubstituteVolatileStatus;
 
         if (substitute === undefined) {
-            console.error("substitute was undefined when we tried to apply damage to it",defendingPokemon);
+            console.error("substitute was undefined when we tried to apply damage to it", defendingPokemon);
             throw new Error("substitute was undefined when we tried to apply damage to it");
         }
         substitute.Damage(this, defendingPokemon, damage);
@@ -542,7 +542,7 @@ class BattleGame implements NewGameInterface {
         damage = Math.max(1, Math.round(damage));
 
         //There has to be someway to put this into the substitute instead... a redirect damage function?
-        if (defendingPokemon.volatileStatuses.find(vStat=>vStat.type===VolatileStatusType.Substitute)) {
+        if (defendingPokemon.volatileStatuses.find(vStat => vStat.type === VolatileStatusType.Substitute)) {
             this.ApplyDamageToSubstitute(attackingPokemon, defendingPokemon, damage);
             return;
         }
@@ -594,8 +594,8 @@ class BattleGame implements NewGameInterface {
             currentTurnLog: [...this.GetEvents()],
             eventsSinceLastTime: [...this.eventsSinceLastAction],
             field: _.cloneDeep(this.field),
-            winningPlayerId: this.currentState.winningPlayerId,
-            currentTurnState: this.currentState.type,
+            winningPlayerId: this.winningPlayerId,
+            currentTurnState: this.currentState,
             waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id)
         };
         this.eventsSinceLastAction = []; //clear the cached events
@@ -932,10 +932,8 @@ class BattleGame implements NewGameInterface {
         //game over check.
         if (owner.pokemon.filter(poke => poke.currentStats.hp > 0).length === 0) {
             const winningPlayer = this.GetPlayers().filter(player => player.id !== owner.id)[0];
-            this.currentState = {
-                type: 'game-over',
-                winningPlayerId: winningPlayer.id
-            }
+            this.currentState = TurnState.GameOver;
+            this.winningPlayerId = winningPlayer.id;
         }
         else {
             this.PromptForSwitch(pokemon);
@@ -1025,7 +1023,7 @@ class BattleGame implements NewGameInterface {
             }
         ];
 
-        while (this.currentState.type !== 'awaiting-switch-action' && this.currentState.type !== 'turn-finished' && this.currentState.type !== 'game-over' && this.turnOver === false) {
+        while (this.currentState !== TurnState.WaitingForSwitchActions && this.currentState !== TurnState.TurnFinished && this.currentState !== TurnState.GameOver && this.turnOver === false) {
 
 
             var startStep = nextStateLookups.find((e) => {
@@ -1049,7 +1047,7 @@ class BattleGame implements NewGameInterface {
 
 
 
-        if (this.currentState.type === 'awaiting-switch-action' && this.turnOver === false) {
+        if (this.currentState === TurnState.WaitingForSwitchActions && this.turnOver === false) {
             const switchNeededInfo = {
                 turnId: this.currentTurnId,
                 playerIDsNeeded: this.playersWhoNeedToSwitch.map(p => p.id),
@@ -1058,15 +1056,17 @@ class BattleGame implements NewGameInterface {
             this.OnSwitchNeeded.emit(switchNeededInfo);
         }
         //THE REASON WAS HERE! FORGOT AN ELSE STATEMENT.... IT IS POSSIBLE THAT OUR ON SWITCH NEEDED EVENT IS HANDLEDED RIGHT AWAY.
-        else if (this.currentState.type === 'turn-finished' && this.turnOver === false) {
+        else if (this.currentState === 'turn-finished' && this.turnOver === false) {
             //this.turnOver = true;
             this.OnTurnFinished.emit({});
             //added in here, the turn-finished seems to make something work...
             this.NextTurn();
         }
-        else if (this.currentState.type === 'game-over' && this.turnOver === false) {
-            const winningPlayer = this.currentState.winningPlayerId ? this.GetPlayer(this.currentState.winningPlayerId!) : undefined;
-            const losingPlayer = this.GetPlayers().find(p => p.id !== this.currentState.winningPlayerId);
+        else if (this.currentState === 'game-over' && this.turnOver === false) {
+            const winningPlayer = this.winningPlayerId!==-1 ? this.GetPlayer(this.winningPlayerId!) : undefined;
+
+            //Potential bug here, what happens if we draw?
+            const losingPlayer = this.GetPlayers().find(p => p.id !== this.winningPlayerId);
             this.turnOver = true;
 
             this.OnGameOver.emit({
@@ -1078,9 +1078,7 @@ class BattleGame implements NewGameInterface {
 
     //should not be needed. this isn't really useful anymore    
     private EndTurn() {
-        this.currentState = {
-            type:'turn-finished'
-        }
+        this.currentState = TurnState.TurnFinished;
     }
 
     private BeforeEndOfTurn() {
@@ -1227,10 +1225,10 @@ class BattleGame implements NewGameInterface {
     private NextTurn() {
         this.currentTurnId++;
         //Resetting all the variables
-        this.initialActions=[];
+        this.initialActions = [];
         this._moveOrder = [];
         this._switchNeededActions = [];
-        this.currentState= {type:'awaiting-initial-actions'}
+        this.currentState = TurnState.WaitingForInitialActions;
         this.currentBattleStep = TurnStep.PreAction1;
         //Yay
         this.StartTurn();

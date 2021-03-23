@@ -1,6 +1,6 @@
 
 import { Actions, BattleAction } from "game/BattleActions";
-import BattleGame, { Field } from "game/BattleGame";
+import BattleGame, { Field, TurnState } from "game/BattleGame";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
@@ -175,7 +175,7 @@ class MiniMax {
         let info: Array<PointCalcInfo> | undefined = undefined;
         let action2: BattleAction | undefined = undefined;
           //TODO : if the simmed action was a switch action, look forward one more turn to see if it was the best choice.
-        if ( (simmedAction.type === 'switch-pokemon-action' && testGame.currentState.type==='awaiting-initial-actions') && testGame.currentTurnId===2){
+        if ( (simmedAction.type === 'switch-pokemon-action' && testGame.currentState === TurnState.WaitingForInitialActions) && testGame.currentTurnId===2){
 
             const newSImmedPlayer = testGame.GetPlayers().find(p=>p.id === simmedPlayer.id);
             if (newSImmedPlayer === undefined){

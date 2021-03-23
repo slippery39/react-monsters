@@ -1,5 +1,5 @@
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
-import { NewGameInterface } from "game/BattleGame";
+import { IGame } from "game/BattleGame";
 import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
@@ -14,7 +14,7 @@ export enum FieldEffectType {
 export abstract class FieldEffect extends BattleBehaviour {
     name: FieldEffectType = FieldEffectType.None
     playerId: number = -1;
-    OnCreated(turn: NewGameInterface, player: Player) {
+    OnCreated(turn: IGame, player: Player) {
 
     }
 }
@@ -25,7 +25,7 @@ export class WishFieldEffect extends FieldEffect {
     count: number = 1;
     healingAmount: number = 1;
 
-    OnCreated(turn: NewGameInterface, player: Player) {
+    OnCreated(turn: IGame, player: Player) {
         this.playerId = player.id;
         const pokemon = GetActivePokemon(player);
         this.healingAmount = pokemon.originalStats.hp / 2;
@@ -33,7 +33,7 @@ export class WishFieldEffect extends FieldEffect {
     }
 
 
-    EndOfTurn(turn: NewGameInterface, pokemon: Pokemon) {
+    EndOfTurn(turn: IGame, pokemon: Pokemon) {
         if (this.count < 2) {
             this.count++;
         }

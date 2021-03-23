@@ -1,4 +1,4 @@
-import { NewGameInterface } from "game/BattleGame";
+import { IGame } from "game/BattleGame";
 import { GetPokemonOwner } from "game/HelperFunctions";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
@@ -19,13 +19,13 @@ export enum DamageEffectTypes {
 }
 
 abstract class AbstractDamageEffect {
-    ModifyTechnique(pokemon: Pokemon, technique: Technique, opponentPokemon: Pokemon, game?: NewGameInterface) {
+    ModifyTechnique(pokemon: Pokemon, technique: Technique, opponentPokemon: Pokemon, game?: IGame) {
         return technique;
     }
     ModifyDamageDealt(pokemon: Pokemon, originalDamage: number) {
         return originalDamage;
     }
-    ModifyDamageCalculationInfo(game: NewGameInterface, damageCalcutionInfo: { pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique }) {
+    ModifyDamageCalculationInfo(game: IGame, damageCalcutionInfo: { pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique }) {
         return damageCalcutionInfo;
     }
 }
@@ -74,7 +74,7 @@ class LowKickEffect extends AbstractDamageEffect {
 }
 
 class PursuitEffect extends AbstractDamageEffect {
-    ModifyTechnique(pokemon: Pokemon, technique: Technique, opponentPokemon: Pokemon, game: NewGameInterface) {
+    ModifyTechnique(pokemon: Pokemon, technique: Technique, opponentPokemon: Pokemon, game: IGame) {
         const moveOrder = game.GetMoveOrder(); //get the opponents action.
 
         const otherAction = moveOrder.find(move => move.playerId !== GetPokemonOwner(game.GetPlayers(), pokemon).id)
@@ -96,7 +96,7 @@ class PursuitEffect extends AbstractDamageEffect {
 }
 
 class AcrobaticsEffect extends AbstractDamageEffect {
-    ModifyTechnique(pokemon: Pokemon, technique: Technique, opponentPokemon: Pokemon, game: NewGameInterface) {
+    ModifyTechnique(pokemon: Pokemon, technique: Technique, opponentPokemon: Pokemon, game: IGame) {
         if (pokemon.heldItem.name !== "") {
             return technique;
         }
@@ -110,7 +110,7 @@ class AcrobaticsEffect extends AbstractDamageEffect {
 
 class FoulPlayEffect extends AbstractDamageEffect {
 
-    ModifyDamageCalculationInfo(game: NewGameInterface, info: { pokemon: Pokemon; defendingPokemon: Pokemon; technique: Technique; }) {
+    ModifyDamageCalculationInfo(game: IGame, info: { pokemon: Pokemon; defendingPokemon: Pokemon; technique: Technique; }) {
         const newPokemon = _.cloneDeep(info.pokemon);
         newPokemon.currentStats.attack = info.defendingPokemon.currentStats.attack;
         newPokemon.statBoosts.attack = info.defendingPokemon.statBoosts.attack;
