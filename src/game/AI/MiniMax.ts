@@ -1,8 +1,8 @@
 
-import { Actions, BattleAction } from "game/BattleActions";
+import { Actions, BattleAction, SwitchPokemonAction } from "game/BattleActions";
 import BattleGame, { Field, TurnState } from "game/BattleGame";
 import { Status } from "game/HardStatus/HardStatus";
-import { GetActivePokemon } from "game/HelperFunctions";
+import { CloneField, GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
@@ -30,11 +30,11 @@ enum PointCalculationTypes {
 type PointCalcRecord = Record<PointCalculationTypes, number>;
 
 interface PointCalcInfo {
-    action:BattleAction,
-    action2?:BattleAction,
+    action: BattleAction,
+    action2?: BattleAction,
     points: number,
     pointCalcs: PointCalcRecord,
-    depth?:number
+    depth?: number
 }
 
 
@@ -71,74 +71,112 @@ class MinMaxNode{
 */
 
 class MiniMax {
-    
+
 
     //Iterations is the number of iterations we will run per "node"
     //depth is how many turns deep we want to go.
     //To start lets get it working with 1 turn deep.
-    async RunSimulation(simmedPlayer:Player,field:Field){
+
+
+    async GetBestPokemonSwitch(simmedPlayer: Player, originalGame: BattleGame) {
+        const miniMax = new MiniMax();
+        const validSwitchActions = originalGame.GetValidActions(simmedPlayer).filter(vAct => vAct.type === 'switch-pokemon-action');
+        const results: Array<PointCalcInfo> = [];
+        for (let key in validSwitchActions) {
+            const clonedGame = originalGame.Clone();
+            const action = validSwitchActions[key];
+            const player = clonedGame.GetPlayers().find(p => p.id === simmedPlayer.id)!;
+
+            if (clonedGame.GetCurrentState() === TurnState.WaitingForInitialActions) {
+                clonedGame.SetInitialPlayerAction(action as SwitchPokemonAction);
+            }
+            else if (clonedGame.GetCurrentState() === TurnState.WaitingForSwitchActions) {
+                clonedGame.SetSwitchPromptAction(action as SwitchPokemonAction);
+            }
+            const afterSwitchField = clonedGame.field;
+            const result = await miniMax.SimulateAllActions(player, afterSwitchField, true, undefined);
+            result[0].action = action;
+            results.push(result[0]);
+        }
+        return results.sort((a, b) => b.points - a.points);
+    }
+
+    async RunSimulation(simmedPlayer: Player, field: Field) {
         await waitForSeconds(0);
         const player = field.players.find(player => player.id === simmedPlayer.id);
         const otherPlayer = field.players.find(player => player.id !== simmedPlayer.id);
 
-        if (player === undefined){
+        if (player === undefined) {
             throw new Error(`Could not find player for simulation`);
         }
 
         if (otherPlayer === undefined) {
             throw new Error(`Could not find other player to simulate turn`);
         }
-        const calculatedOppPoints = await this.SimulateAllActions(otherPlayer, field, true,undefined);
+        const calculatedOppPoints = await this.SimulateAllActions(otherPlayer, field, true, undefined);
         const predictedOppAction = calculatedOppPoints[0].action;
-       return await this.SimulateAllActions(player,field,false,predictedOppAction);
+        return await this.SimulateAllActions(player, field, false, predictedOppAction);
     }
-    async SimulateAllActions(simmedPlayer: Player, beforeField: Field,techsOnly:Boolean, oppAction?: BattleAction) { 
-        beforeField = _.cloneDeep(beforeField);
+    async SimulateAllActions(simmedPlayer: Player, beforeField: Field, techsOnly: Boolean, oppAction?: BattleAction) {
+        beforeField = CloneField(beforeField)
 
-        
 
-        const originalGame = new BattleGame(beforeField.players,false);
+
+        const originalGame = new BattleGame(beforeField.players, false);
         originalGame.field = beforeField;
 
         let validActions = originalGame.GetValidActions(simmedPlayer);
-        const validTechActions = originalGame.GetValidActions(simmedPlayer).filter(vAct=>vAct.type===Actions.UseTechnique || vAct.type === Actions.ForcedTechnique);
+        const validTechActions = originalGame.GetValidActions(simmedPlayer).filter(vAct => vAct.type === Actions.UseTechnique || vAct.type === Actions.ForcedTechnique);
 
-        
+
         let calculatedPoints = [];
-        for (let key in validTechActions){
+        for (let key in validTechActions) {
             const action = validActions[key];
             //If necessary we can change simulate 1 action to have multiple iterations;
-            let total = await this.Simulate1Action(simmedPlayer,action,beforeField,oppAction);     
-            calculatedPoints.push(total);    
+            waitForSeconds(0);
+            let total = await this.Simulate1Action(simmedPlayer, action, beforeField, oppAction);
+            calculatedPoints.push(total);
         }
-        calculatedPoints = shuffle(calculatedPoints).sort( (a,b)=>b.points-a.points);
 
-        const beforePoints = this.EvaluateField(simmedPlayer,beforeField);
-        //No good moves lets look for a good switch
 
-        let switchPoints = [];
-        if (beforePoints.points > calculatedPoints[0].points){
-            const validSwitchActions = originalGame.GetValidActions(simmedPlayer).filter(vAct=>vAct.type === 'switch-pokemon-action');
-            for (let key in validSwitchActions){
-                const action = validSwitchActions[key];
-                let total = await this.Simulate1Action(simmedPlayer,action,beforeField,oppAction);
-                switchPoints.push(total);
-            }
-        }
-        switchPoints = switchPoints.sort( (a,b)=>b.points - a.points);
+        calculatedPoints = shuffle(calculatedPoints).sort((a, b) => b.points - a.points);
 
-        if (switchPoints.length>0 && switchPoints[0].points > calculatedPoints[0].points){
-            return switchPoints;
-        }
-        else{
+        //We need to specify tech's only or we will run into an infinite loop with the switching logic.
+        if (techsOnly) {
             return calculatedPoints;
         }
+
+        const beforePoints = this.EvaluateField(simmedPlayer, beforeField);
+
+        console.log(beforePoints);
+        //No good moves lets look for a good switch
+     
+        if (beforePoints.points > calculatedPoints[0].points) {
+            console.log("looking for switch actions!");
+            const switchPoints = await this.GetBestPokemonSwitch(simmedPlayer,originalGame);
+              if (switchPoints.length>0 && switchPoints[0].points > calculatedPoints[0].points) {
+                console.log(switchPoints);
+                return switchPoints;
+            }
+        }
+
+            return calculatedPoints;
+        
     }
 
-    private async Simulate1Action(simmedPlayer: Player, simmedAction:BattleAction, beforeField: Field, oppAction?: BattleAction) {
+    private async Simulate1Action(simmedPlayer: Player, simmedAction: BattleAction, beforeField: Field, oppAction?: BattleAction) {
+
         const testGame = new BattleGame(beforeField.players, false);
-        testGame.field = beforeField;
+        testGame.field = CloneField(beforeField);
         testGame.Initialize();
+
+
+        if (simmedAction.type === 'switch-pokemon-action') {
+            const bestSwitch = await this.GetBestPokemonSwitch(simmedPlayer, testGame);
+            return bestSwitch[0];
+        }
+
+
         testGame.SetInitialPlayerAction(simmedAction);
 
         //find a random move for this playr
@@ -168,40 +206,17 @@ class MiniMax {
 
         const opponentAction = getOpponentAction(opponentPlayer);
         testGame.SetInitialPlayerAction(opponentAction);
-
-
         let pointCalcInfo;
-        let depth = 1;
-        let info: Array<PointCalcInfo> | undefined = undefined;
-        let action2: BattleAction | undefined = undefined;
-          //TODO : if the simmed action was a switch action, look forward one more turn to see if it was the best choice.
-        if ( (simmedAction.type === 'switch-pokemon-action' && testGame.currentState === TurnState.WaitingForInitialActions) && testGame.currentTurnId===2){
+        pointCalcInfo = this.EvaluateField(simmedPlayer, testGame.field);
 
-            const newSImmedPlayer = testGame.GetPlayers().find(p=>p.id === simmedPlayer.id);
-            if (newSImmedPlayer === undefined){
-                throw new Error(`Could not find player`);
-            }
-            info = await this.SimulateAllActions(newSImmedPlayer,testGame.field,true,undefined);            
-            pointCalcInfo=info[0];
-            action2 = info[0].action
-            depth = 2;
+        const finalInfo: PointCalcInfo = {
+            action: simmedAction,
+            pointCalcs: pointCalcInfo.pointCalcs,
+            points: pointCalcInfo.points,
         }
-        else{
-            pointCalcInfo = this.EvaluateField(simmedPlayer,testGame.field);
-        }
-        
 
-        //terminate if - we have reached our maximum depth,both players are going to switch pokemon,or the game has ended.
 
-        const finalInfo :PointCalcInfo = {
-           action:simmedAction,
-           action2: action2,
-           pointCalcs:pointCalcInfo.pointCalcs,
-           points:pointCalcInfo.points,
-           depth: depth
-       }
-
-       return finalInfo;
+        return finalInfo;
     }
 
 
@@ -210,10 +225,10 @@ class MiniMax {
     //Returns our interpretation of what we think a winning an losing game state is.
     EvaluateField(player: Player, field: Field) {
 
-        const simmedPlayer = field.players.find(p=>p.id === player.id);
+        const simmedPlayer = field.players.find(p => p.id === player.id);
         const opponentPlayer = field.players.find(p => p.id !== player.id);
 
-        if (opponentPlayer === undefined || simmedPlayer === undefined)  {
+        if (opponentPlayer === undefined || simmedPlayer === undefined) {
             throw new Error(`Could not find opponent player`);
         }
 
@@ -279,10 +294,10 @@ class MiniMax {
             pointCalcs[PointCalculationTypes.WonGame] += 99999;
         }
 
-            pointCalcs[PointCalculationTypes.EnemyPokemonFainted] = pointValues[PointCalculationTypes.EnemyPokemonFainted] * GetAmountOfFaintedPokemon(opponentPlayer);   
+        pointCalcs[PointCalculationTypes.EnemyPokemonFainted] = pointValues[PointCalculationTypes.EnemyPokemonFainted] * GetAmountOfFaintedPokemon(opponentPlayer);
 
-            pointCalcs[PointCalculationTypes.AllyPokemonFainted] = pointValues[PointCalculationTypes.AllyPokemonFainted] * GetAmountOfFaintedPokemon(simmedPlayer);
-        
+        pointCalcs[PointCalculationTypes.AllyPokemonFainted] = pointValues[PointCalculationTypes.AllyPokemonFainted] * GetAmountOfFaintedPokemon(simmedPlayer);
+
         //Needs to be opposite.
         const opphealthDiff = CalculateTeamHealthPercentage(opponentPlayer);
         pointCalcs[PointCalculationTypes.EnemyTeamDeltaHealth] = pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] * opphealthDiff
@@ -302,11 +317,11 @@ class MiniMax {
         }
 
 
-        const GetHealthRatio= function(pokemon:Pokemon){
+        const GetHealthRatio = function (pokemon: Pokemon) {
             return (pokemon.currentStats.hp / pokemon.originalStats.hp);
         }
-        pointCalcs[PointCalculationTypes.AllyStatBoost] = pointValues[PointCalculationTypes.AllyStatBoost] * GetStatBoostsAmount(simmedPlayer) * GetHealthRatio(GetActivePokemon(simmedPlayer)) ;
-        
+        pointCalcs[PointCalculationTypes.AllyStatBoost] = pointValues[PointCalculationTypes.AllyStatBoost] * GetStatBoostsAmount(simmedPlayer) * GetHealthRatio(GetActivePokemon(simmedPlayer));
+
 
         //TODO, speed stat boost should only care if they are faster than the opponent.
 
@@ -322,7 +337,7 @@ class MiniMax {
         const GetAmountOfAlivePokemon = (player: Player) => {
             return player.pokemon.filter(poke => poke.currentStats.hp > 0).length;
         }
-        pointCalcs[PointCalculationTypes.EnemyPlayerEntryHazards] = pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] * getAmountOfEntryHazards(opponentPlayer,field) * GetAmountOfAlivePokemon(opponentPlayer);
+        pointCalcs[PointCalculationTypes.EnemyPlayerEntryHazards] = pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] * getAmountOfEntryHazards(opponentPlayer, field) * GetAmountOfAlivePokemon(opponentPlayer);
 
         if (hasLostGame) {
             pointCalcs[PointCalculationTypes.LostGame] = pointValues[PointCalculationTypes.LostGame];
@@ -340,7 +355,7 @@ class MiniMax {
     }
 
     //Some Calculation Functions
-    
+
     private AddPointCalcs(a: PointCalcInfo, b: PointCalcInfo) {
         let newPointCalcs = { ...a.pointCalcs };
         Object.values(PointCalculationTypes).forEach(pct => {
@@ -348,14 +363,14 @@ class MiniMax {
         });
 
         return {
-            action:a.action, points: a.points + b.points, pointCalcs: newPointCalcs
+            action: a.action, points: a.points + b.points, pointCalcs: newPointCalcs
         }
     }
 
     private AveragePointCalcs = (totals: PointCalcInfo, iterations: number) => {
 
         let averageCalculation: PointCalcInfo = {
-            action:totals.action,
+            action: totals.action,
             points: totals.points / iterations,
             pointCalcs: totals.pointCalcs
 

@@ -282,6 +282,7 @@ class BattleGame implements IGame {
 
                 const technique = actionPokemon.techniques.find(tech => tech.id === (action as UseMoveAction).moveId);
                 if (technique === undefined) {
+                    console.error(`Could not find technique to use in set initial player action action: ${JSON.stringify(action)}, pokemon: ${JSON.stringify(actionPokemon)}, techId: ${action.moveId}`,actionPokemon,action);
                     throw new Error(`Could not find technique to use in set initial player action action: ${JSON.stringify(action)}, pokemon: ${JSON.stringify(actionPokemon)}, techId: ${action.moveId}`);
                 }
                 if (technique.currentPP <= 0) {
@@ -371,6 +372,7 @@ class BattleGame implements IGame {
         }
 
         if (this.playersWhoNeedToSwitch.filter(p => p.id === action.playerId).length === 0) {
+            console.error("This player should not be switching a pokemon",this,this.field,action);
             throw new Error("Invalid command in SetSwitchPromptPokemonAction, this player should not be switching a pokemon");
         }
 

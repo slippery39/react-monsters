@@ -68,8 +68,8 @@ export function ClonePlayer(originalPlayer:Player){
         }
 
         const pokeTechniques : Array<Technique> = [];
-        for (var i=0;i<pokeTechniques.length;i++){
-            const tech = pokeTechniques[i];
+        for (var i=0;i<poke.techniques.length;i++){
+            const tech = poke.techniques[i];
             pokeTechniques.push({...tech});
         }
    
@@ -85,7 +85,7 @@ export function ClonePlayer(originalPlayer:Player){
         newPoke.weight = poke.weight;
 
         newPoke.statBoosts = statBoosts;
-        newPoke.techniques = [...poke.techniques];
+        newPoke.techniques = pokeTechniques;
         newPoke.currentStats = {
             hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
         newPoke.heldItem = _.cloneDeep(poke.heldItem);
@@ -140,8 +140,8 @@ export function CloneField(originalField:Field){
             }
 
             const pokeTechniques : Array<Technique> = [];
-            for (var i=0;i<pokeTechniques.length;i++){
-                const tech = pokeTechniques[i];
+            for (var i=0;i<poke.techniques.length;i++){
+                const tech = poke.techniques[i];
                 pokeTechniques.push({...tech});
             }
        
@@ -157,7 +157,7 @@ export function CloneField(originalField:Field){
             newPoke.weight = poke.weight;
 
             newPoke.statBoosts = statBoosts;
-            newPoke.techniques = [...poke.techniques];
+            newPoke.techniques = pokeTechniques;
             newPoke.currentStats = {
                 hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
             newPoke.heldItem = _.cloneDeep(poke.heldItem);

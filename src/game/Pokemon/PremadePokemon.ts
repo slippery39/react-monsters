@@ -351,7 +351,7 @@ const premades: Array<PremadePokemon> = [
         techniques: [
             "Stone Edge",
             "Low Kick",
-            "Protect",
+            "Swords Dance",
             "Flare Blitz"
         ],
     },

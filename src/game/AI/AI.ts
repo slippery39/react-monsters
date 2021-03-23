@@ -103,7 +103,11 @@ class BasicAI implements AI {
 
             //TODO - If both players switch, pick randomly.
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
+            if (validPokemon.length ===0 ){
+                console.error(args,this._service,this._service.battle);
+                throw new Error(`No valid pokemon for ChoosePokemonToSwitchInto`);
 
+            }
             //in the case where both players are switching at the same time then we should just pick randomly, also no need to use smart switch if we only have 1 pokemon left.
             if (args.playerIDsNeeded.length > 1 || validPokemon.length === 1) {
                 this.SwitchRandomPokemon(validPokemon);
