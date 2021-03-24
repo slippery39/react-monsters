@@ -129,7 +129,6 @@ export interface IGame {
     GetEventsSinceLastAction: () => Array<BattleEvent>,
     //move order? - keep this in the turn?
     //initial actions? - keep this in the turn?
-    GetPlayersWhoNeedToSwitch: () => Array<Player>
     GetCurrentState: () => TurnState,
     //turn over: -> not needed for game.
     field: Field,
@@ -243,11 +242,6 @@ class BattleGame implements IGame {
         return this.eventsSinceLastAction;
     }
 
-    //move order? - keep this in the turn?
-    //initial actions? - keep this in the turn?
-    GetPlayersWhoNeedToSwitch(): Array<Player> {
-        return this.playersWhoNeedToSwitch;
-    }
     GetCurrentState(): TurnState {
         return this.currentState;
     }
@@ -388,10 +382,9 @@ class BattleGame implements IGame {
             throw new Error('could not find player');
         }
 
-        const index = this.playersWhoNeedToSwitch.indexOf(player);
-        this.playersWhoNeedToSwitch = [...this.playersWhoNeedToSwitch];
-        this.playersWhoNeedToSwitch.splice(index, 1);
-
+        //TODO : maybe it is here where it is happening?, there is never 2 switch actions in there?
+        this.playersWhoNeedToSwitch = this.playersWhoNeedToSwitch.slice();
+        _.remove(this.playersWhoNeedToSwitch,(el)=>el.id === player.id);
 
         if (this.playersWhoNeedToSwitch.length === 0) {
             this._switchNeededActions.forEach(act => {
@@ -442,11 +435,16 @@ class BattleGame implements IGame {
     PromptForSwitch(pokemon: Pokemon) {
         if (this.currentState !== TurnState.GameOver) {
             const owner = this.GetPokemonOwner(pokemon);
+
+            if (this.GetValidSwitchIns(owner).length=== 0){ //this should fix the error. not sure why it would be getting prompted here if there are no valid's but who knows.
+                return // cannot be prompted to switch if it has no switch ins.
+            }
             //TODO - This needs to be a prompt now, not just for fainted pokemon.
             if (this.playersWhoNeedToSwitch.map(p => p.id).includes(owner.id)) {
                 return; //make sure player is not added to switch their pokemon twice at the same time.
             }
             else {
+                console.log("pushing player needed to switch in prompt for switch",owner,pokemon,this);
                 this.playersWhoNeedToSwitch.push(owner);
                 this.currentState = TurnState.WaitingForSwitchActions;
             }
@@ -784,7 +782,7 @@ class BattleGame implements IGame {
             return;
         }
         effect.id = this.nextEventId++;
-        effect.resultingState = _.cloneDeep(this.field); //TODO - potential bottleneck concern here.
+        effect.resultingState = this.field //_.cloneDeep(this.field); //TODO - potential bottleneck concern here.
         this.eventLog.push(effect);
         this.eventsSinceLastAction.push(effect);
     }
@@ -1050,6 +1048,7 @@ class BattleGame implements IGame {
 
 
         if (this.currentState === TurnState.WaitingForSwitchActions && this.turnOver === false) {
+            console.log([...this.playersWhoNeedToSwitch]);
             const switchNeededInfo = {
                 turnId: this.currentTurnId,
                 playerIDsNeeded: this.playersWhoNeedToSwitch.map(p => p.id),
@@ -1230,6 +1229,12 @@ class BattleGame implements IGame {
         this.initialActions = [];
         this._moveOrder = [];
         this._switchNeededActions = [];
+
+        if (this.playersWhoNeedToSwitch.length>0){
+            console.error('weird stuff happening', _.cloneDeep(this));
+        }
+
+        this.playersWhoNeedToSwitch = [];
         this.currentState = TurnState.WaitingForInitialActions;
         this.currentBattleStep = TurnStep.PreAction1;
         //Yay
