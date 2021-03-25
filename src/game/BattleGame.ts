@@ -1,3 +1,4 @@
+import { timeStamp } from "console";
 import _ from "lodash";
 import GetAbility from "./Ability/Ability";
 import { BattleAction, CreateTechniqueAction, CreateSwitchAction, SwitchPokemonAction, Actions, ForcedTechniqueAction, UseMoveAction } from "./BattleActions";
@@ -151,7 +152,7 @@ export interface IGame {
     PromptForSwitch: (pokemon: Pokemon) => void;
     ApplyHealing: (pokemon: Pokemon, amount: number) => void;
     ApplyStruggleDamage: (pokemon: Pokemon, damage: number) => void;
-    ApplyIndirectDamage: (pokemon: Pokemon, damage: number) => void;
+    ApplyIndirectDamage: (pokemon: Pokemon, damage: number,message?:string) => void;
     ApplyDamageToSubstitute: (attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number) => void;
     ApplyDamage: (attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any) => void;
     EmitNewTurnLog: () => void;
@@ -393,11 +394,18 @@ class BattleGame implements IGame {
                 this.SwitchPokemon(player, pokemon);
             });
 
-            this._switchNeededActions = [];//reset the switch needed actions.
-
-            this.currentState = TurnState.CalculatingTurn;
-
-            this.CalculateTurn();
+            this._switchNeededActions = [];
+             if (this.playersWhoNeedToSwitch.length>0){
+                 this.CalculateTurn();                
+                return;
+            }
+            else{
+                console.log("all switch actions are in, calculating turn");
+                if (this.currentState!==TurnState.GameOver){
+                  this.currentState = TurnState.CalculatingTurn;
+                }
+                this.CalculateTurn();
+            }
         }
     }
     //Adds a message that will be displayed in the UI.
@@ -444,7 +452,6 @@ class BattleGame implements IGame {
                 return; //make sure player is not added to switch their pokemon twice at the same time.
             }
             else {
-                console.log("pushing player needed to switch in prompt for switch",owner,pokemon,this);
                 this.playersWhoNeedToSwitch.push(owner);
                 this.currentState = TurnState.WaitingForSwitchActions;
             }
@@ -487,7 +494,7 @@ class BattleGame implements IGame {
         }
     }
 
-    ApplyIndirectDamage(pokemon: Pokemon, damage: number) {
+    ApplyIndirectDamage(pokemon: Pokemon, damage: number,message?:string) {
 
 
         this.GetBehavioursForPokemon(pokemon).forEach(b => { damage = b.ModifyIndirectDamage(this, pokemon, damage) });
@@ -508,6 +515,9 @@ class BattleGame implements IGame {
             effectivenessAmt: 1
         }
         this.AddEvent(damageEffect);
+        if (message){
+            this.AddMessage(message);
+        }
         if (pokemon.currentStats.hp <= 0) {
             this.PokemonFainted(pokemon);
         }
@@ -1048,7 +1058,6 @@ class BattleGame implements IGame {
 
 
         if (this.currentState === TurnState.WaitingForSwitchActions && this.turnOver === false) {
-            console.log([...this.playersWhoNeedToSwitch]);
             const switchNeededInfo = {
                 turnId: this.currentTurnId,
                 playerIDsNeeded: this.playersWhoNeedToSwitch.map(p => p.id),

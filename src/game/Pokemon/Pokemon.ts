@@ -9,6 +9,8 @@ import { Status } from "game/HardStatus/HardStatus";
 import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
 import { GetNature, NatureType } from "game/Natures/Natures";
 import GetPokemon, { GetRandomPokemon } from "./PremadePokemon";
+import { timeStamp } from "console";
+import { textChangeRangeIsUnchanged } from "typescript";
 
 
 export interface StatMultiplier{
@@ -77,6 +79,8 @@ export interface PartialStats {
 class _PokemonBuilder {
 
     private pokemon: Pokemon
+
+    private currentStatsToUse: Stats | undefined  = undefined;
 
     constructor() {
         this.pokemon = {
@@ -192,6 +196,10 @@ class _PokemonBuilder {
         this.pokemon.elementalTypes = [...elements];
         return this;
     }
+    SetCurrentStats(currentStats:Stats): _PokemonBuilder{
+        this.currentStatsToUse = currentStats;
+        return this;
+    }
     Build(): Pokemon {
         //TODO, some error checking here
         //check if it has elemental types
@@ -201,6 +209,10 @@ class _PokemonBuilder {
         const calculatedStats = ConvertBaseStatsToRealStats(this.pokemon);
         this.pokemon.currentStats = { ...calculatedStats };
         this.pokemon.originalStats = { ...calculatedStats };
+
+        if (this.currentStatsToUse!==undefined){
+            this.pokemon.currentStats = this.currentStatsToUse;
+        }
         //calculate the final stats
         return _.cloneDeep(this.pokemon);
     }

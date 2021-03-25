@@ -147,15 +147,11 @@ class MiniMax {
         }
 
         const beforePoints = this.EvaluateField(simmedPlayer, beforeField);
-
-        console.log(beforePoints);
         //No good moves lets look for a good switch
      
         if (beforePoints.points > calculatedPoints[0].points) {
-            console.log("looking for switch actions!");
             const switchPoints = await this.GetBestPokemonSwitch(simmedPlayer,originalGame);
               if (switchPoints.length>0 && switchPoints[0].points > calculatedPoints[0].points) {
-                console.log(switchPoints);
                 return switchPoints;
             }
         }

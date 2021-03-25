@@ -145,12 +145,10 @@ export class SunnyWeather extends Weather {
             return newTech;
         }
         if (["solar beam"].includes(tech.name.toLowerCase())) {
-            console.log("we are finding solar beam here!");
             //Solar beam becomes a non charging move.
             const newTech = _.cloneDeep(tech);
             newTech.twoTurnMove = false;
             newTech.firstTurnStatus = undefined;
-            console.log(newTech);
             return newTech;
         }
         return tech;

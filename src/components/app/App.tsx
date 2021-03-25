@@ -41,21 +41,31 @@ function App() {
 
   function initializeTestBattle(){
 
-    const customPokemon = PokemonBuilder()
-    .GetPremadePokemon("Ninetales")
-    .WithAbility("Sand Stream")
-    .Build();
+    const customBuilder = PokemonBuilder().GetPremadePokemon("Ninetales").SetCurrentStats({
+      hp:1,
+      spAttack:1,
+      attack:1,
+      defense:1,
+      spDefense:1,
+      speed:1
+    })
+
   
 
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("Snorlax")
+    .WithPokemon("Swampert")
     .WithRandomPokemon(6)
     .Build();
 
   const player2 = new PlayerBuilder(2)
     .WithName("Bob")
-    .WithRandomPokemon(6)
+    .WithCustomPokemon(customBuilder.Build())
+    .WithCustomPokemon(customBuilder.Build())
+    .WithCustomPokemon(customBuilder.Build())
+    .WithCustomPokemon(customBuilder.Build())
+    .WithCustomPokemon(customBuilder.Build())
+    .WithCustomPokemon(customBuilder.Build())
     .Build();
 
     let battleService = new BattleService(player1, player2,true);

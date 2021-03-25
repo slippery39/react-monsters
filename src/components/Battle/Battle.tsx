@@ -321,8 +321,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
         }
 
-        //we need to delay these calls because the state needs to update per animation.
-        console.log(effect.type,getAllyPokemon().fieldPosition);
 
         switch (effect.type) {
 
@@ -541,7 +539,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const pokemonName = currentPokemon?.name;
         const moveName = currentPokemon?.techniques.find(t=>t.id === techniqueId)?.name
 
-        console.log("Setting a battle action in the service","yay");
         battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.field.players[0].currentPokemonId, //todo: get proper pokemon id,
@@ -673,7 +670,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }} />
 
         const attackMenu = <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onAttackClick={(tech: any) => {  console.log(tech); SetBattleAction(tech.id); }}
+            onAttackClick={(tech: any) => {  SetBattleAction(tech.id); }}
             techniques={getAllyPokemon().techniques} />
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}

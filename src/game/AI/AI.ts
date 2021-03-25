@@ -68,8 +68,6 @@ class BasicAI implements AI {
     }
 
     private async SwitchPokemonSmart(validPokemon: Array<number>) {
-        console.log("switching pokemon smart",validPokemon);
-
         const miniMax = new MiniMax();
         let maxPoints = -999999999;
         let bestPokemon = undefined;

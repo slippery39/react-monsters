@@ -83,16 +83,16 @@ export abstract class EntryHazard {
         this.player = player;
     }
 
-    CanApply(turn: IGame, player: Player) {
+    CanApply(game: IGame, player: Player) {
         return true;
     }
-    OnApplied(turn: IGame, player: Player) {
+    OnApplied(game: IGame, player: Player) {
 
     }
-    OnApplyFail(turn: IGame, player: Player) {
+    OnApplyFail(game: IGame, player: Player) {
 
     }
-    OnPokemonEntry(turn: IGame, pokemon: Pokemon) {
+    OnPokemonEntry(game: IGame, pokemon: Pokemon) {
 
     }
 }
@@ -107,19 +107,19 @@ export class Spikes extends EntryHazard {
         this.player = player;
     }
 
-    CanApply(turn: IGame, player: Player) {
+    CanApply(game: IGame, player: Player) {
         return this.stage < 3;
     }
 
-    OnApplied(turn: IGame, player: Player) {
-        this.stage++;
+    OnApplied(game: IGame, player: Player) {
+        this.stage = Math.min(this.stage+1,3);
     }
-    OnApplyFail(turn: IGame, player: Player) {
-        turn.AddMessage("But it failed!");
+    OnApplyFail(game: IGame, player: Player) {
+        game.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: IGame, pokemon: Pokemon) {
+    OnPokemonEntry(game: IGame, pokemon: Pokemon) {
 
-        if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
+        if (game.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;
         }
 
@@ -133,8 +133,7 @@ export class Spikes extends EntryHazard {
         else if (this.stage >= 3) {
             damage = pokemon.originalStats.hp * 0.25;
         }
-        turn.ApplyIndirectDamage(pokemon, damage);
-        turn.AddMessage(`${pokemon.name} was hurt by spikes`);
+        game.ApplyIndirectDamage(pokemon, damage,`${pokemon.name} was hurt by spikes`);        
     }
 }
 
@@ -150,14 +149,14 @@ export class StickyWeb extends EntryHazard {
         this.sourcePokemon = GetActivePokemon(player);
     }
     
-    OnApplied(turn: IGame, player: Player) {
-        turn.AddMessage(`A sticky web was placed below ${player.name}'s team.`);
+    OnApplied(game: IGame, player: Player) {
+        game.AddMessage(`A sticky web was placed below ${player.name}'s team.`);
     }
-    OnApplyFail(turn: IGame, player: Player) {
-        turn.AddMessage("But it failed!");
+    OnApplyFail(game: IGame, player: Player) {
+        game.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: IGame, pokemon: Pokemon) {
-        if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
+    OnPokemonEntry(game: IGame, pokemon: Pokemon) {
+        if (game.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;
         }
         if (pokemon.ability.toLowerCase() === "levitate" || pokemon.elementalTypes.includes(ElementType.Flying)){
@@ -165,7 +164,7 @@ export class StickyWeb extends EntryHazard {
         }
         
         DoStatBoost({
-            game:turn,
+            game:game,
             pokemon:pokemon,
             stat:Stat.Speed,
             amount:-1,
@@ -186,15 +185,15 @@ export class StealthRock extends EntryHazard {
         this.player = player;
     }
     
-    OnApplied(turn: IGame, player: Player) {
-        turn.AddMessage(`Pointed stones float in the air around ${player.name}'s team.`);
+    OnApplied(game: IGame, player: Player) {
+        game.AddMessage(`Pointed stones float in the air around ${player.name}'s team.`);
     }
-    OnApplyFail(turn: IGame, player: Player) {
-        turn.AddMessage("But it failed!");
+    OnApplyFail(game: IGame, player: Player) {
+        game.AddMessage("But it failed!");
     }
-    OnPokemonEntry(turn: IGame, pokemon: Pokemon) {
+    OnPokemonEntry(game: IGame, pokemon: Pokemon) {
 
-        if (turn.GetPokemonOwner(pokemon).id !== this.player.id) {
+        if (game.GetPokemonOwner(pokemon).id !== this.player.id) {
             return;
         }
 
@@ -219,8 +218,7 @@ export class StealthRock extends EntryHazard {
 
         if (damageMod > 0) {
             const damage = pokemon.originalStats.hp * (damageMod/100);
-            turn.ApplyIndirectDamage(pokemon, damage);
-            turn.AddMessage(`${pokemon.name} was hurt by stealth rock.`);
+            game.ApplyIndirectDamage(pokemon, damage,`${pokemon.name} was hurt by stealth rock.`);
         }
     }
 }
