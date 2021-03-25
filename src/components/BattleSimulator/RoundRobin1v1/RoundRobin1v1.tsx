@@ -150,11 +150,10 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
                     losses: record.losses,
                     percentage: Math.round(100 * (record.wins / (record.losses + record.wins)))
                 });
-
-        }
+         }
         const elements = recordsAsArr.sort((a, b) =>
-            b.percentage - a.percentage || b.wins - a.wins).map(record =>
-                (<tr key={record.name}><td><PokemonImage name={record.name} type="front" /></td><td>{record.name}</td><td>{record.wins}</td><td>{record.losses}</td><td>{record.percentage}</td></tr>));
+            b.percentage - a.percentage || b.wins - a.wins).map((record,rank) =>
+                (<tr key={record.name}><td><PokemonImage name={record.name} type="front" /></td><td>{rank+1}</td><td>{record.name}</td><td>{record.wins}</td><td>{record.losses}</td><td>{record.percentage}</td></tr>));
         return elements;
     }
 
@@ -187,7 +186,7 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
             {startButton}
             {simTextDiv}
             <div onClick={()=>setMenuState(MenuState.ShowWinLoss)}>Win Loss Table</div><div onClick={()=>setMenuState(MenuState.ShowResults)}>Match Results</div>
-            {menuState === MenuState.ShowWinLoss &&(<table><tbody><tr><td></td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
+            {menuState === MenuState.ShowWinLoss &&(<table><tbody><tr><td></td><td>Rank</td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
                 {displayStats()}
             </tbody>
             </table>)}

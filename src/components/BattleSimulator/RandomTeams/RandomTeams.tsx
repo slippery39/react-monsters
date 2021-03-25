@@ -4,7 +4,7 @@ import waitForSeconds from 'game/AI/CoroutineTest';
 import { OnGameOverArgs } from 'game/BattleGame';
 import BattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
-import React, { useCallback,useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { SimmedStats, WinLoss } from '../BattleSimulator';
 
 import "./randomTeams.css";
@@ -109,7 +109,7 @@ function UpdateStats(previousStats: SimmedStats, args: OnGameOverArgs) {
 }
 
 
-async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: SimmedStats,results:Array<MatchResult>) => void, battleStartedFunc: (id: number) => void) {
+async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: SimmedStats, results: Array<MatchResult>) => void, battleStartedFunc: (id: number) => void) {
 
     let matchResults: Array<MatchResult> = [];
     let stats: Record<string, WinLoss> = {};
@@ -123,7 +123,7 @@ async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: Simm
             losingPokemon: results.losingPlayer!.pokemon.map(poke => poke.name)
         });
 
-        battleEndedFunc(stats,matchResults);
+        battleEndedFunc(stats, matchResults);
     }
 }
 
@@ -133,20 +133,20 @@ interface Props {
 }
 
 
-enum MenuState{
+enum MenuState {
     ShowWinLoss = "ShowWinLoss",
     ShowResults = "ShowResults"
 }
 
 const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
 
-    const [menuState,setMenuState] = useState<MenuState>(MenuState.ShowWinLoss);
+    const [menuState, setMenuState] = useState<MenuState>(MenuState.ShowWinLoss);
     const [simStats, setSimStats] = useState<SimmedStats>({});
     const [numberOfBattles, setNumberOfBattles] = useState<string>("50"); //its a string for compatibility issues.
     const [simText, setSimText] = useState<string>("")
-    const [results,setMatchResults] = useState<Array<MatchResult>>([]);
+    const [results, setMatchResults] = useState<Array<MatchResult>>([]);
 
-    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>,results:Array<MatchResult>) => {
+    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>, results: Array<MatchResult>) => {
         console.log(stats);
         const newStats = { ...stats };
         setSimStats(newStats);
@@ -170,15 +170,15 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
 
         }
         const elements = recordsAsArr.sort((a, b) =>
-            b.percentage - a.percentage || b.wins - a.wins).map(record =>
-                (<tr key={record.name}><td><PokemonImage name={record.name} type="front" /></td><td>{record.name}</td><td>{record.wins}</td><td>{record.losses}</td><td>{record.percentage}</td></tr>));
+            b.percentage - a.percentage || b.wins - a.wins).map((record, rank) =>
+                (<tr key={record.name}><td><PokemonImage name={record.name} type="front" /></td><td>{rank + 1}</td><td>{record.name}</td><td>{record.wins}</td><td>{record.losses}</td><td>{record.percentage}</td></tr>));
         return elements;
     }
 
-    const displayResults = function(){
-        const rows = results.map( (result,index)=>{
-            const winningPokemon = result.winningPokemon.map(p=>(<PokemonImage type="small" name={p}/>))
-            const losingPokemon = result.losingPokemon.map(p=><PokemonImage type="small" name={p}/>)
+    const displayResults = function () {
+        const rows = results.map((result, index) => {
+            const winningPokemon = result.winningPokemon.map(p => (<PokemonImage type="small" name={p} />))
+            const losingPokemon = result.losingPokemon.map(p => <PokemonImage type="small" name={p} />)
             return (<tr key={index}><td>{winningPokemon}</td><td>{losingPokemon}</td></tr>)
         });
 
@@ -210,8 +210,8 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
             {simSettings}
             {startButton}
             {simTextDiv}
-            <div onClick={()=>setMenuState(MenuState.ShowWinLoss)}>Win Loss Table</div><div onClick={()=>setMenuState(MenuState.ShowResults)}>Match Results</div>
-            {menuState === MenuState.ShowWinLoss &&(<table><tbody><tr><td></td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
+            <div onClick={() => setMenuState(MenuState.ShowWinLoss)}>Win Loss Table</div><div onClick={() => setMenuState(MenuState.ShowResults)}>Match Results</div>
+            {menuState === MenuState.ShowWinLoss && (<table><tbody><tr><td></td><td>Rank</td><td>Name</td><td>Wins</td><td>Losses</td><td>Win Percentage</td></tr>
                 {displayStats()}
             </tbody>
             </table>)}
