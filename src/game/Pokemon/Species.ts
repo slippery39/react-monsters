@@ -543,6 +543,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:130
             },
             weight:75
+        },
+        {
+            name:"Moltres",
+            elementalTypes:[ElementType.Flying,ElementType.Fire],
+            baseStats:{
+                hp:90,
+                attack:100,
+                defense:90,
+                spAttack:125,
+                spDefense:85,
+                speed:90
+            },
+            weight:60
         }
     ];
 

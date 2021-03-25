@@ -768,6 +768,23 @@ const premades: Array<PremadePokemon> = [
             defense:48,
             speed:212
         }
+    },
+    {
+        species:"Moltres",
+        heldItem:"Life Orb",
+        ability:"Pressure",
+        nature:NatureType.Timid,
+        techniques:[
+            "Fire Blast",
+            "Hurricane",
+            "Hidden Power Grass",
+            "Roost"
+        ],
+        evs:{
+            defense:4,
+            spAttack:252,
+            speed:252
+        }
     }
 ]
 

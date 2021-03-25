@@ -782,7 +782,7 @@ class BattleGame implements IGame {
             return;
         }
         effect.id = this.nextEventId++;
-        effect.resultingState = this.field //_.cloneDeep(this.field); //TODO - potential bottleneck concern here.
+        effect.resultingState = _.cloneDeep(this.field)
         this.eventLog.push(effect);
         this.eventsSinceLastAction.push(effect);
     }
@@ -1230,6 +1230,9 @@ class BattleGame implements IGame {
         this._moveOrder = [];
         this._switchNeededActions = [];
 
+        //this is to bandage fix where for somer reason player's are being prompted to switch when they have no valid switches (i.e. 1 pokemon left). it only errors out 
+        //about once every 1000 games, so not ure what is 
+        //going to poke around our code base a bit and se
         if (this.playersWhoNeedToSwitch.length>0){
             console.error('weird stuff happening', _.cloneDeep(this));
         }

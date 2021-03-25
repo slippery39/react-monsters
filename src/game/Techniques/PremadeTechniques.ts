@@ -33,6 +33,23 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Hurricane",
+            description:"The user attacks by wrapping its opponent in a fierce wind that flies up into the sky. This may also confuse the target.",
+            pp:16,
+            power:110,
+            accuracy:70,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Flying,
+            effects:[
+                {
+                type:EffectType.InflictVolatileStatus,
+                target:TargetType.Enemy,
+                status:VolatileStatusType.Confusion,
+                chance:30
+                }
+            ]
+        },
+        {
             name:"Defog",
             description:"A strong wind blows away the target's barriers such as Reflect or Light Screen. This also lowers the target's evasiveness.",
             pp:24,
