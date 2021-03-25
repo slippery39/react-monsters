@@ -556,6 +556,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:90
             },
             weight:60
+        },
+        {
+            name:"Articuno",
+            elementalTypes:[ElementType.Flying,ElementType.Ice],
+            baseStats:{
+                hp:90,
+                attack:85,
+                defense:100,
+                spAttack:95,
+                spDefense:125,
+                speed:85
+            },
+            weight:56
         }
     ];
 

@@ -785,6 +785,23 @@ const premades: Array<PremadePokemon> = [
             spAttack:252,
             speed:252
         }
+    },
+    {
+        species:"Articuno",
+        heldItem:"Leftovers",
+        ability:"Pressure",
+        nature:NatureType.Timid,
+        techniques:[
+            "Substitute",
+            "Roost",
+            "Hurricane",
+            "Ice Beam"
+        ],
+        evs:{
+            spAttack:252,
+            spDefense:4,
+            speed:252
+        }
     }
 ]
 
