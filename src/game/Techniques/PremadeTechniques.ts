@@ -34,6 +34,29 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Fire Fang",
+            description:"The user bites with flame-cloaked fangs. This may also make the target flinch or leave it with a burn.",
+            power:65,
+            accuracy:95,
+            pp:24,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Fire,
+            effects:[
+                {
+                    type:EffectType.InflictStatus,
+                    status:Status.Burned,
+                    chance:10,
+                    target:TargetType.Enemy
+                },
+                {
+                    type:EffectType.InflictVolatileStatus,
+                    status:VolatileStatusType.Flinch,
+                    chance:10,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
+        {
             name:"Curse",
             description:"Raises Attack and Defense at the expense of Speed. It works differently for the Ghost type.",
             power:0,

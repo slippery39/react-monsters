@@ -819,6 +819,23 @@ const premades: Array<PremadePokemon> = [
             defense:144,
             spDefense:176
         }
+    },
+    {
+        species:"Garchomp",
+        heldItem:"Life Orb",
+        ability:"Rough Skin",
+        nature:NatureType.Jolly,
+        techniques:[
+            "Swords Dance",
+            "Dragon Claw",
+            "Earthquake",
+            "Fire Fang"
+        ],
+        evs:{
+            attack:252,
+            defense:4,
+            speed:252
+        }
     }
 ]
 

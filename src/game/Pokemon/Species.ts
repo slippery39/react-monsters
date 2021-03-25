@@ -582,6 +582,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:30
             },
             weight:460
+        },
+        {
+            name:"Garchomp",
+            elementalTypes:[ElementType.Dragon,ElementType.Ground],
+            baseStats:{
+                hp:108,
+                attack:130,
+                defense:95,
+                spAttack:80,
+                spDefense:85,
+                speed:102
+            },
+            weight:95
         }
     ];
 

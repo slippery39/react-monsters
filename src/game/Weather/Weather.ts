@@ -39,8 +39,8 @@ export abstract class Weather {
 export class SandstormWeather extends Weather {
     name: WeatherType = WeatherType.Sandstorm
 
-    OnApply(turn: IGame) {
-        turn.AddMessage("A sandstorm kicked up!");
+    OnApply(game: IGame) {
+        game.AddMessage("A sandstorm kicked up!");
     }
 
     ModifyTechnique(pokemon: Pokemon, tech: Technique) {
@@ -178,8 +178,8 @@ export class RainingWeather extends Weather {
     name: WeatherType = WeatherType.Rain;
     //Moves Thunder and Hurricane should always hit.
 
-    OnApply(turn: IGame) {
-        turn.AddMessage("It started to rain!");
+    OnApply(game: IGame) {
+        game.AddMessage("It started to rain!");
     }
 
     ModifyTechnique(pokemon: Pokemon, tech: Technique) {

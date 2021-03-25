@@ -500,6 +500,17 @@ class ThickFatAbility extends AbstractAbility{
     }
 }
 
+class RoughSkinAbility extends AbstractAbility{
+    name="Rough Skin";
+    description="This Pokémon inflicts damage with its rough skin to the attacker on contact.";
+
+    OnDamageTakenFromTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+        if (move.makesContact){
+            game.ApplyIndirectDamage(attackingPokemon,defendingPokemon.originalStats.hp/6,`${defendingPokemon.name} took damage due to ${attackingPokemon.name}'s rough skin!`);
+        }
+    }
+}
+
 
 class NoAbility extends AbstractAbility {
 
@@ -592,6 +603,9 @@ function GetAbility(name: String) {
         }
         case 'thick fat':{
             return new ThickFatAbility();
+        }
+        case 'rough skin':{
+            return new RoughSkinAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);
