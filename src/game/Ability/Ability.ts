@@ -475,6 +475,18 @@ class InfiltratorAbility extends AbstractAbility{
     description="Passes through the opposing Pokémon’s barrier, substitute, and the like and strikes."
 }
 
+class ThickFatAbility extends AbstractAbility{
+    name="Thick Fat";
+    description="The Pokémon is protected by a layer of thick fat, which halves the damage taken from Fire- and Ice-type moves.";
+
+    ModifyDamageTaken(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique, damage: number){
+        if ([ElementType.Fire,ElementType.Ice].includes(technique.elementalType)){
+            return damage/2;
+        }
+        return damage;
+    }
+}
+
 
 class NoAbility extends AbstractAbility {
 
@@ -564,6 +576,9 @@ function GetAbility(name: String) {
         }
         case 'infiltrator':{
             return new InfiltratorAbility();
+        }
+        case 'thick fat':{
+            return new ThickFatAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

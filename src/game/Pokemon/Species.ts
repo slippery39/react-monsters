@@ -569,6 +569,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:85
             },
             weight:56
+        },
+        {
+            name:"Snorlax",
+            elementalTypes:[ElementType.Normal],
+            baseStats:{
+                hp:160,
+                attack:110,
+                defense:65,
+                spAttack:65,
+                spDefense:110,
+                speed:30
+            },
+            weight:460
         }
     ];
 

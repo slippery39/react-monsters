@@ -7,6 +7,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
 import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { WeatherType } from "game/Weather/Weather";
+import { getEffectiveConstraintOfTypeParameter } from "typescript";
 import { ElementType } from "../ElementType";
 import { DamageType } from "./Technique";
 
@@ -32,6 +33,45 @@ export interface BaseTechnique {
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Curse",
+            description:"Raises Attack and Defense at the expense of Speed. It works differently for the Ghost type.",
+            power:0,
+            accuracy:9999,
+            pp:16,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Ghost,
+            effects:[
+                {
+                    type:EffectType.StatBoost,
+                    amount:-1,
+                    stat:Stat.Speed,
+                    target:TargetType.Self
+                },
+                {
+                    type:EffectType.StatBoost,
+                    amount:1,
+                    stat:Stat.Attack,
+                    target:TargetType.Self
+                },
+                {
+                    type:EffectType.StatBoost,
+                    amount:1,
+                    stat:Stat.Defense,
+                    target:TargetType.Self
+                },
+            ]
+        },
+        {
+            name:"Return",
+            description:"This full-power attack grows more powerful the more the user likes its Trainer.",
+            power:102,
+            accuracy:100,
+            pp:32,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            elementalType:ElementType.Normal,
+        },
         {
             name:"Hurricane",
             description:"The user attacks by wrapping its opponent in a fierce wind that flies up into the sky. This may also confuse the target.",

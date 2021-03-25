@@ -802,6 +802,23 @@ const premades: Array<PremadePokemon> = [
             spDefense:4,
             speed:252
         }
+    },
+    {
+        species:"Snorlax",
+        heldItem:"Leftovers",
+        ability:"Thick Fat",
+        nature:NatureType.Careful,
+        techniques:[
+            "Curse",
+            "Return",
+            "Rest",
+            "Earthquake"
+        ],
+        evs:{
+            hp:188,
+            defense:144,
+            spDefense:176
+        }
     }
 ]
 
