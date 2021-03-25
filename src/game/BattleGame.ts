@@ -710,12 +710,14 @@ class BattleGame implements IGame {
         if (pokemon.techniques.find(tech => tech.name === technique.name)) {
             pokemon.techniqueUsedLast = technique.name;
         }
-
-        const ability = GetAbility(pokemon.ability);
-        technique = ability.ModifyTechnique(pokemon, technique);
+        
         if (this.field.weather) {
             technique = this.field.weather.ModifyTechnique(pokemon, technique);
         }
+        
+        this.GetBehavioursForPokemon(pokemon).forEach(b => {
+            technique = b.ModifyTechnique(pokemon, technique);
+        })
 
         //2 turn move should apply here?
         if (technique.twoTurnMove) {
@@ -728,9 +730,6 @@ class BattleGame implements IGame {
             return;
         }
 
-        this.GetBehavioursForPokemon(pokemon).forEach(b => {
-            technique = b.ModifyTechnique(pokemon, technique);
-        })
 
         this.GetBehavioursForPokemon(pokemon).forEach(b => {
             b.OnTechniqueUsed(this, pokemon, technique);
@@ -846,13 +845,26 @@ class BattleGame implements IGame {
             const targetType = effect.target === undefined ? TargetType.Enemy : effect.target;
             var targetPokemon = targetType === TargetType.Self ? pokemon : defendingPokemon;
 
+            if (this.shouldProcessEvents){
+               console.log("effect in turn",effect,chance);
+            }
+
+
 
             //quick override for drain effects while we think about the best way to handle this type of effect.
             if (effect.type === 'drain') {
                 targetPokemon = pokemon;
             }
 
-            if (this.Roll(chance)) {
+            const effectSuccess = this.Roll(chance);
+
+            
+            if (this.shouldProcessEvents){
+                console.log("effect in turn",effect,chance,effectSuccess);
+             }
+ 
+
+            if (effectSuccess) {
                 DoEffect(this, targetPokemon, effect, { sourcePokemon: pokemon, sourceTechnique: technique, sourceDamage: techniqueDamage });
             }
         });

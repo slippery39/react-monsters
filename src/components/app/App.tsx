@@ -42,11 +42,11 @@ function App() {
   function initializeTestBattle(){
 
     const customBuilder = PokemonBuilder().GetPremadePokemon("Ninetales").SetCurrentStats({
-      hp:1,
+      hp:1000,
       spAttack:1,
       attack:1,
-      defense:1,
-      spDefense:1,
+      defense:1000,
+      spDefense:1000,
       speed:1
     })
 
@@ -54,7 +54,7 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("Swampert")
+    .WithPokemon("Dunsparce")
     .WithRandomPokemon(6)
     .Build();
 

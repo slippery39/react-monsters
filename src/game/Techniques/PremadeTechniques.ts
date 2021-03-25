@@ -191,7 +191,8 @@ export function GetTech(name: string) {
             effects:[{
                 type:EffectType.InflictVolatileStatus,
                 status:VolatileStatusType.Flinch,
-                target:TargetType.Enemy
+                target:TargetType.Enemy,
+                chance:20
             }]
         },
         {

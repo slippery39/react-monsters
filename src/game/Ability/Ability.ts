@@ -199,7 +199,15 @@ class SereneGraceAbility extends AbstractAbility {
     description = "Boosts the likelihood of added effects appearing."
 
     ModifyTechnique(pokemon: Pokemon, technique: Technique) {
+
         let newTechnique = _.cloneDeep(technique);
+
+        /*
+        if (technique.name.toLowerCase() === 'headbutt'){
+        console.log("original technique",technique);
+        
+        }
+        */
 
         //Should have no effect for status type moves.
         if (!newTechnique.effects || newTechnique.damageType === DamageType.Status) {
@@ -210,8 +218,13 @@ class SereneGraceAbility extends AbstractAbility {
             if (!effect.chance) {
                 effect.chance = 100;
             }
-            effect.chance *= 2;
+            effect.chance = effect.chance*2;
         });
+        /*
+        if (technique.name.toLowerCase() === 'headbutt'){
+            console.log("Technique has been modified",newTechnique);
+        }
+        */
         return newTechnique;
     }
 }
