@@ -34,6 +34,15 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Aerial Ace",
+            description:"The user confounds the target with speed, then slashes. This attack never misses.",
+            power:60,
+            pp:32,
+            damageType:DamageType.Physical,
+            elementalType:ElementType.Flying,
+            accuracy:99999        
+        },
+         {
             name:"Fire Fang",
             description:"The user bites with flame-cloaked fangs. This may also make the target flinch or leave it with a burn.",
             power:65,

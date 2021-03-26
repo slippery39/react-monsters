@@ -164,6 +164,7 @@ export interface IGame {
     GetValidSwitchIns: (player: Player) => Array<Pokemon>;
     GetPokemonOwner: (pokemon: Pokemon) => Player;
     GetMoveOrder: () => Array<BattleAction>;
+    GetOtherPokemon:(pokemon:Pokemon)=>Pokemon;
 }
 
 
@@ -628,6 +629,7 @@ class BattleGame implements IGame {
         const switchInPokemon = pokemonArrCopy[switchInPokemonPos];
         //check to make sure the pokemon can actually be switched in
         if (switchInPokemon.currentStats.hp === 0) {
+            console.log('switch pokemon error stuff',this,switchInPokemon,this.GetValidActions(player));
             throw new Error(`Error tried to switch in pokemon, but it has no health : ${switchInPokemon.name}. Check the UI code or the AI code for most likely reason.`);
         }
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
@@ -787,11 +789,8 @@ class BattleGame implements IGame {
         return chance >= randomChance;
     }
     public AddEvent(effect: BattleEvent) {
-        if (!this.shouldProcessEvents) {
-            return;
-        }
         effect.id = this.nextEventId++;
-        effect.resultingState = _.cloneDeep(this.field)
+        effect.resultingState = this.shouldProcessEvents? _.cloneDeep(this.field) : this.field;
         this.eventLog.push(effect);
         this.eventsSinceLastAction.push(effect);
     }
@@ -951,13 +950,30 @@ class BattleGame implements IGame {
         pokemon.status = Status.None;
         pokemon.volatileStatuses = [];
 
+        //Need edge case here for pursuit faints, we should prompt a switch again after pursuit has fainted a pokemon
+        let pursuitDeath = false;
+        if (this._moveOrder[0].type === Actions.UseTechnique){
+            if (this._moveOrder[0].moveName?.toLowerCase() === 'pursuit' && this._moveOrder[1].type==='switch-pokemon-action'){
+
+                //do not prompt a switch again if this pokemon fainted due to pursuit, there should be no switch needed prompts triggered yet in this case.
+                //any other switches that might need to happen should still happen.
+                if (! (this.playersWhoNeedToSwitch.map(p=>p.id).includes(GetPokemonOwner(this.field.players,pokemon).id)) ){
+                    console.log("pursuit death happened!",this,pokemon);
+                    pursuitDeath = true;
+                    //return;
+                }
+            }
+        }
+
         //game over check.
         if (owner.pokemon.filter(poke => poke.currentStats.hp > 0).length === 0) {
             const winningPlayer = this.GetPlayers().filter(player => player.id !== owner.id)[0];
             this.currentState = TurnState.GameOver;
             this.winningPlayerId = winningPlayer.id;
         }
-        else {
+        else if (pursuitDeath === false) {
+
+
             this.PromptForSwitch(pokemon);
         }
     }
@@ -1292,6 +1308,18 @@ class BattleGame implements IGame {
             throw new Error(`Could not find player with id ${id} in GetPlayerById`);
         }
         return player;
+    }
+    GetOtherPokemon(pokemon:Pokemon){
+        const owner = GetPokemonOwner(this.field.players,pokemon);
+
+        const otherPlayer = this.field.players.find(p=>p.id!==owner.id);
+
+        if (otherPlayer === undefined){
+            throw new Error(`Could not find other pokemon`);
+        }
+
+
+        return GetActivePokemon(otherPlayer);
     }
 
     StartGame() {

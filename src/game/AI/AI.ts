@@ -1,5 +1,5 @@
 import { shuffle } from "lodash";
-import { CreateSwitchAction } from "game/BattleActions";
+import { CreateSwitchAction, SwitchPokemonAction } from "game/BattleActions";
 import BattleService from "game/BattleService";
 import { Player } from "game/Player/PlayerBuilder";
 import MiniMax from "./MiniMax";
@@ -69,27 +69,8 @@ class BasicAI implements AI {
 
     private async SwitchPokemonSmart(validPokemon: Array<number>) {
         const miniMax = new MiniMax();
-        let maxPoints = -999999999;
-        let bestPokemon = undefined;
-        for (var key in validPokemon) {
-            const pokeId = validPokemon[key];
-            const clonedTurn = this._service.battle.Clone();
-            const player = clonedTurn.GetPlayers().find(p => p.id === this._playerID)!;
-            clonedTurn.SetSwitchPromptAction(CreateSwitchAction(player, pokeId));
-            const afterSwitchField = clonedTurn.field;
-            const result = await miniMax.SimulateAllActions(player, afterSwitchField, true, undefined);
-            if (result[0].points > maxPoints) {
-                maxPoints = result[0].points;
-                bestPokemon = pokeId;
-            }
-        }
-
-        if (bestPokemon === undefined) {
-            throw new Error(`Could not find best pokemon to switch into... choosing at random instead`);
-        }
-        //we found the best pokemon lets switch into it!
-        const pokemonSwitchActionSelected = CreateSwitchAction(this.GetPlayerFromTurn(), bestPokemon);
-        this._service.SetSwitchFaintedPokemonAction(pokemonSwitchActionSelected, false);
+        const switches = await miniMax.GetBestPokemonSwitch(this.GetPlayerFromTurn(),this._service.battle);
+        this._service.SetSwitchFaintedPokemonAction(switches[0].action as SwitchPokemonAction, false);
     }
 
 
@@ -101,6 +82,7 @@ class BasicAI implements AI {
 
             //TODO - If both players switch, pick randomly.
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
+            console.log(validPokemon);
             if (validPokemon.length ===0 ){
                 console.error(args,this._service,this._service.battle);
                 throw new Error(`No valid pokemon for ChoosePokemonToSwitchInto`);

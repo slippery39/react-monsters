@@ -21,10 +21,10 @@ export abstract class HeldItem extends BattleBehaviour {
 export class LeftoversHeldItem extends HeldItem {
     name: string = "Leftovers"
     description = "An item to be held by a Pokémon. The holder's HP is gradually restored during battle."
-    EndOfTurn(turn: IGame, pokemon: Pokemon) {
+    EndOfTurn(game: IGame, pokemon: Pokemon) {
         const healing = Math.ceil(pokemon.originalStats.hp / 16);
-        turn.ApplyHealing(pokemon, healing);
-        turn.AddMessage(`${pokemon.name} has healed due to its leftovers!`);
+        game.ApplyHealing(pokemon, healing);
+        game.AddMessage(`${pokemon.name} has healed due to its leftovers!`);
     }
 
 }
@@ -35,11 +35,11 @@ export class LifeOrbHeldItem extends HeldItem {
     OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any): number {
         return damage * 1.3;
     }
-    OnDamageDealt(turn: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number) {
+    OnDamageDealt(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number) {
         //take recoil damage
         const recoilDamage = attackingPokemon.originalStats.hp / 10;
-        turn.ApplyIndirectDamage(attackingPokemon, recoilDamage);
-        turn.AddMessage(`${attackingPokemon.name} suffered recoil damage due to its Life Orb`);
+        game.ApplyIndirectDamage(attackingPokemon, recoilDamage);
+        game.AddMessage(`${attackingPokemon.name} suffered recoil damage due to its Life Orb`);
 
     }
 }
@@ -48,7 +48,14 @@ export class LumBerryHeldItem extends HeldItem {
     name: string = "Lum Berry";
     description = "A Berry to be consumed by Pokémon. If a Pokémon holds one, it can recover from any status condition during battle."
 
-    Update(turn: IGame, pokemon: Pokemon) {
+    Update(game: IGame, pokemon: Pokemon) {
+
+        //check the opposing pokemon
+        //unnerve ability prevents use of berries.
+        const otherPokemon = game.GetOtherPokemon(pokemon);
+        if (otherPokemon.ability.toLowerCase() === "unnerve"){
+            return;        
+        }
 
         let hasCured: boolean = false;
 
@@ -59,13 +66,13 @@ export class LumBerryHeldItem extends HeldItem {
         const confusions = pokemon.volatileStatuses.filter(vStat => vStat.type === VolatileStatusType.Confusion);
         if (confusions.length > 0) {
             pokemon.volatileStatuses.forEach(vStat => {
-                vStat.Remove(turn, pokemon);
+                vStat.Remove(game, pokemon);
                 hasCured = true;
             });
         }
 
         if (hasCured) {
-            turn.AddMessage(`${pokemon.name} has been cured of its status effects due to its Lum Berry!`);
+            game.AddMessage(`${pokemon.name} has been cured of its status effects due to its Lum Berry!`);
             pokemon.heldItem = new NoHeldItem();
         }
     }
@@ -75,17 +82,17 @@ export class BlackSludge extends HeldItem {
     name: string = "Black Sludge";
     description = "A held item that gradually restores the HP of Poison-type Pokémon. It inflicts damage on all other types."
 
-    EndOfTurn(turn: IGame, pokemon: Pokemon) {
+    EndOfTurn(game: IGame, pokemon: Pokemon) {
 
         if (pokemon.elementalTypes.includes(ElementType.Poison)) {
             const healing = Math.ceil(pokemon.originalStats.hp / 16);
-            turn.ApplyHealing(pokemon, healing);
-            turn.AddMessage(`${pokemon.name} has healed due to its black sludge!`);
+            game.ApplyHealing(pokemon, healing);
+            game.AddMessage(`${pokemon.name} has healed due to its black sludge!`);
         }
         else {
             const damage = Math.ceil(pokemon.originalStats.hp / 8);
-            turn.ApplyIndirectDamage(pokemon, damage);
-            turn.AddMessage(`${pokemon.name} has been damaged due to is black sludge!`);
+            game.ApplyIndirectDamage(pokemon, damage);
+            game.AddMessage(`${pokemon.name} has been damaged due to is black sludge!`);
         }
     }
 }
@@ -98,7 +105,7 @@ export class ChoiceBand extends HeldItem {
 
     techniqueUsed: Technique | undefined = undefined;
 
-    Update(turn: IGame, pokemon: Pokemon) {
+    Update(game: IGame, pokemon: Pokemon) {
         if (pokemon.statMultipliers.find(sm => sm.tag === this.name) === undefined) {
             const statMultiplier: StatMultiplier = {
                 stat: Stat.Attack,
@@ -109,7 +116,7 @@ export class ChoiceBand extends HeldItem {
         }
     }
 
-    OnTechniqueUsed(turn: IGame, pokemon: Pokemon, technique: Technique) {
+    OnTechniqueUsed(game: IGame, pokemon: Pokemon, technique: Technique) {
         //save the technique used to the item slot
         //for sanity purposes the technique saved should be on the pokemon as well.
         //Check to make sure the technique actually exists on the pokemon (in case of custom moves or whatnot)
@@ -126,7 +133,7 @@ export class ChoiceBand extends HeldItem {
     }
 
     //CONTINUE FROM HERE... IMPLEMENTING CHOICE HELD ITEMS.
-    OverrideAction(turn: IGame, player: Player, pokemon: Pokemon, action: UseTechniqueAction) {
+    OverrideAction(game: IGame, player: Player, pokemon: Pokemon, action: UseTechniqueAction) {
         //Change to a use technique action with 
 
         if (this.techniqueUsed === undefined) {
@@ -142,7 +149,7 @@ export class ChoiceBand extends HeldItem {
         return newAction;
     }
 
-    OnSwitchedOut(turn: IGame, pokemon: Pokemon) {
+    OnSwitchedOut(game: IGame, pokemon: Pokemon) {
         //Reset the technique used for next time.
         this.techniqueUsed = undefined;
     }
@@ -160,7 +167,7 @@ export class ChoiceSpecs extends HeldItem {
 
     techniqueUsed: Technique | undefined = undefined;
 
-    Update(turn: IGame, pokemon: Pokemon) {
+    Update(game: IGame, pokemon: Pokemon) {
         if (pokemon.statMultipliers.find(sm => sm.tag === this.name) === undefined) {
             const statMultiplier: StatMultiplier = {
                 stat: Stat.SpecialAttack,
@@ -171,7 +178,7 @@ export class ChoiceSpecs extends HeldItem {
         }
     }
 
-    OnTechniqueUsed(turn: IGame, pokemon: Pokemon, technique: Technique) {
+    OnTechniqueUsed(game: IGame, pokemon: Pokemon, technique: Technique) {
         //save the technique used to the item slot
         //for sanity purposes the technique saved should be on the pokemon as well.
         //Check to make sure the technique actually exists on the pokemon (in case of custom moves or whatnot)
@@ -189,7 +196,7 @@ export class ChoiceSpecs extends HeldItem {
     }
 
     //CONTINUE FROM HERE... IMPLEMENTING CHOICE HELD ITEMS.
-    OverrideAction(turn: IGame, player: Player, pokemon: Pokemon, action: UseTechniqueAction) {
+    OverrideAction(game: IGame, player: Player, pokemon: Pokemon, action: UseTechniqueAction) {
         //Change to a use technique action with 
 
         if (this.techniqueUsed === undefined) {
@@ -205,12 +212,12 @@ export class ChoiceSpecs extends HeldItem {
         return newAction;
     }
 
-    OnSwitchedOut(turn: IGame, pokemon: Pokemon) {
+    OnSwitchedOut(game: IGame, pokemon: Pokemon) {
         //Reset the technique used for next time.
         this.techniqueUsed = undefined;
     }
 
-    OnRemoved(turn: IGame, pokemon: Pokemon) {
+    OnRemoved(game: IGame, pokemon: Pokemon) {
         //remove our stat multiplier.
         _.remove(pokemon.statMultipliers, (sm => sm.tag === this.name));
     }
@@ -238,10 +245,10 @@ export class RockyHelmet extends HeldItem {
     description: string = "If the holder of this item takes damage, the attacker will also be damaged upon contact."
 
 
-    OnDamageTakenFromTechnique(turn: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+    OnDamageTakenFromTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
         if (move.makesContact) {
-            turn.ApplyIndirectDamage(attackingPokemon, attackingPokemon.originalStats.hp / 6);
-            turn.AddMessage(`${attackingPokemon.name} took damage due to ${defendingPokemon.name}'s rocky helmet!`);
+            game.ApplyIndirectDamage(attackingPokemon, attackingPokemon.originalStats.hp / 6);
+            game.AddMessage(`${attackingPokemon.name} took damage due to ${defendingPokemon.name}'s rocky helmet!`);
         }
     }
 }
@@ -253,7 +260,7 @@ export class AssaultVest extends HeldItem {
     description: string = "An item to be held by a Pokémon. This offensive vest raises Sp. Def but prevents the use of status moves."
 
 
-    Update(turn: IGame, pokemon: Pokemon) {
+    Update(game: IGame, pokemon: Pokemon) {
         if (pokemon.statMultipliers.find(sm => sm.tag === this.name) === undefined) {
             const statMultiplier: StatMultiplier = {
                 stat: Stat.SpecialDefense,
@@ -264,7 +271,7 @@ export class AssaultVest extends HeldItem {
         }
     }
 
-    OnRemoved(turn: IGame, pokemon: Pokemon) {
+    OnRemoved(game: IGame, pokemon: Pokemon) {
         //remove our stat multiplier.
         _.remove(pokemon.statMultipliers, (sm => sm.tag === this.name));
     }

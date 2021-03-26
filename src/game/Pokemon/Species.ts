@@ -595,6 +595,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:102
             },
             weight:95
+        },
+        {
+            name:"Aerodactyl",
+            elementalTypes:[ElementType.Rock,ElementType.Flying],
+            baseStats:{
+                hp:80,
+                attack:105,
+                defense:65,
+                spAttack:60,
+                spDefense:75,
+                speed:130
+            },
+            weight:59
         }
     ];
 

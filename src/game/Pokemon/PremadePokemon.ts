@@ -836,6 +836,23 @@ const premades: Array<PremadePokemon> = [
             defense:4,
             speed:252
         }
+    },
+    {
+        species:"Aerodactyl",
+        heldItem:"Life Orb",
+        ability:"Unnerve",
+        nature:NatureType.Jolly,
+        techniques:[
+            "Stone Edge",
+            "Earthquake",
+            "Pursuit",
+            "Aerial Ace"
+        ],
+        evs:{
+            attack:252,
+            spDefense:4,
+            speed:252
+        }
     }
 ]
 

@@ -512,6 +512,13 @@ class RoughSkinAbility extends AbstractAbility{
 }
 
 
+//The unnerve ability is applied to the "Lum Berry" held item right now.. since we won't have many actual berries implemented.
+class UnnerveAbility extends AbstractAbility{
+    name="Unnerve";
+    description="Unnerves opposing Pokémon and makes them unable to eat Berries.";
+}
+
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -606,6 +613,9 @@ function GetAbility(name: String) {
         }
         case 'rough skin':{
             return new RoughSkinAbility();
+        }
+        case 'unnerve':{
+            return new UnnerveAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);
