@@ -1,4 +1,3 @@
-import { timeStamp } from "console";
 import _ from "lodash";
 import GetAbility from "./Ability/Ability";
 import { BattleAction, CreateTechniqueAction, CreateSwitchAction, SwitchPokemonAction, Actions, ForcedTechniqueAction, UseMoveAction } from "./BattleActions";

@@ -6,7 +6,7 @@ import { CloneField, GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import _, { shuffle } from "lodash";
+import  { shuffle } from "lodash";
 import waitForSeconds from "./CoroutineTest";
 
 
@@ -37,45 +37,7 @@ interface PointCalcInfo {
     depth?: number
 }
 
-
-//What would be a node ->
-/*
-
-I want to implement a tree for this so
-
-class MinMaxNode{
-    id:number,
-    turnId: number //the id of the turn that this choice is occuring on (starting from 1 every time though)
-    field:Field,
-    parentNode:MinMaxNode,
-    childrenNode:Array<MinMaxNode>
-    nodeType : 'initial-action' | 'switch-pokemon-action'
-    action: BattleAction
-    score: PointCalc    
-}
-
-
-
--A field with an initial action and any additional switch pokemon actions after that.
--Each switch pokemon action 
-
--They should all be treated as the same, perhaps we will just store the action type in the node.
-
- (IA)
-  |
-  V
-(IA2) || (SP1) || (SP2) || (SP3) || (SP4)
-           |
-           V
-        (IA3)
-*/
-
 class MiniMax {
-
-
-    //Iterations is the number of iterations we will run per "node"
-    //depth is how many turns deep we want to go.
-    //To start lets get it working with 1 turn deep.
 
 
     async GetBestPokemonSwitch(simmedPlayer: Player, originalGame: BattleGame) {

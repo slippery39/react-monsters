@@ -6,7 +6,7 @@ import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
-import { PokemonBuilder } from 'game/Pokemon/Pokemon';
+
 
 
 enum AppState {
@@ -37,7 +37,7 @@ function App() {
 
 
   function initializeTestBattle(){
-
+/*
     const customBuilder = PokemonBuilder().GetPremadePokemon("Alakazam").SetCurrentStats({
       hp:200,
       spAttack:1,
@@ -45,7 +45,8 @@ function App() {
       defense:1,
       spDefense:1,
       speed:10000
-    })
+    });
+    */
 
   
 
@@ -84,30 +85,6 @@ function App() {
     let battleService = new BattleService(player1, player2,true);
     new BasicAI(player2, battleService);
     battleService.Initialize();
-
-/*
-    const testIterations = 10000;
-    console.time("cloneDeep")
-    for (var i=0;i<testIterations;i++){
-      _.cloneDeep(battleService.GetCurrentTurn().field);
-    }
-    console.timeEnd("cloneDeep");
-
-
-    console.time("clone field");
-    for (var i=0;i<testIterations;i++){
-      CloneField(battleService.GetCurrentTurn().field);
-    }
-    console.timeEnd("clone field");
-
-
-    
-*/
-
-
-
-
-    //battleService.Start();
 
     return battleService;
   }

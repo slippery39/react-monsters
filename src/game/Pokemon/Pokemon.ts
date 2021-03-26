@@ -9,8 +9,7 @@ import { Status } from "game/HardStatus/HardStatus";
 import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
 import { GetNature, NatureType } from "game/Natures/Natures";
 import GetPokemon, { GetRandomPokemon } from "./PremadePokemon";
-import { timeStamp } from "console";
-import { textChangeRangeIsUnchanged } from "typescript";
+
 
 
 export interface StatMultiplier{

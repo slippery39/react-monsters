@@ -5,9 +5,8 @@ import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { FieldEffectType } from "game/FieldEffects/FieldEffects";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
-import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
+import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import { WeatherType } from "game/Weather/Weather";
-import { getEffectiveConstraintOfTypeParameter } from "typescript";
 import { ElementType } from "../ElementType";
 import { DamageType } from "./Technique";
 
