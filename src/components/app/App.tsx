@@ -7,9 +7,6 @@ import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
-import TeamSelector from 'components/TeamSelector/TeamSelector';
-
-
 
 
 enum AppState {

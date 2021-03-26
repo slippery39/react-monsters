@@ -1,10 +1,6 @@
-.start-menu-button{
-    background-color:green;
-    width: 60%;
-    display: inline-block;
-    margin: 0 auto;
-    padding-left: 40px;
-    padding-right: 40px;
-    padding-top: 30px;
-    padding-bottom: 30px;
+
+.start-screen-container > *{
+    margin-top:10px;
+    margin-bottom:10px;
+    min-height:60px;
 }

@@ -1,3 +1,5 @@
+@import '~antd/dist/antd.css';
+
 @font-face {
   font-family: 'PokemonFont';
   src: url('/fonts/DiamondPearl/PowerClear.woff2') format('woff2'),
@@ -13,6 +15,7 @@
 }
 
 body{
+  line-height:inherit;
   /*font-family:"PokemonFont" don't want tou use this anymore, i think it actually looks better with the default font*/
 }
 
