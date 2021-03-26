@@ -95,7 +95,7 @@ export function ClonePlayer(originalPlayer:Player){
         newPoke.ability = poke.ability;
         newPoke.baseStats = poke.baseStats;
         newPoke.canAttackThisTurn = poke.canAttackThisTurn;
-        newPoke.elementalTypes = poke.elementalTypes;
+        newPoke.elementalTypes = [...poke.elementalTypes];
         newPoke.evs = poke.evs;
         newPoke.flashFireActivated = poke.flashFireActivated;
         newPoke.hasSubstitute = poke.hasSubstitute;
@@ -167,7 +167,7 @@ export function CloneField(originalField:Field){
             newPoke.ability = poke.ability;
             newPoke.baseStats = poke.baseStats;
             newPoke.canAttackThisTurn = poke.canAttackThisTurn;
-            newPoke.elementalTypes = poke.elementalTypes;
+            newPoke.elementalTypes = [...poke.elementalTypes];
             newPoke.evs = poke.evs;
             newPoke.flashFireActivated = poke.flashFireActivated;
             newPoke.hasSubstitute = poke.hasSubstitute;

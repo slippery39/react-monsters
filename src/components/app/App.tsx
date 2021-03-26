@@ -54,14 +54,13 @@ function App() {
 
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("Aerodactyl")
+    .WithPokemon("Skarmory")
     .WithRandomPokemon(6)
     .Build();
 
   const player2 = new PlayerBuilder(2)
     .WithName("Bob")
-    .WithCustomPokemon(customBuilder.Build())
-    .WithCustomPokemon(customBuilder.Build())
+    .WithPokemon("Skarmory")
     .Build();
 
     let battleService = new BattleService(player1, player2,true);
