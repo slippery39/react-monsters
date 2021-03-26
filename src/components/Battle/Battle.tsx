@@ -34,6 +34,9 @@ import "react-rain-animation/lib/style.css";
 import {  WeatherType } from 'game/Weather/Weather';
 import { Field, OnNewTurnLogArgs } from 'game/BattleGame';
 
+import {Tabs} from 'antd';
+const {TabPane} = Tabs;
+
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
 
@@ -87,7 +90,8 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
 
 interface Props {
     onEnd: () => void;
-    battle: BattleService
+    battle: BattleService,
+    showDebug?:boolean
 }
 
 const Battle: React.FunctionComponent<Props> = (props) => {
@@ -685,20 +689,28 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         const pokemonInfoMenu = (
             <div>
-                <div className="col-2">
-                    <div className={pokemonInfoMenuPlayer.id !== battleService.GetAllyPlayer().id ? "interactable" : "interactable tab-selected"}
-                        onClick={SwitchPokemonInfoMenuPlayer}> Show Your Pokemon</div>
-                    <div className={pokemonInfoMenuPlayer.id !== battleService.GetEnemyPlayer().id ? "interactable" : "interactable tab-selected"}
-                        onClick={SwitchPokemonInfoMenuPlayer}> Show Enemy Pokemon </div>
-                </div>
-                <PokemonMiniInfoList
+                <Tabs defaultActiveKey="1" onChange={SwitchPokemonInfoMenuPlayer}>
+                    <TabPane tab="Ally Pokemon" key="1">
+                    <PokemonMiniInfoList
                     showCancelButton={true}
                     onCancelClick={() => setMenuState(MenuState.MainMenu)}
                     onPokemonClick={(pokemon) => {
                         setPokemonInfo(pokemon);
                         setMenuState(MenuState.ShowPokemonInfo)
                     }}
-                    player={pokemonInfoMenuPlayer} />
+                    player={battleService.GetAllyPlayer()} />
+                    </TabPane>
+                    <TabPane tab="Enemy Pokemon" key="2">
+                    <PokemonMiniInfoList
+                    showCancelButton={true}
+                    onCancelClick={() => setMenuState(MenuState.MainMenu)}
+                    onPokemonClick={(pokemon) => {
+                        setPokemonInfo(pokemon);
+                        setMenuState(MenuState.ShowPokemonInfo)
+                    }}
+                    player={battleService.GetEnemyPlayer()} />
+                    </TabPane>
+                </Tabs>
             </div>)
 
         const faintedSwitchMenu = <PokemonMiniInfoList onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
@@ -743,7 +755,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     return (
         <div className="App">
-            <Debug field={state.field} battleService={battleService} />
+            {props.showDebug && <Debug field={state.field} battleService={battleService} />}
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>

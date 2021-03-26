@@ -17,19 +17,6 @@ const PokemonInfo: React.FunctionComponent<Props> = (props) => {
 
     const [currentTab, setCurrentTab] = useState("stats");
 
-    /*
-   const testPokemon = PokemonBuilder()
-       .OfSpecies("Charizard")
-       .WithTechniques([
-           "Fire Blast",
-           "Focus Blast",
-           "Roost",
-           "Air Slash"
-       ])
-       .WithHeldItem("Leftovers")
-       .WithAbility("Blaze")
-       .Build();
-   */
     const testPokemon = props.pokemon;
 
     const statData = [

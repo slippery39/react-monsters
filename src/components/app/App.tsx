@@ -129,7 +129,7 @@ function App() {
         return <BattleSimulator />
       }
       case AppState.TestGame:{
-        return <Battle battle={initializeTestBattle()} onEnd={handleEndGame}/>
+        return <Battle showDebug battle={initializeTestBattle()} onEnd={handleEndGame}/>
       }
       default:{
         return <div> Error: Invalid App State </div>
