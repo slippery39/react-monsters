@@ -1,42 +1,38 @@
-import React, {useState } from 'react';
+import React from 'react';
 import RandomTeamsSimMenu from './RandomTeams/RandomTeams';
 
 import "./battlesim.css"
 import RoundRobinSim from './RoundRobin1v1/RoundRobin1v1';
 
+import {Tabs} from 'antd';
+
+const {TabPane} = Tabs;
+
 interface Props {
 }
 
 
-export interface WinLoss {
-    wins: number,
-    losses: number,
-}
 
-
-export type SimmedStats = Record<string, WinLoss>;
-
-
-
-
-enum SimMode{
-    RoundRobin1v1 = '1v1-Round-Robin',
-    RandomTeams6v6 = '6v6-Random-Teams'
-}
 
 const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
-    const [menuState,setMenuState] = useState<SimMode>(SimMode.RandomTeams6v6);
 
     const tabs = ()=>{
-       return  (<div><div className="tab" onClick={()=>setMenuState(SimMode.RoundRobin1v1)}>1v1 Round Robin</div><div className="tab" onClick={()=>setMenuState(SimMode.RandomTeams6v6)}>6v6 Random Teams</div></div>)
+
+
+       return(<Tabs defaultActiveKey="1">
+            <TabPane tab="1v1 Round Robin" key="1">
+                <RoundRobinSim/>
+            </TabPane>
+            <TabPane tab="6v6 Random Teams" key="2">
+                <RandomTeamsSimMenu/>
+            </TabPane>
+        </Tabs>)
     }
 
     return (
         <div className="battle-simulator-menu">
             <div> Battle Simulator!</div>
             {tabs()}
-            {menuState === SimMode.RandomTeams6v6 && <RandomTeamsSimMenu/>}
-            {menuState === SimMode.RoundRobin1v1 && <RoundRobinSim/>}
         </div>
     );
 }

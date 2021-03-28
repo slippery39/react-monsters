@@ -21,9 +21,9 @@ body{
 
 .app-window{
   text-align: center;
-  width:400px;
+  max-width:800px;
   margin:0 auto;
-  border:2px solid black;    
+  border:1px solid black;
   /*font-family:"PokemonFont";*/
 }
 
