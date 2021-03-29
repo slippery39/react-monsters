@@ -1,4 +1,5 @@
 import { Button, InputNumber } from 'antd';
+import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import { OnGameOverArgs } from 'game/BattleGame';
 import BattleService from 'game/BattleService';
@@ -8,6 +9,7 @@ import { shuffle } from 'lodash';
 import React, { useCallback, useState } from 'react';
 import { SimmedStats, UpdateStats, WinLoss } from '../SimulatorFunctions';
 import WinLossTable from '../WinLossTable';
+import * as Icons from '@ant-design/icons';
 
 
 interface MatchResult {
@@ -78,6 +80,58 @@ async function RoundRobin1v1(battleEndedFunc: (data: SimmedStats, results: Array
     }
 }
 
+//These work a little bit differently here than in the Random 6v6. Hopefully can refactor to make things more clear.
+function UpdateWinStats(previousStats: SimmedStats, team: Array<string>) {
+
+    const newStats = previousStats;
+
+    team.forEach(poke => {
+        if (newStats[poke] === undefined) {
+            newStats[poke] = {
+                wins: 0,
+                losses: 0
+            }
+
+        }
+        newStats[poke].wins += 1;
+    });
+    return newStats
+}
+
+function UpdateLossStats(previousStats: SimmedStats, team: Array<string>) {
+
+    const newStats = previousStats;
+
+    team.forEach(poke => {
+        if (newStats[poke] === undefined) {
+            newStats[poke] = {
+                wins: 0,
+                losses: 0
+            }
+
+        }
+        newStats[poke].losses += 1;
+    });
+    return newStats
+}
+
+
+function GetSpecificPokemonWinRates(pokeName:string, results: Array<MatchResult>) {
+    let stats: Record<string, WinLoss> = {};
+
+
+    results.forEach(result => {
+        if (result.winningPokemon.map(p=>p.toLowerCase()).includes(pokeName.toLowerCase())) {
+            UpdateWinStats(stats, result.losingPokemon);
+        }
+        if (result.losingPokemon.map(p=>p.toLowerCase()).includes(pokeName.toLowerCase())) {
+            UpdateLossStats(stats, result.winningPokemon);
+        }
+    });
+
+    return stats;
+}
+
 
 interface Props {
 
@@ -88,11 +142,14 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
     const [simStats, setSimStats] = useState<SimmedStats>({});
     const [numberOfBattles, setNumberOfBattles] = useState<number>(1); //its a string for compatibility issues.
     const [simText, setSimText] = useState<string>("")
+    const [currentPokemonName, setCurrentPokemonName] = useState<string>("");
+    const [matchResults, setMatchResults] = useState<Array<MatchResult>>([]);
 
     const battleEndedFunc = useCallback((stats: Record<string, WinLoss>, results: Array<MatchResult>) => {
         console.log(stats);
         const newStats = { ...stats };
         setSimStats(newStats);
+        setMatchResults(results);
         setSimText("All battles simulated!");
     }, [setSimStats])
 
@@ -103,12 +160,14 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
     const simSettings = (<div> Number of Battles : <InputNumber min={1} value={numberOfBattles} max={10000} defaultValue={1} onChange={(e) => setNumberOfBattles(e)} />{startButton}</div>)
     const simTextDiv = (<div>{simText}</div>)
 
-    return (
-        <div>
-            {simSettings}
-            {simTextDiv}
-            <WinLossTable stats={simStats}/>
-        </div>
+    return (<div>
+        {simSettings}
+        {simTextDiv}
+        {currentPokemonName === "" && <WinLossTable onPokemonImageClick={(name) => setCurrentPokemonName(name)} stats={simStats} />}
+        {currentPokemonName !== "" && (<div>            <div> Showing Win Loss against other pokemon for {currentPokemonName}</div>
+            <span className="clickable" onClick={() => setCurrentPokemonName("")}><PokemonImage type="small" name={currentPokemonName} /><Icons.CloseCircleOutlined /></span>
+            <WinLossTable onPokemonImageClick={(name) => setCurrentPokemonName(name)} stats={GetSpecificPokemonWinRates(currentPokemonName, matchResults)} /></div>)}
+    </div>
     );
 }
 

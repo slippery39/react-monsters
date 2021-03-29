@@ -15,7 +15,8 @@ interface WinLossData {
 }
 
 interface Props{
-    stats:SimmedStats
+    stats:SimmedStats,
+    onPokemonImageClick?:(pokeName:string)=>void
 }
 
 const WinLossTable: React.FunctionComponent<Props> = (props) => {
@@ -52,7 +53,7 @@ const WinLossTable: React.FunctionComponent<Props> = (props) => {
 
     const tableColumns: ColumnsType<WinLossData> = [
         { title: "rank", key: "rank", dataIndex:"rank",sorter:(a,b)=>b.rank - a.rank},
-        { title: "image", dataIndex: "image", key: "image", render: (image: string) => <PokemonImage name={image} type="front" /> },
+        { title: "image", dataIndex: "image", key: "image", render: (image: string) => <div className="clickable" onClick={()=>{if (props.onPokemonImageClick!==undefined) { props.onPokemonImageClick(image)}}}><PokemonImage name={image} type="front" /></div> },
         { title: "name", dataIndex: "name", key: "name" },
         { title: "wins", dataIndex: "wins", key: "wins", sorter: (a, b) => b.wins - a.wins },
         { title: "losses", dataIndex: "losses", key: "losses", sorter: (a, b) => b.losses - a.losses },
