@@ -88,8 +88,8 @@ export function ClonePlayer(originalPlayer:Player){
         newPoke.techniques = pokeTechniques;
         newPoke.currentStats = {
             hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
-        newPoke.heldItem = _.cloneDeep(poke.heldItem);
-        newPoke.statMultipliers = _.cloneDeep(poke.statMultipliers);
+        newPoke.heldItem = _.clone(poke.heldItem);
+        newPoke.statMultipliers = [...poke.statMultipliers];
         newPoke.volatileStatuses = _.cloneDeep(poke.volatileStatuses);  
         newPoke.ivs = poke.ivs
         newPoke.ability = poke.ability;
@@ -160,8 +160,8 @@ export function CloneField(originalField:Field){
             newPoke.techniques = pokeTechniques;
             newPoke.currentStats = {
                 hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
-            newPoke.heldItem = _.cloneDeep(poke.heldItem);
-            newPoke.statMultipliers = _.cloneDeep(poke.statMultipliers);
+            newPoke.heldItem = _.clone(poke.heldItem);
+            newPoke.statMultipliers = [...poke.statMultipliers];
             newPoke.volatileStatuses = _.cloneDeep(poke.volatileStatuses);  
             newPoke.ivs = poke.ivs
             newPoke.ability = poke.ability;

@@ -21,18 +21,18 @@ export interface MatchResult {
     losingPokemon: Array<string>,
 }
 
-async function RunAIvsAIBattle(): Promise<OnGameOverArgs> {
+async function RunAIvsAIBattle(teamSize: number): Promise<OnGameOverArgs> {
 
     return new Promise(resolve => {
 
         const ai1 = new PlayerBuilder(1)
             .WithName("AI John")
-            .WithRandomPokemon(6)
+            .WithRandomPokemon(teamSize)
             .Build();
 
         const ai2 = new PlayerBuilder(2)
             .WithName("AI Bob")
-            .WithRandomPokemon(6)
+            .WithRandomPokemon(teamSize)
             .Build();
 
 
@@ -51,14 +51,14 @@ async function RunAIvsAIBattle(): Promise<OnGameOverArgs> {
     );
 }
 
-async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: SimmedStats, results: Array<MatchResult>) => void, battleStartedFunc: (id: number) => void) {
+async function RunNBattles(numberOfBattles: number, teamSize: number, battleEndedFunc: (data: SimmedStats, results: Array<MatchResult>) => void, battleStartedFunc: (id: number) => void) {
 
     let matchResults: Array<MatchResult> = [];
     let stats: Record<string, WinLoss> = {};
     await waitForSeconds(0);
     for (var i = 0; i < numberOfBattles; i++) {
         battleStartedFunc((i + 1));
-        const results = await RunAIvsAIBattle();
+        const results = await RunAIvsAIBattle(teamSize);
         UpdateStats(stats, results);
         matchResults.push({
             winningPokemon: results.winningPlayer!.pokemon.map(poke => poke.name),
@@ -67,6 +67,9 @@ async function RunNBattles(numberOfBattles: number, battleEndedFunc: (data: Simm
 
         battleEndedFunc(stats, matchResults);
     }
+    //Saving this so we can use this later to check stats.
+    console.log(matchResults.map(result => result.winningPokemon));
+    console.log(matchResults.map(result => result.losingPokemon));
 }
 
 
@@ -114,17 +117,21 @@ function GetPokemonAllyTeamWinRates(pokeName: Array<string>, results: Array<Matc
 
     const names = pokeName.map(name => name.toLowerCase());
 
+    let overallWins = 0;
+    let overallLosses = 0;
 
     results.forEach(result => {
         if (hasAll(result.winningPokemon.map(p => p.toLowerCase()), names)) {
             UpdateAllyWinStats(stats, result.winningPokemon);
+            overallWins++;
         }
         if (hasAll(result.losingPokemon.map(p => p.toLowerCase()), names)) {
             UpdateAllyLossStats(stats, result.losingPokemon);
+            overallLosses++;
         }
     });
 
-    return stats;
+    return { stats: stats, winRate: 100 * (overallWins / (overallWins + overallLosses)) };
 }
 
 function GetPokemonOpponentTeamRates(pokeName: Array<string>, results: Array<MatchResult>) {
@@ -167,7 +174,8 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     const [simText, setSimText] = useState<string>("")
     const [matchResults, setMatchResults] = useState<Array<MatchResult>>([]);
 
-    const [currentPokeName, setCurrentPokeName] = useState<Array<string>>([]);
+    const [currentPokemonFilter, setCurrentPokemonFilter] = useState<Array<string>>([]);
+    const [teamSize, setTeamSize] = useState<number>(6);
 
     const battleEndedFunc = useCallback((stats: Record<string, WinLoss>, results: Array<MatchResult>) => {
         console.log(stats);
@@ -175,18 +183,21 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
         setSimStats(newStats);
         setSimText("All battles simulated!");
         setMatchResults(results);
+
     }, [])
 
     const startButton = (<Button type="primary" onClick={() => {
-        RunNBattles(numberOfBattles, battleEndedFunc, (num) => setSimText("Simulating Battle " + num));
+        RunNBattles(numberOfBattles, teamSize, battleEndedFunc, (num) => setSimText("Simulating Battle " + num));
 
     }}> Simulate!</Button>)
-    const simSettings = (<div> Number of Battles : <InputNumber min={1} value={numberOfBattles} max={10000} defaultValue={500} onChange={(e) => setNumberOfBattles(e)} />{startButton}</div>)
+
+    const teamSizeInput = (<div> Team Size : <InputNumber min={2} value={teamSize} max={6} defaultValue={6} onChange={(e) => setTeamSize(e)} /></div>);
+    const numberOfBattlesInput = (<div> Number of Battles : <InputNumber min={1} value={numberOfBattles} max={100000} defaultValue={500} onChange={(e) => setNumberOfBattles(e)} />{startButton}</div>)
     const simTextDiv = (<div>{simText}</div>)
 
 
     const removePokeName = (name: string, currentArr: Array<string>) => {
-        console.log("Removing pokemon",name);
+        console.log("Removing pokemon", name);
         _.remove(currentArr, (el) => {
             return el === name;
         });
@@ -195,31 +206,41 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
         return [...currentArr];
     }
 
+
+    const addToPokemonFilter = (name: string) => {
+        setCurrentPokemonFilter(pn => pn.includes(name) ? pn : pn.concat([name]));
+    }
+    const removeFromPokemonFilter = (name: string) => {
+        setCurrentPokemonFilter(removePokeName(name, currentPokemonFilter));
+    }
+
+
     const teamFilteredWinLossTables = () => {
         return (
             <div>
                 <Tabs defaultActiveKey="1">
                     <TabPane tab="Ally Team Win Loss" key="1">
-                        <div> Showing Win Loss stats for pokemon that were on teams <b>with</b> {currentPokeName.join(",")}<div>
-                            {currentPokeName.map(pn => (<span className="clickable" onClick={() => setCurrentPokeName(removePokeName(pn, currentPokeName))}><PokemonImage type="small" name={pn} /><Icons.CloseCircleOutlined /></span>))}
+                        <div> Showing Win Loss stats for pokemon that were on teams <b>with</b> {currentPokemonFilter.join(",")}<div>
+                            {currentPokemonFilter.map(pn => (<span className="clickable" onClick={() => removeFromPokemonFilter(pn)}><PokemonImage type="small" name={pn} /><Icons.CloseCircleOutlined /></span>))}
                         </div>
                         </div>
-                        <WinLossTable onPokemonImageClick={(name) => setCurrentPokeName(pn => pn.includes(name) ? pn :pn.concat([name]))} stats={GetPokemonAllyTeamWinRates(currentPokeName, matchResults)} />
+                        <WinLossTable onPokemonImageClick={(name) => addToPokemonFilter(name)} overallWinRates={simStats} filteredTeam={{ winRate: GetPokemonAllyTeamWinRates(currentPokemonFilter, matchResults).winRate, partySize: currentPokemonFilter.length }} stats={GetPokemonAllyTeamWinRates(currentPokemonFilter, matchResults).stats} />
                     </TabPane>
                     <TabPane tab="Enemy Team Win Loss" key="2">
-                        <div> Showing Win Loss stats for pokemon that were on teams <b>against</b> {currentPokeName.join(",")}<div>
-                            {currentPokeName.map(pn => (<span className="clickable" onClick={() => setCurrentPokeName(removePokeName(pn, currentPokeName))}><PokemonImage type="small" name={pn} /><Icons.CloseCircleOutlined /></span>))}</div></div>
-                        <WinLossTable onPokemonImageClick={(name) => setCurrentPokeName(pn => pn.includes(name)?  pn : pn.concat([name]))} stats={GetPokemonOpponentTeamRates(currentPokeName, matchResults)} />
+                        <div> Showing Win Loss stats for pokemon that were on teams <b>against</b> {currentPokemonFilter.join(",")}<div>
+                            {currentPokemonFilter.map(pn => (<span className="clickable" onClick={() => removeFromPokemonFilter(pn)}><PokemonImage type="small" name={pn} /><Icons.CloseCircleOutlined /></span>))}</div></div>
+                        <WinLossTable onPokemonImageClick={(name) => addToPokemonFilter(name)} stats={GetPokemonOpponentTeamRates(currentPokemonFilter, matchResults)} />
                     </TabPane>
                 </Tabs> </div>)
     }
 
     return (
         <div>
-            {simSettings}
+            {teamSizeInput}
+            {numberOfBattlesInput}
             {simTextDiv}
-            {currentPokeName.length === 0 && <WinLossTable onPokemonImageClick={(name) => setCurrentPokeName(p => p.concat([name]))} stats={simStats} />}
-            {currentPokeName.length > 0 && teamFilteredWinLossTables()}
+            {currentPokemonFilter.length === 0 && <WinLossTable onPokemonImageClick={(name) => setCurrentPokemonFilter(p => p.concat([name]))} stats={simStats} />}
+            {currentPokemonFilter.length > 0 && teamFilteredWinLossTables()}
         </div>
     );
 }

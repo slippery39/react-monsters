@@ -20,10 +20,10 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
 
 
        return(<Tabs defaultActiveKey="1">
-            <TabPane tab="1v1 Round Robin" key="1">
+            <TabPane tab="1v1" key="1">
                 <RoundRobinSim/>
             </TabPane>
-            <TabPane tab="6v6 Random Teams" key="2">
+            <TabPane tab="Random Team Battles" key="2">
                 <RandomTeamsSimMenu/>
             </TabPane>
         </Tabs>)

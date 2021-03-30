@@ -212,6 +212,10 @@ class BattleGame implements IGame {
     turnOver: boolean = false;
 
 
+    //performance purposes:
+    pokemonCached:Record<string,Pokemon> = {};
+
+
 
 
     constructor(players: Array<Player>, processEvents: boolean) {
@@ -1243,10 +1247,21 @@ class BattleGame implements IGame {
         return player;
     }
     private GetPokemon(pokemonId: number): Pokemon {
-        const pokemon = this.GetPlayers().map(player => { return player.pokemon }).flat().find(pokemon => pokemon.id === pokemonId);
+        
+        let pokemon;
+        if (this.pokemonCached[pokemonId] === undefined){        
+            pokemon = this.GetPlayers().map(player => { return player.pokemon }).flat().find(pokemon => pokemon.id === pokemonId);
+            
+        }
+        else{
+            pokemon = this.pokemonCached[pokemonId];
+        }      
+
+        
         if (pokemon === undefined) {
             throw new Error(`Could not find pokemon with id ${pokemonId} `);
         }
+        this.pokemonCached[pokemonId] = pokemon;
         return pokemon;
     }
 
