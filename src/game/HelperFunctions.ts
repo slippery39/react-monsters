@@ -90,7 +90,7 @@ export function ClonePlayer(originalPlayer:Player){
             hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
         newPoke.heldItem = _.clone(poke.heldItem);
         newPoke.statMultipliers = [...poke.statMultipliers];
-        newPoke.volatileStatuses = _.cloneDeep(poke.volatileStatuses);  
+        newPoke.volatileStatuses = poke.volatileStatuses.length === 0 ?  [] : _.cloneDeep(poke.volatileStatuses);  
         newPoke.ivs = poke.ivs
         newPoke.ability = poke.ability;
         newPoke.baseStats = poke.baseStats;
@@ -162,7 +162,7 @@ export function CloneField(originalField:Field){
                 hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
             newPoke.heldItem = _.clone(poke.heldItem);
             newPoke.statMultipliers = [...poke.statMultipliers];
-            newPoke.volatileStatuses = _.cloneDeep(poke.volatileStatuses);  
+            newPoke.volatileStatuses = poke.volatileStatuses.length === 0 ? [] : _.cloneDeep(poke.volatileStatuses);  
             newPoke.ivs = poke.ivs
             newPoke.ability = poke.ability;
             newPoke.baseStats = poke.baseStats;
@@ -191,9 +191,9 @@ export function CloneField(originalField:Field){
 
     });
     const newField = {
-        entryHazards:_.cloneDeep(originalField.entryHazards),
-        weather:_.cloneDeep(originalField.weather),
-        fieldEffects:_.cloneDeep(originalField.fieldEffects),
+        entryHazards:originalField.fieldEffects?.length === 0? [] :_.cloneDeep(originalField.entryHazards),
+        weather:_.clone(originalField.weather), //do we need to deep clone this? i don't think so right?
+        fieldEffects: originalField.fieldEffects?.length === 0?  [] : _.cloneDeep(originalField.fieldEffects),
         players:newPlayers
     }
     return newField;}
