@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
 import './App.css';
+import React, { useState } from 'react';
 import Battle from "components/Battle/Battle";
 import StartGameScreen from 'components/StartGameScreen/StartGameScreen';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
+import BattleSetupController from 'components/Battle/BattleSetup/BattleSetupController';
+
 
 
 
 enum AppState {
   MainMenu = 'main-menu',
-  InBattle = 'in-battle',
+  PlayerBattle = 'player-battle',
   SimulatingAIGames = 'sim-ai-games',
   TestGame = 'test-game'
 }
@@ -22,8 +24,8 @@ function App() {
   const [appState, setAppState] = useState<AppState>(AppState.MainMenu);
 
 
-  function handleStartClick() {
-    setAppState(AppState.InBattle);
+  function handleHumanVsCPU() {
+    setAppState(AppState.PlayerBattle);
   }
   function handleBattleSimClick(){
     setAppState(AppState.SimulatingAIGames);
@@ -37,18 +39,6 @@ function App() {
 
 
   function initializeTestBattle(){
-/*
-    const customBuilder = PokemonBuilder().GetPremadePokemon("Alakazam").SetCurrentStats({
-      hp:200,
-      spAttack:1,
-      attack:1,
-      defense:1,
-      spDefense:1,
-      speed:10000
-    });
-    */
-
-  
 
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
@@ -68,39 +58,17 @@ function App() {
     return battleService;
   }
 
-
-
-  function initialize6v6Battle() {
-
-    const player1 = new PlayerBuilder(1)
-      .WithName("Shayne")
-      .WithRandomPokemon(6)
-      .Build();
-
-    const player2 = new PlayerBuilder(2)
-      .WithName("Bob")
-      .WithRandomPokemon(6)
-      .Build();
-
-    let battleService = new BattleService(player1, player2,true);
-    new BasicAI(player2, battleService);
-    battleService.Initialize();
-
-    return battleService;
-  }
-
-
   const showScreen = function () {
     switch (appState) {
       case AppState.MainMenu: {
         return (<StartGameScreen 
-          onStartClick={handleStartClick}
+          onStartClick={handleHumanVsCPU}
           onBattleSimClick={handleBattleSimClick}
           onTestGameClick={handleTestGameClick}
           />)
       }
-      case AppState.InBattle: {
-        return <Battle battle={initialize6v6Battle()} onEnd={handleEndGame} />
+      case AppState.PlayerBattle: {
+        return <BattleSetupController/>
       }
       case AppState.SimulatingAIGames: {
         return <BattleSimulator />

@@ -82,7 +82,6 @@ class BasicAI implements AI {
 
             //TODO - If both players switch, pick randomly.
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
-            console.log(validPokemon);
             if (validPokemon.length ===0 ){
                 console.error(args,this._service,this._service.battle);
                 throw new Error(`No valid pokemon for ChoosePokemonToSwitchInto`);

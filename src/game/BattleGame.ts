@@ -404,7 +404,6 @@ class BattleGame implements IGame {
                 return;
             }
             else{
-                console.log("all switch actions are in, calculating turn");
                 if (this.currentState!==TurnState.GameOver){
                   this.currentState = TurnState.CalculatingTurn;
                 }
@@ -429,6 +428,9 @@ class BattleGame implements IGame {
     //it is possible the way we are doing things needs to be updated to make sense for weather.
     GetBehavioursForPokemon(pokemon: Pokemon) {
         //const weather = this.field.weather ? [this.field.weather] : [];
+        
+        //todo : potentially cache these.
+
         return (
             this.field.fieldEffects!.filter(fe => fe.playerId === this.GetPokemonOwner(pokemon).id) as Array<BattleBehaviour>)
             .concat(pokemon.volatileStatuses as Array<BattleBehaviour>)
@@ -632,7 +634,6 @@ class BattleGame implements IGame {
         const switchInPokemon = pokemonArrCopy[switchInPokemonPos];
         //check to make sure the pokemon can actually be switched in
         if (switchInPokemon.currentStats.hp === 0) {
-            console.log('switch pokemon error stuff',this,switchInPokemon,this.GetValidActions(player));
             throw new Error(`Error tried to switch in pokemon, but it has no health : ${switchInPokemon.name}. Check the UI code or the AI code for most likely reason.`);
         }
         pokemonArrCopy[0] = player.pokemon[switchInPokemonPos];
@@ -847,25 +848,11 @@ class BattleGame implements IGame {
             const targetType = effect.target === undefined ? TargetType.Enemy : effect.target;
             var targetPokemon = targetType === TargetType.Self ? pokemon : defendingPokemon;
 
-            if (this.shouldProcessEvents){
-               console.log("effect in turn",effect,chance);
-            }
-
-
-
             //quick override for drain effects while we think about the best way to handle this type of effect.
             if (effect.type === 'drain') {
                 targetPokemon = pokemon;
             }
-
             const effectSuccess = this.Roll(chance);
-
-            
-            if (this.shouldProcessEvents){
-                console.log("effect in turn",effect,chance,effectSuccess);
-             }
- 
-
             if (effectSuccess) {
                 DoEffect(this, targetPokemon, effect, { sourcePokemon: pokemon, sourceTechnique: technique, sourceDamage: techniqueDamage });
             }

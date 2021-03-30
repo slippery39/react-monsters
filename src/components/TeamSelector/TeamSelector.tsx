@@ -1,19 +1,33 @@
 import PokemonImage from "components/PokemonImage/PokemonImage";
+import waitForSeconds from "game/AI/CoroutineTest";
 import { GetAllPokemonInfo } from "game/Pokemon/PremadePokemon"
 import _ from "lodash";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./TeamSelector.css";
 
 interface Props {
     maxPokemon: number,
+    defaultPokemon?:Array<string>
+    onChange?:(team:Array<string>)=>void;
     handleSubmitTeam?:(team:Array<string>)=>void;
 }
 
 const TeamSelector = (props: Props) => {
     const maxPokemon = props.maxPokemon
     const pokemon = GetAllPokemonInfo();
+
+
     const [selectedTeam, setSelectedTeam] = useState<Array<string>>([]);
     const selectedTeamIcons = selectedTeam.map(p => (<div key={p} onClick={()=>{handleSelectedTeamIconClick(p)}} className='team-selector-icon'><PokemonImage type="small" name={p} /></div>));
+
+ 
+    useEffect(()=>{
+        if (props.defaultPokemon === undefined){
+            props.defaultPokemon = [];
+        }
+
+        setSelectedTeam([...props.defaultPokemon]);
+    },[]);
 
     const pokemonIcons = pokemon.map(p => {
         let iconClass = "team-selector-icon";
@@ -30,19 +44,22 @@ const TeamSelector = (props: Props) => {
         if (selectedTeam.length >= maxPokemon) {
             return;
         }
-        setSelectedTeam(p => {
-            let newArr = p.slice();
-            newArr.push(name);
-            return newArr;
-        })
+        let newArr = selectedTeam.slice();
+        newArr.push(name);
+        setSelectedTeam(newArr);
+        if (props.onChange!==undefined){
+            props.onChange(newArr);
+        }
     }
 
     const handleSelectedTeamIconClick = (name:string)=>{
-        setSelectedTeam(p=>{
-            let newArr = p.slice();
-            _.remove(newArr,(el)=>el === name);
-            return newArr;
-        });
+
+        let newArr = selectedTeam.slice();
+        _.remove(newArr,(el)=>el === name);
+        setSelectedTeam(newArr);
+        if (props.onChange!==undefined){
+            props.onChange(newArr);
+        }
     }
 
     const amountNeededMessage = ()=>{
@@ -56,10 +73,10 @@ const TeamSelector = (props: Props) => {
 
     return (
         <div>
-            <div className="team-selector-all-container">{pokemonIcons}</div>
-            <div>Your Team - {amountNeededMessage()}</div>
-            <div className="team-selector-selected-container">{selectedTeamIcons}</div>
-            {selectedTeam.length === maxPokemon &&<button onClick={()=>{props.handleSubmitTeam?.(selectedTeam)}} type="button">Submit!</button>}
+            <div>Available Pokemon</div>
+            <div className="pokemon-selection-container">{pokemonIcons}</div>
+            <div style={{"marginTop":"10px"}}>Team Selected - {amountNeededMessage()}</div>
+            <div className="pokemon-selection-container">{selectedTeamIcons}</div>
         </div>
     )
 }

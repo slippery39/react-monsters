@@ -53,5 +53,19 @@ body{
   cursor:pointer;
 }
 
+.pokemon-selection-container{
+  padding:5px 5px 5px 5px;
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 0px;
+  background: #fefbfb;
+  box-shadow: inset 8px 8px 16px #d8d5d5, inset -8px -8px 16px #ffffff;
+  margin-top: 10px;
+}
+
+.text-large{
+  font-size:x-large;
+}
+
 
 
