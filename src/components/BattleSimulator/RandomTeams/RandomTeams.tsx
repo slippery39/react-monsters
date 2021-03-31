@@ -1,4 +1,4 @@
-import { Button, InputNumber, Tabs } from 'antd';
+import { Button, Card, InputNumber, Radio, Tabs } from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import waitForSeconds from 'game/AI/CoroutineTest';
@@ -11,29 +11,47 @@ import { SimmedStats, UpdateStats, WinLoss } from '../SimulatorFunctions';
 import WinLossTable from '../WinLossTable';
 import "./randomTeams.css";
 import * as Icons from '@ant-design/icons';
+import TeamSelector from 'components/TeamSelector/TeamSelector';
+import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 
 const { TabPane } = Tabs
 
 
 
 export interface MatchResult {
-    winningPokemon: Array<string>,
-    losingPokemon: Array<string>,
+    winningPokemon: string[],
+    losingPokemon: string[],
 }
 
-async function RunAIvsAIBattle(teamSize: number): Promise<OnGameOverArgs> {
+async function RunAIvsAIBattle(teamSize: number,pokemonPool:string[]): Promise<OnGameOverArgs> {
 
     return new Promise(resolve => {
 
-        const ai1 = new PlayerBuilder(1)
-            .WithName("AI John")
-            .WithRandomPokemon(teamSize)
-            .Build();
 
-        const ai2 = new PlayerBuilder(2)
+
+        const randomizedPool = _.shuffle(_.cloneDeep(pokemonPool));
+
+        console.log(randomizedPool);
+
+
+
+        const aiBuilder1 = new PlayerBuilder(1)
+            .WithName("AI John");
+            const randomPokemon = _.take(randomizedPool,teamSize);
+            console.log(randomPokemon);
+            randomPokemon.forEach(poke=>{
+                aiBuilder1.WithPokemon(poke);
+            })
+        const ai1= aiBuilder1.Build();
+
+        const aiBuilder2 = new PlayerBuilder(2)
             .WithName("AI Bob")
-            .WithRandomPokemon(teamSize)
-            .Build();
+            const randomPokemon2 = _.take(_.shuffle(randomizedPool),teamSize);
+            console.log(randomPokemon2);
+            randomPokemon2.forEach(poke=>{
+                  aiBuilder2.WithPokemon(poke);
+            });
+         const ai2 = aiBuilder2.Build();
 
 
         let battleService = new BattleService(ai1, ai2, false);
@@ -51,14 +69,14 @@ async function RunAIvsAIBattle(teamSize: number): Promise<OnGameOverArgs> {
     );
 }
 
-async function RunNBattles(numberOfBattles: number, teamSize: number, battleEndedFunc: (data: SimmedStats, results: Array<MatchResult>) => void, battleStartedFunc: (id: number) => void) {
+async function RunNBattles(numberOfBattles: number, teamSize: number, battleEndedFunc: (data: SimmedStats, results: MatchResult[]) => void, battleStartedFunc: (id: number) => void,pokemonPool:string[]) {
 
     let matchResults: Array<MatchResult> = [];
     let stats: Record<string, WinLoss> = {};
     await waitForSeconds(0);
     for (var i = 0; i < numberOfBattles; i++) {
         battleStartedFunc((i + 1));
-        const results = await RunAIvsAIBattle(teamSize);
+        const results = await RunAIvsAIBattle(teamSize,pokemonPool);
         UpdateStats(stats, results);
         matchResults.push({
             winningPokemon: results.winningPlayer!.pokemon.map(poke => poke.name),
@@ -73,7 +91,7 @@ async function RunNBattles(numberOfBattles: number, teamSize: number, battleEnde
 
 
 //testing ones without the OnGameOverArgs
-export function UpdateAllyWinStats(previousStats: SimmedStats, team: Array<string>) {
+export function UpdateAllyWinStats(previousStats: SimmedStats, team: string[]) {
 
     const newStats = previousStats;
 
@@ -90,7 +108,7 @@ export function UpdateAllyWinStats(previousStats: SimmedStats, team: Array<strin
     return newStats
 }
 
-export function UpdateAllyLossStats(previousStats: SimmedStats, team: Array<string>) {
+export function UpdateAllyLossStats(previousStats: SimmedStats, team: string[]) {
     const newStats = previousStats;
 
     team.forEach(poke => {
@@ -106,7 +124,7 @@ export function UpdateAllyLossStats(previousStats: SimmedStats, team: Array<stri
     return newStats
 }
 
-function GetPokemonAllyTeamWinRates(pokeName: Array<string>, results: Array<MatchResult>) {
+function GetPokemonAllyTeamWinRates(pokeName: Array<string>, results: MatchResult[]) {
     let stats: Record<string, WinLoss> = {};
 
 
@@ -133,10 +151,10 @@ function GetPokemonAllyTeamWinRates(pokeName: Array<string>, results: Array<Matc
     return { stats: stats, winRate: 100 * (overallWins / (overallWins + overallLosses)) };
 }
 
-function GetPokemonOpponentTeamRates(pokeName: Array<string>, results: Array<MatchResult>) {
+function GetPokemonOpponentTeamRates(pokeName: Array<string>, results: MatchResult[]) {
     let stats: Record<string, WinLoss> = {};
 
-    const hasAll = (arrToCheck: Array<any>, arrWithValues: Array<any>) => {
+    const hasAll = (arrToCheck: Array<any>, arrWithValues: any[]) => {
         return arrWithValues.every((val: any) => arrToCheck.includes(val))
     }
 
@@ -171,12 +189,12 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     const [simStats, setSimStats] = useState<SimmedStats>({});
     const [numberOfBattles, setNumberOfBattles] = useState<number>(500); //its a string for compatibility issues.
     const [simText, setSimText] = useState<string>("")
-    const [matchResults, setMatchResults] = useState<Array<MatchResult>>([]);
+    const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
 
-    const [currentPokemonFilter, setCurrentPokemonFilter] = useState<Array<string>>([]);
+    const [currentPokemonFilter, setCurrentPokemonFilter] = useState<string[]>([]);
     const [teamSize, setTeamSize] = useState<number>(6);
 
-    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>, results: Array<MatchResult>) => {
+    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>, results: MatchResult[]) => {
         console.log(stats);
         const newStats = { ...stats };
         setSimStats(newStats);
@@ -185,8 +203,25 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
 
     }, [])
 
+    const [poolType, setPoolType] = useState<"all" | "custom">("all");
+    const [currentCustomPool, setCurrentCustomPool] = useState<string[]>(GetAllPokemonInfo().map(poke => poke.species));
+
+
+    const pokemonPoolSettings = () => {
+        return (
+            <Card>
+                <Radio.Group onChange={(e) =>{ setPoolType(e.target.value)}
+                 } defaultValue="all">
+                    <Radio.Button value="all">All Pokemon</Radio.Button>
+                    <Radio.Button value="custom">Custom Pool</Radio.Button>
+                </Radio.Group>
+                {poolType === "custom" && <TeamSelector onChange={(pool) => setCurrentCustomPool(pool)} defaultPokemon={currentCustomPool} maxPokemon={32} />}
+            </Card>
+        )
+    }
+
     const startButton = (<Button type="primary" onClick={() => {
-        RunNBattles(numberOfBattles, teamSize, battleEndedFunc, (num) => setSimText("Simulating Battle " + num));
+        RunNBattles(numberOfBattles, teamSize, battleEndedFunc, (num) => setSimText("Simulating Battle " + num),currentCustomPool);
 
     }}> Simulate!</Button>)
 
@@ -236,6 +271,7 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     return (
         <div>
             {teamSizeInput}
+            {pokemonPoolSettings()}
             {numberOfBattlesInput}
             {simTextDiv}
             {currentPokemonFilter.length === 0 && <WinLossTable onPokemonImageClick={(name) => setCurrentPokemonFilter(p => p.concat([name]))} stats={simStats} />}

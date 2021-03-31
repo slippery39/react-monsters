@@ -133,7 +133,6 @@ export class Spikes extends EntryHazard {
         else if (this.stage >= 3) {
             damage = pokemon.originalStats.hp * 0.25;
         }
-        console.log("spike damage",damage,this);
         game.ApplyIndirectDamage(pokemon, damage,`${pokemon.name} was hurt by spikes`);        
     }
 }
