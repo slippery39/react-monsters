@@ -4,7 +4,7 @@ import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, Target
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
-import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
+import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
 import { RainingWeather, SandstormWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
@@ -147,7 +147,7 @@ class StaticAbility extends AbstractAbility {
     name = "Static"
     description = "The Pokémon is charged with static electricity, so contact with it may cause paralysis."
 
-    OnDamageTakenFromTechnique(game:IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+    OnDamageTakenFromTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
         if (move.makesContact) {
             const shouldParalyze = game.Roll(30);
             if (shouldParalyze) {
@@ -218,7 +218,7 @@ class SereneGraceAbility extends AbstractAbility {
             if (!effect.chance) {
                 effect.chance = 100;
             }
-            effect.chance = effect.chance*2;
+            effect.chance = effect.chance * 2;
         });
         /*
         if (technique.name.toLowerCase() === 'headbutt'){
@@ -483,39 +483,58 @@ class SandStreamAbility extends AbstractAbility {
 
 
 //Note we have hard coded the work around for substitute inside the Game class itself... 
-class InfiltratorAbility extends AbstractAbility{
+class InfiltratorAbility extends AbstractAbility {
     name = "Infiltrator";
-    description="Passes through the opposing Pokémon’s barrier, substitute, and the like and strikes."
+    description = "Passes through the opposing Pokémon’s barrier, substitute, and the like and strikes."
 }
 
-class ThickFatAbility extends AbstractAbility{
-    name="Thick Fat";
-    description="The Pokémon is protected by a layer of thick fat, which halves the damage taken from Fire- and Ice-type moves.";
+class ThickFatAbility extends AbstractAbility {
+    name = "Thick Fat";
+    description = "The Pokémon is protected by a layer of thick fat, which halves the damage taken from Fire- and Ice-type moves.";
 
-    ModifyDamageTaken(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique, damage: number){
-        if ([ElementType.Fire,ElementType.Ice].includes(technique.elementalType)){
-            return damage/2;
+    ModifyDamageTaken(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique, damage: number) {
+        if ([ElementType.Fire, ElementType.Ice].includes(technique.elementalType)) {
+            return damage / 2;
         }
         return damage;
     }
 }
 
-class RoughSkinAbility extends AbstractAbility{
-    name="Rough Skin";
-    description="This Pokémon inflicts damage with its rough skin to the attacker on contact.";
+class RoughSkinAbility extends AbstractAbility {
+    name = "Rough Skin";
+    description = "This Pokémon inflicts damage with its rough skin to the attacker on contact.";
 
     OnDamageTakenFromTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
-        if (move.makesContact){
-            game.ApplyIndirectDamage(attackingPokemon,defendingPokemon.originalStats.hp/6,`${defendingPokemon.name} took damage due to ${attackingPokemon.name}'s rough skin!`);
+        if (move.makesContact) {
+            game.ApplyIndirectDamage(attackingPokemon, defendingPokemon.originalStats.hp / 6, `${defendingPokemon.name} took damage due to ${attackingPokemon.name}'s rough skin!`);
         }
     }
 }
 
 
 //The unnerve ability is applied to the "Lum Berry" held item right now.. since we won't have many actual berries implemented.
-class UnnerveAbility extends AbstractAbility{
-    name="Unnerve";
-    description="Unnerves opposing Pokémon and makes them unable to eat Berries.";
+class UnnerveAbility extends AbstractAbility {
+    name = "Unnerve";
+    description = "Unnerves opposing Pokémon and makes them unable to eat Berries.";
+}
+
+class JustifiedAbility extends AbstractAbility {
+    name = "Justified";
+    description = "Being hit by a Dark-type move boosts the Attack stat of the Pokémon, for justice.";
+
+    OnDamageTakenFromTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, tech: Technique, damage: number) {
+        if (tech.elementalType === ElementType.Dark) {
+
+            const statBoostParams: DoStatBoostParameters = {
+                game: game,
+                pokemon: defendingPokemon,
+                amount: 1,
+                stat: Stat.Attack,
+                sourcePokemon: attackingPokemon
+            }
+            DoStatBoost(statBoostParams);
+        }
+    }
 }
 
 
@@ -605,17 +624,20 @@ function GetAbility(name: String) {
         case 'sand stream': {
             return new SandStreamAbility();
         }
-        case 'infiltrator':{
+        case 'infiltrator': {
             return new InfiltratorAbility();
         }
-        case 'thick fat':{
+        case 'thick fat': {
             return new ThickFatAbility();
         }
-        case 'rough skin':{
+        case 'rough skin': {
             return new RoughSkinAbility();
         }
-        case 'unnerve':{
+        case 'unnerve': {
             return new UnnerveAbility();
+        }
+        case 'justified':{
+            return new JustifiedAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

@@ -853,7 +853,25 @@ const premades: Array<PremadePokemon> = [
             spDefense:4,
             speed:252
         }
+    },
+    {
+    species:"Lucario",
+    heldItem:"Life Orb",
+    ability:"Justified",
+    nature:NatureType.Adamant,
+    techniques:[
+        "Swords Dance",
+        "Close Combat",
+        "Bullet Punch",
+        "Ice Punch"
+    ],
+    evs:{
+        attack:252,
+        spDefense:4,
+        speed:252
     }
+    }
+
 ]
 
 

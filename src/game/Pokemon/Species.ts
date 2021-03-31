@@ -608,6 +608,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:130
             },
             weight:59
+        },
+        {
+            name:"Lucario",
+            elementalTypes:[ElementType.Steel,ElementType.Fighting],
+            baseStats:{
+                hp:70,
+                attack:110,
+                defense:70,
+                spAttack:115,
+                spDefense:70,
+                speed:90
+            },
+            weight:57.5
         }
     ];
 
