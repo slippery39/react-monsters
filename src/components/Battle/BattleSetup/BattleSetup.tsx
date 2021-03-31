@@ -1,8 +1,8 @@
-import { Button, Card, Modal, PageHeader, Space, Switch, message, Radio } from "antd"
+import { Button, Card, Modal, PageHeader, Space, message, Radio } from "antd"
 import PokemonImage from "components/PokemonImage/PokemonImage";
 import TeamSelector from "components/TeamSelector/TeamSelector"
 import { GetMultipleRandomPokemon } from "game/Pokemon/PremadePokemon";
-import React, { SetStateAction, useState } from "react"
+import React, { useState } from "react"
 
 
 export interface BattleSettings {

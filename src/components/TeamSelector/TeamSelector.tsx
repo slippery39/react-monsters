@@ -1,5 +1,4 @@
 import PokemonImage from "components/PokemonImage/PokemonImage";
-import waitForSeconds from "game/AI/CoroutineTest";
 import { GetAllPokemonInfo } from "game/Pokemon/PremadePokemon"
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
