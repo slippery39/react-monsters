@@ -131,8 +131,6 @@ export class RoostedVolatileStatus extends VolatileStatus {
     }
 
     OnApply(game: IGame, pokemon: Pokemon) {
-
-        console.log("roosted has been applied");
         this.originalTypes = [...pokemon.elementalTypes];
         //remove the flying element of the pokemon
         _.remove(pokemon.elementalTypes, (elType) => {

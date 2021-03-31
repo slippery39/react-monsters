@@ -12,12 +12,12 @@ interface WinLossData {
     wins: number,
     losses: number,
     percentage: number,
-    deltaWinRate?:number
+    synergy?:number //synergy with the pokemon in the row and the pokemon being filtered.
 }
 
 interface Props{
     stats:SimmedStats,
-    filteredTeam?:{partySize:number,winRate:number}, //this provides the win rate for the filtered portion
+    filteredTeam?:{team:Array<string>,winRate:number}, //this provides the win rate for the filtered portion
     overallWinRates?: SimmedStats,
     onPokemonImageClick?:(pokeName:string)=>void
 }
@@ -28,6 +28,10 @@ const WinLossTable: React.FunctionComponent<Props> = (props) => {
         let recordsAsArr: WinLossData[] = [];
         
         for (let key in props.stats) {
+
+            if (props.filteredTeam?.team.includes(key)){
+                continue;         
+            }
             
             const record = props.stats[key];
             const recordRow: WinLossData =     {
@@ -41,12 +45,20 @@ const WinLossTable: React.FunctionComponent<Props> = (props) => {
             };
 
             if (props.filteredTeam!==undefined){
+                const otherPokemonWinRate = Math.round(100 *(props.overallWinRates![key].wins / (props.overallWinRates![key].wins + props.overallWinRates![key].losses)));
+                const partyWinRate = props.filteredTeam.winRate;
 
-                const overallWinRateForRow = Math.round(100 *(props.overallWinRates![key].wins / (props.overallWinRates![key].wins + props.overallWinRates![key].losses)));
-                const expectedWinRate = Math.round(((props.filteredTeam.winRate * props.filteredTeam.partySize) + overallWinRateForRow) / (props.filteredTeam.partySize + 1));
-                //recordRow.overallWinRateForPokemon = overallWinRateForRow;
-                //recordRow.expectedWinRate = expectedWinRate;
-                recordRow.deltaWinRate = recordRow.percentage - expectedWinRate; //the difference in actual win percentage vs the expected win percentage based on overall stats.
+
+                //to avoid divide by 0 errors.
+                const otherWinRateToUse = otherPokemonWinRate === 100 ? 99.9999: otherPokemonWinRate;
+                const partyWinRateToUse = partyWinRate === 100 ? 99.9999: partyWinRate;
+                //convert to fractional odds
+                let expectedWinRate2 = ( otherPokemonWinRate/ (100-otherWinRateToUse) ) * (partyWinRate / (100-partyWinRateToUse)) //this should give a ratio expressed in X to 1.
+                expectedWinRate2 = expectedWinRate2 === 0 ? 0 : expectedWinRate2 /(1+expectedWinRate2) //should give like 0.6 or whatever
+                expectedWinRate2*=100;
+                expectedWinRate2 = Math.round(expectedWinRate2);
+
+                recordRow.synergy = recordRow.percentage- expectedWinRate2; //the difference in actual win percentage vs the expected win percentage based on overall stats.
             }
 
             recordsAsArr.push(recordRow);
@@ -73,7 +85,7 @@ const WinLossTable: React.FunctionComponent<Props> = (props) => {
     ]
 
     if (props.filteredTeam!==undefined){
-        tableColumns.push({title:"Synergy Level (+/- above expected win rate)",key:"deltaWinRate",dataIndex:"deltaWinRate",sorter:(a,b)=>b.deltaWinRate!-a.deltaWinRate!})
+        tableColumns.push({title:"Synergy Level (+/- above expected win rate)",key:"synergy",dataIndex:"synergy",sorter:(a,b)=>b.synergy!-a.synergy!})
     }
 
 

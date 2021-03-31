@@ -68,8 +68,7 @@ async function RunNBattles(numberOfBattles: number, teamSize: number, battleEnde
         battleEndedFunc(stats, matchResults);
     }
     //Saving this so we can use this later to check stats.
-    console.log(matchResults.map(result => result.winningPokemon));
-    console.log(matchResults.map(result => result.losingPokemon));
+    console.log(JSON.stringify(matchResults));
 }
 
 
@@ -220,11 +219,11 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
             <div>
                 <Tabs defaultActiveKey="1">
                     <TabPane tab="Ally Team Win Loss" key="1">
-                        <div> Showing Win Loss stats for pokemon that were on teams <b>with</b> {currentPokemonFilter.join(",")}<div>
+                        <div> Showing Win Loss stats for pokemon that were on teams <b>with</b> {currentPokemonFilter.join(",")} (Win Rate : {Math.round(GetPokemonAllyTeamWinRates(currentPokemonFilter, matchResults).winRate)}%)<div>
                             {currentPokemonFilter.map(pn => (<span className="clickable" onClick={() => removeFromPokemonFilter(pn)}><PokemonImage type="small" name={pn} /><Icons.CloseCircleOutlined /></span>))}
                         </div>
                         </div>
-                        <WinLossTable onPokemonImageClick={(name) => addToPokemonFilter(name)} overallWinRates={simStats} filteredTeam={{ winRate: GetPokemonAllyTeamWinRates(currentPokemonFilter, matchResults).winRate, partySize: currentPokemonFilter.length }} stats={GetPokemonAllyTeamWinRates(currentPokemonFilter, matchResults).stats} />
+                        <WinLossTable onPokemonImageClick={(name) => addToPokemonFilter(name)} overallWinRates={simStats} filteredTeam={{ team: currentPokemonFilter, winRate: GetPokemonAllyTeamWinRates(currentPokemonFilter, matchResults).winRate }} stats={GetPokemonAllyTeamWinRates(currentPokemonFilter, matchResults).stats} />
                     </TabPane>
                     <TabPane tab="Enemy Team Win Loss" key="2">
                         <div> Showing Win Loss stats for pokemon that were on teams <b>against</b> {currentPokemonFilter.join(",")}<div>

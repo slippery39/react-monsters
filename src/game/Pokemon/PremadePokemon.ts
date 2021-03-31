@@ -879,7 +879,7 @@ export function GetRandomPokemon(): Pokemon {
 
 export function GetMultipleRandomPokemon(amount: number): Array<Pokemon> {
 
-    let premadesCopy = _.shuffle(_.cloneDeep(premades));
+    let premadesCopy = _.shuffle([...premades]);
 
 
     return premadesCopy.slice(0, amount).map(pokemonInfo => {
