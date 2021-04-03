@@ -69,7 +69,7 @@ class ToxicStatus extends HardStatus{
     inflictedMessage = 'has been badly poisoned!'
 
     CanApply(game:IGame, pokemon: Pokemon) {
-        return !HasElementType(pokemon, ElementType.Steel);
+        return !HasElementType(pokemon, ElementType.Steel) && !HasElementType(pokemon,ElementType.Poison);
     }
     EndOfTurn(game:IGame, pokemon: Pokemon) {
                 //apply poison damage

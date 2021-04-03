@@ -623,6 +623,8 @@ class BattleGame implements IGame {
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
         switchOutPokemon.volatileStatuses = []; //easy peasy
         switchOutPokemon.hasSubstitute = false; //need to update this as well.. although lets remove it now and make this a function instead.
+        switchOutPokemon.toxicCount = 1;
+        switchOutPokemon.techniqueUsedLast = undefined;
 
         const switchInPokemonPos = player.pokemon.indexOf(pokemonIn);
         if (switchInPokemonPos < 0) {
