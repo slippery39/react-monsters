@@ -539,30 +539,45 @@ class JustifiedAbility extends AbstractAbility {
     }
 }
 
-class ArenaTrapAbility extends AbstractAbility{
-    name="Arena Trap";
-    description="Prevents opposing Pokémon from fleeing.";
+class ArenaTrapAbility extends AbstractAbility {
+    name = "Arena Trap";
+    description = "Prevents opposing Pokémon from fleeing.";
 
-    ModifyOpponentValidActions(game: IGame, player: Player, currentValidActions: BattleAction[]){
-      
-        if (GetActivePokemon(player).currentStats.hp<=0){
+    ModifyOpponentValidActions(game: IGame, player: Player, currentValidActions: BattleAction[]) {
+
+        if (GetActivePokemon(player).currentStats.hp <= 0) {
             return currentValidActions; //opponent should still be able to switch out pokemon with 0 health.
         }
-        
-        if (GetActivePokemon(player).elementalTypes.includes(ElementType.Flying)){
+
+        if (GetActivePokemon(player).elementalTypes.includes(ElementType.Flying)) {
             return currentValidActions;
         }
         //edge case for levitate
-        if (GetActivePokemon(player).ability.toLowerCase() === "levitate"){
+        if (GetActivePokemon(player).ability.toLowerCase() === "levitate") {
             return currentValidActions
         }
         //remove all switch pokemon actions away.
-        
-        const newActions = currentValidActions.filter(act=>act.type!=='switch-pokemon-action');
+
+        const newActions = currentValidActions.filter(act => act.type !== 'switch-pokemon-action');
         console.log(newActions);
         return newActions;
 
     }
+}
+
+class WaterAbsorbAbility extends AbstractAbility {
+    name = "Water Absorb";
+    description = "Restores HP if hit by a Water-type move instead of taking damage."
+
+    NegateDamage(game: IGame, move: Technique, pokemon: Pokemon): boolean {
+        if (move.elementalType === ElementType.Water) {
+            //no damage taken, maybe write a message
+            game.ApplyHealing(pokemon,pokemon.originalStats.hp/4);
+            game.AddMessage(`${pokemon.name} absorbed the water attack!`);
+            return true;
+        }
+        return false;
+    }    
 }
 
 
@@ -664,11 +679,14 @@ function GetAbility(name: String) {
         case 'unnerve': {
             return new UnnerveAbility();
         }
-        case 'justified':{
+        case 'justified': {
             return new JustifiedAbility();
         }
-        case 'arena trap':{
+        case 'arena trap': {
             return new ArenaTrapAbility();
+        }
+        case 'water absorb':{
+            return new WaterAbsorbAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

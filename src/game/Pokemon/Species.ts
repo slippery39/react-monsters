@@ -660,6 +660,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:65
             },
             weight:25
+        },
+        {
+            name:"Vaporeon",
+            elementalTypes:[ElementType.Water],
+            baseStats:{
+                hp:130,
+                attack:65,
+                defense:60,
+                spAttack:110,
+                spDefense:95,
+                speed:55
+            },
+            weight:29
         }
     ];
 

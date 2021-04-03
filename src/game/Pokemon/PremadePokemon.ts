@@ -921,6 +921,23 @@ const premades: Array<PremadePokemon> = [
             defense:4,
             speed:252
         }
+    },
+    {
+        species:"Vaporeon",
+        heldItem:"Leftovers",
+        ability:"Water Absorb",
+        nature:NatureType.Bold,
+        techniques:[
+            "Wish",
+            "Scald",
+            "Protect",
+            "Heal Bell"
+        ],
+        evs:{
+            hp:204,
+            defense:248,
+            spDefense:56
+        }
     }
 
 ]
