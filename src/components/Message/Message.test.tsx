@@ -23,6 +23,7 @@ describe('message tests', () => {
 
     afterEach(() => {
         // cleanup on exiting
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         container ? unmountComponentAtNode(container) : "";
         container?.remove();
         container = null;

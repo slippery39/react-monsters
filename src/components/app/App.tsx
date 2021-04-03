@@ -7,6 +7,8 @@ import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
 import BattleSetupController from 'components/Battle/BattleSetup/BattleSetupController';
+import { PokemonBuilder } from 'game/Pokemon/Pokemon';
+import { ElementType } from 'game/ElementType';
 
 
 
@@ -40,15 +42,23 @@ function App() {
 
   function initializeTestBattle(){
 
+    const customPokemon = PokemonBuilder()
+    .UseGenericPokemon()
+    .OfElementalTypes([ElementType.Water])
+    .WithAbility("Flash Fire")
+    .Build();
+    
+    
+    
+
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("Skarmory")
-    .WithRandomPokemon(6)
+    .WithPokemon("Heatran")
     .Build();
 
   const player2 = new PlayerBuilder(2)
     .WithName("Bob")
-    .WithPokemon("Skarmory")
+    .WithPokemon("Clefable")
     .Build();
 
     let battleService = new BattleService(player1, player2,true);

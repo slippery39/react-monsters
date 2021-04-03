@@ -91,7 +91,7 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
 interface Props {
     onEnd: () => void;
     battle: BattleService,
-    showDebug?:boolean
+    showDebug?:boolean,
 }
 
 const Battle: React.FunctionComponent<Props> = (props) => {
@@ -212,6 +212,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-enable */
 
     function isAllyPokemon(id: number): boolean {
+        //TODO - change to use player id instead.
         return state.field.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
     }
 
@@ -224,9 +225,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     function getAllyPokemon(): Pokemon {
+        //TODO - change to use player id instead
         return GetActivePokemon(state.field.players[0]);
     }
     function getEnemyPokemon(): Pokemon {
+        //TODO - change to use player id instead.
         return GetActivePokemon(state.field.players[1]);
     }
 
@@ -538,12 +541,13 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     function SetBattleAction(techniqueId: number) {
 
+        //todo: use player id instead.
         const currentPokemon = state.field.players[0].pokemon.find(p=>p.id === state.field.players[0].currentPokemonId);
 
         const pokemonName = currentPokemon?.name;
         const moveName = currentPokemon?.techniques.find(t=>t.id === techniqueId)?.name
 
-        battleService.SetPlayerAction({
+        const actionSuccessful = battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.field.players[0].currentPokemonId, //todo: get proper pokemon id,
             pokemonName : pokemonName,
@@ -551,19 +555,26 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             moveName:moveName,
             type: Actions.UseTechnique
         });
+
+        if (!actionSuccessful){
+               setMenuMessage((prev)=>prev ==="You cannot use this technique due to an ability, status or held item!"? prev+"":"You cannot use this technique due to an ability, status or held item!");
+        }
     }
     function SetSwitchAction(pokemonSwitchId: number) {
         const action: SwitchPokemonAction = {
-            type: 'switch-pokemon-action',
+            type: Actions.SwitchPokemon,
             playerId: 1, //todo : get proper player id.
             switchPokemonId: pokemonSwitchId
         }
-        battleService.SetPlayerAction(action);
+        const actionSuccessful = battleService.SetPlayerAction(action);
+        if (!actionSuccessful){
+           setMenuMessage((prev)=>prev ==="You cannot use this technique due to an ability, status or held item!"? prev+"":"You cannot use this technique due to an ability, status or held item!");
+        }
     }
     function SetUseItemAction(itemId: number) {
         const action: UseItemAction = {
-            type: 'use-item-action',
-            playerId: 1,
+            type: Actions.UseItem,
+            playerId: 1,//todo : use player id instead.
             itemId: itemId
         }
         battleService.SetPlayerAction(action);
@@ -582,7 +593,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
     }
 
-    function GetMenuMessage() {
+
+    
+
+    const GetMenuMessage = useCallback(()=> {
         switch (menuState) {
             case MenuState.MainMenu: {
                 return `What will ${getAllyPokemon().name} do?`
@@ -617,10 +631,20 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return ''
             }
         }
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[menuState]);
+
+    //we use an object here instead of a string so we can re-render the message animation if necessary.
+    const [menuMessage,setMenuMessage] = useState<string>(GetMenuMessage());
+
+    useEffect(()=>{
+      setMenuMessage(GetMenuMessage());
+    },[menuState,GetMenuMessage])
 
     const enemyPartyPokeballs = () => {
+        //todo - use enemy player id instead.
         return <div className="enemy-party-pokeballs">
+            
             {state.field.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
                 <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
         </div>
@@ -647,17 +671,18 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     const idleMenuMessage = () => {
-        return (menuState !== MenuState.ShowingTurn && <Message writeTimeMilliseconds={500} animated={true} message={`${GetMenuMessage()}`} />)
+        return (menuState !== MenuState.ShowingTurn && <Message writeTimeMilliseconds={500} animated={true} message={menuMessage} />)
     }
 
     const turnLogMessage = () => {
         return (menuState === MenuState.ShowingTurn && <Message
             animated={false}
-            message={"{}"}
+            message={" "}
             messageRef={el => { messageBox.current = el; }} />)
     }
 
     const allyPartyPokeballs = () => {
+        //todo use player id instead.
         return (menuState === MenuState.MainMenu &&
             <div className="pokemon-party-pokeballs">
                 {state.field.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}>
@@ -668,7 +693,22 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const bottomMenu = () => {
 
         const mainMenu = <BattleMenu
-            onMenuAttackClick={() => { setMenuState(MenuState.AttackMenu) }}
+            onMenuAttackClick={() => { 
+                //TODO: check if we will be forced to use struggle.
+                console.log(battleService.GetValidActions(state.field.players[0].id));
+                if (battleService.GetValidActions(state.field.players[0].id).filter(act=>act.type===Actions.UseTechnique).length === 0){
+                    //use a struggle command instead
+                    const struggleCommand = battleService.GetValidActions(state.field.players[0].id).find(act=>act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
+                    if (struggleCommand === undefined){
+                        throw new Error(`Could not use struggle command`);
+                    }
+                    battleService.SetInitialAction(struggleCommand);
+                }
+                else{
+                    setMenuState(MenuState.AttackMenu);  
+                }
+            
+            }}
             onMenuItemClick={() => { setMenuState(MenuState.ItemMenu) }}
             onMenuSwitchClick={() => { setMenuState(MenuState.SwitchMenu) }}
             onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }} />

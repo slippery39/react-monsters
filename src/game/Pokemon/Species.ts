@@ -621,6 +621,32 @@ export function GetSpecies(name: string): ISpecies {
                 speed:90
             },
             weight:57.5
+        },
+        {
+            name:"Dugtrio",
+            elementalTypes:[ElementType.Ground],
+            baseStats:{
+                hp:35,
+                attack:100,
+                defense:50,
+                spAttack:50,
+                spDefense:70,
+                speed:120
+            },
+            weight:33.33
+        },
+        {
+            name:"Heatran",
+            elementalTypes:[ElementType.Fire,ElementType.Steel],
+            baseStats:{
+                hp:91,
+                attack:90,
+                defense:106,
+                spAttack:130,
+                spDefense:106,
+                speed:77
+            },
+            weight:430
         }
     ];
 

@@ -6,6 +6,8 @@ import { CloneField, GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
+import { DamageType } from "game/Techniques/Technique";
+import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import  { shuffle } from "lodash";
 import waitForSeconds from "./CoroutineTest";
 
@@ -24,7 +26,8 @@ enum PointCalculationTypes {
     EnemyPlayerEntryHazards = "enemy-entry-hazards",
     AllyStatBoost = "ally-stat-boost",
     EnemyStatBoost = "enemy-stat-boost",
-    LostGame = "lost-game"
+    LostGame = "lost-game",
+    EnemyTaunted = 'enemy-taunted'
 }
 
 type PointCalcRecord = Record<PointCalculationTypes, number>;
@@ -60,7 +63,8 @@ class MiniMax {
             result[0].action = action;
             results.push(result[0]);
         }
-        return results.sort((a, b) => b.points - a.points);
+        
+        return results.length < 2 ? results : results.sort((a, b) => b.points - a.points);
     }
 
     async RunSimulation(simmedPlayer: Player, field: Field) {
@@ -81,19 +85,14 @@ class MiniMax {
     }
     async SimulateAllActions(simmedPlayer: Player, beforeField: Field, techsOnly: Boolean, oppAction?: BattleAction) {
         beforeField = CloneField(beforeField)
-
-
-
         const originalGame = new BattleGame(beforeField.players, false);
         originalGame.field = beforeField;
-
-        let validActions = originalGame.GetValidActions(simmedPlayer);
         const validTechActions = originalGame.GetValidActions(simmedPlayer).filter(vAct => vAct.type === Actions.UseTechnique || vAct.type === Actions.ForcedTechnique);
-
+        console.log(validTechActions);
 
         let calculatedPoints = [];
         for (let key in validTechActions) {
-            const action = validActions[key];
+            const action = validTechActions[key];
             //If necessary we can change simulate 1 action to have multiple iterations;
             waitForSeconds(0);
             let total = await this.Simulate1Action(simmedPlayer, action, beforeField, oppAction);
@@ -105,18 +104,20 @@ class MiniMax {
 
         //We need to specify tech's only or we will run into an infinite loop with the switching logic.
         if (techsOnly) {
+            console.log(calculatedPoints);
             return calculatedPoints;
         }
 
         const beforePoints = this.EvaluateField(simmedPlayer, beforeField);
         //No good moves lets look for a good switch
-     
-        if (beforePoints.points > calculatedPoints[0].points) {
+        //put a bit of a threshold, pokemon should be switching in for large advantages, not necessarily for small ones
+        if (beforePoints.points > calculatedPoints[0].points + 50) {
             const switchPoints = await this.GetBestPokemonSwitch(simmedPlayer,originalGame);
-              if (switchPoints.length>0 && switchPoints[0].points > calculatedPoints[0].points) {
+              if (switchPoints.length>0 && switchPoints[0].points > calculatedPoints[0].points+50) {
                 return switchPoints;
             }
         }
+        console.log(calculatedPoints);
 
             return calculatedPoints;
         
@@ -236,14 +237,26 @@ class MiniMax {
         pointValues[PointCalculationTypes.LostGame] = -99999;
         pointValues[PointCalculationTypes.EnemyPokemonFainted] = 120;
         pointValues[PointCalculationTypes.AllyPokemonFainted] = -100;
-        pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] = -520; //* the difference
+        pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] = -500; //* the difference
         pointValues[PointCalculationTypes.AllyTeamDeltaHealth] = 500; //* the difference
-        pointValues[PointCalculationTypes.AllyPokemonInflictedStatus] = -60;
-        pointValues[PointCalculationTypes.EnemyPokemonHasStatus] = 70;
-        pointValues[PointCalculationTypes.AllyStatBoost] = 60;
+        pointValues[PointCalculationTypes.AllyPokemonInflictedStatus] = -80;
+        pointValues[PointCalculationTypes.EnemyPokemonHasStatus] = 80;
+        pointValues[PointCalculationTypes.AllyStatBoost] = 75;
+
         pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] = 12;
+        
+
+        //edge case things here
+        pointValues[PointCalculationTypes.EnemyStatBoost] = -75;
+        //pointValues[PointCalculationTypes.TauntedStatus] = 30 //30 times the amount of status moves that a player has
+
+        pointValues[PointCalculationTypes.EnemyTaunted] = 20;
 
 
+
+        const ourPokemon = GetActivePokemon(simmedPlayer);
+        const opponentPokemon = GetActivePokemon(opponentPlayer);
+       
 
 
         const pointCalcs: PointCalcRecord = initializePointCalcRecord();
@@ -265,21 +278,33 @@ class MiniMax {
 
 
         //We had a status inflicted onto us.
-        if ([Status.Burned, Status.ToxicPoison, Status.Resting, Status.Frozen, Status.Paralyzed, Status.Poison].includes(GetActivePokemon(simmedPlayer).status)) {
+        if (ourPokemon.ability.toLowerCase()!=="magic guard" && [Status.Burned, Status.ToxicPoison,Status.Poison].includes(ourPokemon.status)){
+            pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus] = pointValues[PointCalculationTypes.AllyPokemonInflictedStatus];
+        }
+        if ([Status.Resting, Status.Frozen, Status.Paralyzed].includes(ourPokemon.status)) {
             pointCalcs[PointCalculationTypes.AllyPokemonInflictedStatus] = pointValues[PointCalculationTypes.AllyPokemonInflictedStatus];
         }
 
-        //Enemy had a status inflicted onto them
-        if ([Status.Burned, Status.ToxicPoison, Status.Resting, Status.Frozen, Status.Paralyzed, Status.Poison].includes(GetActivePokemon(opponentPlayer).status)) {
+        if (opponentPokemon.ability.toLowerCase()!=="magic guard" && [Status.Burned, Status.ToxicPoison,Status.Poison].includes(opponentPokemon.status)){
             pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus] = pointValues[PointCalculationTypes.EnemyPokemonHasStatus];
         }
+        //Enemy had a status inflicted onto them
+        if ([Status.Resting, Status.Frozen, Status.Paralyzed].includes(opponentPokemon.status)) {
+            pointCalcs[PointCalculationTypes.EnemyPokemonHasStatus] = pointValues[PointCalculationTypes.EnemyPokemonHasStatus];
+        }
+        //TODO ; edge case for magic guard pokemon
 
 
         const GetHealthRatio = function (pokemon: Pokemon) {
             return (pokemon.currentStats.hp / pokemon.originalStats.hp);
         }
-        pointCalcs[PointCalculationTypes.AllyStatBoost] = pointValues[PointCalculationTypes.AllyStatBoost] * GetStatBoostsAmount(simmedPlayer) * GetHealthRatio(GetActivePokemon(simmedPlayer));
+        pointCalcs[PointCalculationTypes.AllyStatBoost] = pointValues[PointCalculationTypes.AllyStatBoost] * GetStatBoostsAmount(simmedPlayer) * GetHealthRatio(ourPokemon);
+        pointCalcs[PointCalculationTypes.EnemyStatBoost] = pointValues[PointCalculationTypes.EnemyStatBoost] * GetStatBoostsAmount(opponentPlayer) * GetHealthRatio(opponentPokemon);
 
+        //taunted
+        if (opponentPokemon.volatileStatuses.filter(vstat=>vstat.type===VolatileStatusType.Taunted)){
+            pointCalcs[PointCalculationTypes.EnemyTaunted]= pointValues[PointCalculationTypes.EnemyTaunted] * opponentPokemon.techniques.filter(t=>t.damageType === DamageType.Status).length
+        }
 
         //TODO, speed stat boost should only care if they are faster than the opponent.
 
@@ -296,6 +321,7 @@ class MiniMax {
             return player.pokemon.filter(poke => poke.currentStats.hp > 0).length;
         }
         pointCalcs[PointCalculationTypes.EnemyPlayerEntryHazards] = pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] * getAmountOfEntryHazards(opponentPlayer, field) * GetAmountOfAlivePokemon(opponentPlayer);
+
 
         if (hasLostGame) {
             pointCalcs[PointCalculationTypes.LostGame] = pointValues[PointCalculationTypes.LostGame];

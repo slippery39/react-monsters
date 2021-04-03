@@ -870,6 +870,40 @@ const premades: Array<PremadePokemon> = [
         spDefense:4,
         speed:252
     }
+    },
+    {
+        species:"Dugtrio",
+        heldItem:"Choice Scarf",
+        ability:"Arena Trap",
+        nature:NatureType.Adamant,
+        techniques:[
+            "Earthquake",
+            "Stone Edge",
+            "Shadow Claw",
+            "Stealth Rock"
+        ],
+        evs:{
+            attack:252,
+            spDefense:4,
+            speed:252
+        }
+    },
+    {
+        species:"Heatran",
+        heldItem:"Leftovers",
+        ability:"Flash Fire",
+        nature:NatureType.Timid,
+        techniques:[
+            "Lava Plume",
+            "Toxic",
+            "Taunt",
+            "Stealth Rock"
+        ],
+        evs:{
+            hp:252,
+            spDefense:4,
+            speed:252
+        }
     }
 
 ]

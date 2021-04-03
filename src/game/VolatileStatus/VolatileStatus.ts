@@ -8,7 +8,7 @@ import { DamageType, Technique } from "game/Techniques/Technique";
 import { InflictVolatileStatus, TargetType } from "game/Effects/Effects";
 import { Player } from "game/Player/PlayerBuilder";
 import { GetTech } from "game/Techniques/PremadeTechniques";
-import { Actions, ForcedTechniqueAction, UseMoveAction } from "game/BattleActions";
+import { Actions, BattleAction, ForcedTechniqueAction, UseMoveAction } from "game/BattleActions";
 import { IGame } from "game/BattleGame";
 
 
@@ -23,7 +23,8 @@ export enum VolatileStatusType {
     Outraged = "outraged",
     Bouncing = "bouncing",
     Encored = "encored",
-    ChargingSolarBeam = 'charging-solar-beam'
+    ChargingSolarBeam = 'charging-solar-beam',
+    Taunted = "taunted"
 }
 
 
@@ -499,6 +500,51 @@ export class ChargingSolarBeamVolatileStatus extends VolatileStatus {
 
 }
 
+export class TauntedVolatileStatus extends VolatileStatus{
+
+    type=VolatileStatusType.Taunted
+    turnsLeft:number = 0;
+
+    InflictedMessage(pokemon:Pokemon){
+        return `${pokemon.name} is being taunted!`;
+    }
+
+    OnApply(game: IGame, pokemon: Pokemon) {
+        this.turnsLeft = 4;
+    }
+
+
+    NegateOwnTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique){
+        if (technique.damageType === DamageType.Status){
+            game.AddMessage(`${attackingPokemon.name} is taunted and cannot use its technique!`);
+            return true;
+        }
+        return false;
+    }
+
+    ModifyValidActions(game:IGame,player:Player,validActions:BattleAction[]):BattleAction[]{        
+        let newValidActions = [];
+       newValidActions =  validActions.filter(p=>{
+        //Should only apply to moves, maybe we should have a ModifyValidTechniques and ModifyValidSwitchActions functions?
+             if (p.type === Actions.SwitchPokemon || p.type === Actions.ForcedTechnique || p.type === Actions.UseItem){
+                 return true;
+             }
+             const activePokemon = GetActivePokemon(player);
+             const validTechniqueIds = activePokemon.techniques.filter(t=>t.damageType!==DamageType.Status).map(t=>t.id);             
+             return validTechniqueIds.includes(p.moveId);     
+        });
+        return newValidActions;
+    }
+    EndOfTurn(game: IGame, pokemon: Pokemon) {
+        this.turnsLeft--;
+        if (this.turnsLeft<=0){
+            game.AddMessage(`${pokemon.name} is not being taunted anymore!`);
+            game.AddMessage("");
+            this.Remove(game, pokemon);
+        }
+    }
+}
+
 
 export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
     switch (type) {
@@ -534,6 +580,9 @@ export function GetVolatileStatus(type: VolatileStatusType): VolatileStatus {
         }
         case VolatileStatusType.ChargingSolarBeam: {
             return new ChargingSolarBeamVolatileStatus();
+        }
+        case VolatileStatusType.Taunted:{
+            return new TauntedVolatileStatus();
         }
         default: {
             throw new Error(`${type} has not been implemented in GetVolatileStatus`);

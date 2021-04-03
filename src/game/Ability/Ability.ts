@@ -1,9 +1,11 @@
+import { BattleAction } from "game/BattleActions";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { IGame } from "game/BattleGame";
 import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
+import { Player } from "game/Player/PlayerBuilder";
 import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { DamageType, Technique } from "game/Techniques/Technique";
@@ -537,6 +539,32 @@ class JustifiedAbility extends AbstractAbility {
     }
 }
 
+class ArenaTrapAbility extends AbstractAbility{
+    name="Arena Trap";
+    description="Prevents opposing Pokémon from fleeing.";
+
+    ModifyOpponentValidActions(game: IGame, player: Player, currentValidActions: BattleAction[]){
+      
+        if (GetActivePokemon(player).currentStats.hp<=0){
+            return currentValidActions; //opponent should still be able to switch out pokemon with 0 health.
+        }
+        
+        if (GetActivePokemon(player).elementalTypes.includes(ElementType.Flying)){
+            return currentValidActions;
+        }
+        //edge case for levitate
+        if (GetActivePokemon(player).ability.toLowerCase() === "levitate"){
+            return currentValidActions
+        }
+        //remove all switch pokemon actions away.
+        
+        const newActions = currentValidActions.filter(act=>act.type!=='switch-pokemon-action');
+        console.log(newActions);
+        return newActions;
+
+    }
+}
+
 
 class NoAbility extends AbstractAbility {
 
@@ -638,6 +666,9 @@ function GetAbility(name: String) {
         }
         case 'justified':{
             return new JustifiedAbility();
+        }
+        case 'arena trap':{
+            return new ArenaTrapAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

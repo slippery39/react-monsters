@@ -1,4 +1,4 @@
-import { Button, Card, InputNumber, Radio, Tabs } from 'antd';
+import { Button, Card, Collapse, InputNumber, Radio, Tabs } from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import waitForSeconds from 'game/AI/CoroutineTest';
@@ -14,7 +14,8 @@ import * as Icons from '@ant-design/icons';
 import TeamSelector from 'components/TeamSelector/TeamSelector';
 import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 
-const { TabPane } = Tabs
+const { TabPane } = Tabs;
+const {Panel} = Collapse;
 
 
 
@@ -23,7 +24,7 @@ export interface MatchResult {
     losingPokemon: string[],
 }
 
-async function RunAIvsAIBattle(teamSize: number,pokemonPool:string[]): Promise<OnGameOverArgs> {
+async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise<OnGameOverArgs> {
 
     return new Promise(resolve => {
 
@@ -37,21 +38,21 @@ async function RunAIvsAIBattle(teamSize: number,pokemonPool:string[]): Promise<O
 
         const aiBuilder1 = new PlayerBuilder(1)
             .WithName("AI John");
-            const randomPokemon = _.take(randomizedPool,teamSize);
-            console.log(randomPokemon);
-            randomPokemon.forEach(poke=>{
-                aiBuilder1.WithPokemon(poke);
-            })
-        const ai1= aiBuilder1.Build();
+        const randomPokemon = _.take(randomizedPool, teamSize);
+        console.log(randomPokemon);
+        randomPokemon.forEach(poke => {
+            aiBuilder1.WithPokemon(poke);
+        })
+        const ai1 = aiBuilder1.Build();
 
         const aiBuilder2 = new PlayerBuilder(2)
             .WithName("AI Bob")
-            const randomPokemon2 = _.take(_.shuffle(randomizedPool),teamSize);
-            console.log(randomPokemon2);
-            randomPokemon2.forEach(poke=>{
-                  aiBuilder2.WithPokemon(poke);
-            });
-         const ai2 = aiBuilder2.Build();
+        const randomPokemon2 = _.take(_.shuffle(randomizedPool), teamSize);
+        console.log(randomPokemon2);
+        randomPokemon2.forEach(poke => {
+            aiBuilder2.WithPokemon(poke);
+        });
+        const ai2 = aiBuilder2.Build();
 
 
         let battleService = new BattleService(ai1, ai2, false);
@@ -69,14 +70,14 @@ async function RunAIvsAIBattle(teamSize: number,pokemonPool:string[]): Promise<O
     );
 }
 
-async function RunNBattles(numberOfBattles: number, teamSize: number, battleEndedFunc: (data: SimmedStats, results: MatchResult[]) => void, battleStartedFunc: (id: number) => void,pokemonPool:string[]) {
+async function RunNBattles(numberOfBattles: number, teamSize: number, battleEndedFunc: (data: SimmedStats, results: MatchResult[]) => void, battleStartedFunc: (id: number) => void, pokemonPool: string[]) {
 
     let matchResults: Array<MatchResult> = [];
     let stats: Record<string, WinLoss> = {};
     await waitForSeconds(0);
     for (var i = 0; i < numberOfBattles; i++) {
         battleStartedFunc((i + 1));
-        const results = await RunAIvsAIBattle(teamSize,pokemonPool);
+        const results = await RunAIvsAIBattle(teamSize, pokemonPool);
         UpdateStats(stats, results);
         matchResults.push({
             winningPokemon: results.winningPlayer!.pokemon.map(poke => poke.name),
@@ -203,25 +204,24 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
 
     }, [])
 
-    const [poolType, setPoolType] = useState<"all" | "custom">("all");
-    const [currentCustomPool, setCurrentCustomPool] = useState<string[]>(GetAllPokemonInfo().map(poke => poke.species));
+    const pool = GetAllPokemonInfo().map(poke => poke.species); //all the pokemon;
+    const [currentPool, setCurrentPool] = useState<string[]>(pool);
 
 
     const pokemonPoolSettings = () => {
         return (
             <Card>
-                <Radio.Group onChange={(e) =>{ setPoolType(e.target.value)}
-                 } defaultValue="all">
-                    <Radio.Button value="all">All Pokemon</Radio.Button>
-                    <Radio.Button value="custom">Custom Pool</Radio.Button>
-                </Radio.Group>
-                {poolType === "custom" && <TeamSelector onChange={(pool) => setCurrentCustomPool(pool)} defaultPokemon={currentCustomPool} maxPokemon={32} />}
+                <Collapse defaultActiveKey={['1']}>
+                    <Panel header="Select Simulation Pool" key="1">
+                        <TeamSelector amountNeededMessage={""} onChange={(pool) => setCurrentPool(pool)} defaultPokemon={currentPool} maxPokemon={999} />
+                    </Panel>
+                </Collapse>
             </Card>
         )
     }
 
     const startButton = (<Button type="primary" onClick={() => {
-        RunNBattles(numberOfBattles, teamSize, battleEndedFunc, (num) => setSimText("Simulating Battle " + num),currentCustomPool);
+        RunNBattles(numberOfBattles, teamSize, battleEndedFunc, (num) => setSimText("Simulating Battle " + num), currentPool);
 
     }}> Simulate!</Button>)
 

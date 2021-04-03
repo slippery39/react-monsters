@@ -6,7 +6,7 @@ This is the class that all classes that need to tap into the turn object will ca
 //Grab all our stuff from HardStatuses, VolatileStatuses and Abilities and Put them in here.
 */
 
-import { UseMoveAction } from "game/BattleActions";
+import { BattleAction, UseMoveAction } from "game/BattleActions";
 import { IGame } from "game/BattleGame";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
@@ -47,6 +47,9 @@ abstract class BattleBehaviour {
     NegateTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique): boolean {
         return false;
     }
+    NegateOwnTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique){
+        return false;
+    }
     NegateDamage(game: IGame, move: Technique, pokemon: Pokemon): boolean {
         return false; //by default no abilities should negate damage unless we say so.
     }
@@ -78,6 +81,14 @@ abstract class BattleBehaviour {
     }
     OnOppTechniqueUsed(game: IGame, pokemon: Pokemon, technique: Technique) {
 
+    }
+    //Can modify which actions are considered valid.
+    ModifyOpponentValidActions(game:IGame,opponent:Player,validActions:BattleAction[]):BattleAction[]{
+         return validActions;
+    }
+
+    ModifyValidActions(game:IGame,player:Player,validActions:BattleAction[]):BattleAction[]{
+        return validActions;
     }
 
 

@@ -17,7 +17,7 @@ export interface UseMoveAction {
 export interface SwitchPokemonAction {
     playerId: number
     switchPokemonId: number
-    type: 'switch-pokemon-action',
+    type: Actions.SwitchPokemon,
     switchPokemonName?:string,
     switchOutPokemonName?:string
 }
@@ -37,6 +37,8 @@ export interface ForcedTechniqueAction{
 
 
 export enum Actions {
+    SwitchPokemon = 'switch-pokemon-action',
+    UseItem = 'use-item-action',
     UseTechnique = 'use-move-action',
     ForcedTechnique = 'forced-technique-action'
 }
@@ -63,7 +65,7 @@ export function CreateSwitchAction(player:Player,pokemonId:number):SwitchPokemon
         switchOutPokemonName: player.pokemon.find(poke=>poke.id === player.currentPokemonId)!.name,
         switchPokemonId:pokemonId,
         switchPokemonName: player.pokemon.find(poke=>poke.id===pokemonId)!.name,
-        type:"switch-pokemon-action"
+        type:Actions.SwitchPokemon
     }
     return action;
 }

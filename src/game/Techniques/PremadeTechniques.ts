@@ -33,6 +33,48 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Taunt",
+            description:"The target is taunted into a rage that allows it to use only attack moves for three turns.",
+            power:0,
+            pp:24,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Dark,
+            effects:[
+                {
+                    type:EffectType.InflictVolatileStatus,
+                    status:VolatileStatusType.Taunted,
+                    chance:100,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
+        {
+            name:"Lava Plume",
+            description:"The user torches everything around it in an inferno of scarlet flames. This may also leave those it hits with a burn.",
+            power:80,
+            pp:24,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Fire,
+            effects:[
+                {
+                    type:EffectType.InflictStatus,
+                    status:Status.Burned,
+                    chance:30,
+                    target:TargetType.Enemy
+                }
+            ]            
+        },
+        {
+            name:"Shadow Claw",
+            description:"The user slashes with a sharp claw made from shadows. Critical hits land more easily.",
+            power:70,
+            pp:24,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            elementalType:ElementType.Ghost,
+            accuracy:100
+        },
+        {
             name:"Aerial Ace",
             description:"The user confounds the target with speed, then slashes. This attack never misses.",
             power:60,
@@ -254,7 +296,8 @@ export function GetTech(name: string) {
                     type:EffectType.StatBoost,
                     stat:Stat.SpecialAttack,
                     amount:-1,
-                    target:TargetType.Enemy
+                    target:TargetType.Enemy,
+                    chance:30
                 }
             ]
         },

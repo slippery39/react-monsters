@@ -97,11 +97,74 @@ export class BlackSludge extends HeldItem {
     }
 }
 
+//Forced actions should take precedent over 
+export class ChoiceScarf extends HeldItem {
+    name: string = "Choice Scarf";
+    description = "An item to be held by a Pokémon. This scarf boosts Speed, but allows the use of only one kind of move."
+
+    techniqueUsed: Technique | undefined = undefined;
+
+    Update(game: IGame, pokemon: Pokemon) {
+        if (pokemon.statMultipliers.find(sm => sm.tag === this.name) === undefined) {
+            const statMultiplier: StatMultiplier = {
+                stat: Stat.Speed,
+                multiplier: 1.5,
+                tag: this.name
+            }
+            pokemon.statMultipliers.push(statMultiplier);
+        }
+    }
+
+    OnTechniqueUsed(game: IGame, pokemon: Pokemon, technique: Technique) {
+        //save the technique used to the item slot
+        //for sanity purposes the technique saved should be on the pokemon as well.
+        //Check to make sure the technique actually exists on the pokemon (in case of custom moves or whatnot)
+
+        if (technique.name.toLowerCase() === "struggle") {
+            return;
+        }
+        if (this.techniqueUsed === undefined) {
+            if (pokemon.techniques.find(tech => tech.id === technique.id || tech.name === technique.name) === undefined) {
+                throw new Error(`Could not find technique for pokemon to save to choice scarf... Technique name we tried to save was ${technique.name}`)
+            }
+            this.techniqueUsed = technique;
+        }
+    }
+
+    //CONTINUE FROM HERE... IMPLEMENTING CHOICE HELD ITEMS.
+    OverrideAction(game: IGame, player: Player, pokemon: Pokemon, action: UseTechniqueAction) {
+        //Change to a use technique action with 
+
+        if (this.techniqueUsed === undefined) {
+            return action;
+        }
+
+        const newAction: UseTechniqueAction = {
+            playerId: player.id,
+            pokemonId: pokemon.id,
+            moveId: this.techniqueUsed.id,
+            type: Actions.UseTechnique
+        }
+        return newAction;
+    }
+
+    OnSwitchedOut(game: IGame, pokemon: Pokemon) {
+        //Reset the technique used for next time.
+        this.techniqueUsed = undefined;
+    }
+
+    OnRemoved(turn: IGame, pokemon: Pokemon) {
+        //remove our stat multiplier.
+        _.remove(pokemon.statMultipliers, (sm => sm.tag === this.name));
+    }
+
+}
+
 
 //Forced actions should take precedent over 
 export class ChoiceBand extends HeldItem {
     name: string = "Choice Band";
-    description = "An item to be held by a Pokémon. This scarf boosts Speed, but allows the use of only one kind of move."
+    description = "An item to be held by a Pokémon. This scarf boosts attack, but allows the use of only one kind of move."
 
     techniqueUsed: Technique | undefined = undefined;
 
@@ -314,6 +377,9 @@ function GetHeldItem(name: string): HeldItem {
         }
         case "assault vest": {
             return new AssaultVest();
+        }
+        case "choice scarf":{
+            return new ChoiceScarf();
         }
         case "none": {
             return new NoHeldItem();

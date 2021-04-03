@@ -1,4 +1,4 @@
-import { BattleAction, SwitchPokemonAction } from "./BattleActions";
+import { Actions, BattleAction, SwitchPokemonAction, UseMoveAction } from "./BattleActions";
 import _ from "lodash";
 
 import { TypedEvent } from "./TypedEvent/TypedEvent";
@@ -77,8 +77,37 @@ class BattleService {
         this.gameEnded = true;
     }
 
-    SetInitialAction(action: BattleAction) {
+    //Returns a boolean to dictate whether the action was successful or not, for UI purposes.
+    SetInitialAction(action: BattleAction) : boolean{
+
+
+        const player = this.GetPlayers().find(p=>p.id === action.playerId);
+        if (player === undefined){
+            throw new Error(`Could not find player to set initial action`);            
+        }
+
+        const validActions = this.GetValidActions(player.id).filter(act=>{
+             if (action.type === Actions.SwitchPokemon){
+                const switchPokemonAction = act as SwitchPokemonAction;
+                return switchPokemonAction.playerId === act.playerId && switchPokemonAction.switchPokemonId === action.switchPokemonId;
+             }
+             else if (action.type === Actions.UseTechnique){
+               const useTechniqueAction = act as UseMoveAction;
+               return useTechniqueAction.playerId === action.playerId && useTechniqueAction.moveId === action.moveId;
+             
+             }
+             return true;
+            });
+
+        if (validActions.length === 0){
+            //console.error(`Invalid action set for player ${player.name}`,action,this.GetValidActions(player.id));
+            return false;
+            
+        }
+    
+
         this.battle.SetInitialPlayerAction(action);
+        return true;
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean) {
         this.battle.SetSwitchPromptAction(action);
@@ -89,17 +118,24 @@ class BattleService {
             return;
         }
         if (this.battle.GetCurrentState()=== 'awaiting-initial-actions') {
-            this.SetInitialAction(action);
+            return this.SetInitialAction(action);
+            
         }
         else if (this.battle.GetCurrentState()=== 'awaiting-switch-action') {
             //RIGHT HERE IS WHERE IT'S HAPPENING!, WE NEED TO VALIDATE HERE....
-
             if (action.type !== 'switch-pokemon-action') {
                 console.error(`Somehow a wrong action type got into the awaiting-switch-action branch of SetPlayerAction...`);
                 return;
             }
             let switchAction = (action as SwitchPokemonAction);
+            
+            if (this.GetValidPokemonToSwitchInto(action.playerId).includes(action.switchPokemonId)){
             this.SetSwitchFaintedPokemonAction(switchAction);
+               return true;
+            }
+            else{
+                return false;
+            }
         }
     }
 

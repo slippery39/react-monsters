@@ -748,6 +748,12 @@ class BattleGame implements IGame {
             }
         });
 
+        this.GetBehavioursForPokemon(pokemon).forEach(b=>{
+            if (techniqueNegated === false){
+                techniqueNegated = b.NegateOwnTechnique(this,pokemon,defendingPokemon,technique);
+            }
+        });
+
         if (techniqueNegated) {
             useTechniqueEffect.didTechniqueHit = false;
             this.GetBehavioursForPokemon(pokemon).forEach(b => {
@@ -798,6 +804,8 @@ class BattleGame implements IGame {
         this.eventLog.push(effect);
         this.eventsSinceLastAction.push(effect);
     }
+
+    //Slightly different from GetValidActions, this should be used for switch ins that happen as a result of fainting.
     public GetValidSwitchIns(player: Player) {
         return player.pokemon.filter(poke => poke.id !== player.currentPokemonId && poke.currentStats.hp > 0);
     }
@@ -1159,8 +1167,11 @@ class BattleGame implements IGame {
     }
 
     private DoAction(action: BattleAction) {
+        
+        
         switch (action.type) {
             case 'switch-pokemon-action': {
+
 
                 const player = this.GetPlayer(action.playerId);
                 const pokemonToSwitchIn = this.GetPokemon(action.switchPokemonId);
@@ -1283,7 +1294,7 @@ class BattleGame implements IGame {
     }
 
     //Get the valid actions for a player
-    GetValidActions(player: Player): Array<BattleAction> {
+    GetValidActions(player: Player): BattleAction[] {
         //valid actions -> using any technique, any items, any switch actions. Will return an array of BattleActions.
 
         //create each of the valid tech actions:
@@ -1295,12 +1306,34 @@ class BattleGame implements IGame {
         const validSwitchActions = GetAlivePokemon(player).filter(poke => poke.id !== GetActivePokemon(player).id).map(poke => {
             return CreateSwitchAction(player, poke.id);
         });
-        const validActions = [validTechniqueActions, validSwitchActions].flat();
+        let validActions:BattleAction[] = [validTechniqueActions, validSwitchActions].flat();
+
+        //Modify these actions here.
+        const otherPokemon = this.GetOtherPokemon(GetActivePokemon(player));
+
+        this.GetBehavioursForPokemon(activePokemon).forEach(b=>{
+            validActions = b.ModifyValidActions(this,player,validActions);
+        });
+
+        this.GetBehavioursForPokemon(otherPokemon).forEach(b=>{
+           validActions =  b.ModifyOpponentValidActions(this,player,validActions)
+        });
+
+        if (validActions.filter(act=>act.type===Actions.UseTechnique).length === 0){
+            //Struggle may be selected in this case.
+            validActions.push({
+                playerId: player.id,
+                pokemonId: activePokemon.id,
+                type: Actions.ForcedTechnique,
+                technique: GetTech("struggle")
+            })
+        }
+
 
         return validActions;
     }
 
-    GetPlayers(): Array<Player> {
+    GetPlayers(): Player[] {
         return this.field.players;
     }
     GetPlayerById(id: number) {
@@ -1342,3 +1375,5 @@ class BattleGame implements IGame {
 }
 
 export default BattleGame;
+
+

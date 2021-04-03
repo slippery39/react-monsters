@@ -9,6 +9,7 @@ interface Props {
     defaultPokemon?:Array<string>
     onChange?:(team:Array<string>)=>void;
     handleSubmitTeam?:(team:Array<string>)=>void;
+    amountNeededMessage?:string;
 }
 
 const TeamSelector = (props: Props) => {
@@ -28,13 +29,20 @@ const TeamSelector = (props: Props) => {
         setSelectedTeam([...props.defaultPokemon]);
     },[]);
 
-    const pokemonIcons = pokemon.map(p => {
+    const pokemonIcons = pokemon.filter(p=>{
+        return (!selectedTeam.includes(p.species));
+    }).map(p=>{
         let iconClass = "team-selector-icon";
-        if (selectedTeam.includes(p.species)) {
-            iconClass += " team-selector-icon-selected";
-        }
         return (<div key={p.species} className={iconClass} onClick={() => { handleIconClick(p.species) }}><PokemonImage type="small" name={p.species} /></div>)
     });
+
+    /*
+    const pokemonIcons = pokemon.map(p => {
+        let iconClass = "team-selector-icon";
+        if (selectedTeam.includes(p.species)) { 
+             //iconClass += " team-selector-icon-selected"; remove this, testing whether or not we like the graying out of pokemon, or the complete removal of pokemon.
+        }        
+    })*/
 
     const handleIconClick = (name: string) => {
         if (selectedTeam.includes(name)) {
@@ -62,6 +70,10 @@ const TeamSelector = (props: Props) => {
     }
 
     const amountNeededMessage = ()=>{
+        if (props.amountNeededMessage!==undefined){
+            return props.amountNeededMessage;
+        }
+
         if (selectedTeam.length>=maxPokemon){
             return "Party is full!"
         }
@@ -74,7 +86,7 @@ const TeamSelector = (props: Props) => {
         <div>
             <div>Available Pokemon</div>
             <div className="pokemon-selection-container">{pokemonIcons}</div>
-            <div style={{"marginTop":"10px"}}>Team Selected - {amountNeededMessage()}</div>
+            <div style={{"marginTop":"10px"}}>Selected - {amountNeededMessage()}</div>
             <div className="pokemon-selection-container">{selectedTeamIcons}</div>
         </div>
     )
