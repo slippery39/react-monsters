@@ -647,6 +647,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:77
             },
             weight:430
+        },
+        {
+            name:"Flareon",
+            elementalTypes:[ElementType.Fire],
+            baseStats:{
+                hp:65,
+                attack:130,
+                defense:60,
+                spAttack:95,
+                spDefense:110,
+                speed:65
+            },
+            weight:25
         }
     ];
 

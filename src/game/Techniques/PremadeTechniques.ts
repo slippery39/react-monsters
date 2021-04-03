@@ -33,6 +33,34 @@ export interface BaseTechnique {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Double Edge",
+            description:"A reckless, life-risking tackle. This also damages the user quite a lot.",
+            power:120,
+            accuracy:100,
+            pp:24,
+            elementalType:ElementType.Normal,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            effects:[
+                {
+                    type:EffectType.Recoil,
+                    recoilType:RecoilDamageType.PercentDamageDealt,
+                    amount:33.33
+                }
+            ]              
+        },
+        {
+            name:"Quick Attack",
+            description:"The user lunges at the target at a speed that makes it almost invisible. It is sure to strike first.",
+            power:40,
+            accuracy:100,
+            priority:1,
+            pp:48,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            elementalType:ElementType.Normal
+        },
+        {
             name:"Taunt",
             description:"The target is taunted into a rage that allows it to use only attack moves for three turns.",
             power:0,

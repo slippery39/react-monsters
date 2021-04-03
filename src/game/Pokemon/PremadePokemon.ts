@@ -904,6 +904,23 @@ const premades: Array<PremadePokemon> = [
             spDefense:4,
             speed:252
         }
+    },
+    {
+        species:"Flareon",
+        heldItem:"Choice Band",
+        ability:"Flash Fire",
+        nature:NatureType.Adamant,
+        techniques:[
+            "Flare Blitz",
+            "Superpower",
+            "Quick Attack",
+            "Double Edge"
+        ],
+        evs:{
+            attack:252,
+            defense:4,
+            speed:252
+        }
     }
 
 ]
