@@ -70,6 +70,10 @@ class BasicAI implements AI {
     private async SwitchPokemonSmart(validPokemon: Array<number>) {
         const miniMax = new MiniMax();
         const switches = await miniMax.GetBestPokemonSwitch(this.GetPlayerFromTurn(),this._service.battle);
+
+        if (switches.length === 0){
+            console.error(`error in SwitchPokemonSmart .... needed to switch but had no valid switches for our AI`,this,this._service,this._service.GetField());
+        }
         this._service.SetSwitchFaintedPokemonAction(switches[0].action as SwitchPokemonAction, false);
     }
 

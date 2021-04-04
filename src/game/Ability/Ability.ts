@@ -6,9 +6,9 @@ import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
-import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
+import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { DamageType, Technique, TechniqueBuilder } from "game/Techniques/Technique";
+import { DamageType, Technique } from "game/Techniques/Technique";
 import { RainingWeather, SandstormWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
 
@@ -559,7 +559,6 @@ class ArenaTrapAbility extends AbstractAbility {
         //remove all switch pokemon actions away.
 
         const newActions = currentValidActions.filter(act => act.type !== 'switch-pokemon-action');
-        console.log(newActions);
         return newActions;
 
     }

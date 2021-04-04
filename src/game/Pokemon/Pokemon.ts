@@ -5,7 +5,7 @@ import _ from "lodash"
 import { GetTech } from "game/Techniques/PremadeTechniques";
 import { Technique } from "game/Techniques/Technique";
 import { VolatileStatus, VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
-import { Status } from "game/HardStatus/HardStatus";
+import GetHardStatus, { HardStatus, Status } from "game/HardStatus/HardStatus";
 import GetHeldItem, { HeldItem } from "game/HeldItem/HeldItem";
 import { GetNature, NatureType } from "game/Natures/Natures";
 import GetPokemon, { GetRandomPokemon } from "./PremadePokemon";
@@ -34,6 +34,7 @@ export interface Pokemon {
     techniques: Array<Technique>,
     techniqueUsedLast:String | undefined,
     status: Status,
+    _statusObj:HardStatus, //temporary object while we figure out the best way to refactor the above status thing.
     elementalTypes: Array<ElementType>,
     canAttackThisTurn: boolean
     statBoosts: Record<Stat, number>,
@@ -48,10 +49,9 @@ export interface Pokemon {
     weight:number,
     fieldPosition:FieldPosition
     /*
-    These variables below are temporary until i can figure out a better way to encapsulate these.
+    These variables below are temporary until i can figure out a better way to save these.
+    UPDATE - we will need to refactor our abilities and hard statuses so that we are saving their state inside the pokemon instead of just grabbing a static version all the time.
     */
-    toxicCount: number, //temporarily placing this and the rest turn count here until i can figure out a better way to structure this.
-    restTurnCount: number,
     hasSubstitute: boolean,
     flashFireActivated: boolean,
 }
@@ -93,6 +93,7 @@ class _PokemonBuilder {
             ],
             volatileStatuses: [],
             status: Status.None,
+            _statusObj: GetHardStatus(Status.None),
             canAttackThisTurn: true,
             statBoosts: {
                 [Stat.Attack]: 0,
@@ -114,8 +115,6 @@ class _PokemonBuilder {
                 speed: 31
             },
             weight:100,
-            toxicCount: 1,
-            restTurnCount: 0,
             hasSubstitute: false,
             flashFireActivated: false,
             ability: "",

@@ -88,7 +88,7 @@ class MiniMax {
         const originalGame = new BattleGame(beforeField.players, false);
         originalGame.field = beforeField;
         const validTechActions = originalGame.GetValidActions(simmedPlayer).filter(vAct => vAct.type === Actions.UseTechnique || vAct.type === Actions.ForcedTechnique);
-        console.log(validTechActions);
+  
 
         let calculatedPoints = [];
         for (let key in validTechActions) {
@@ -104,7 +104,7 @@ class MiniMax {
 
         //We need to specify tech's only or we will run into an infinite loop with the switching logic.
         if (techsOnly) {
-            console.log(calculatedPoints);
+  
             return calculatedPoints;
         }
 
@@ -117,7 +117,7 @@ class MiniMax {
                 return switchPoints;
             }
         }
-        console.log(calculatedPoints);
+  
 
             return calculatedPoints;
         

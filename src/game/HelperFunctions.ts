@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { Field } from "./BattleGame";
 import { ElementType } from "./ElementType";
+import GetHardStatus, { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
 import { Pokemon } from "./Pokemon/Pokemon";
 import { Stat } from "./Stat";
@@ -74,36 +75,33 @@ export function ClonePlayer(originalPlayer:Player){
         }
    
 
-        const newPoke:any = {};
-        newPoke.name = poke.name;
-        newPoke.nature = poke.nature;
-        newPoke.originalStats = poke.originalStats;
-        newPoke.restTurnCount = poke.restTurnCount;
-        newPoke.status = poke.status;
-        newPoke.techniqueUsedLast = poke.techniqueUsedLast;
-        newPoke.toxicCount = poke.toxicCount;
-        newPoke.weight = poke.weight;
-
-        newPoke.statBoosts = statBoosts;
-        newPoke.techniques = pokeTechniques;
-        newPoke.currentStats = {
-            hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
-        newPoke.heldItem = _.clone(poke.heldItem);
-        newPoke.statMultipliers = [...poke.statMultipliers];
-        newPoke.volatileStatuses = poke.volatileStatuses.length === 0 ?  [] : _.cloneDeep(poke.volatileStatuses);  
-        newPoke.ivs = poke.ivs
-        newPoke.ability = poke.ability;
-        newPoke.baseStats = poke.baseStats;
-        newPoke.canAttackThisTurn = poke.canAttackThisTurn;
-        newPoke.elementalTypes = [...poke.elementalTypes];
-        newPoke.evs = poke.evs;
-        newPoke.flashFireActivated = poke.flashFireActivated;
-        newPoke.hasSubstitute = poke.hasSubstitute;
-        newPoke.id = poke.id;
-        newPoke.fieldPosition = poke.fieldPosition;
-            
-
-        return newPoke as Pokemon;
+        const newPoke :Pokemon = {
+            name:poke.name,
+            nature:poke.nature,
+            originalStats:poke.originalStats,
+             status:poke.status,
+             _statusObj: [Status.Burned,Status.Poison,Status.Paralyzed].includes(poke.status) ? GetHardStatus(poke.status) : _.clone(poke._statusObj),
+            techniqueUsedLast: poke.techniqueUsedLast,
+            weight:poke.weight,
+            statBoosts:statBoosts,
+            techniques:pokeTechniques,
+            currentStats: {
+                hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed},
+            heldItem:_.clone(poke.heldItem),
+            statMultipliers:[...poke.statMultipliers],
+            volatileStatuses:poke.volatileStatuses.length === 0 ? [] : _.cloneDeep(poke.volatileStatuses),
+            ivs:poke.ivs,
+            ability:poke.ability,
+            baseStats:poke.baseStats,
+            canAttackThisTurn:poke.canAttackThisTurn,
+            elementalTypes:[...poke.elementalTypes],
+            evs:poke.evs,
+            flashFireActivated:poke.flashFireActivated,
+            hasSubstitute:poke.hasSubstitute,
+            id:poke.id,
+            fieldPosition:poke.fieldPosition
+        }
+        return newPoke;
     });
 
     const newPlayer:Player = {
@@ -146,36 +144,36 @@ export function CloneField(originalField:Field){
             }
        
 
-            const newPoke:any = {};
-            newPoke.name = poke.name;
-            newPoke.nature = poke.nature;
-            newPoke.originalStats = poke.originalStats;
-            newPoke.restTurnCount = poke.restTurnCount;
-            newPoke.status = poke.status;
-            newPoke.techniqueUsedLast = poke.techniqueUsedLast;
-            newPoke.toxicCount = poke.toxicCount;
-            newPoke.weight = poke.weight;
 
-            newPoke.statBoosts = statBoosts;
-            newPoke.techniques = pokeTechniques;
-            newPoke.currentStats = {
-                hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed}
-            newPoke.heldItem = _.clone(poke.heldItem);
-            newPoke.statMultipliers = [...poke.statMultipliers];
-            newPoke.volatileStatuses = poke.volatileStatuses.length === 0 ? [] : _.cloneDeep(poke.volatileStatuses);  
-            newPoke.ivs = poke.ivs
-            newPoke.ability = poke.ability;
-            newPoke.baseStats = poke.baseStats;
-            newPoke.canAttackThisTurn = poke.canAttackThisTurn;
-            newPoke.elementalTypes = [...poke.elementalTypes];
-            newPoke.evs = poke.evs;
-            newPoke.flashFireActivated = poke.flashFireActivated;
-            newPoke.hasSubstitute = poke.hasSubstitute;
-            newPoke.id = poke.id;
-            newPoke.fieldPosition = poke.fieldPosition;
-                
+            const newPoke :Pokemon = {
+                name:poke.name,
+                nature:poke.nature,
+                originalStats:poke.originalStats,
+                status:poke.status,
+                _statusObj: [Status.Burned,Status.Poison,Status.Paralyzed].includes(poke.status) ? GetHardStatus(poke.status) : _.clone(poke._statusObj),
+                techniqueUsedLast: poke.techniqueUsedLast,
+                weight:poke.weight,
+                statBoosts:statBoosts,
+                techniques:pokeTechniques,
+                currentStats: {
+                    hp:poke.currentStats.hp,attack:poke.currentStats.attack,spAttack:poke.currentStats.spAttack,defense:poke.currentStats.defense,spDefense:poke.currentStats.spDefense,speed:poke.currentStats.speed},
+                heldItem:_.clone(poke.heldItem),
+                statMultipliers:[...poke.statMultipliers],
+                volatileStatuses:poke.volatileStatuses.length === 0 ? [] : _.cloneDeep(poke.volatileStatuses),
+                ivs:poke.ivs,
+                ability:poke.ability,
+                baseStats:poke.baseStats,
+                canAttackThisTurn:poke.canAttackThisTurn,
+                elementalTypes:[...poke.elementalTypes],
+                evs:poke.evs,
+                flashFireActivated:poke.flashFireActivated,
+                hasSubstitute:poke.hasSubstitute,
+                id:poke.id,
+                fieldPosition:poke.fieldPosition
+            }
 
-            return newPoke as Pokemon;
+            return newPoke;
+
         });
 
         const newPlayer:Player = {

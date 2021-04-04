@@ -125,7 +125,7 @@ class PsyShockEffect extends AbstractDamageEffect{
         const newDefPokemon = _.cloneDeep(info.defendingPokemon);
         newDefPokemon.currentStats.spDefense = info.defendingPokemon.currentStats.defense;
         newDefPokemon.statBoosts["special-defense"] = info.defendingPokemon.statBoosts.defense;
-        info.pokemon = newDefPokemon;
+        info.defendingPokemon = newDefPokemon;
         return info;
     }
 }

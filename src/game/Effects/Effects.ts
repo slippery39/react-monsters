@@ -165,6 +165,9 @@ export function InflictStatus(game: IGame, pokemon: Pokemon, status: Status, sou
     }
 
     targetPokemon.status = status;
+    targetPokemon._statusObj = GetHardStatus(status);
+
+    //TODO - add the actual status here
 
 
 

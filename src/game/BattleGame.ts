@@ -332,6 +332,7 @@ class BattleGame implements IGame {
         pokemon2.canAttackThisTurn = true;
 
         this.GetBehavioursForPokemon(pokemon1).forEach(b => {
+
             b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon1), pokemon1);
         });
         this.GetBehavioursForPokemon(pokemon2).forEach(b => {
@@ -426,24 +427,21 @@ class BattleGame implements IGame {
 
     //The weather  here is a big issue, we really only want it to run once and not for each pokemon, thats we have these 2 different functions,
     //it is possible the way we are doing things needs to be updated to make sense for weather.
-    GetBehavioursForPokemon(pokemon: Pokemon) {
+    GetBehavioursForPokemon(pokemon: Pokemon):BattleBehaviour[] {
         //const weather = this.field.weather ? [this.field.weather] : [];
-        
-        //todo : potentially cache these.
-
         return (
-            this.field.fieldEffects!.filter(fe => fe.playerId === this.GetPokemonOwner(pokemon).id) as Array<BattleBehaviour>)
-            .concat(pokemon.volatileStatuses as Array<BattleBehaviour>)
-            //.concat(weather)
-            .concat([GetAbility(pokemon.ability)] as Array<BattleBehaviour>)
-            .concat([GetHardStatus(pokemon.status)] as Array<BattleBehaviour>)
-            .concat([pokemon.heldItem]);
+            this.field.fieldEffects!.filter(fe => fe.playerId === this.GetPokemonOwner(pokemon).id) as BattleBehaviour[])
+            .concat(pokemon.volatileStatuses as BattleBehaviour[])
+            .concat(GetAbility(pokemon.ability))
+            .concat(pokemon._statusObj)
+            .concat(pokemon.heldItem);
     }
 
 
     //For testing only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
         this.GetPokemon(pokemonId).status = status;
+        this.GetPokemon(pokemonId)._statusObj = GetHardStatus(status);
     }
 
     PromptForSwitch(pokemon: Pokemon) {
@@ -623,7 +621,6 @@ class BattleGame implements IGame {
         const switchOutPokemon = this.GetPokemon(switchOutPokemonId);
         switchOutPokemon.volatileStatuses = []; //easy peasy
         switchOutPokemon.hasSubstitute = false; //need to update this as well.. although lets remove it now and make this a function instead.
-        switchOutPokemon.toxicCount = 1;
         switchOutPokemon.techniqueUsedLast = undefined;
 
         const switchInPokemonPos = player.pokemon.indexOf(pokemonIn);
@@ -947,7 +944,9 @@ class BattleGame implements IGame {
 
         const owner = this.GetPokemonOwner(pokemon);
 
+        //TODO - when we update our statuses we would need to update this to use the new method
         pokemon.status = Status.None;
+        pokemon._statusObj = GetHardStatus(Status.None);
         pokemon.volatileStatuses = [];
 
         //Need edge case here for pursuit faints, we should prompt a switch again after pursuit has fainted a pokemon
@@ -1163,6 +1162,7 @@ class BattleGame implements IGame {
                 }
                 this.AddEvent(statusRestoreEffect);
                 pokemon.status = Status.None;
+                pokemon._statusObj = GetHardStatus(Status.None);
                 pokemon.canAttackThisTurn = true;
             }
         }

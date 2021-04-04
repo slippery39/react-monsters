@@ -8,8 +8,6 @@ import BasicAI from 'game/AI/AI';
 import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
 import BattleSetupController from 'components/Battle/BattleSetup/BattleSetupController';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
-import { ElementType } from 'game/ElementType';
-
 
 
 
@@ -42,23 +40,30 @@ function App() {
 
   function initializeTestBattle(){
 
-    const customPokemon = PokemonBuilder()
-    .UseGenericPokemon()
-    .OfElementalTypes([ElementType.Water])
-    .WithAbility("Flash Fire")
-    .Build();
+    const dugtrioTest = PokemonBuilder()
+    .GetPremadePokemon("Dugtrio")
+    .WithTechniques([
+      "Stealth Rock",
+      "Spikes"
+    ]);
+
     
-    
-    
+    const dugtrio1 = dugtrioTest.Build();
+    dugtrio1.techniques[0].currentPP = 2;
+    dugtrio1.techniques[1].currentPP = 2;
+
+    const dugtrio2 = dugtrioTest.Build();
+    dugtrio2.techniques[0].currentPP = 2;
+    dugtrio2.techniques[1].currentPP = 2;
 
     const player1 = new PlayerBuilder(1)
     .WithName("Shayne")
-    .WithPokemon("Heatran")
+    .WithCustomPokemon(dugtrio1)
     .Build();
 
   const player2 = new PlayerBuilder(2)
     .WithName("Bob")
-    .WithPokemon("Clefable")
+    .WithCustomPokemon(dugtrio2)
     .Build();
 
     let battleService = new BattleService(player1, player2,true);

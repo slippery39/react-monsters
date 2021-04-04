@@ -1,4 +1,4 @@
-import { Button, Card, Collapse, InputNumber, Radio, Tabs } from 'antd';
+import { Button, Card, Collapse, InputNumber, Tabs } from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import waitForSeconds from 'game/AI/CoroutineTest';
@@ -15,7 +15,7 @@ import TeamSelector from 'components/TeamSelector/TeamSelector';
 import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 
 const { TabPane } = Tabs;
-const {Panel} = Collapse;
+const { Panel } = Collapse;
 
 
 
@@ -27,19 +27,11 @@ export interface MatchResult {
 async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise<OnGameOverArgs> {
 
     return new Promise(resolve => {
-
-
-
         const randomizedPool = _.shuffle(_.cloneDeep(pokemonPool));
-
-        console.log(randomizedPool);
-
-
-
         const aiBuilder1 = new PlayerBuilder(1)
             .WithName("AI John");
         const randomPokemon = _.take(randomizedPool, teamSize);
-        console.log(randomPokemon);
+
         randomPokemon.forEach(poke => {
             aiBuilder1.WithPokemon(poke);
         })
@@ -48,7 +40,7 @@ async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise
         const aiBuilder2 = new PlayerBuilder(2)
             .WithName("AI Bob")
         const randomPokemon2 = _.take(_.shuffle(randomizedPool), teamSize);
-        console.log(randomPokemon2);
+
         randomPokemon2.forEach(poke => {
             aiBuilder2.WithPokemon(poke);
         });
@@ -196,7 +188,6 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     const [teamSize, setTeamSize] = useState<number>(6);
 
     const battleEndedFunc = useCallback((stats: Record<string, WinLoss>, results: MatchResult[]) => {
-        console.log(stats);
         const newStats = { ...stats };
         setSimStats(newStats);
         setSimText("All battles simulated!");
