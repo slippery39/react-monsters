@@ -29,9 +29,34 @@ export interface BaseTechnique {
     firstTurnStatus?: VolatileStatusType
 }
 
+function CreateHiddenPower(elementType:ElementType){
+    let name = elementType.toLowerCase();
+    name = name.charAt(0).toUpperCase()+name.slice(1);
+    return{
+        name: "Hidden Power " + name,
+        description: "An attack that varies in type and intensity depending on the user.",
+        pp: 24,
+        power: 60,
+        accuracy: 100,
+        damageType: DamageType.Special,
+        elementalType: elementType
+    }
+}
+
+function CreateAllHiddenPowers(){
+    const elementTypes = Object.values(ElementType);
+
+    const powers = elementTypes.map(ele=>{
+        return CreateHiddenPower(ele);
+    });
+
+    return powers;
+}
+
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        ...CreateAllHiddenPowers(),
         {
             name:"Double Edge",
             description:"A reckless, life-risking tackle. This also damages the user quite a lot.",
@@ -464,15 +489,6 @@ export function GetTech(name: string) {
 
         },
         {
-            name: "Hidden Power Grass",
-            description: "An attack that varies in type and intensity depending on the user.",
-            pp: 24,
-            power: 60,
-            accuracy: 100,
-            damageType: DamageType.Special,
-            elementalType: ElementType.Grass,
-        },
-        {
             name: "Knock Off",
             description: "The user slaps down the target's held item, preventing that item from being used in the battle.",
             pp: 32,
@@ -673,15 +689,6 @@ export function GetTech(name: string) {
             priority: 2
         },
         {
-            name: "Hidden Power Ice",
-            description: "An attack that varies in type and intensity depending on the user.",
-            pp: 24,
-            power: 60,
-            accuracy: 100,
-            damageType: DamageType.Special,
-            elementalType: ElementType.Ice,
-        },
-        {
             name: "Signal Beam",
             description: "The user attacks with a sinister beam of light. This may also confuse the target.",
             pp: 16,
@@ -860,15 +867,6 @@ export function GetTech(name: string) {
             damageType: DamageType.Physical,
             elementalType: ElementType.Fighting,
             damageEffect: { type: DamageEffectTypes.LowKick }
-        },
-        {
-            name: "Hidden Power Rock",
-            description: "An attack that varies in type and intensity depending on the user.",
-            pp: 24,
-            power: 60,
-            accuracy: 100,
-            damageType: DamageType.Special,
-            elementalType: ElementType.Rock,
         },
         {
             name: "Coil",
@@ -1155,15 +1153,6 @@ export function GetTech(name: string) {
                     chance: 100
                 }
             ]
-        },
-        {
-            name: "Hidden Power (Grass)",
-            description: "A unique attack that varies in type depending on the Pokémon using it",
-            pp: 24,
-            power: 60,
-            accuracy: 100,
-            damageType: DamageType.Special,
-            elementalType: ElementType.Grass
         },
         {
             name: "Eruption",

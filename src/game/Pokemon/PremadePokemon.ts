@@ -938,6 +938,23 @@ const premades: Array<PremadePokemon> = [
             defense:248,
             spDefense:56
         }
+    },
+    {
+        species:"Exeggutor",
+        heldItem:"Life Orb",
+        ability:"Chlorophyll",
+        nature:NatureType.Modest,
+        techniques:[
+            "Solar Beam",
+            "Psychic",
+            "Hidden Power Fire",
+            "Sunny Day"
+        ],
+        evs:{
+            spAttack:252,
+            spDefense:4,
+            speed:252
+        }
     }
 
 ]

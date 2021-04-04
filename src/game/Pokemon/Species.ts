@@ -673,6 +673,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:55
             },
             weight:29
+        },
+        {
+            name:"Exeggutor",
+            elementalTypes:[ElementType.Grass,ElementType.Psychic],
+            baseStats:{
+                hp:95,
+                attack:95,
+                defense:85,
+                spAttack:125,
+                spDefense:65,
+                speed:55
+            },
+            weight:120
         }
     ];
 
