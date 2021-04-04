@@ -686,6 +686,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:55
             },
             weight:120
+        },
+        {
+            name:"Machamp",
+            elementalTypes:[ElementType.Fighting],
+            baseStats:{
+                hp:90,
+                attack:130,
+                defense:80,
+                spAttack:65,
+                spDefense:85,
+                speed:55
+            },
+            weight:130
         }
     ];
 

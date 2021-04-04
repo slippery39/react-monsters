@@ -1,6 +1,6 @@
 
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
-import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType } from "game/Effects/Effects";
+import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType, InflictVolatileStatus } from "game/Effects/Effects";
 import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { FieldEffectType } from "game/FieldEffects/FieldEffects";
 import { Status } from "game/HardStatus/HardStatus";
@@ -56,6 +56,24 @@ function CreateAllHiddenPowers(){
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Dynamic Punch",
+            description:"The user punches the target with full, concentrated power. This confuses the target if it hits.",
+            power:100,
+            accuracy:50,
+            pp:8,
+            elementalType:ElementType.Fighting,
+            damageType:DamageType.Physical,
+            makesContact:true,
+            effects:[
+                {
+                    type:EffectType.InflictVolatileStatus,
+                    status:VolatileStatusType.Confusion,
+                    chance:100,
+                    target:TargetType.Enemy                    
+                }
+            ]
+        },
         ...CreateAllHiddenPowers(),
         {
             name:"Double Edge",

@@ -38,6 +38,9 @@ abstract class BattleBehaviour {
     ModifyTechnique(pokemon: Pokemon, technique: Technique) {
         return technique;
     }
+    ModifyOpponentTechnique(pokemon:Pokemon,technique:Technique){
+        return technique;
+    }
     OnTechniqueUsed(game: IGame, pokemon: Pokemon, move: Technique) {
 
     }

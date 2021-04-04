@@ -955,6 +955,23 @@ const premades: Array<PremadePokemon> = [
             spDefense:4,
             speed:252
         }
+    },
+    {
+        species:"Machamp",
+        heldItem:"Assault Vest",
+        ability:"No Guard",
+        nature:NatureType.Adamant,
+        techniques:[
+            "Dynamic Punch",
+            "Knock Off",
+            "Bullet Punch",
+            "Stone Edge"
+        ],
+        evs:{
+            hp:172,
+            attack:252,
+            spDefense:84
+        }
     }
 
 ]

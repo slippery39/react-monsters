@@ -580,6 +580,23 @@ class WaterAbsorbAbility extends AbstractAbility {
     }    
 }
 
+class NoGuardAbility extends AbstractAbility{
+    name="No Guard";
+    description = "The Pokémon employs no-guard tactics to ensure incoming and outgoing attacks always land.";
+
+    ModifyTechnique(pokemon: Pokemon, technique: Technique) {
+
+        const newTech = _.cloneDeep(technique);
+        newTech.accuracy = 99999;
+        return newTech;
+    }
+    ModifyOpponentTechnique(pokemon:Pokemon,technique:Technique){
+        const newTech = _.cloneDeep(technique);
+        newTech.accuracy = 99999;
+        return newTech;
+    }
+}
+
 
 class NoAbility extends AbstractAbility {
 
@@ -687,6 +704,9 @@ function GetAbility(name: String) {
         }
         case 'water absorb':{
             return new WaterAbsorbAbility();
+        }
+        case 'no guard':{
+            return new NoGuardAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);
