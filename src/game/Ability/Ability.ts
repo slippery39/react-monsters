@@ -8,7 +8,7 @@ import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/Hel
 import { Player } from "game/Player/PlayerBuilder";
 import { ApplyStatBoost, Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { DamageType, Technique } from "game/Techniques/Technique";
+import { DamageType, Technique, TechniqueBuilder } from "game/Techniques/Technique";
 import { RainingWeather, SandstormWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
 
@@ -597,6 +597,40 @@ class NoGuardAbility extends AbstractAbility{
     }
 }
 
+class DrySkinAbility extends AbstractAbility{
+    name="Dry Skin";
+    description="Restores HP in rain or when hit by Water-type moves. Reduces HP in harsh sunlight, and increases the damage received from Fire-type moves.";
+
+
+    NegateDamage(game: IGame, move: Technique, pokemon: Pokemon): boolean {
+        if (move.elementalType === ElementType.Water){
+            game.ApplyHealing(pokemon,pokemon.originalStats.hp/4);
+            game.AddMessage(`${pokemon.name}'s dry skin absorbed the water attack!`);
+            return true;
+        }
+        return false;
+    }
+
+    ModifyDamageTaken(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
+        let modifiedDamage = originalDamage;
+        if (move.elementalType === ElementType.Fire){
+            return modifiedDamage*1.25;
+        }
+        return modifiedDamage;
+    }
+    
+    EndOfTurn(game: IGame, pokemon: Pokemon){
+        if (game.field.weather?.name === WeatherType.Rain){
+            game.ApplyHealing(pokemon,pokemon.originalStats.hp/8);
+            game.AddMessage(`${pokemon.name} healed from the rain due to its dry skin!`);
+        }
+        else if (game.field.weather?.name === WeatherType.Sunny){
+            game.ApplyIndirectDamage(pokemon,pokemon.originalStats.hp/8);
+            game.AddMessage(`${pokemon.name} took damage from the sunlight due to its dry skin!`);
+        }        
+    }
+}
+
 
 class NoAbility extends AbstractAbility {
 
@@ -707,6 +741,9 @@ function GetAbility(name: String) {
         }
         case 'no guard':{
             return new NoGuardAbility();
+        }
+        case 'dry skin':{
+            return new DrySkinAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

@@ -15,7 +15,8 @@ export enum DamageEffectTypes {
     Pursuit = "pursuit",
     Acrobatics = "acrobatics",
     None = 'null',
-    FoulPlay = 'foul-play'
+    FoulPlay = 'foul-play',
+    Psyshock = 'psyshock'
 }
 
 abstract class AbstractDamageEffect {
@@ -119,6 +120,16 @@ class FoulPlayEffect extends AbstractDamageEffect {
     }
 }
 
+class PsyShockEffect extends AbstractDamageEffect{
+    ModifyDamageCalculationInfo(game: IGame, info: { pokemon: Pokemon; defendingPokemon: Pokemon; technique: Technique; }) {
+        const newDefPokemon = _.cloneDeep(info.defendingPokemon);
+        newDefPokemon.currentStats.spDefense = info.defendingPokemon.currentStats.defense;
+        newDefPokemon.statBoosts["special-defense"] = info.defendingPokemon.statBoosts.defense;
+        info.pokemon = newDefPokemon;
+        return info;
+    }
+}
+
 
 export function GetDamageEffect(effectName: string) {
     if (effectName === DamageEffectTypes.Eruption) {
@@ -138,6 +149,9 @@ export function GetDamageEffect(effectName: string) {
     }
     else if (effectName === DamageEffectTypes.FoulPlay) {
         return new FoulPlayEffect();
+    }
+    else if (effectName === DamageEffectTypes.Psyshock){
+        return new PsyShockEffect();
     }
 
     throw new Error(`Could not find damage effect for ${effectName}`)

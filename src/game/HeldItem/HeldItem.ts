@@ -342,6 +342,26 @@ export class AssaultVest extends HeldItem {
 
 }
 
+export class FocusSash extends HeldItem{    
+
+    name:string = "Focus Sash";
+    description:string = "An item to be held by a Pokémon. If the holder has full HP, it will endure a potential KO attack with 1 HP. The item then disappears.";
+    
+    ModifyDamageTaken(turn: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
+        let modifiedDamage = originalDamage;
+        if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp && originalDamage >= defendingPokemon.currentStats.hp) {
+            modifiedDamage = defendingPokemon.originalStats.hp - 1;
+        }
+        return modifiedDamage;
+    }
+    //Little hacky but will work for now.
+    OnDamageTakenFromTechnique(turn: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+        if (defendingPokemon.currentStats.hp === 1 && damage === defendingPokemon.originalStats.hp - 1) {
+            turn.AddMessage(`${defendingPokemon.name} has survived due to its Sturdy ability!`);
+        }
+    }
+}
+
 
 //Empty held item.
 export class NoHeldItem extends HeldItem {
@@ -381,9 +401,12 @@ function GetHeldItem(name: string): HeldItem {
         case "choice scarf":{
             return new ChoiceScarf();
         }
+        case "focus sash":{
+            return new FocusSash();
+        }
         case "none": {
             return new NoHeldItem();
-        }
+        }      
 
 
         default: {

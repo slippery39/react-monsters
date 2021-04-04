@@ -699,6 +699,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:55
             },
             weight:130
+        },
+        {
+            name:"Jynx",
+            elementalTypes:[ElementType.Psychic,ElementType.Ice],
+            baseStats:{
+                hp:65,
+                attack:50,
+                defense:35,
+                spAttack:115,
+                spDefense:95,
+                speed:95
+            },
+            weight:40.6
         }
     ];
 

@@ -945,10 +945,10 @@ const premades: Array<PremadePokemon> = [
         ability:"Chlorophyll",
         nature:NatureType.Modest,
         techniques:[
-            "Solar Beam",
+            "Sleep Powder",
             "Psychic",
-            "Hidden Power Fire",
-            "Sunny Day"
+            "Leaf Storm",
+            "Synthesis"
         ],
         evs:{
             spAttack:252,
@@ -971,6 +971,23 @@ const premades: Array<PremadePokemon> = [
             hp:172,
             attack:252,
             spDefense:84
+        }
+    },
+    {
+        species:"Jynx",
+        heldItem:"Focus Sash",
+        ability:"Dry Skin",
+        nature:NatureType.Timid,
+        techniques:[
+            "Ice Beam",
+            "Lovely Kiss",
+            "Psyshock",
+            "Focus Blast"
+        ],
+        evs:{
+            spAttack:252,
+            spDefense:4,
+            speed:252
         }
     }
 

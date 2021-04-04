@@ -57,6 +57,33 @@ function CreateAllHiddenPowers(){
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name:"Psyshock",
+            description:"The user materializes an odd psychic wave to attack the target. This attack does physical damage.",
+            power:80,
+            pp:16,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Psychic,
+            accuracy:100,
+            damageEffect:{type:DamageEffectTypes.Psyshock}            
+        },
+        {
+            name:"Lovely Kiss",
+            description:"With a scary face, the user tries to force a kiss on the target. If it succeeds, the target falls asleep.",
+            power:0,
+            accuracy:75,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Normal,
+            pp:16,
+            effects:[
+                {
+                    type:EffectType.InflictStatus,
+                    status:Status.Sleep,
+                    chance:100,
+                    target:TargetType.Enemy
+                }
+            ]
+        },
+        {
             name:"Dynamic Punch",
             description:"The user punches the target with full, concentrated power. This confuses the target if it hits.",
             power:100,
