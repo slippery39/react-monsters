@@ -453,7 +453,7 @@ export function GetTech(name: string) {
         {
             name:"Struggle",
             description:"An attack that is used in desperation only if the user has no PP. It also hurts the user slightly",
-            pp:1,
+            pp:10,
             power:50,
             accuracy:99999,
             damageType:DamageType.Physical,

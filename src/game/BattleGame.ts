@@ -284,6 +284,8 @@ class BattleGame implements IGame {
                     console.error(`Could not find technique to use in set initial player action action: ${JSON.stringify(action)}, pokemon: ${JSON.stringify(actionPokemon)}, techId: ${action.moveId}`,actionPokemon,action);
                     throw new Error(`Could not find technique to use in set initial player action action: ${JSON.stringify(action)}, pokemon: ${JSON.stringify(actionPokemon)}, techId: ${action.moveId}`);
                 }
+
+                //TODO  - right here is where the choice band bug is happening.
                 if (technique.currentPP <= 0) {
                     const forcedStruggleAction: ForcedTechniqueAction = {
                         playerId: action.playerId,
@@ -332,11 +334,26 @@ class BattleGame implements IGame {
         pokemon2.canAttackThisTurn = true;
 
         this.GetBehavioursForPokemon(pokemon1).forEach(b => {
-
+            try{
             b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon1), pokemon1);
+            }
+            catch{
+                console.log(this);
+                console.log(pokemon1);
+                console.log(b);
+                throw Error(`error at force action pokemon 1.. trying to check what is causing it`);
+            }
         });
         this.GetBehavioursForPokemon(pokemon2).forEach(b => {
+            try{
             b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon2), pokemon2);
+            }
+            catch{
+                console.log(this);
+                console.log(pokemon2);
+                console.log(b);
+                throw Error(`error at force action pokemon 2.... trying to see what is causing it`);
+            }
         });
 
         //Check which players still need to choose an action
@@ -694,6 +711,16 @@ class BattleGame implements IGame {
 
 
     UseTechnique(pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique) {
+
+        
+        if (technique.currentPP<=0){
+            console.log(this);
+            console.log(pokemon);
+            console.log(technique);
+            throw new Error(`pp is less than 0, we should not be using this technique... something is wrong`)
+        }
+    
+
         const useTechniqueEffect: UseMoveEvent = {
             type: BattleEventType.UseTechnique,
             userId: pokemon.id,

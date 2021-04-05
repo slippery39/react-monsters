@@ -3,7 +3,7 @@ import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { IGame } from "game/BattleGame";
 import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
-import { Status } from "game/HardStatus/HardStatus";
+import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
@@ -431,6 +431,7 @@ class SynchronizeAbility extends AbstractAbility {
         if (source.id !== pokemon.id && [Status.Burned, Status.Paralyzed, Status.Poison, Status.ToxicPoison].includes(status)) {
             if (source.status === Status.None) {
                 source.status = status;
+                source._statusObj = GetHardStatus(status);
                 game.AddMessage(`${pokemon.name} copied its status onto its foe due to the Synchronize ability!`);
             }
         }

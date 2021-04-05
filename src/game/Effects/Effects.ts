@@ -291,6 +291,7 @@ function ApplyStatusRestoreEffect(turn: IGame, pokemon: Pokemon, effect: StatusR
         }
         turn.AddEvent(statusRestoreEffect);
         pokemon.status = Status.None;
+        pokemon._statusObj = GetHardStatus(Status.None);
     }
     else if (effect.forStatus === pokemon.status) {
         let statusRestoreEffect: StatusChangeEvent = {
@@ -301,6 +302,7 @@ function ApplyStatusRestoreEffect(turn: IGame, pokemon: Pokemon, effect: StatusR
         }
         turn.AddEvent(statusRestoreEffect);
         pokemon.status = Status.None;
+        pokemon._statusObj = GetHardStatus(Status.None);
     }
 }
 
@@ -331,6 +333,7 @@ function ApplyAromatherapyEffect(turn: IGame, sourcePokemon: Pokemon) {
             }
             turn.AddEvent(statusRestoreEffect);
             pokemon.status = Status.None;
+            pokemon._statusObj = GetHardStatus(Status.None);
         }
 
     });

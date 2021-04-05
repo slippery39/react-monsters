@@ -2,10 +2,11 @@ import { BattleEventType, CannotAttackEvent,StatusChangeEvent } from "game/Battl
 import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { Pokemon } from "game/Pokemon/Pokemon";
-import BattleBehaviour, { IBattleBehaviour } from "game/BattleBehaviour/BattleBehavior";
+import BattleBehaviour, { CreateBattleBehaviour, IBattleBehaviour } from "game/BattleBehaviour/BattleBehavior";
 import { Technique } from "game/Techniques/Technique";
 import { WeatherType } from "game/Weather/Weather";
 import { IGame } from "game/BattleGame";
+
 
 
 export enum Status{
@@ -27,8 +28,10 @@ interface IHardStatus {
     CanApply:(game:IGame,pokemon:Pokemon)=>boolean
 }
 
-type NewHardStatus = IBattleBehaviour & IHardStatus;
+export type HardStatus = IBattleBehaviour & IHardStatus;
 
+
+/*
 export abstract class HardStatus extends BattleBehaviour implements NewHardStatus {
     abstract statusType: Status
     abstract curedString:String
@@ -38,9 +41,99 @@ export abstract class HardStatus extends BattleBehaviour implements NewHardStatu
         return true;
     }
 }
+*/
 
 
-class RestingStatus extends HardStatus{
+//Example of the Resting Status while using the POJO technique
+const RestingStatus1:HardStatus & {counter:number} = {...CreateBattleBehaviour(),...{
+    statusType:Status.Sleep,
+    curedString:'has woken up!',
+    inflictedMessage:'is taking a rest',
+    counter:0,
+    CanApply(){
+        return true;
+    },
+    BeforeAttack(game:IGame,pokemon:Pokemon){
+        game.AddMessage(`${pokemon.name} is sleeping!`);
+
+        if (this.counter >= 2) {
+            //Pokemon Wakes Up
+            pokemon.status = Status.None;
+            pokemon._statusObj = GetHardStatus(Status.None);
+
+            const wakeupEffect: StatusChangeEvent = {
+                type: BattleEventType.StatusChange,
+                targetPokemonId: pokemon.id,
+                status: Status.None,
+                defaultMessage: `${pokemon.name} has woken up!`
+            }
+            game.AddEvent(wakeupEffect)            
+        }
+        else {
+            pokemon.canAttackThisTurn = false;
+            this.counter++;
+        }
+    },
+}}
+
+const ToxicStatus1:HardStatus & {counter:number} = {...CreateBattleBehaviour(),...{
+    statusType:Status.Poison,
+    curedString:'has been cured of poison!',
+    inflictedMessage:'has been badly poisoned!',
+    counter:1,
+    CanApply(game:IGame, pokemon: Pokemon) {
+        return !HasElementType(pokemon, ElementType.Steel) && !HasElementType(pokemon,ElementType.Poison);
+    },
+    EndOfTurn(game:IGame, pokemon: Pokemon) {
+                //apply poison damage
+        //poison damage is 1/16 of the pokemons max hp
+        const maxHp = pokemon.originalStats.hp;
+        const poisonDamage = this.counter * Math.ceil(maxHp / 16);
+        this.counter++;
+        game.AddMessage(`${pokemon.name} is badly hurt by poison.`);
+        game.ApplyIndirectDamage(pokemon, poisonDamage)
+    },
+    OnSwitchedOut(game: IGame, pokemon:Pokemon){
+        this.counter = 1;        
+    }
+}};
+
+const SleepStatus1:HardStatus &{turnsToSleep:number,counter:number} = {...CreateBattleBehaviour(),...{
+
+    
+        statusType:Status.Sleep,
+        curedString:'has woken up!',
+        inflictedMessage:'has fallen asleep!',
+        turnsToSleep:3,
+        counter:3,    
+        CanApply(game:IGame, pokemon: Pokemon){
+            return true;
+        },
+        BeforeAttack(game:IGame, pokemon: Pokemon) {
+            game.AddMessage(`${pokemon.name} is sleeping!`);
+            this.counter--;
+            if (this.counter < 0){
+                //Pokemon Wakes Up
+                pokemon.status = Status.None;
+                pokemon._statusObj = GetHardStatus(Status.None);
+    
+                const wakeupEffect: StatusChangeEvent = {
+                    type: BattleEventType.StatusChange,
+                    targetPokemonId: pokemon.id,
+                    status: Status.None,
+                    defaultMessage: `${pokemon.name} has woken up!`
+                }
+                game.AddEvent(wakeupEffect);
+            }
+            else {
+                pokemon.canAttackThisTurn = false;
+            }
+        }
+    }
+};
+
+
+class RestingStatus extends BattleBehaviour implements HardStatus{
     statusType = Status.Sleep;
     curedString = 'has woken up!'
     inflictedMessage = 'is taking a rest!'
@@ -72,7 +165,7 @@ class RestingStatus extends HardStatus{
     }
 }
 
-class ToxicStatus extends HardStatus{
+class ToxicStatus extends BattleBehaviour implements HardStatus{
     statusType = Status.Poison;
     curedString= 'has been cured of poison!'
     inflictedMessage = 'has been badly poisoned!'
@@ -95,7 +188,7 @@ class ToxicStatus extends HardStatus{
     }
 }
 
-class BurnStatus extends HardStatus{
+class BurnStatus extends BattleBehaviour implements HardStatus{
     
 
     statusType = Status.Burned;
@@ -116,7 +209,7 @@ class BurnStatus extends HardStatus{
     }
 }
 
-class FrozenStatus extends HardStatus{
+class FrozenStatus extends BattleBehaviour implements HardStatus{
    
     statusType = Status.Frozen
     curedString= 'has been thawed!'
@@ -132,6 +225,7 @@ class FrozenStatus extends HardStatus{
         if (game.Roll(this.thawChance)) {
             //Pokemon Wakes Up
             pokemon.status = Status.None;
+            pokemon._statusObj = GetHardStatus(Status.None);
 
             const thawEffect: StatusChangeEvent = {
                 type: BattleEventType.StatusChange,
@@ -149,6 +243,7 @@ class FrozenStatus extends HardStatus{
     OnDamageTakenFromTechnique(game:IGame,attackingPokemon:Pokemon,defendingPokemon:Pokemon,move:Technique,damage:number){
         if (move.elementalType === ElementType.Fire && defendingPokemon.status === Status.Frozen) {
             defendingPokemon.status = Status.None;
+            defendingPokemon._statusObj = GetHardStatus(Status.None);
             const thawEffect: StatusChangeEvent = {
                 type: BattleEventType.StatusChange,
                 status: Status.None,
@@ -161,7 +256,7 @@ class FrozenStatus extends HardStatus{
     }
 }
 
-class SleepStatus extends HardStatus{
+class SleepStatus extends BattleBehaviour implements HardStatus{
     
     
     statusType = Status.Sleep;
@@ -201,7 +296,7 @@ class SleepStatus extends HardStatus{
     }
 }
 
-class ParalyzeStatus extends HardStatus{
+class ParalyzeStatus extends BattleBehaviour implements HardStatus{
   
 
     statusType = Status.Paralyzed;
@@ -228,7 +323,7 @@ class ParalyzeStatus extends HardStatus{
 
 }
 
-class PoisonStatus extends HardStatus {    
+class PoisonStatus extends BattleBehaviour implements HardStatus {    
 
     statusType = Status.Poison;
     curedString= 'has been cured of poison!'
@@ -247,7 +342,7 @@ class PoisonStatus extends HardStatus {
     }
 }
 
-class NoneStatus extends HardStatus {
+class NoneStatus extends BattleBehaviour implements HardStatus {
 
     statusType = Status.None;
     inflictedMessage = '';
@@ -264,6 +359,7 @@ function GetHardStatus(status: Status): HardStatus {
         return new PoisonStatus();
     }
     else if (status === Status.Sleep) {
+        return {...SleepStatus1}
         return new SleepStatus();
     }
     else if (status === Status.Frozen) {
@@ -273,9 +369,11 @@ function GetHardStatus(status: Status): HardStatus {
         return new BurnStatus();
     }
     else if (status === Status.ToxicPoison){
+        return {...ToxicStatus1};
         return new ToxicStatus();
     }
     else if (status === Status.Resting){
+        return {...RestingStatus1}; //testing this out.
         return new RestingStatus();
 
     }

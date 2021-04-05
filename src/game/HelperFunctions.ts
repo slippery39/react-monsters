@@ -80,7 +80,7 @@ export function ClonePlayer(originalPlayer:Player){
             nature:poke.nature,
             originalStats:poke.originalStats,
              status:poke.status,
-             _statusObj: [Status.Burned,Status.Poison,Status.Paralyzed].includes(poke.status) ? GetHardStatus(poke.status) : _.clone(poke._statusObj),
+             _statusObj: [Status.Burned,Status.Poison,Status.Paralyzed,Status.Frozen,Status.None].includes(poke.status) ? GetHardStatus(poke.status) : {...poke._statusObj},
             techniqueUsedLast: poke.techniqueUsedLast,
             weight:poke.weight,
             statBoosts:statBoosts,
@@ -103,6 +103,8 @@ export function ClonePlayer(originalPlayer:Player){
         }
         return newPoke;
     });
+
+   
 
     const newPlayer:Player = {
         pokemon:newPokemons,
@@ -150,7 +152,7 @@ export function CloneField(originalField:Field){
                 nature:poke.nature,
                 originalStats:poke.originalStats,
                 status:poke.status,
-                _statusObj: [Status.Burned,Status.Poison,Status.Paralyzed].includes(poke.status) ? GetHardStatus(poke.status) : _.clone(poke._statusObj),
+                _statusObj: [Status.Burned,Status.Poison,Status.Paralyzed,Status.Frozen,Status.None].includes(poke.status) ? GetHardStatus(poke.status) : {...poke._statusObj},
                 techniqueUsedLast: poke.techniqueUsedLast,
                 weight:poke.weight,
                 statBoosts:statBoosts,
@@ -172,6 +174,7 @@ export function CloneField(originalField:Field){
                 fieldPosition:poke.fieldPosition
             }
 
+     
             return newPoke;
 
         });

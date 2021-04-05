@@ -11,7 +11,7 @@ import { IGame } from "game/BattleGame";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
-import { isJsxFragment } from "typescript";
+
 
 
 export interface IBattleBehaviour{

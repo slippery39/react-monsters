@@ -1,14 +1,16 @@
-import { Actions, UseMoveAction as UseTechniqueAction } from "game/BattleActions";
+import PlayerBattleController from "components/Battle/BattleSetup/BattleSetupController";
+import { Actions, BattleAction, UseMoveAction as UseTechniqueAction } from "game/BattleActions";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { IGame } from "game/BattleGame";
 import { ElementType } from "game/ElementType";
-import { Status } from "game/HardStatus/HardStatus";
+import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import _ from "lodash";
+import { isJsxFragment } from "typescript";
 
 export abstract class HeldItem extends BattleBehaviour {
     OnRemoved(turn: IGame, pokemon: Pokemon) { //might want this for all of our battle behaviours.
@@ -61,6 +63,7 @@ export class LumBerryHeldItem extends HeldItem {
 
         if (pokemon.status !== Status.None) {
             pokemon.status = Status.None;
+            pokemon._statusObj = GetHardStatus(Status.None);
             hasCured = true;
         }
         const confusions = pokemon.volatileStatuses.filter(vStat => vStat.type === VolatileStatusType.Confusion);
@@ -97,24 +100,29 @@ export class BlackSludge extends HeldItem {
     }
 }
 
-//Forced actions should take precedent over 
-export class ChoiceScarf extends HeldItem {
-    name: string = "Choice Scarf";
-    description = "An item to be held by a Pokémon. This scarf boosts Speed, but allows the use of only one kind of move."
+export class ChoiceItem extends HeldItem{
+    name:string = "Choice Item";
+    description:string = "[Description Needed]";
+    techniqueUsed:Technique | undefined = undefined;
+    boostStat:Stat;
 
-    techniqueUsed: Technique | undefined = undefined;
+    constructor(name:string,description:string,statToBoost:Stat){
+        super();
+        this.name = name;
+        this.description = description;
+        this.boostStat = statToBoost;
+    }
 
     Update(game: IGame, pokemon: Pokemon) {
         if (pokemon.statMultipliers.find(sm => sm.tag === this.name) === undefined) {
             const statMultiplier: StatMultiplier = {
-                stat: Stat.Speed,
+                stat: this.boostStat,
                 multiplier: 1.5,
                 tag: this.name
             }
             pokemon.statMultipliers.push(statMultiplier);
         }
     }
-
     OnTechniqueUsed(game: IGame, pokemon: Pokemon, technique: Technique) {
         //save the technique used to the item slot
         //for sanity purposes the technique saved should be on the pokemon as well.
@@ -129,25 +137,27 @@ export class ChoiceScarf extends HeldItem {
             }
             this.techniqueUsed = technique;
         }
+
+      
     }
 
-    //CONTINUE FROM HERE... IMPLEMENTING CHOICE HELD ITEMS.
-    OverrideAction(game: IGame, player: Player, pokemon: Pokemon, action: UseTechniqueAction) {
-        //Change to a use technique action with 
-
-        if (this.techniqueUsed === undefined) {
-            return action;
-        }
-
-        const newAction: UseTechniqueAction = {
-            playerId: player.id,
-            pokemonId: pokemon.id,
-            moveId: this.techniqueUsed.id,
-            type: Actions.UseTechnique
-        }
-        return newAction;
+    ModifyValidActions(game:IGame,player:Player,validActions:BattleAction[]){
+        if (this.techniqueUsed === undefined){
+            return validActions;
+        }   
+        return validActions.filter(act=>{
+            if (act.type === Actions.UseTechnique){
+               //Filter out all techniques that do not match our technique.
+               if (this.techniqueUsed === undefined){
+                   throw new Error(`technique used is undefined... cannot properly filter techniques`);
+               }
+               return  act.moveId === this.techniqueUsed.id;
+            }
+            return true;
+        });
     }
-
+    
+    
     OnSwitchedOut(game: IGame, pokemon: Pokemon) {
         //Reset the technique used for next time.
         this.techniqueUsed = undefined;
@@ -157,134 +167,13 @@ export class ChoiceScarf extends HeldItem {
         //remove our stat multiplier.
         _.remove(pokemon.statMultipliers, (sm => sm.tag === this.name));
     }
-
 }
 
+//create the choice items here
 
-//Forced actions should take precedent over 
-export class ChoiceBand extends HeldItem {
-    name: string = "Choice Band";
-    description = "An item to be held by a Pokémon. This scarf boosts attack, but allows the use of only one kind of move."
 
-    techniqueUsed: Technique | undefined = undefined;
 
-    Update(game: IGame, pokemon: Pokemon) {
-        if (pokemon.statMultipliers.find(sm => sm.tag === this.name) === undefined) {
-            const statMultiplier: StatMultiplier = {
-                stat: Stat.Attack,
-                multiplier: 1.5,
-                tag: this.name
-            }
-            pokemon.statMultipliers.push(statMultiplier)
-        }
-    }
 
-    OnTechniqueUsed(game: IGame, pokemon: Pokemon, technique: Technique) {
-        //save the technique used to the item slot
-        //for sanity purposes the technique saved should be on the pokemon as well.
-        //Check to make sure the technique actually exists on the pokemon (in case of custom moves or whatnot)
-
-        if (technique.name.toLowerCase() === "struggle") {
-            return;
-        }
-        if (this.techniqueUsed === undefined) {
-            if (pokemon.techniques.find(tech => tech.id === technique.id || tech.name === technique.name) === undefined) {
-                throw new Error(`Could not find technique for pokemon to save to choice band... Technique name we tried to save was ${technique.name}`)
-            }
-            this.techniqueUsed = technique;
-        }
-    }
-
-    //CONTINUE FROM HERE... IMPLEMENTING CHOICE HELD ITEMS.
-    OverrideAction(game: IGame, player: Player, pokemon: Pokemon, action: UseTechniqueAction) {
-        //Change to a use technique action with 
-
-        if (this.techniqueUsed === undefined) {
-            return action;
-        }
-
-        const newAction: UseTechniqueAction = {
-            playerId: player.id,
-            pokemonId: pokemon.id,
-            moveId: this.techniqueUsed.id,
-            type: Actions.UseTechnique
-        }
-        return newAction;
-    }
-
-    OnSwitchedOut(game: IGame, pokemon: Pokemon) {
-        //Reset the technique used for next time.
-        this.techniqueUsed = undefined;
-    }
-
-    OnRemoved(turn: IGame, pokemon: Pokemon) {
-        //remove our stat multiplier.
-        _.remove(pokemon.statMultipliers, (sm => sm.tag === this.name));
-    }
-
-}
-
-export class ChoiceSpecs extends HeldItem {
-    name: string = "Choice Specs";
-    description = "An item to be held by a Pokémon. These curious glasses boost Sp. Atk but only allow the use of one move."
-
-    techniqueUsed: Technique | undefined = undefined;
-
-    Update(game: IGame, pokemon: Pokemon) {
-        if (pokemon.statMultipliers.find(sm => sm.tag === this.name) === undefined) {
-            const statMultiplier: StatMultiplier = {
-                stat: Stat.SpecialAttack,
-                multiplier: 1.5,
-                tag: this.name
-            }
-            pokemon.statMultipliers.push(statMultiplier)
-        }
-    }
-
-    OnTechniqueUsed(game: IGame, pokemon: Pokemon, technique: Technique) {
-        //save the technique used to the item slot
-        //for sanity purposes the technique saved should be on the pokemon as well.
-        //Check to make sure the technique actually exists on the pokemon (in case of custom moves or whatnot)
-
-        if (technique.name.toLowerCase() === "struggle") {
-            return;
-        }
-
-        if (this.techniqueUsed === undefined) {
-            if (pokemon.techniques.find(tech => tech.id === technique.id || tech.name === technique.name) === undefined) {
-                throw new Error(`Could not find technique for pokemon to save to choice band... Technique name we tried to save was ${technique.name}`)
-            }
-            this.techniqueUsed = technique;
-        }
-    }
-
-    //CONTINUE FROM HERE... IMPLEMENTING CHOICE HELD ITEMS.
-    OverrideAction(game: IGame, player: Player, pokemon: Pokemon, action: UseTechniqueAction) {
-        //Change to a use technique action with 
-
-        if (this.techniqueUsed === undefined) {
-            return action;
-        }
-
-        const newAction: UseTechniqueAction = {
-            playerId: player.id,
-            pokemonId: pokemon.id,
-            moveId: this.techniqueUsed.id,
-            type: Actions.UseTechnique
-        }
-        return newAction;
-    }
-
-    OnSwitchedOut(game: IGame, pokemon: Pokemon) {
-        //Reset the technique used for next time.
-        this.techniqueUsed = undefined;
-    }
-
-    OnRemoved(game: IGame, pokemon: Pokemon) {
-        //remove our stat multiplier.
-        _.remove(pokemon.statMultipliers, (sm => sm.tag === this.name));
-    }
-}
 
 export class FlyingGem extends HeldItem {
     name: string = "Flying Gem"
@@ -384,10 +273,10 @@ function GetHeldItem(name: string): HeldItem {
             return new BlackSludge();
         }
         case "choice band": {
-            return new ChoiceBand();
+           return  new ChoiceItem("Choice Band","An item to be held by a Pokémon. This scarf boosts attack, but allows the use of only one kind of move.",Stat.Attack);
         }
         case "choice specs": {
-            return new ChoiceSpecs();
+            return new ChoiceItem("Choice Specs","An item to be held by a Pokémon. These curious glasses boost Sp. Atk but only allow the use of one move.",Stat.SpecialAttack);
         }
         case "flying gem": {
             return new FlyingGem();
@@ -399,7 +288,7 @@ function GetHeldItem(name: string): HeldItem {
             return new AssaultVest();
         }
         case "choice scarf":{
-            return new ChoiceScarf();
+            return new ChoiceItem("Choice Scarf","An item to be held by a Pokémon. This scarf boosts Speed, but allows the use of only one kind of move.",Stat.Speed);
         }
         case "focus sash":{
             return new FocusSash();
