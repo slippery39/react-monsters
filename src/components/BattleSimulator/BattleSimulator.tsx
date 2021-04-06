@@ -4,14 +4,15 @@ import RandomTeamsSimMenu from './RandomTeams/RandomTeams';
 import "./battlesim.css"
 import RoundRobinSim from './RoundRobin1v1/RoundRobin1v1';
 
-import {Tabs} from 'antd';
+import {PageHeader, Tabs} from 'antd';
+import Title from 'components/_General/General';
+
+
 
 const {TabPane} = Tabs;
 
 interface Props {
 }
-
-
 
 
 const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
@@ -31,7 +32,7 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
 
     return (
         <div className="battle-simulator-menu">
-            <div> Battle Simulator!</div>
+             <Title>AI Battle Simulator</Title>
             {tabs()}
         </div>
     );

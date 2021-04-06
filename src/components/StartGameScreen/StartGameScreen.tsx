@@ -1,7 +1,8 @@
 import React from 'react'
 import "./StartGameScreen.css";
 
-import {Button, PageHeader} from 'antd';
+import {Button} from 'antd';
+import Title from 'components/_General/General';
 
 interface Props{
     onStartClick: ()=>void;
@@ -13,7 +14,7 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
 
     return (
         <div className="start-screen-container">
-            <PageHeader><h1>Pokemon Battle Simulator</h1></PageHeader>
+            <Title>Pokemon Battle Simulator</Title>
             <Button block type="primary" onClick={()=>props.onStartClick()} className="text-outline text-large">
              Play vs Computer Opponent
             </Button>

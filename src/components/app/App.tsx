@@ -5,9 +5,10 @@ import StartGameScreen from 'components/StartGameScreen/StartGameScreen';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import BattleService from 'game/BattleService';
 import BasicAI from 'game/AI/AI';
-import BattleSimulator from 'components/BattleSimulator/BattleSimulator';
-import BattleSetupController from 'components/Battle/BattleSetup/BattleSetupController';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
+import { useHistory } from 'react-router-dom';
+
+
 
 
 
@@ -21,14 +22,15 @@ enum AppState {
 
 function App() {
 
+  const history = useHistory();
   const [appState, setAppState] = useState<AppState>(AppState.MainMenu);
-
+  
 
   function handleHumanVsCPU() {
-    setAppState(AppState.PlayerBattle);
+    history.push('/battle');
   }
   function handleBattleSimClick(){
-    setAppState(AppState.SimulatingAIGames);
+    history.push('./battleSimulator')
   }
   function handleTestGameClick(){
     setAppState(AppState.TestGame);
@@ -82,12 +84,6 @@ function App() {
           onTestGameClick={handleTestGameClick}
           />)
       }
-      case AppState.PlayerBattle: {
-        return <BattleSetupController/>
-      }
-      case AppState.SimulatingAIGames: {
-        return <BattleSimulator />
-      }
       case AppState.TestGame:{
         return <Battle showDebug battle={initializeTestBattle()} onEnd={handleEndGame}/>
       }
@@ -96,6 +92,7 @@ function App() {
       }
     }
   }
+
 
 
 

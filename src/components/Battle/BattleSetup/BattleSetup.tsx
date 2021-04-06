@@ -1,6 +1,7 @@
-import { Button, Card, Modal, PageHeader, Space, message, Radio } from "antd"
+import { Button, Card, Modal,  Space, message, Radio } from "antd"
 import PokemonImage from "components/PokemonImage/PokemonImage";
 import TeamSelector from "components/TeamSelector/TeamSelector"
+import Title from "components/_General/General";
 import { GetMultipleRandomPokemon } from "game/Pokemon/PremadePokemon";
 import React, { useState } from "react"
 
@@ -70,7 +71,7 @@ const BattleSetup: React.FunctionComponent<Props> = (props) => {
 
     return (
         <div>
-            <PageHeader><h1>Battle Setup</h1></PageHeader>
+            <Title>Battle Setup</Title>
             <Card>
                 <Space direction="vertical">
                     <div>Team 1</div>

@@ -719,6 +719,11 @@ class BattleGame implements IGame {
             console.log(technique);
             throw new Error(`pp is less than 0, we should not be using this technique... something is wrong`)
         }
+
+        //edge case for struggle
+        if (technique.name.toLowerCase() === "struggle"){
+            this.AddMessage(`${pokemon.name} has no usable moves!`);            
+        }
     
 
         const useTechniqueEffect: UseMoveEvent = {
@@ -1328,7 +1333,7 @@ class BattleGame implements IGame {
 
         //create each of the valid tech actions:
         const activePokemon = GetActivePokemon(player);
-        const validTechniqueActions = activePokemon.techniques.map(tech => {
+        const validTechniqueActions = activePokemon.techniques.filter(tech=>tech.currentPP>0).map(tech => {
             return CreateTechniqueAction(player, tech);
         });
 
@@ -1347,6 +1352,9 @@ class BattleGame implements IGame {
         this.GetBehavioursForPokemon(otherPokemon).forEach(b=>{
            validActions =  b.ModifyOpponentValidActions(this,player,validActions)
         });
+
+        console.log("valid actions for player " + player.name);
+        console.log(validActions);
 
         if (validActions.filter(act=>act.type===Actions.UseTechnique).length === 0){
             //Struggle may be selected in this case.

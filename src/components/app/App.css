@@ -19,11 +19,10 @@ body{
   /*font-family:"PokemonFont" don't want tou use this anymore, i think it actually looks better with the default font*/
 }
 
-.app-window{
+.page{
   text-align: center;
-  max-width:800px;
   margin:0 auto;
-  border:1px solid black;
+  max-width:1200px;
   /*font-family:"PokemonFont";*/
 }
 
