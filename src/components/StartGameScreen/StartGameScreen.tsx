@@ -22,7 +22,7 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
                 AI vs AI Battle Simulator
             </Button>
             <Button block type="primary" onClick={()=>props.onTestGameClick()} className="text-outline text-large">
-                Test Game 
+                Developer Test Game
             </Button>
         </div>
     )

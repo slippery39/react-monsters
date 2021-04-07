@@ -1,4 +1,5 @@
 import PokemonImage from "components/PokemonImage/PokemonImage";
+import { PartySelectionContainer } from "components/_General/General";
 import { GetAllPokemonInfo } from "game/Pokemon/PremadePokemon"
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
@@ -85,9 +86,9 @@ const TeamSelector = (props: Props) => {
     return (
         <div>
             <div>Available Pokemon</div>
-            <div className="pokemon-selection-container">{pokemonIcons}</div>
+            <PartySelectionContainer>{pokemonIcons}</PartySelectionContainer>
             <div style={{"marginTop":"10px"}}>Selected - {amountNeededMessage()}</div>
-            <div className="pokemon-selection-container">{selectedTeamIcons}</div>
+            <PartySelectionContainer>{selectedTeamIcons}</PartySelectionContainer>
         </div>
     )
 }

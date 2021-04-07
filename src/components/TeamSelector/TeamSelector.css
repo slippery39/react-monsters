@@ -2,23 +2,6 @@
     max-width:50px;
     cursor:pointer;
 }
-.team-selector-icon-selected{
-    filter:grayscale(100%);
-}
 
-.team-selector-all-container{
-    display:flex;
-    flex-wrap:wrap;
-    border-radius: 0px;
-    background: #fefbfb;
-    box-shadow: inset 8px 8px 16px #d8d5d5, inset -8px -8px 16px #ffffff;
-}
 
-.team-selector-selected-container{
-    display:flex;
-    flex-wrap:wrap;
-    border-radius: 0px;
-    background: #fefbfb;
-    box-shadow: inset 4px 4px 8px #d8d5d5, inset -4px -4px 8px #ffffff;
-}
 

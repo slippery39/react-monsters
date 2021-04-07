@@ -232,18 +232,21 @@ class MiniMax {
             return genericObject as Record<PointCalculationTypes, number>
         }
 
+        //The point values here may not matchup between ally and enemy ie the fainting and damage. The reason being is that the AI currently plays too defensively 
+        //if it does not have a good move to make, which usually ends up in it just losing slower rather than trying to go for a lucky win. Trying the staggering point values
+        //to make the AI's more aggresive
         const pointValues = initializePointValues();
         pointValues[PointCalculationTypes.WonGame] = 99999;
         pointValues[PointCalculationTypes.LostGame] = -99999;
-        pointValues[PointCalculationTypes.EnemyPokemonFainted] = 120;
+        pointValues[PointCalculationTypes.EnemyPokemonFainted] = 150;
         pointValues[PointCalculationTypes.AllyPokemonFainted] = -100;
-        pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] = -500; //* the difference
-        pointValues[PointCalculationTypes.AllyTeamDeltaHealth] = 500; //* the difference
-        pointValues[PointCalculationTypes.AllyPokemonInflictedStatus] = -80;
-        pointValues[PointCalculationTypes.EnemyPokemonHasStatus] = 80;
+        //putting different point values for enemy and ally to try to see if the AI makes more aggresive plays, rather than playing too defensively if they are behind.
+        pointValues[PointCalculationTypes.EnemyTeamDeltaHealth] = -550; //* the difference
+        pointValues[PointCalculationTypes.AllyTeamDeltaHealth] = 450; //* the difference
+        pointValues[PointCalculationTypes.AllyPokemonInflictedStatus] = -120;
+        pointValues[PointCalculationTypes.EnemyPokemonHasStatus] = 120;
         pointValues[PointCalculationTypes.AllyStatBoost] = 75;
-
-        pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] = 12;
+        pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] = 16;
         
 
         //edge case things here
@@ -320,7 +323,7 @@ class MiniMax {
         const GetAmountOfAlivePokemon = (player: Player) => {
             return player.pokemon.filter(poke => poke.currentStats.hp > 0).length;
         }
-        pointCalcs[PointCalculationTypes.EnemyPlayerEntryHazards] = pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] * getAmountOfEntryHazards(opponentPlayer, field) * GetAmountOfAlivePokemon(opponentPlayer);
+        pointCalcs[PointCalculationTypes.EnemyPlayerEntryHazards] = pointValues[PointCalculationTypes.EnemyPlayerEntryHazards] * getAmountOfEntryHazards(opponentPlayer, field) * (GetAmountOfAlivePokemon(opponentPlayer)-1);
 
 
         if (hasLostGame) {

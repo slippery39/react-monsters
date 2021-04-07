@@ -1,7 +1,7 @@
 import { Button, Card, Modal,  Space, message, Radio } from "antd"
 import PokemonImage from "components/PokemonImage/PokemonImage";
 import TeamSelector from "components/TeamSelector/TeamSelector"
-import Title from "components/_General/General";
+import Title, { PartySelectionContainer } from "components/_General/General";
 import { GetMultipleRandomPokemon } from "game/Pokemon/PremadePokemon";
 import React, { useState } from "react"
 
@@ -79,14 +79,14 @@ const BattleSetup: React.FunctionComponent<Props> = (props) => {
 
                     <div><Space>{team1PlayerTypeUI}</Space></div>
                     <div><Space><Button onClick={() => { setTempTeam1Pokemon(team1Pokemon); setModalState("human") }}>Select Team</Button><Button type="primary" onClick={()=>selectRandomTeam(setTeam1Pokemon)}>Randomize</Button></Space></div>
-                    <div className="pokemon-selection-container"> {team1Pokemon.map(name => <PokemonImage key={name} type="small" name={name} />)}</div>
+                    <PartySelectionContainer>{team1Pokemon.map(name => <PokemonImage key={name} type="small" name={name} />)}</PartySelectionContainer>
                 </Space>
             </Card>
             <Card>
                 <Space direction="vertical">
                     <div>Team 2 </div>
                     <div><Space><Button onClick={() => { setTempTeam2Pokemon(team2Pokemon); setModalState("cpu") }}>Select Team</Button><Button type="primary" onClick={()=>selectRandomTeam(setTeam2Pokemon)}>Randomize</Button></Space></div>
-                    <div className="pokemon-selection-container"> {team2Pokemon.map(name => <PokemonImage key={name} type="small" name={name} />)}</div>
+                    <PartySelectionContainer>{team2Pokemon.map(name => <PokemonImage key={name} type="small" name={name} />)}</PartySelectionContainer>
                 </Space>
             </Card>
             <Modal destroyOnClose={true} title="Select team for player 1" visible={modalState === "human"} onCancel={() => setModalState("none")} onOk={() => { setTeam1Pokemon(tempTeam1Pokemon); setModalState("none") }}>

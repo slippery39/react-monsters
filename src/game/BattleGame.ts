@@ -151,7 +151,7 @@ export interface IGame {
     PromptForSwitch: (pokemon: Pokemon) => void;
     ApplyHealing: (pokemon: Pokemon, amount: number) => void;
     ApplyStruggleDamage: (pokemon: Pokemon, damage: number) => void;
-    ApplyIndirectDamage: (pokemon: Pokemon, damage: number,message?:string) => void;
+    ApplyIndirectDamage: (pokemon: Pokemon, damage: number, message?: string) => void;
     ApplyDamageToSubstitute: (attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number) => void;
     ApplyDamage: (attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any) => void;
     EmitNewTurnLog: () => void;
@@ -163,7 +163,7 @@ export interface IGame {
     GetValidSwitchIns: (player: Player) => Array<Pokemon>;
     GetPokemonOwner: (pokemon: Pokemon) => Player;
     GetMoveOrder: () => Array<BattleAction>;
-    GetOtherPokemon:(pokemon:Pokemon)=>Pokemon;
+    GetOtherPokemon: (pokemon: Pokemon) => Pokemon;
 }
 
 
@@ -213,7 +213,7 @@ class BattleGame implements IGame {
 
 
     //performance purposes:
-    pokemonCached:Record<string,Pokemon> = {};
+    pokemonCached: Record<string, Pokemon> = {};
 
 
 
@@ -281,7 +281,7 @@ class BattleGame implements IGame {
 
                 const technique = actionPokemon.techniques.find(tech => tech.id === (action as UseMoveAction).moveId);
                 if (technique === undefined) {
-                    console.error(`Could not find technique to use in set initial player action action: ${JSON.stringify(action)}, pokemon: ${JSON.stringify(actionPokemon)}, techId: ${action.moveId}`,actionPokemon,action);
+                    console.error(`Could not find technique to use in set initial player action action: ${JSON.stringify(action)}, pokemon: ${JSON.stringify(actionPokemon)}, techId: ${action.moveId}`, actionPokemon, action);
                     throw new Error(`Could not find technique to use in set initial player action action: ${JSON.stringify(action)}, pokemon: ${JSON.stringify(actionPokemon)}, techId: ${action.moveId}`);
                 }
 
@@ -334,10 +334,10 @@ class BattleGame implements IGame {
         pokemon2.canAttackThisTurn = true;
 
         this.GetBehavioursForPokemon(pokemon1).forEach(b => {
-            try{
-            b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon1), pokemon1);
+            try {
+                b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon1), pokemon1);
             }
-            catch{
+            catch {
                 console.log(this);
                 console.log(pokemon1);
                 console.log(b);
@@ -345,10 +345,10 @@ class BattleGame implements IGame {
             }
         });
         this.GetBehavioursForPokemon(pokemon2).forEach(b => {
-            try{
-            b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon2), pokemon2);
+            try {
+                b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon2), pokemon2);
             }
-            catch{
+            catch {
                 console.log(this);
                 console.log(pokemon2);
                 console.log(b);
@@ -389,7 +389,7 @@ class BattleGame implements IGame {
         }
 
         if (this.playersWhoNeedToSwitch.filter(p => p.id === action.playerId).length === 0) {
-            console.error("This player should not be switching a pokemon",this,this.field,action);
+            console.error("This player should not be switching a pokemon", this, this.field, action);
             throw new Error("Invalid command in SetSwitchPromptPokemonAction, this player should not be switching a pokemon");
         }
 
@@ -407,7 +407,7 @@ class BattleGame implements IGame {
 
         //TODO : maybe it is here where it is happening?, there is never 2 switch actions in there?
         this.playersWhoNeedToSwitch = this.playersWhoNeedToSwitch.slice();
-        _.remove(this.playersWhoNeedToSwitch,(el)=>el.id === player.id);
+        _.remove(this.playersWhoNeedToSwitch, (el) => el.id === player.id);
 
         if (this.playersWhoNeedToSwitch.length === 0) {
             this._switchNeededActions.forEach(act => {
@@ -417,13 +417,13 @@ class BattleGame implements IGame {
             });
 
             this._switchNeededActions = [];
-             if (this.playersWhoNeedToSwitch.length>0){
-                 this.CalculateTurn();                
+            if (this.playersWhoNeedToSwitch.length > 0) {
+                this.CalculateTurn();
                 return;
             }
-            else{
-                if (this.currentState!==TurnState.GameOver){
-                  this.currentState = TurnState.CalculatingTurn;
+            else {
+                if (this.currentState !== TurnState.GameOver) {
+                    this.currentState = TurnState.CalculatingTurn;
                 }
                 this.CalculateTurn();
             }
@@ -444,7 +444,7 @@ class BattleGame implements IGame {
 
     //The weather  here is a big issue, we really only want it to run once and not for each pokemon, thats we have these 2 different functions,
     //it is possible the way we are doing things needs to be updated to make sense for weather.
-    GetBehavioursForPokemon(pokemon: Pokemon):BattleBehaviour[] {
+    GetBehavioursForPokemon(pokemon: Pokemon): BattleBehaviour[] {
         //const weather = this.field.weather ? [this.field.weather] : [];
         return (
             this.field.fieldEffects!.filter(fe => fe.playerId === this.GetPokemonOwner(pokemon).id) as BattleBehaviour[])
@@ -465,7 +465,7 @@ class BattleGame implements IGame {
         if (this.currentState !== TurnState.GameOver) {
             const owner = this.GetPokemonOwner(pokemon);
 
-            if (this.GetValidSwitchIns(owner).length=== 0){ //this should fix the error. not sure why it would be getting prompted here if there are no valid's but who knows.
+            if (this.GetValidSwitchIns(owner).length === 0) { //this should fix the error. not sure why it would be getting prompted here if there are no valid's but who knows.
                 return // cannot be prompted to switch if it has no switch ins.
             }
             //TODO - This needs to be a prompt now, not just for fainted pokemon.
@@ -515,7 +515,7 @@ class BattleGame implements IGame {
         }
     }
 
-    ApplyIndirectDamage(pokemon: Pokemon, damage: number,message?:string) {
+    ApplyIndirectDamage(pokemon: Pokemon, damage: number, message?: string) {
 
 
         this.GetBehavioursForPokemon(pokemon).forEach(b => { damage = b.ModifyIndirectDamage(this, pokemon, damage) });
@@ -536,7 +536,7 @@ class BattleGame implements IGame {
             effectivenessAmt: 1
         }
         this.AddEvent(damageEffect);
-        if (message){
+        if (message) {
             this.AddMessage(message);
         }
         if (pokemon.currentStats.hp <= 0) {
@@ -573,7 +573,7 @@ class BattleGame implements IGame {
         damage = Math.max(1, Math.round(damage));
 
         //There has to be someway to put this into the substitute instead... a redirect damage function?
-        if (defendingPokemon.volatileStatuses.find(vStat => vStat.type === VolatileStatusType.Substitute) &&attackingPokemon.ability.toLowerCase()!=="infiltrator")  {
+        if (defendingPokemon.volatileStatuses.find(vStat => vStat.type === VolatileStatusType.Substitute) && attackingPokemon.ability.toLowerCase() !== "infiltrator") {
             this.ApplyDamageToSubstitute(attackingPokemon, defendingPokemon, damage);
             return;
         }
@@ -712,8 +712,8 @@ class BattleGame implements IGame {
 
     UseTechnique(pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique) {
 
-        
-        if (technique.currentPP<=0){
+
+        if (technique.currentPP <= 0) {
             console.log(this);
             console.log(pokemon);
             console.log(technique);
@@ -721,10 +721,10 @@ class BattleGame implements IGame {
         }
 
         //edge case for struggle
-        if (technique.name.toLowerCase() === "struggle"){
-            this.AddMessage(`${pokemon.name} has no usable moves!`);            
+        if (technique.name.toLowerCase() === "struggle") {
+            this.AddMessage(`${pokemon.name} has no usable moves!`);
         }
-    
+
 
         const useTechniqueEffect: UseMoveEvent = {
             type: BattleEventType.UseTechnique,
@@ -747,11 +747,11 @@ class BattleGame implements IGame {
         if (pokemon.techniques.find(tech => tech.name === technique.name)) {
             pokemon.techniqueUsedLast = technique.name;
         }
-        
+
         if (this.field.weather) {
             technique = this.field.weather.ModifyTechnique(pokemon, technique);
         }
-        
+
         this.GetBehavioursForPokemon(pokemon).forEach(b => {
             technique = b.ModifyTechnique(pokemon, technique);
         })
@@ -779,9 +779,9 @@ class BattleGame implements IGame {
             }
         });
 
-        this.GetBehavioursForPokemon(pokemon).forEach(b=>{
-            if (techniqueNegated === false){
-                techniqueNegated = b.NegateOwnTechnique(this,pokemon,defendingPokemon,technique);
+        this.GetBehavioursForPokemon(pokemon).forEach(b => {
+            if (techniqueNegated === false) {
+                techniqueNegated = b.NegateOwnTechnique(this, pokemon, defendingPokemon, technique);
             }
         });
 
@@ -831,7 +831,7 @@ class BattleGame implements IGame {
     }
     public AddEvent(effect: BattleEvent) {
         effect.id = this.nextEventId++;
-        effect.resultingState = this.shouldProcessEvents? _.cloneDeep(this.field) : this.field;
+        effect.resultingState = this.shouldProcessEvents ? _.cloneDeep(this.field) : this.field;
         this.eventLog.push(effect);
         this.eventsSinceLastAction.push(effect);
     }
@@ -983,13 +983,13 @@ class BattleGame implements IGame {
 
         //Need edge case here for pursuit faints, we should prompt a switch again after pursuit has fainted a pokemon
         let pursuitDeath = false;
-        if (this._moveOrder[0].type === Actions.UseTechnique){
-            if (this._moveOrder[0].moveName?.toLowerCase() === 'pursuit' && this._moveOrder[1].type==='switch-pokemon-action'){
+        if (this._moveOrder[0].type === Actions.UseTechnique) {
+            if (this._moveOrder[0].moveName?.toLowerCase() === 'pursuit' && this._moveOrder[1].type === 'switch-pokemon-action') {
 
                 //do not prompt a switch again if this pokemon fainted due to pursuit, there should be no switch needed prompts triggered yet in this case.
                 //any other switches that might need to happen should still happen.
-                if (! (this.playersWhoNeedToSwitch.map(p=>p.id).includes(GetPokemonOwner(this.field.players,pokemon).id)) ){
-                    console.log("pursuit death happened!",this,pokemon);
+                if (!(this.playersWhoNeedToSwitch.map(p => p.id).includes(GetPokemonOwner(this.field.players, pokemon).id))) {
+                    console.log("pursuit death happened!", this, pokemon);
                     pursuitDeath = true;
                     //return;
                 }
@@ -1132,7 +1132,7 @@ class BattleGame implements IGame {
             this.NextTurn();
         }
         else if (this.currentState === 'game-over' && this.turnOver === false) {
-            const winningPlayer = this.winningPlayerId!==-1 ? this.GetPlayer(this.winningPlayerId!) : undefined;
+            const winningPlayer = this.winningPlayerId !== -1 ? this.GetPlayer(this.winningPlayerId!) : undefined;
 
             //Potential bug here, what happens if we draw?
             const losingPlayer = this.GetPlayers().find(p => p.id !== this.winningPlayerId);
@@ -1201,8 +1201,8 @@ class BattleGame implements IGame {
     }
 
     private DoAction(action: BattleAction) {
-        
-        
+
+
         switch (action.type) {
             case 'switch-pokemon-action': {
 
@@ -1279,17 +1279,17 @@ class BattleGame implements IGame {
         return player;
     }
     private GetPokemon(pokemonId: number): Pokemon {
-        
-        let pokemon;
-        if (this.pokemonCached[pokemonId] === undefined){        
-            pokemon = this.GetPlayers().map(player => { return player.pokemon }).flat().find(pokemon => pokemon.id === pokemonId);
-            
-        }
-        else{
-            pokemon = this.pokemonCached[pokemonId];
-        }      
 
-        
+        let pokemon;
+        if (this.pokemonCached[pokemonId] === undefined) {
+            pokemon = this.GetPlayers().map(player => { return player.pokemon }).flat().find(pokemon => pokemon.id === pokemonId);
+
+        }
+        else {
+            pokemon = this.pokemonCached[pokemonId];
+        }
+
+
         if (pokemon === undefined) {
             throw new Error(`Could not find pokemon with id ${pokemonId} `);
         }
@@ -1316,7 +1316,7 @@ class BattleGame implements IGame {
         //this is to bandage fix where for somer reason player's are being prompted to switch when they have no valid switches (i.e. 1 pokemon left). it only errors out 
         //about once every 1000 games, so not ure what is 
         //going to poke around our code base a bit and se
-        if (this.playersWhoNeedToSwitch.length>0){
+        if (this.playersWhoNeedToSwitch.length > 0) {
             console.error('weird stuff happening', _.cloneDeep(this));
         }
 
@@ -1333,30 +1333,27 @@ class BattleGame implements IGame {
 
         //create each of the valid tech actions:
         const activePokemon = GetActivePokemon(player);
-        const validTechniqueActions = activePokemon.techniques.filter(tech=>tech.currentPP>0).map(tech => {
+        const validTechniqueActions = activePokemon.techniques.filter(tech => tech.currentPP > 0).map(tech => {
             return CreateTechniqueAction(player, tech);
         });
 
         const validSwitchActions = GetAlivePokemon(player).filter(poke => poke.id !== GetActivePokemon(player).id).map(poke => {
             return CreateSwitchAction(player, poke.id);
         });
-        let validActions:BattleAction[] = [validTechniqueActions, validSwitchActions].flat();
+        let validActions: BattleAction[] = [validTechniqueActions, validSwitchActions].flat();
 
         //Modify these actions here.
         const otherPokemon = this.GetOtherPokemon(GetActivePokemon(player));
 
-        this.GetBehavioursForPokemon(activePokemon).forEach(b=>{
-            validActions = b.ModifyValidActions(this,player,validActions);
+        this.GetBehavioursForPokemon(activePokemon).forEach(b => {
+            validActions = b.ModifyValidActions(this, player, validActions);
         });
 
-        this.GetBehavioursForPokemon(otherPokemon).forEach(b=>{
-           validActions =  b.ModifyOpponentValidActions(this,player,validActions)
+        this.GetBehavioursForPokemon(otherPokemon).forEach(b => {
+            validActions = b.ModifyOpponentValidActions(this, player, validActions)
         });
 
-        console.log("valid actions for player " + player.name);
-        console.log(validActions);
-
-        if (validActions.filter(act=>act.type===Actions.UseTechnique).length === 0){
+        if (validActions.filter(act => act.type === Actions.UseTechnique).length === 0) {
             //Struggle may be selected in this case.
             validActions.push({
                 playerId: player.id,
@@ -1380,12 +1377,12 @@ class BattleGame implements IGame {
         }
         return player;
     }
-    GetOtherPokemon(pokemon:Pokemon){
-        const owner = GetPokemonOwner(this.field.players,pokemon);
+    GetOtherPokemon(pokemon: Pokemon) {
+        const owner = GetPokemonOwner(this.field.players, pokemon);
 
-        const otherPlayer = this.field.players.find(p=>p.id!==owner.id);
+        const otherPlayer = this.field.players.find(p => p.id !== owner.id);
 
-        if (otherPlayer === undefined){
+        if (otherPlayer === undefined) {
             throw new Error(`Could not find other pokemon`);
         }
 

@@ -13,6 +13,8 @@ import "./randomTeams.css";
 import * as Icons from '@ant-design/icons';
 import TeamSelector from 'components/TeamSelector/TeamSelector';
 import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
+import Pokeball from 'components/Pokeball/Pokeball';
+import { Bouncy } from 'components/_General/General';
 
 const { TabPane } = Tabs;
 const { Panel } = Collapse;
@@ -23,6 +25,8 @@ export interface MatchResult {
     winningPokemon: string[],
     losingPokemon: string[],
 }
+
+
 
 async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise<OnGameOverArgs> {
 
@@ -183,6 +187,7 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     const [numberOfBattles, setNumberOfBattles] = useState<number>(500); //its a string for compatibility issues.
     const [simText, setSimText] = useState<string>("")
     const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
+    const [isSimming,setIsSimming] = useState<boolean>(false);
 
     const [currentPokemonFilter, setCurrentPokemonFilter] = useState<string[]>([]);
     const [teamSize, setTeamSize] = useState<number>(6);
@@ -211,15 +216,15 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
         )
     }
 
-    const startButton = (<Button type="primary" onClick={() => {
-        RunNBattles(numberOfBattles, teamSize, battleEndedFunc, (num) => setSimText("Simulating Battle " + num), currentPool);
-
+    const startButton = (<Button disabled={isSimming} type="primary" onClick={async () => {
+        setIsSimming(true);
+        await RunNBattles(numberOfBattles, teamSize, battleEndedFunc, (num) => setSimText("Simulating Battle " + num), currentPool);
+        setIsSimming(false);
     }}> Simulate!</Button>)
 
     const teamSizeInput = (<div> Team Size : <InputNumber min={2} value={teamSize} max={6} defaultValue={6} onChange={(e) => setTeamSize(e)} /></div>);
     const numberOfBattlesInput = (<div> Number of Battles : <InputNumber min={1} value={numberOfBattles} max={100000} defaultValue={500} onChange={(e) => setNumberOfBattles(e)} />{startButton}</div>)
-    const simTextDiv = (<div>{simText}</div>)
-
+    const simTextDiv = (isSimming ? (<div><Bouncy><Pokeball/></Bouncy>&nbsp;{simText}&nbsp;<Bouncy><Pokeball/></Bouncy></div>) : <div>{simText}</div>);
 
     const removePokeName = (name: string, currentArr: Array<string>) => {
         console.log("Removing pokemon", name);

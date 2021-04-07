@@ -269,7 +269,7 @@ const premades: Array<PremadePokemon> = [
             "Protect",
             "Waterfall",
             "Crunch",
-            "Ice Beam"
+            "Close Combat"
         ],
 
     },
