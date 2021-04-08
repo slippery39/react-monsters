@@ -198,7 +198,7 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     const pokemonPoolSettings = () => {
         return (
             <Card>
-                <Collapse defaultActiveKey={['1']}>
+                <Collapse defaultActiveKey={'1'}>
                     <Panel header="Select Simulation Pool" key="1">
                         <TeamSelector amountNeededMessage={""} onChange={(pool) => setCurrentPool(pool)} defaultPokemon={currentPool} maxPokemon={999} />
                     </Panel>

@@ -1,4 +1,4 @@
-import { Button, InputNumber } from 'antd';
+import { Button, Card, Collapse, InputNumber, message} from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import { OnGameOverArgs } from 'game/BattleGame';
@@ -12,11 +12,14 @@ import WinLossTable from '../WinLossTable';
 import * as Icons from '@ant-design/icons';
 import Pokeball from 'components/Pokeball/Pokeball';
 import { Bouncy } from 'components/_General/General';
+import TeamSelector from 'components/TeamSelector/TeamSelector';
+
+const { Panel } = Collapse;
 
 
 interface MatchResult {
-    winningPokemon: Array<string>,
-    losingPokemon: Array<string>,
+    winningPokemon: string[],
+    losingPokemon: string[],
 }
 
 
@@ -49,51 +52,54 @@ async function RunRoundRobinBattle1v1(pokemon1: string, pokemon2: string): Promi
 }
 
 
-function GetAllMatchups(){
-
-    let pokemonList = GetAllPokemonInfo().map(poke => poke.species);
-
-    let allMatchups = pokemonList.flatMap(
-        (v, i) => pokemonList.slice(i + 1).map(w => { return { pokemon1: v, pokemon2: w } })
+function GetAllMatchups(pool: string[]) {
+    let allMatchups = pool.flatMap(
+        (v, i) => pool.slice(i + 1).map(w => { return { pokemon1: v, pokemon2: w } })
     );
 
     return allMatchups;
 }
 
-async function RoundRobin1v1(battleEndedFunc: (data: SimmedStats, results: Array<MatchResult>) => void, battleStartedFunc: (id: string) => void, numberOfBattles: number) {
+interface RoundRobin1v1Settings {
+    onBattleEnd: (data: SimmedStats, results: MatchResult[]) => void
+    onBattleStart: (id: string) => void
+    numberOfBattles: number,
+    pool: string[]
+}
+
+async function RoundRobin1v1(settings: RoundRobin1v1Settings) {
 
     let currentStats: SimmedStats = {};
-    let matchResults: Array<MatchResult> = [];
+    let matchResults: MatchResult[] = [];
 
 
-    let allMatchups = GetAllMatchups();
+    let allMatchups = GetAllMatchups(settings.pool);
     let allBattles = [...allMatchups];
 
+    let numberOfBattles = settings.numberOfBattles
     if (numberOfBattles > 1) {
         for (let i = 1; i < numberOfBattles; i++) {
             allBattles = allBattles.concat([...allMatchups])
-            console.log(allMatchups);
         }
     }
 
     allBattles = shuffle(allBattles);
     for (let i in allBattles) {
-        battleStartedFunc(i);
+        settings.onBattleStart(i);
         const matchup = allBattles[i];
-        console.log("simming matchup", matchup);
         const result = await RunRoundRobinBattle1v1(matchup.pokemon1, matchup.pokemon2);
         matchResults.push({
             winningPokemon: result.winningPlayer!.pokemon.map(poke => poke.name),
             losingPokemon: result.losingPlayer!.pokemon.map(poke => poke.name)
         });
         UpdateStats(currentStats, result);
-        battleEndedFunc(currentStats, matchResults);
+        settings.onBattleEnd(currentStats, matchResults);
     }
 }
 
 
 //These work a little bit differently here than in the Random 6v6. Hopefully can refactor to make things more clear.
-function UpdateWinStats(previousStats: SimmedStats, team: Array<string>) {
+function UpdateWinStats(previousStats: SimmedStats, team: string[]) {
 
     const newStats = previousStats;
 
@@ -110,7 +116,7 @@ function UpdateWinStats(previousStats: SimmedStats, team: Array<string>) {
     return newStats
 }
 
-function UpdateLossStats(previousStats: SimmedStats, team: Array<string>) {
+function UpdateLossStats(previousStats: SimmedStats, team: string[]) {
 
     const newStats = previousStats;
 
@@ -128,7 +134,7 @@ function UpdateLossStats(previousStats: SimmedStats, team: Array<string>) {
 }
 
 
-function GetSpecificPokemonWinRates(pokeName: string, results: Array<MatchResult>) {
+function GetSpecificPokemonWinRates(pokeName: string, results: MatchResult[]) {
     let stats: Record<string, WinLoss> = {};
 
 
@@ -152,26 +158,56 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
     const [numberOfBattles, setNumberOfBattles] = useState<number>(1); //its a string for compatibility issues.
     const [simText, setSimText] = useState<string>("")
     const [currentPokemonName, setCurrentPokemonName] = useState<string>("");
-    const [matchResults, setMatchResults] = useState<Array<MatchResult>>([]);
+    const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
     const [isSimming, setIsSimming] = useState<boolean>(false);
 
-    const battleEndedFunc = useCallback((stats: Record<string, WinLoss>, results: Array<MatchResult>) => {
-         const newStats = { ...stats };
+    const pool = GetAllPokemonInfo().map(poke => poke.species); //all the pokemon;
+    const [currentPool, setCurrentPool] = useState<string[]>(pool);
+
+    //shared with out random teams simulator... extact into its own component i am thinking., functionality should be the same.
+    const pokemonPoolSettings = () => {
+        return (
+            <Card>
+                <Collapse defaultActiveKey={'1'}>
+                    <Panel header="Select Simulation Pool" key="1">
+                        <TeamSelector amountNeededMessage={""} onChange={(pool: React.SetStateAction<string[]>) => setCurrentPool(pool)} defaultPokemon={currentPool} maxPokemon={999} />
+                    </Panel>
+                </Collapse>
+            </Card>
+        )
+    }
+
+    const handleBattleEnded = useCallback((stats: Record<string, WinLoss>, results: Array<MatchResult>) => {
+        const newStats = { ...stats };
         setSimStats(newStats);
         setMatchResults(results);
         setSimText("All battles simulated!");
     }, [setSimStats])
 
     const startButton = (<Button disabled={isSimming} type="primary" onClick={async () => {
+
+        if (currentPool.length<2){
+            message.error("Please select at least 2 pokemon in your pool");
+            return;
+        }
+
         setIsSimming(true);
-        await RoundRobin1v1(battleEndedFunc, (num) => setSimText("Simulating Battle " + num), numberOfBattles);
+
+        const settings: RoundRobin1v1Settings = {
+            onBattleEnd: handleBattleEnded,
+            onBattleStart: (num) => setSimText("Simulating Battle " + num),
+            numberOfBattles: numberOfBattles,
+            pool: currentPool
+        }
+        await RoundRobin1v1(settings);
         setIsSimming(false);
     }
     }> Simulate!</Button>)
-    const simSettings = (<div> Number of Battles Per Matchup : ({GetAllMatchups().length*numberOfBattles}) <InputNumber min={1} value={numberOfBattles} max={10} defaultValue={1} onChange={(e) => setNumberOfBattles(e)} />{startButton}</div>)
-    const simTextDiv = (isSimming ? (<div><Bouncy><Pokeball/></Bouncy>&nbsp;{simText}&nbsp;<Bouncy><Pokeball/></Bouncy></div>) : <div>{simText}</div>);
+    const simSettings = (<div> Number of Battles Per Matchup : (Total Battles: {GetAllMatchups(currentPool).length * numberOfBattles}) <InputNumber min={1} value={numberOfBattles} max={10} defaultValue={1} onChange={(e) => setNumberOfBattles(e)} />{startButton}</div>)
+    const simTextDiv = (isSimming ? (<div><Bouncy><Pokeball /></Bouncy>&nbsp;{simText}&nbsp;<Bouncy><Pokeball /></Bouncy></div>) : <div>{simText}</div>);
 
     return (<div>
+        {pokemonPoolSettings()}
         {simSettings}
         {simTextDiv}
         {currentPokemonName === "" && <WinLossTable onPokemonImageClick={(name) => setCurrentPokemonName(name)} stats={simStats} />}
