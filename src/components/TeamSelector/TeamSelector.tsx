@@ -73,7 +73,7 @@ const TeamSelector = (props: Props) => {
             return "Party is full!"
         }
         else{
-            return (maxPokemon - selectedTeam.length) + " more pokemon needed!";
+            return "";
         }
     }
 
