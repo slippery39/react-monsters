@@ -34,7 +34,6 @@ async function RunRoundRobinBattle1v1(pokemon1: string, pokemon2: string): Promi
             .WithPokemon(pokemon2)
             .Build();
 
-
         let battleService = new BattleService(ai1, ai2, false);
         new BasicAI(ai1, battleService);
         new BasicAI(ai2, battleService);
@@ -145,11 +144,8 @@ function GetSpecificPokemonWinRates(pokeName: string, results: Array<MatchResult
     return stats;
 }
 
-
 interface Props {
-
 }
-
 
 const RoundRobinSim: React.FunctionComponent<Props> = () => {
     const [simStats, setSimStats] = useState<SimmedStats>({});

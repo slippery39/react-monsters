@@ -19,14 +19,10 @@ import { Bouncy } from 'components/_General/General';
 const { TabPane } = Tabs;
 const { Panel } = Collapse;
 
-
-
 export interface MatchResult {
     winningPokemon: string[],
     losingPokemon: string[],
 }
-
-
 
 async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise<OnGameOverArgs> {
 
@@ -174,20 +170,15 @@ function GetPokemonOpponentTeamRates(pokeName: Array<string>, results: MatchResu
 
 }
 
-
-
-
 interface Props {
 }
-
-
 
 const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     const [simStats, setSimStats] = useState<SimmedStats>({});
     const [numberOfBattles, setNumberOfBattles] = useState<number>(500); //its a string for compatibility issues.
     const [simText, setSimText] = useState<string>("")
     const [matchResults, setMatchResults] = useState<MatchResult[]>([]);
-    const [isSimming,setIsSimming] = useState<boolean>(false);
+    const [isSimming, setIsSimming] = useState<boolean>(false);
 
     const [currentPokemonFilter, setCurrentPokemonFilter] = useState<string[]>([]);
     const [teamSize, setTeamSize] = useState<number>(6);
@@ -224,7 +215,7 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
 
     const teamSizeInput = (<div> Team Size : <InputNumber min={2} value={teamSize} max={6} defaultValue={6} onChange={(e) => setTeamSize(e)} /></div>);
     const numberOfBattlesInput = (<div> Number of Battles : <InputNumber min={1} value={numberOfBattles} max={100000} defaultValue={500} onChange={(e) => setNumberOfBattles(e)} />{startButton}</div>)
-    const simTextDiv = (isSimming ? (<div><Bouncy><Pokeball/></Bouncy>&nbsp;{simText}&nbsp;<Bouncy><Pokeball/></Bouncy></div>) : <div>{simText}</div>);
+    const simTextDiv = (isSimming ? (<div><Bouncy><Pokeball /></Bouncy>&nbsp;{simText}&nbsp;<Bouncy><Pokeball /></Bouncy></div>) : <div>{simText}</div>);
 
     const removePokeName = (name: string, currentArr: Array<string>) => {
         console.log("Removing pokemon", name);

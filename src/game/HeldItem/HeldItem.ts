@@ -1,5 +1,4 @@
-import PlayerBattleController from "components/Battle/BattleSetup/BattleSetupController";
-import { Actions, BattleAction, UseMoveAction as UseTechniqueAction } from "game/BattleActions";
+import { Actions, BattleAction } from "game/BattleActions";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { IGame } from "game/BattleGame";
 import { ElementType } from "game/ElementType";
@@ -10,7 +9,6 @@ import { Stat } from "game/Stat";
 import { Technique } from "game/Techniques/Technique";
 import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import _ from "lodash";
-import { isJsxFragment } from "typescript";
 
 export abstract class HeldItem extends BattleBehaviour {
     OnRemoved(turn: IGame, pokemon: Pokemon) { //might want this for all of our battle behaviours.

@@ -3,7 +3,6 @@ import React from 'react';
 import StartGameScreen from 'components/StartGameScreen/StartGameScreen';
 import { useHistory } from 'react-router-dom';
 
-
 function App() {
   const history = useHistory();
   
@@ -17,8 +16,6 @@ function App() {
   function handleTestGameClick(){
     history.push("./devtestbattle");
   }
-
-
 
   return (
     <div className='app-window'>

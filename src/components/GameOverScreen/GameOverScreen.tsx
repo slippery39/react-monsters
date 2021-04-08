@@ -1,11 +1,8 @@
 import React from 'react'
 
-
-
 interface Props {
     onReturnClick:()=>void;
 }
-
 
 const GameOverScreen: React.FunctionComponent<Props> = (props) => {
     return (

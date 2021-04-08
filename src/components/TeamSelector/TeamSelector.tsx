@@ -28,6 +28,7 @@ const TeamSelector = (props: Props) => {
         }
 
         setSelectedTeam([...props.defaultPokemon]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     },[]);
 
     const pokemonIcons = pokemon.filter(p=>{
@@ -37,13 +38,6 @@ const TeamSelector = (props: Props) => {
         return (<div key={p.species} className={iconClass} onClick={() => { handleIconClick(p.species) }}><PokemonImage type="small" name={p.species} /></div>)
     });
 
-    /*
-    const pokemonIcons = pokemon.map(p => {
-        let iconClass = "team-selector-icon";
-        if (selectedTeam.includes(p.species)) { 
-             //iconClass += " team-selector-icon-selected"; remove this, testing whether or not we like the graying out of pokemon, or the complete removal of pokemon.
-        }        
-    })*/
 
     const handleIconClick = (name: string) => {
         if (selectedTeam.includes(name)) {

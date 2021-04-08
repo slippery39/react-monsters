@@ -133,63 +133,8 @@ const SleepStatus1:HardStatus &{turnsToSleep:number,counter:number} = {...Create
 };
 
 
-class RestingStatus extends BattleBehaviour implements HardStatus{
-    statusType = Status.Sleep;
-    curedString = 'has woken up!'
-    inflictedMessage = 'is taking a rest!'
-    counter:number = 0;
 
-    CanApply(){
-        return true;
-    }
-    BeforeAttack(game: IGame, pokemon: Pokemon) {
-        game.AddMessage(`${pokemon.name} is sleeping!`);
-
-        if (this.counter >= 2) {
-            //Pokemon Wakes Up
-            pokemon.status = Status.None;
-            pokemon._statusObj = GetHardStatus(Status.None);
-
-            const wakeupEffect: StatusChangeEvent = {
-                type: BattleEventType.StatusChange,
-                targetPokemonId: pokemon.id,
-                status: Status.None,
-                defaultMessage: `${pokemon.name} has woken up!`
-            }
-            game.AddEvent(wakeupEffect);
-        }
-        else {
-            pokemon.canAttackThisTurn = false;
-            this.counter++;
-        }
-    }
-}
-
-class ToxicStatus extends BattleBehaviour implements HardStatus{
-    statusType = Status.Poison;
-    curedString= 'has been cured of poison!'
-    inflictedMessage = 'has been badly poisoned!'
-    counter:number = 1;
-
-    CanApply(game:IGame, pokemon: Pokemon) {
-        return !HasElementType(pokemon, ElementType.Steel) && !HasElementType(pokemon,ElementType.Poison);
-    }
-    EndOfTurn(game:IGame, pokemon: Pokemon) {
-                //apply poison damage
-        //poison damage is 1/16 of the pokemons max hp
-        const maxHp = pokemon.originalStats.hp;
-        const poisonDamage = this.counter * Math.ceil(maxHp / 16);
-        this.counter++;
-        game.AddMessage(`${pokemon.name} is badly hurt by poison.`);
-        game.ApplyIndirectDamage(pokemon, poisonDamage)
-    }
-    OnSwitchedOut(game: IGame, pokemon:Pokemon){
-        this.counter = 1;
-    }
-}
-
-class BurnStatus extends BattleBehaviour implements HardStatus{
-    
+class BurnStatus extends BattleBehaviour implements HardStatus{   
 
     statusType = Status.Burned;
     curedString= 'has been cured of its burn!'
@@ -252,46 +197,6 @@ class FrozenStatus extends BattleBehaviour implements HardStatus{
                 defaultMessage: `${attackingPokemon.name}'s fire attack thawed ${defendingPokemon.name}!`
             }
             game.AddEvent(thawEffect);
-        }
-    }
-}
-
-class SleepStatus extends BattleBehaviour implements HardStatus{
-    
-    
-    statusType = Status.Sleep;
-    curedString= 'has woken up!'
-    inflictedMessage = 'has fallen asleep!'
-    turnsToSleep:number = 3;
-    counter:number = 3;
-
-    constructor(){
-        super();
-        this.turnsToSleep = Math.ceil(Math.random()*3);
-        this.counter = this.turnsToSleep;
-    }
-
-    CanApply(game:IGame, pokemon: Pokemon){
-        return true;
-    }
-    BeforeAttack(game:IGame, pokemon: Pokemon) {
-        game.AddMessage(`${pokemon.name} is sleeping!`);
-        this.counter--;
-        if (this.counter < 0){
-            //Pokemon Wakes Up
-            pokemon.status = Status.None;
-            pokemon._statusObj = GetHardStatus(Status.None);
-
-            const wakeupEffect: StatusChangeEvent = {
-                type: BattleEventType.StatusChange,
-                targetPokemonId: pokemon.id,
-                status: Status.None,
-                defaultMessage: `${pokemon.name} has woken up!`
-            }
-            game.AddEvent(wakeupEffect);
-        }
-        else {
-            pokemon.canAttackThisTurn = false;
         }
     }
 }
@@ -360,7 +265,6 @@ function GetHardStatus(status: Status): HardStatus {
     }
     else if (status === Status.Sleep) {
         return {...SleepStatus1}
-        return new SleepStatus();
     }
     else if (status === Status.Frozen) {
         return new FrozenStatus();
@@ -370,11 +274,9 @@ function GetHardStatus(status: Status): HardStatus {
     }
     else if (status === Status.ToxicPoison){
         return {...ToxicStatus1};
-        return new ToxicStatus();
     }
     else if (status === Status.Resting){
         return {...RestingStatus1}; //testing this out.
-        return new RestingStatus();
 
     }
     else if (status === Status.None) {

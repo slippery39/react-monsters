@@ -28,7 +28,6 @@ class BasicAI implements AI {
         })
         this._service.OnSwitchNeeded.on((args) => {
             this.ChoosePokemonToSwitchInto(args);
-
         })
     }
 
@@ -63,16 +62,16 @@ class BasicAI implements AI {
             throw new Error(`ERROR could not get valid pokemon to switch into for AI`);
         }
         const pokemonChosen = shuffle(validPokemon)[0]
-        const switchPokemonAction = CreateSwitchAction(this.GetPlayerFromTurn(),pokemonChosen);
+        const switchPokemonAction = CreateSwitchAction(this.GetPlayerFromTurn(), pokemonChosen);
         this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);
     }
 
     private async SwitchPokemonSmart(validPokemon: Array<number>) {
         const miniMax = new MiniMax();
-        const switches = await miniMax.GetBestPokemonSwitch(this.GetPlayerFromTurn(),this._service.battle);
+        const switches = await miniMax.GetBestPokemonSwitch(this.GetPlayerFromTurn(), this._service.battle);
 
-        if (switches.length === 0){
-            console.error(`error in SwitchPokemonSmart .... needed to switch but had no valid switches for our AI`,this,this._service,this._service.GetField());
+        if (switches.length === 0) {
+            console.error(`error in SwitchPokemonSmart .... needed to switch but had no valid switches for our AI`, this, this._service, this._service.GetField());
         }
         this._service.SetSwitchFaintedPokemonAction(switches[0].action as SwitchPokemonAction, false);
     }
@@ -86,8 +85,8 @@ class BasicAI implements AI {
 
             //TODO - If both players switch, pick randomly.
             const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
-            if (validPokemon.length ===0 ){
-                console.error(args,this._service,this._service.battle);
+            if (validPokemon.length === 0) {
+                console.error(args, this._service, this._service.battle);
                 throw new Error(`No valid pokemon for ChoosePokemonToSwitchInto`);
 
             }

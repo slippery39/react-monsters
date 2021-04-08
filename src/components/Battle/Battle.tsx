@@ -31,11 +31,11 @@ import { ElementType } from 'game/ElementType';
 
 import ReactRain from "react-rain-animation";
 import "react-rain-animation/lib/style.css";
-import {  WeatherType } from 'game/Weather/Weather';
+import { WeatherType } from 'game/Weather/Weather';
 import { Field, OnNewTurnLogArgs } from 'game/BattleGame';
 
-import {Tabs} from 'antd';
-const {TabPane} = Tabs;
+import { Tabs } from 'antd';
+const { TabPane } = Tabs;
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -55,7 +55,7 @@ enum MenuState {
 }
 
 type State = {
-    field:Field,
+    field: Field,
 }
 
 type UIAction = {
@@ -91,7 +91,7 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
 interface Props {
     onEnd: () => void;
     battle: BattleService,
-    showDebug?:boolean,
+    showDebug?: boolean,
 }
 
 const Battle: React.FunctionComponent<Props> = (props) => {
@@ -100,7 +100,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     const initialState: State = {
         field: battleService.GetField(),
-    }    
+    }
 
     const reducer = function (state = initialState, action: UIAction): State {
         //making a deep copy of the state object for immutable purposes.
@@ -110,7 +110,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         switch (action.type) {
             //for syncing the state with the server.
             case 'state-change': {
-                return {field:action.field!};
+                return { field: action.field! };
             }
             case 'health-change': {
                 const pokemonData = getPokemonAndOwner(newState, action.id);
@@ -194,9 +194,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     useEffect(() => {
         battleService.onNewTurnLog.on(args => {
             setTurnInfo(args);
-            battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
-            setBattleEventsTemp(battleEvents.current);
             setMenuState(MenuState.ShowingTurn);
+            setBattleEventsTemp(battleEvents.current);
+            battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
         });
 
         battleService.onStateChange.on(args => {
@@ -327,8 +327,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 delay: defaultDelayTime, duration: messageAnimationTime, text: text, ease: "none", immediateRender: false, onComplete: onComplete
             });
         }
-
-
         switch (effect.type) {
 
 
@@ -542,22 +540,22 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     function SetBattleAction(techniqueId: number) {
 
         //todo: use player id instead.
-        const currentPokemon = state.field.players[0].pokemon.find(p=>p.id === state.field.players[0].currentPokemonId);
+        const currentPokemon = state.field.players[0].pokemon.find(p => p.id === state.field.players[0].currentPokemonId);
 
         const pokemonName = currentPokemon?.name;
-        const moveName = currentPokemon?.techniques.find(t=>t.id === techniqueId)?.name
+        const moveName = currentPokemon?.techniques.find(t => t.id === techniqueId)?.name
 
         const actionSuccessful = battleService.SetPlayerAction({
             playerId: 1, //todo : get player id
             pokemonId: state.field.players[0].currentPokemonId, //todo: get proper pokemon id,
-            pokemonName : pokemonName,
+            pokemonName: pokemonName,
             moveId: techniqueId,
-            moveName:moveName,
+            moveName: moveName,
             type: Actions.UseTechnique
         });
 
-        if (!actionSuccessful){
-               setMenuMessage((prev)=>prev ==="You cannot use this technique due to an ability, status or held item!"? prev+"":"You cannot use this technique due to an ability, status or held item!");
+        if (!actionSuccessful) {
+            setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
         }
     }
     function SetSwitchAction(pokemonSwitchId: number) {
@@ -567,8 +565,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             switchPokemonId: pokemonSwitchId
         }
         const actionSuccessful = battleService.SetPlayerAction(action);
-        if (!actionSuccessful){
-           setMenuMessage((prev)=>prev ==="You cannot use this technique due to an ability, status or held item!"? prev+"":"You cannot use this technique due to an ability, status or held item!");
+        if (!actionSuccessful) {
+            setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
         }
     }
     function SetUseItemAction(itemId: number) {
@@ -594,9 +592,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
 
-    
 
-    const GetMenuMessage = useCallback(()=> {
+
+    const GetMenuMessage = useCallback(() => {
         switch (menuState) {
             case MenuState.MainMenu: {
                 return `What will ${getAllyPokemon().name} do?`
@@ -631,20 +629,20 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return ''
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[menuState]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [menuState]);
 
     //we use an object here instead of a string so we can re-render the message animation if necessary.
-    const [menuMessage,setMenuMessage] = useState<string>(GetMenuMessage());
+    const [menuMessage, setMenuMessage] = useState<string>(GetMenuMessage());
 
-    useEffect(()=>{
-      setMenuMessage(GetMenuMessage());
-    },[menuState,GetMenuMessage])
+    useEffect(() => {
+        setMenuMessage(GetMenuMessage());
+    }, [menuState, GetMenuMessage])
 
     const enemyPartyPokeballs = () => {
         //todo - use enemy player id instead.
         return <div className="enemy-party-pokeballs">
-            
+
             {state.field.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
                 <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
         </div>
@@ -693,28 +691,26 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const bottomMenu = () => {
 
         const mainMenu = <BattleMenu
-            onMenuAttackClick={() => { 
-                //TODO: check if we will be forced to use struggle.
-                console.log(battleService.GetValidActions(state.field.players[0].id));
-                if (battleService.GetValidActions(state.field.players[0].id).filter(act=>act.type===Actions.UseTechnique).length === 0){
+            onMenuAttackClick={() => {
+                if (battleService.GetValidActions(state.field.players[0].id).filter(act => act.type === Actions.UseTechnique).length === 0) {
                     //use a struggle command instead
-                    const struggleCommand = battleService.GetValidActions(state.field.players[0].id).find(act=>act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
-                    if (struggleCommand === undefined){
+                    const struggleCommand = battleService.GetValidActions(state.field.players[0].id).find(act => act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
+                    if (struggleCommand === undefined) {
                         throw new Error(`Could not use struggle command`);
                     }
                     battleService.SetInitialAction(struggleCommand);
                 }
-                else{
-                    setMenuState(MenuState.AttackMenu);  
+                else {
+                    setMenuState(MenuState.AttackMenu);
                 }
-            
+
             }}
             onMenuItemClick={() => { setMenuState(MenuState.ItemMenu) }}
             onMenuSwitchClick={() => { setMenuState(MenuState.SwitchMenu) }}
             onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }} />
 
         const attackMenu = <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onAttackClick={(tech: any) => {  SetBattleAction(tech.id); }}
+            onAttackClick={(tech: any) => { SetBattleAction(tech.id); }}
             techniques={getAllyPokemon().techniques} />
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}
@@ -731,24 +727,24 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             <div>
                 <Tabs defaultActiveKey="1" onChange={SwitchPokemonInfoMenuPlayer}>
                     <TabPane tab="Ally Pokemon" key="1">
-                    <PokemonMiniInfoList
-                    showCancelButton={true}
-                    onCancelClick={() => setMenuState(MenuState.MainMenu)}
-                    onPokemonClick={(pokemon) => {
-                        setPokemonInfo(pokemon);
-                        setMenuState(MenuState.ShowPokemonInfo)
-                    }}
-                    player={battleService.GetAllyPlayer()} />
+                        <PokemonMiniInfoList
+                            showCancelButton={true}
+                            onCancelClick={() => setMenuState(MenuState.MainMenu)}
+                            onPokemonClick={(pokemon) => {
+                                setPokemonInfo(pokemon);
+                                setMenuState(MenuState.ShowPokemonInfo)
+                            }}
+                            player={battleService.GetAllyPlayer()} />
                     </TabPane>
                     <TabPane tab="Enemy Pokemon" key="2">
-                    <PokemonMiniInfoList
-                    showCancelButton={true}
-                    onCancelClick={() => setMenuState(MenuState.MainMenu)}
-                    onPokemonClick={(pokemon) => {
-                        setPokemonInfo(pokemon);
-                        setMenuState(MenuState.ShowPokemonInfo)
-                    }}
-                    player={battleService.GetEnemyPlayer()} />
+                        <PokemonMiniInfoList
+                            showCancelButton={true}
+                            onCancelClick={() => setMenuState(MenuState.MainMenu)}
+                            onPokemonClick={(pokemon) => {
+                                setPokemonInfo(pokemon);
+                                setMenuState(MenuState.ShowPokemonInfo)
+                            }}
+                            player={battleService.GetEnemyPlayer()} />
                     </TabPane>
                 </Tabs>
             </div>)
@@ -800,8 +796,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 <div className="top-screen">
                     <div className='battle-terrain'>
                         {state.field.weather?.name === WeatherType.Sunny && <div className='sunny-container'></div>}
-                        {state.field.weather?.name === WeatherType.Rain && <ReactRain id="react-rain" numDrops="100"/>}
-                        {state.field.weather?.name === WeatherType.Sandstorm &&<div className='sandstorm-container'></div>}
+                        {state.field.weather?.name === WeatherType.Rain && <ReactRain id="react-rain" numDrops="100" />}
+                        {state.field.weather?.name === WeatherType.Sandstorm && <div className='sandstorm-container'></div>}
                         {enemyPartyPokeballs()}
                         {enemyPokemonDisplay()}
                         {allyPokemonDisplay()}

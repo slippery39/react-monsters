@@ -3,8 +3,6 @@ import { TweenMax } from "gsap";
 import './AnimatedHealthBar.css'
 
 
-
-
 interface Props {
     value: number,
     animate?: Boolean,
