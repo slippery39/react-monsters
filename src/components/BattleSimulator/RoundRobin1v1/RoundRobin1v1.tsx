@@ -1,4 +1,4 @@
-import { Button, Card, Collapse, InputNumber, message} from 'antd';
+import { Button,InputNumber, message } from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import { OnGameOverArgs } from 'game/BattleGame';
@@ -12,9 +12,7 @@ import WinLossTable from '../WinLossTable';
 import * as Icons from '@ant-design/icons';
 import Pokeball from 'components/Pokeball/Pokeball';
 import { Bouncy } from 'components/_General/General';
-import TeamSelector from 'components/TeamSelector/TeamSelector';
-
-const { Panel } = Collapse;
+import PokemonPoolSelector from '../PoolSelector';
 
 
 interface MatchResult {
@@ -164,19 +162,6 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
     const pool = GetAllPokemonInfo().map(poke => poke.species); //all the pokemon;
     const [currentPool, setCurrentPool] = useState<string[]>(pool);
 
-    //shared with out random teams simulator... extact into its own component i am thinking., functionality should be the same.
-    const pokemonPoolSettings = () => {
-        return (
-            <Card>
-                <Collapse defaultActiveKey={'1'}>
-                    <Panel header="Select Simulation Pool" key="1">
-                        <TeamSelector amountNeededMessage={""} onChange={(pool: React.SetStateAction<string[]>) => setCurrentPool(pool)} defaultPokemon={currentPool} maxPokemon={999} />
-                    </Panel>
-                </Collapse>
-            </Card>
-        )
-    }
-
     const handleBattleEnded = useCallback((stats: Record<string, WinLoss>, results: Array<MatchResult>) => {
         const newStats = { ...stats };
         setSimStats(newStats);
@@ -186,11 +171,10 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
 
     const startButton = (<Button disabled={isSimming} type="primary" onClick={async () => {
 
-        if (currentPool.length<2){
+        if (currentPool.length < 2) {
             message.error("Please select at least 2 pokemon in your pool");
             return;
         }
-
         setIsSimming(true);
 
         const settings: RoundRobin1v1Settings = {
@@ -207,7 +191,7 @@ const RoundRobinSim: React.FunctionComponent<Props> = () => {
     const simTextDiv = (isSimming ? (<div><Bouncy><Pokeball /></Bouncy>&nbsp;{simText}&nbsp;<Bouncy><Pokeball /></Bouncy></div>) : <div>{simText}</div>);
 
     return (<div>
-        {pokemonPoolSettings()}
+        <PokemonPoolSelector onChange={(pool: React.SetStateAction<string[]>) => setCurrentPool(pool)} defaultPokemon={currentPool} />
         {simSettings}
         {simTextDiv}
         {currentPokemonName === "" && <WinLossTable onPokemonImageClick={(name) => setCurrentPokemonName(name)} stats={simStats} />}

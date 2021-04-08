@@ -1,4 +1,4 @@
-import { Button, Card, Collapse, InputNumber, message, Tabs } from 'antd';
+import { Button, InputNumber, message, Tabs } from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import waitForSeconds from 'game/AI/CoroutineTest';
@@ -11,13 +11,12 @@ import { SimmedStats, UpdateStats, WinLoss } from '../SimulatorFunctions';
 import WinLossTable from '../WinLossTable';
 import "./randomTeams.css";
 import * as Icons from '@ant-design/icons';
-import TeamSelector from 'components/TeamSelector/TeamSelector';
 import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 import Pokeball from 'components/Pokeball/Pokeball';
 import { Bouncy } from 'components/_General/General';
+import PokemonPoolSelector from '../PoolSelector';
 
 const { TabPane } = Tabs;
-const { Panel } = Collapse;
 
 export interface MatchResult {
     winningPokemon: string[],
@@ -194,19 +193,6 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     const pool = GetAllPokemonInfo().map(poke => poke.species); //all the pokemon;
     const [currentPool, setCurrentPool] = useState<string[]>(pool);
 
-
-    const pokemonPoolSettings = () => {
-        return (
-            <Card>
-                <Collapse defaultActiveKey={'1'}>
-                    <Panel header="Select Simulation Pool" key="1">
-                        <TeamSelector amountNeededMessage={""} onChange={(pool) => setCurrentPool(pool)} defaultPokemon={currentPool} maxPokemon={999} />
-                    </Panel>
-                </Collapse>
-            </Card>
-        )
-    }
-
     const startButton = (<Button disabled={isSimming} type="primary" onClick={async () => {
 
         if (currentPool.length<=teamSize){
@@ -261,7 +247,7 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     return (
         <div>
             {teamSizeInput}
-            {pokemonPoolSettings()}
+            <PokemonPoolSelector onChange={(pool: React.SetStateAction<string[]>) => setCurrentPool(pool)} defaultPokemon={currentPool} />
             {numberOfBattlesInput}
             {simTextDiv}
             {currentPokemonFilter.length === 0 && <WinLossTable onPokemonImageClick={(name) => setCurrentPokemonFilter(p => p.concat([name]))} stats={simStats} />}
