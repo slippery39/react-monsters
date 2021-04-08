@@ -1,4 +1,4 @@
-import { Button, Card, Collapse, InputNumber, Tabs } from 'antd';
+import { Button, Card, Collapse, InputNumber, message, Tabs } from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import waitForSeconds from 'game/AI/CoroutineTest';
@@ -208,6 +208,12 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     }
 
     const startButton = (<Button disabled={isSimming} type="primary" onClick={async () => {
+
+        if (currentPool.length<=teamSize){
+                message.error("The pokemon pool you choose from must be larger than the team sizes");
+                return;
+        }
+
         setIsSimming(true);
         await RunNBattles(numberOfBattles, teamSize, battleEndedFunc, (num) => setSimText("Simulating Battle " + num), currentPool);
         setIsSimming(false);
@@ -218,12 +224,9 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
     const simTextDiv = (isSimming ? (<div><Bouncy><Pokeball /></Bouncy>&nbsp;{simText}&nbsp;<Bouncy><Pokeball /></Bouncy></div>) : <div>{simText}</div>);
 
     const removePokeName = (name: string, currentArr: Array<string>) => {
-        console.log("Removing pokemon", name);
         _.remove(currentArr, (el) => {
             return el === name;
         });
-        console.log(currentArr);
-
         return [...currentArr];
     }
 
