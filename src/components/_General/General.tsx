@@ -27,7 +27,6 @@ const bouncy = keyframes`
 100% { transform: scale(1,1)      translateY(0); }
 `
 
-
 //Only used with the Pokeball Image for now
 export const Bouncy = styled.div`
     display:inline-block;

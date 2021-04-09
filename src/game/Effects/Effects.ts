@@ -554,7 +554,8 @@ export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, so
             }
 
             if (effect.recoilType === RecoilDamageType.PercentDamageDealt) {
-                RecoilEffect(turn, source.sourcePokemon, source.sourceDamage * (effect.amount / 100))
+                let damage = source.sourceDamage * (effect.amount /100);
+                RecoilEffect(turn, source.sourcePokemon, damage)
             }
             else if (effect.recoilType === RecoilDamageType.PercentMaxHealth) {
                 RecoilEffect(turn, source.sourcePokemon, source.sourcePokemon.originalStats.hp * (effect.amount / 100))

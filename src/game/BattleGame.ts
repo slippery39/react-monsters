@@ -812,6 +812,9 @@ class BattleGame implements IGame {
             this.ApplyBeforeDamageEffects(technique, pokemon, defendingPokemon);
 
             let damage: number = this.DoDamageTechnique(pokemon, defendingPokemon, technique);
+  
+
+            //
             if (damage > 0) {
                 this.ApplyTechniqueEffects(technique, pokemon, defendingPokemon, damage);
             }
@@ -959,10 +962,16 @@ class BattleGame implements IGame {
         this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
             newDamage = b.ModifyDamageTaken(this, pokemon, defendingPokemon, technique, newDamage);
         })
+
+        //clamp the damage taken to the pokemon's max health
+        newDamage = Math.min(newDamage,defendingPokemon.currentStats.hp);
+
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
         this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
             b.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, technique, newDamage);
         })
+
+      
         return newDamage;
     }
 
