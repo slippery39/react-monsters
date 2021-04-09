@@ -22,18 +22,14 @@ function initializeTestBattle(){
   const dugtrioTest = PokemonBuilder()
   .GetPremadePokemon("Dugtrio")
   .WithTechniques([
-    "Stealth Rock",
-    "Spikes"
-  ]);
+    "Quick Attack",  ]);
 
   
   const dugtrio1 = dugtrioTest.Build();
-  dugtrio1.techniques[0].currentPP = 2;
-  dugtrio1.techniques[1].currentPP = 2;
+
 
   const dugtrio2 = dugtrioTest.Build();
-  dugtrio2.techniques[0].currentPP = 2;
-  dugtrio2.techniques[1].currentPP = 2;
+
 
   const player1 = new PlayerBuilder(1)
   .WithName("Shayne")

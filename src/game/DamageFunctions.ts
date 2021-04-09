@@ -1,4 +1,3 @@
-import { Status } from "./HardStatus/HardStatus";
 import {ElementType} from "./ElementType";
 import { CalculateStatWithBoost, Pokemon } from "./Pokemon/Pokemon";
 import { Stat } from "./Stat";
@@ -156,15 +155,13 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
     const effectiveness = GetEffectiveness();
     const stabBonus = GetSTAB();
 
-    //Stat decrease for the burn status.
-    const burnDecrease = attackingPokemon.status === Status.Burned && techUsed.damageType === 'physical' ? 0.5 : 1
   
     //Crits should not be applied if the move is not effective.
     if (effectiveness === 0){
         critStrike = false
         critAmt = 1.0
     }
-    
+   
 
     const modInfoObj : DamageModifierInfo = {
         critStrike: critStrike,
@@ -172,7 +169,7 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
         stabBonus: stabBonus,
         typeEffectivenessBonus: effectiveness,
         randomDamageMod:randomAmt,
-        modValue: critAmt * stabBonus * randomAmt * effectiveness * burnDecrease
+        modValue: critAmt * stabBonus * randomAmt * effectiveness
     }
 
     return modInfoObj;

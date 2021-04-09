@@ -919,6 +919,8 @@ class BattleGame implements IGame {
             infoForDamageCalculating = GetDamageEffect(technique.damageEffect.type).ModifyDamageCalculationInfo(this, infoForDamageCalculating)
         }
 
+        
+
         const damageModifierInfo = GetDamageModifier(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
 
         //Note - we are adding in the if crit ignore stat boosts clause into here... until we figure out a cleaner way.

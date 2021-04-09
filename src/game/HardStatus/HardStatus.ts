@@ -3,9 +3,10 @@ import { HasElementType } from "game/HelperFunctions";
 import { ElementType } from "game/ElementType";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import BattleBehaviour, { CreateBattleBehaviour, IBattleBehaviour } from "game/BattleBehaviour/BattleBehavior";
-import { Technique } from "game/Techniques/Technique";
+import { DamageType, Technique } from "game/Techniques/Technique";
 import { WeatherType } from "game/Weather/Weather";
 import { IGame } from "game/BattleGame";
+import { DamageModifierInfo } from "game/DamageFunctions";
 
 
 
@@ -31,21 +32,11 @@ interface IHardStatus {
 export type HardStatus = IBattleBehaviour & IHardStatus;
 
 
-/*
-export abstract class HardStatus extends BattleBehaviour implements NewHardStatus {
-    abstract statusType: Status
-    abstract curedString:String
-    abstract inflictedMessage:String
 
-    CanApply(game:IGame, pokemon: Pokemon) {
-        return true;
-    }
-}
-*/
-
-
-//Example of the Resting Status while using the POJO technique
-const RestingStatus1:HardStatus & {counter:number} = {...CreateBattleBehaviour(),...{
+//Testing the difference between using a POJO vs a class based approach. POJO can be cloned easier with the spread operator as long as you just need a shadllow clone.
+//Wherease class based objects cannot be cloned with the spread operator and we would use a _.clone or _.cloneDeep instead. This matters more when dealing with AI simulations as the spread operator
+//seems to be faster in cloning operations than _.clone or _.cloneDeep
+const RestingStatus:HardStatus & {counter:number} = {...CreateBattleBehaviour(),...{
     statusType:Status.Sleep,
     curedString:'has woken up!',
     inflictedMessage:'is taking a rest',
@@ -76,7 +67,7 @@ const RestingStatus1:HardStatus & {counter:number} = {...CreateBattleBehaviour()
     },
 }}
 
-const ToxicStatus1:HardStatus & {counter:number} = {...CreateBattleBehaviour(),...{
+const ToxicStatus:HardStatus & {counter:number} = {...CreateBattleBehaviour(),...{
     statusType:Status.Poison,
     curedString:'has been cured of poison!',
     inflictedMessage:'has been badly poisoned!',
@@ -98,7 +89,7 @@ const ToxicStatus1:HardStatus & {counter:number} = {...CreateBattleBehaviour(),.
     }
 }};
 
-const SleepStatus1:HardStatus &{turnsToSleep:number,counter:number} = {...CreateBattleBehaviour(),...{
+const SleepStatus:HardStatus &{turnsToSleep:number,counter:number} = {...CreateBattleBehaviour(),...{
 
     
         statusType:Status.Sleep,
@@ -132,27 +123,32 @@ const SleepStatus1:HardStatus &{turnsToSleep:number,counter:number} = {...Create
     }
 };
 
-
-
-class BurnStatus extends BattleBehaviour implements HardStatus{   
-
-    statusType = Status.Burned;
-    curedString= 'has been cured of its burn!'
-    inflictedMessage = 'has been burned!'
-
+const BurnStatus:HardStatus = {...CreateBattleBehaviour(),...{
+    statusType: Status.Burned,
+    curedString:'has been cured of its burn!',
+    inflictedMessage: 'has been burned!',
     CanApply(game:IGame, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Fire);
-    }
+    },
     BeforeAttack(game:IGame, pokemon: Pokemon){
         return;
-    }
+    },
     EndOfTurn(game:IGame, pokemon: Pokemon) {
         const maxHp = pokemon.originalStats.hp;
         const burnDamage = Math.ceil(maxHp / 8);
         game.AddMessage(`${pokemon.name} is hurt by its burn`);
         game.ApplyIndirectDamage(pokemon, burnDamage);
-    }
-}
+    },
+    OnAfterDamageCalculated(pokemon: Pokemon, techUsed: Technique, defendingPokemon: Pokemon, damage: number, modifierInfo: DamageModifierInfo, game: IGame){
+        if (techUsed.damageType === DamageType.Physical){
+            console.log("burn status decreasing damage",damage,damage*0.5);
+            return damage*0.5;
+        }
+        return damage;
+    }   
+
+}}
+
 
 class FrozenStatus extends BattleBehaviour implements HardStatus{
    
@@ -264,19 +260,19 @@ function GetHardStatus(status: Status): HardStatus {
         return new PoisonStatus();
     }
     else if (status === Status.Sleep) {
-        return {...SleepStatus1}
+        return {...SleepStatus}
     }
     else if (status === Status.Frozen) {
         return new FrozenStatus();
     }
     else if (status === Status.Burned) {
-        return new BurnStatus();
+        return {...BurnStatus};
     }
     else if (status === Status.ToxicPoison){
-        return {...ToxicStatus1};
+        return {...ToxicStatus};
     }
     else if (status === Status.Resting){
-        return {...RestingStatus1}; //testing this out.
+        return {...RestingStatus}; //testing this out.
 
     }
     else if (status === Status.None) {

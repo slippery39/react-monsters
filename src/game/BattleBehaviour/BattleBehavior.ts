@@ -40,6 +40,7 @@ export interface IBattleBehaviour{
     OnOppTechniqueUsed:(game: IGame, pokemon: Pokemon, technique: Technique)=>void;
     ModifyOpponentValidActions:(game:IGame,opponent:Player,validActions:BattleAction[])=>BattleAction[]
     ModifyValidActions:(game:IGame,player:Player,validActions:BattleAction[])=>BattleAction[]
+    ModifyDamageCalculationInfo:(game: IGame, damageCalcutionInfo: { pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique })=>{pokemon:Pokemon,defendingPokemon:Pokemon,technique:Technique}
 }
 
 
@@ -122,8 +123,12 @@ export const CreateBattleBehaviour = ()=>{
         },    
         ModifyValidActions(game:IGame,player:Player,validActions:BattleAction[]):BattleAction[]{
             return validActions;
+        },
+        ModifyDamageCalculationInfo(game: IGame, damageCalcutionInfo: { pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique }){
+            return damageCalcutionInfo;
         }
     }
+    
     return obj;
 }
 
@@ -207,8 +212,9 @@ abstract class BattleBehaviour implements IBattleBehaviour {
     ModifyValidActions(game:IGame,player:Player,validActions:BattleAction[]):BattleAction[]{
         return validActions;
     }
-
-
+    ModifyDamageCalculationInfo(game: IGame, damageCalcutionInfo: { pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique }){
+        return damageCalcutionInfo;
+    }
 }
 
 export default BattleBehaviour;
