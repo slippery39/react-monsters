@@ -989,6 +989,23 @@ const premades: Array<PremadePokemon> = [
             spDefense:4,
             speed:252
         }
+    },
+    {
+        species:"Venomoth",
+        heldItem:"Black Sludge",
+        ability:"Tinted Lens",
+        nature:NatureType.Timid,
+        techniques:[
+            "Quiver Dance",
+            "Bug Buzz",
+            "Sleep Powder",
+            "Roost"
+        ],
+        evs:{
+            spAttack:252,
+            spDefense:4,
+            speed:252
+        }
     }
 
 ]

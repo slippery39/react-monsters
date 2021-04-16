@@ -1,6 +1,7 @@
 import { BattleAction } from "game/BattleActions";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { IGame } from "game/BattleGame";
+import { DamageModifierInfo } from "game/DamageFunctions";
 import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
@@ -63,7 +64,7 @@ class BlazeAbility extends AbstractAbility {
     name = "Blaze";
     description = "Powers up Fire-type moves when the Pokémon's HP is low"
 
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game?: IGame) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game?: IGame) {
         if (move.elementalType === ElementType.Fire && GetPercentageHealth(attackingPokemon) <= 33) {
             return damage * 1.5;
         }
@@ -74,7 +75,7 @@ class BlazeAbility extends AbstractAbility {
 class TorrentAbility extends AbstractAbility {
     name = "Torrent"
     description = "Powers up Water-type moves when the Pokémon's HP is low."
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game?: IGame) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game?: IGame) {
         if (move.elementalType === ElementType.Water && GetPercentageHealth(attackingPokemon) <= 33) {
             return damage * 1.5;
         }
@@ -87,7 +88,7 @@ class OvergrowAbility extends AbstractAbility {
     description = "Powers up Grass-type moves when the Pokémon's HP is low."
 
 
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game?: IGame) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game?: IGame) {
         if (move.elementalType === ElementType.Grass && GetPercentageHealth(attackingPokemon) <= 33) {
             return damage * 1.5;
         }
@@ -113,7 +114,7 @@ class FlashFireAbility extends AbstractAbility {
         }
         return false;
     }
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo) {
         if (move.elementalType === ElementType.Fire && attackingPokemon.flashFireActivated) {
             return damage * 1.5;
         }
@@ -185,7 +186,7 @@ class AnalyticAbility extends AbstractAbility {
     name = "Analytic"
     description = "Boosts move power when the Pokémon moves last."
 
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, turn: IGame) {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, turn: IGame) {
         const attackingOwner = GetPokemonOwner(turn.GetPlayers(), attackingPokemon);
 
         if (turn.GetMoveOrder()[1].playerId === attackingOwner.id) {
@@ -630,6 +631,19 @@ class DrySkinAbility extends AbstractAbility{
     }
 }
 
+class TintedLensAbility extends AbstractAbility{
+    name="Tinted Lens";
+    description = `The Pokémon can use "not very effective" moves to deal regular damage.`;
+
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game?: IGame) {
+        if (damageInfo.typeEffectivenessBonus < 1){
+            return damage*2; //technically doubles the power of non effective moves... if you search it up.
+        }
+        return damage;
+    }
+    
+
+}
 
 class NoAbility extends AbstractAbility {
 
@@ -743,6 +757,9 @@ function GetAbility(name: String) {
         }
         case 'dry skin':{
             return new DrySkinAbility();
+        }
+        case 'tinted lens':{
+            return new TintedLensAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

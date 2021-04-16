@@ -1,6 +1,6 @@
 
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
-import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType} from "game/Effects/Effects";
+import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType } from "game/Effects/Effects";
 import { EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { FieldEffectType } from "game/FieldEffects/FieldEffects";
 import { Status } from "game/HardStatus/HardStatus";
@@ -18,7 +18,7 @@ export interface BaseTechnique {
     power: number,
     damageType: DamageType,
     elementalType: ElementType,
-    critChanceStage?:number,
+    critChanceStage?: number,
     accuracy?: number,
     priority?: number,
     beforeExecuteEffect?: BattleEffect,
@@ -29,10 +29,10 @@ export interface BaseTechnique {
     firstTurnStatus?: VolatileStatusType
 }
 
-function CreateHiddenPower(elementType:ElementType){
+function CreateHiddenPower(elementType: ElementType) {
     let name = elementType.toLowerCase();
-    name = name.charAt(0).toUpperCase()+name.slice(1);
-    return{
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+    return {
         name: "Hidden Power " + name,
         description: "An attack that varies in type and intensity depending on the user.",
         pp: 24,
@@ -43,10 +43,10 @@ function CreateHiddenPower(elementType:ElementType){
     }
 }
 
-function CreateAllHiddenPowers(){
+function CreateAllHiddenPowers() {
     const elementTypes = Object.values(ElementType);
 
-    const powers = elementTypes.map(ele=>{
+    const powers = elementTypes.map(ele => {
         return CreateHiddenPower(ele);
     });
 
@@ -57,425 +57,475 @@ function CreateAllHiddenPowers(){
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
-            name:"Psyshock",
-            description:"The user materializes an odd psychic wave to attack the target. This attack does physical damage.",
-            power:80,
-            pp:16,
+            name:"Bug Buzz",
+            description:"The user generates a damaging sound wave by vibration. This may also lower the target's Sp. Def stat.",
             damageType:DamageType.Special,
-            elementalType:ElementType.Psychic,
+            power:90,
             accuracy:100,
-            damageEffect:{type:DamageEffectTypes.Psyshock}            
-        },
-        {
-            name:"Lovely Kiss",
-            description:"With a scary face, the user tries to force a kiss on the target. If it succeeds, the target falls asleep.",
-            power:0,
-            accuracy:75,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Normal,
             pp:16,
+            elementalType:ElementType.Bug,
             effects:[
                 {
-                    type:EffectType.InflictStatus,
-                    status:Status.Sleep,
-                    chance:100,
-                    target:TargetType.Enemy
+                    type:EffectType.StatBoost,
+                    stat:Stat.SpecialDefense,
+                    target:TargetType.Enemy,
+                    amount:-1,
+                    chance:100
                 }
             ]
         },
         {
-            name:"Dynamic Punch",
-            description:"The user punches the target with full, concentrated power. This confuses the target if it hits.",
-            power:100,
-            accuracy:50,
-            pp:8,
-            elementalType:ElementType.Fighting,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            effects:[
+            name: "Quiver Dance",
+            description: "The user lightly performs a beautiful, mystic dance. This boosts the user's Sp. Atk, Sp. Def, and Speed stats.",
+            damageType: DamageType.Status,
+            power: 0,
+            accuracy: 100,
+            pp: 20,
+            elementalType: ElementType.Bug,
+            effects: [
                 {
-                    type:EffectType.InflictVolatileStatus,
-                    status:VolatileStatusType.Confusion,
-                    chance:100,
-                    target:TargetType.Enemy                    
+                    type: EffectType.StatBoost,
+                    stat: Stat.SpecialAttack,
+                    target: TargetType.Self,
+                    amount: 1,
+                    chance: 100
+                },
+                {
+                    type: EffectType.StatBoost,
+                    stat: Stat.SpecialDefense,
+                    target: TargetType.Self,
+                    amount: 1,
+                    chance: 100
+                },
+                {
+                    type: EffectType.StatBoost,
+                    stat: Stat.Speed,
+                    target: TargetType.Self,
+                    amount: 1,
+                    chance: 100
+                }
+            ]
+        },
+        {
+            name: "Psyshock",
+            description: "The user materializes an odd psychic wave to attack the target. This attack does physical damage.",
+            power: 80,
+            pp: 16,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Psychic,
+            accuracy: 100,
+            damageEffect: { type: DamageEffectTypes.Psyshock }
+        },
+        {
+            name: "Lovely Kiss",
+            description: "With a scary face, the user tries to force a kiss on the target. If it succeeds, the target falls asleep.",
+            power: 0,
+            accuracy: 75,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Normal,
+            pp: 16,
+            effects: [
+                {
+                    type: EffectType.InflictStatus,
+                    status: Status.Sleep,
+                    chance: 100,
+                    target: TargetType.Enemy
+                }
+            ]
+        },
+        {
+            name: "Dynamic Punch",
+            description: "The user punches the target with full, concentrated power. This confuses the target if it hits.",
+            power: 100,
+            accuracy: 50,
+            pp: 8,
+            elementalType: ElementType.Fighting,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            effects: [
+                {
+                    type: EffectType.InflictVolatileStatus,
+                    status: VolatileStatusType.Confusion,
+                    chance: 100,
+                    target: TargetType.Enemy
                 }
             ]
         },
         ...CreateAllHiddenPowers(),
         {
-            name:"Double Edge",
-            description:"A reckless, life-risking tackle. This also damages the user quite a lot.",
-            power:120,
-            accuracy:100,
-            pp:24,
-            elementalType:ElementType.Normal,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            effects:[
+            name: "Double Edge",
+            description: "A reckless, life-risking tackle. This also damages the user quite a lot.",
+            power: 120,
+            accuracy: 100,
+            pp: 24,
+            elementalType: ElementType.Normal,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            effects: [
                 {
-                    type:EffectType.Recoil,
-                    recoilType:RecoilDamageType.PercentDamageDealt,
-                    amount:33.33
-                }
-            ]              
-        },
-        {
-            name:"Quick Attack",
-            description:"The user lunges at the target at a speed that makes it almost invisible. It is sure to strike first.",
-            power:40,
-            accuracy:100,
-            priority:1,
-            pp:48,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            elementalType:ElementType.Normal
-        },
-        {
-            name:"Taunt",
-            description:"The target is taunted into a rage that allows it to use only attack moves for three turns.",
-            power:0,
-            pp:24,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Dark,
-            effects:[
-                {
-                    type:EffectType.InflictVolatileStatus,
-                    status:VolatileStatusType.Taunted,
-                    chance:100,
-                    target:TargetType.Enemy
+                    type: EffectType.Recoil,
+                    recoilType: RecoilDamageType.PercentDamageDealt,
+                    amount: 33.33
                 }
             ]
         },
         {
-            name:"Lava Plume",
-            description:"The user torches everything around it in an inferno of scarlet flames. This may also leave those it hits with a burn.",
-            power:80,
-            pp:24,
-            damageType:DamageType.Special,
-            elementalType:ElementType.Fire,
-            effects:[
-                {
-                    type:EffectType.InflictStatus,
-                    status:Status.Burned,
-                    chance:30,
-                    target:TargetType.Enemy
-                }
-            ]            
+            name: "Quick Attack",
+            description: "The user lunges at the target at a speed that makes it almost invisible. It is sure to strike first.",
+            power: 40,
+            accuracy: 100,
+            priority: 1,
+            pp: 48,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            elementalType: ElementType.Normal
         },
         {
-            name:"Shadow Claw",
-            description:"The user slashes with a sharp claw made from shadows. Critical hits land more easily.",
-            power:70,
-            pp:24,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            elementalType:ElementType.Ghost,
-            accuracy:100
-        },
-        {
-            name:"Aerial Ace",
-            description:"The user confounds the target with speed, then slashes. This attack never misses.",
-            power:60,
-            pp:32,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Flying,
-            accuracy:99999        
-        },
-         {
-            name:"Fire Fang",
-            description:"The user bites with flame-cloaked fangs. This may also make the target flinch or leave it with a burn.",
-            power:65,
-            accuracy:95,
-            pp:24,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Fire,
-            effects:[
+            name: "Taunt",
+            description: "The target is taunted into a rage that allows it to use only attack moves for three turns.",
+            power: 0,
+            pp: 24,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Dark,
+            effects: [
                 {
-                    type:EffectType.InflictStatus,
-                    status:Status.Burned,
-                    chance:10,
-                    target:TargetType.Enemy
-                },
-                {
-                    type:EffectType.InflictVolatileStatus,
-                    status:VolatileStatusType.Flinch,
-                    chance:10,
-                    target:TargetType.Enemy
+                    type: EffectType.InflictVolatileStatus,
+                    status: VolatileStatusType.Taunted,
+                    chance: 100,
+                    target: TargetType.Enemy
                 }
             ]
         },
         {
-            name:"Curse",
-            description:"Raises Attack and Defense at the expense of Speed. It works differently for the Ghost type.",
-            power:0,
-            accuracy:9999,
-            pp:16,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Ghost,
-            effects:[
+            name: "Lava Plume",
+            description: "The user torches everything around it in an inferno of scarlet flames. This may also leave those it hits with a burn.",
+            power: 80,
+            pp: 24,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Fire,
+            effects: [
                 {
-                    type:EffectType.StatBoost,
-                    amount:-1,
-                    stat:Stat.Speed,
-                    target:TargetType.Self
-                },
-                {
-                    type:EffectType.StatBoost,
-                    amount:1,
-                    stat:Stat.Attack,
-                    target:TargetType.Self
-                },
-                {
-                    type:EffectType.StatBoost,
-                    amount:1,
-                    stat:Stat.Defense,
-                    target:TargetType.Self
-                },
-            ]
-        },
-        {
-            name:"Return",
-            description:"This full-power attack grows more powerful the more the user likes its Trainer.",
-            power:102,
-            accuracy:100,
-            pp:32,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            elementalType:ElementType.Normal,
-        },
-        {
-            name:"Hurricane",
-            description:"The user attacks by wrapping its opponent in a fierce wind that flies up into the sky. This may also confuse the target.",
-            pp:16,
-            power:110,
-            accuracy:70,
-            damageType:DamageType.Special,
-            elementalType:ElementType.Flying,
-            effects:[
-                {
-                type:EffectType.InflictVolatileStatus,
-                target:TargetType.Enemy,
-                status:VolatileStatusType.Confusion,
-                chance:30
+                    type: EffectType.InflictStatus,
+                    status: Status.Burned,
+                    chance: 30,
+                    target: TargetType.Enemy
                 }
             ]
         },
         {
-            name:"Defog",
-            description:"A strong wind blows away the target's barriers such as Reflect or Light Screen. This also lowers the target's evasiveness.",
-            pp:24,
-            power:0,
-            accuracy:99999,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Flying,
-            effects:[
+            name: "Shadow Claw",
+            description: "The user slashes with a sharp claw made from shadows. Critical hits land more easily.",
+            power: 70,
+            pp: 24,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            elementalType: ElementType.Ghost,
+            accuracy: 100
+        },
+        {
+            name: "Aerial Ace",
+            description: "The user confounds the target with speed, then slashes. This attack never misses.",
+            power: 60,
+            pp: 32,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Flying,
+            accuracy: 99999
+        },
+        {
+            name: "Fire Fang",
+            description: "The user bites with flame-cloaked fangs. This may also make the target flinch or leave it with a burn.",
+            power: 65,
+            accuracy: 95,
+            pp: 24,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Fire,
+            effects: [
                 {
-                    type:EffectType.ClearHazards,
-                    target:TargetType.Enemy
+                    type: EffectType.InflictStatus,
+                    status: Status.Burned,
+                    chance: 10,
+                    target: TargetType.Enemy
                 },
                 {
-                    type:EffectType.ClearHazards,
-                    target:TargetType.Self
+                    type: EffectType.InflictVolatileStatus,
+                    status: VolatileStatusType.Flinch,
+                    chance: 10,
+                    target: TargetType.Enemy
+                }
+            ]
+        },
+        {
+            name: "Curse",
+            description: "Raises Attack and Defense at the expense of Speed. It works differently for the Ghost type.",
+            power: 0,
+            accuracy: 9999,
+            pp: 16,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Ghost,
+            effects: [
+                {
+                    type: EffectType.StatBoost,
+                    amount: -1,
+                    stat: Stat.Speed,
+                    target: TargetType.Self
+                },
+                {
+                    type: EffectType.StatBoost,
+                    amount: 1,
+                    stat: Stat.Attack,
+                    target: TargetType.Self
+                },
+                {
+                    type: EffectType.StatBoost,
+                    amount: 1,
+                    stat: Stat.Defense,
+                    target: TargetType.Self
+                },
+            ]
+        },
+        {
+            name: "Return",
+            description: "This full-power attack grows more powerful the more the user likes its Trainer.",
+            power: 102,
+            accuracy: 100,
+            pp: 32,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            elementalType: ElementType.Normal,
+        },
+        {
+            name: "Hurricane",
+            description: "The user attacks by wrapping its opponent in a fierce wind that flies up into the sky. This may also confuse the target.",
+            pp: 16,
+            power: 110,
+            accuracy: 70,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Flying,
+            effects: [
+                {
+                    type: EffectType.InflictVolatileStatus,
+                    target: TargetType.Enemy,
+                    status: VolatileStatusType.Confusion,
+                    chance: 30
+                }
+            ]
+        },
+        {
+            name: "Defog",
+            description: "A strong wind blows away the target's barriers such as Reflect or Light Screen. This also lowers the target's evasiveness.",
+            pp: 24,
+            power: 0,
+            accuracy: 99999,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Flying,
+            effects: [
+                {
+                    type: EffectType.ClearHazards,
+                    target: TargetType.Enemy
+                },
+                {
+                    type: EffectType.ClearHazards,
+                    target: TargetType.Self
                 },
                 //should be reducing enemy evasiveness, but i don't really care at the moment for programming that in.
                 {
-                    type:EffectType.StatBoost,
-                    target:TargetType.Self,
-                    stat:Stat.Accuracy,
-                    amount:1
+                    type: EffectType.StatBoost,
+                    target: TargetType.Self,
+                    stat: Stat.Accuracy,
+                    amount: 1
                 }
             ]
         },
         {
-            name:"Rock Slide",
-            description:"Large boulders are hurled at opposing Pokémon to inflict damage. This may also make the opposing Pokémon flinch.",
-            pp:16,
-            power:75,
-            elementalType:ElementType.Rock,
-            damageType:DamageType.Physical,
-            effects:[
+            name: "Rock Slide",
+            description: "Large boulders are hurled at opposing Pokémon to inflict damage. This may also make the opposing Pokémon flinch.",
+            pp: 16,
+            power: 75,
+            elementalType: ElementType.Rock,
+            damageType: DamageType.Physical,
+            effects: [
                 {
-                    type:EffectType.InflictVolatileStatus,
-                    status:VolatileStatusType.Flinch,
-                    chance:30,
-                    target:TargetType.Enemy
+                    type: EffectType.InflictVolatileStatus,
+                    status: VolatileStatusType.Flinch,
+                    chance: 30,
+                    target: TargetType.Enemy
                 }
             ]
         },
         {
-            name:"Solar Beam",
-            description:"In this two-turn attack, the user gathers light, then blasts a bundled beam on the next turn.",
-            pp:16,
-            power:120,
-            elementalType:ElementType.Grass,
-            damageType:DamageType.Special,
-            twoTurnMove:true,
-            firstTurnStatus:VolatileStatusType.ChargingSolarBeam
+            name: "Solar Beam",
+            description: "In this two-turn attack, the user gathers light, then blasts a bundled beam on the next turn.",
+            pp: 16,
+            power: 120,
+            elementalType: ElementType.Grass,
+            damageType: DamageType.Special,
+            twoTurnMove: true,
+            firstTurnStatus: VolatileStatusType.ChargingSolarBeam
         },
         {
-            name:"Sunny Day",
-            description:"The user intensifies the sun for five turns, powering up Fire-type moves. It lowers the power of Water-type moves.",
-            pp:8,
-            power:0,
-            elementalType:ElementType.Fire,
-            damageType:DamageType.Status,
-            effects:[
+            name: "Sunny Day",
+            description: "The user intensifies the sun for five turns, powering up Fire-type moves. It lowers the power of Water-type moves.",
+            pp: 8,
+            power: 0,
+            elementalType: ElementType.Fire,
+            damageType: DamageType.Status,
+            effects: [
                 {
-                    type:EffectType.ApplyWeather,
-                    weather:WeatherType.Sunny
+                    type: EffectType.ApplyWeather,
+                    weather: WeatherType.Sunny
                 }
             ]
         },
         {
-            name:"Sticky Web",
-            description:"The user weaves a sticky net around the opposing team, which lowers their Speed stat upon switching into battle.",
-            pp:32,
-            power:0,
-            damageType:DamageType.Status,
-            elementalType:ElementType.Bug,
-            effects:[
+            name: "Sticky Web",
+            description: "The user weaves a sticky net around the opposing team, which lowers their Speed stat upon switching into battle.",
+            pp: 32,
+            power: 0,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Bug,
+            effects: [
                 {
-                    type:EffectType.PlaceEntryHazard,
-                    hazard:EntryHazardType.StickyWeb
+                    type: EffectType.PlaceEntryHazard,
+                    hazard: EntryHazardType.StickyWeb
                 }
             ]
         },
         {
-           name:"Stone Edge",
-           description:"The user stabs the target from below with sharpened stones. Critical hits land more easily.",
-           pp:8,
-           power:100,
-           accuracy:80,
-           damageType:DamageType.Physical,
-           elementalType:ElementType.Rock,
-           critChanceStage:1 
+            name: "Stone Edge",
+            description: "The user stabs the target from below with sharpened stones. Critical hits land more easily.",
+            pp: 8,
+            power: 100,
+            accuracy: 80,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Rock,
+            critChanceStage: 1
         },
         {
-            name:"Zen Headbutt",
-            description:"The user focuses its willpower to its head and rams the foe. It may also make the target flinch.",
-            pp:24,
-            power:80,
-            accuracy:90,
-            elementalType:ElementType.Psychic,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            effects:[{
-                type:EffectType.InflictVolatileStatus,
-                status:VolatileStatusType.Flinch,
-                target:TargetType.Enemy,
-                chance:20
+            name: "Zen Headbutt",
+            description: "The user focuses its willpower to its head and rams the foe. It may also make the target flinch.",
+            pp: 24,
+            power: 80,
+            accuracy: 90,
+            elementalType: ElementType.Psychic,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            effects: [{
+                type: EffectType.InflictVolatileStatus,
+                status: VolatileStatusType.Flinch,
+                target: TargetType.Enemy,
+                chance: 20
             }]
         },
         {
-            name:"Leaf Storm",
-            description:"A storm of sharp leaves is whipped up. The attack's recoil sharply reduces the user's Sp. Atk stat.",
-            pp:8,
-            power:130,
-            accuracy:90,
-            elementalType:ElementType.Grass,
-            damageType:DamageType.Special,
-            effects:[{
-                type:EffectType.StatBoost,
-                stat:Stat.SpecialAttack,
-                amount:-2,
-                target:TargetType.Self
+            name: "Leaf Storm",
+            description: "A storm of sharp leaves is whipped up. The attack's recoil sharply reduces the user's Sp. Atk stat.",
+            pp: 8,
+            power: 130,
+            accuracy: 90,
+            elementalType: ElementType.Grass,
+            damageType: DamageType.Special,
+            effects: [{
+                type: EffectType.StatBoost,
+                stat: Stat.SpecialAttack,
+                amount: -2,
+                target: TargetType.Self
             }]
         },
         {
-            name:"Moonblast",
-            description:"Borrowing the power of the moon, the user attacks the target. This may also lower the target's Sp. Atk stat.",
-            pp:24,
-            power:95,
-            accuracy:100,
-            damageType:DamageType.Special,
-            elementalType:ElementType.Fairy,
-            effects:[
+            name: "Moonblast",
+            description: "Borrowing the power of the moon, the user attacks the target. This may also lower the target's Sp. Atk stat.",
+            pp: 24,
+            power: 95,
+            accuracy: 100,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Fairy,
+            effects: [
                 {
-                    type:EffectType.StatBoost,
-                    stat:Stat.SpecialAttack,
-                    amount:-1,
-                    target:TargetType.Enemy,
-                    chance:30
+                    type: EffectType.StatBoost,
+                    stat: Stat.SpecialAttack,
+                    amount: -1,
+                    target: TargetType.Enemy,
+                    chance: 30
                 }
             ]
         },
         {
-            name:"Earth Power",
-            description:"The user makes the ground under the foe erupt with power. It may also lower the target's Sp. Def.",
-            pp:16,
-            power:90,
-            accuracy:100,
-            damageType:DamageType.Special,
-            elementalType:ElementType.Ground,
-            effects:[
+            name: "Earth Power",
+            description: "The user makes the ground under the foe erupt with power. It may also lower the target's Sp. Def.",
+            pp: 16,
+            power: 90,
+            accuracy: 100,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Ground,
+            effects: [
                 {
-                    type:EffectType.StatBoost,
-                    stat:Stat.Accuracy,
-                    amount:-1,
-                    target:TargetType.Enemy
+                    type: EffectType.StatBoost,
+                    stat: Stat.Accuracy,
+                    amount: -1,
+                    target: TargetType.Enemy
                 }
             ]
         },
         {
-            name:"Brave Bird",
-            description:"The user tucks in its wings and charges from a low altitude. The user also takes serious damage.",
-            pp:24,
-            power:120,
-            accuracy:100,
-            makesContact:true,
-            damageType:DamageType.Physical,
-            elementalType:ElementType.Flying,
-            effects:[
+            name: "Brave Bird",
+            description: "The user tucks in its wings and charges from a low altitude. The user also takes serious damage.",
+            pp: 24,
+            power: 120,
+            accuracy: 100,
+            makesContact: true,
+            damageType: DamageType.Physical,
+            elementalType: ElementType.Flying,
+            effects: [
                 {
-                    type:EffectType.Recoil,
-                    recoilType:RecoilDamageType.PercentDamageDealt,
-                    amount:33.33
+                    type: EffectType.Recoil,
+                    recoilType: RecoilDamageType.PercentDamageDealt,
+                    amount: 33.33
                 }
             ]
         },
         {
-            name:"Heat Wave",
-            description:"The user attacks by exhaling hot breath on the opposing team. It may also leave targets with a burn.",
-            pp:16,
-            power:95,
-            accuracy:90,
-            damageType:DamageType.Special,
-            elementalType:ElementType.Fire,
-            effects:[
+            name: "Heat Wave",
+            description: "The user attacks by exhaling hot breath on the opposing team. It may also leave targets with a burn.",
+            pp: 16,
+            power: 95,
+            accuracy: 90,
+            damageType: DamageType.Special,
+            elementalType: ElementType.Fire,
+            effects: [
                 {
-                    type:EffectType.InflictStatus,
-                    status:Status.Burned,
-                    target:TargetType.Enemy,
-                    chance:10
+                    type: EffectType.InflictStatus,
+                    status: Status.Burned,
+                    target: TargetType.Enemy,
+                    chance: 10
                 }
             ]
         },
         {
-            name:"Struggle",
-            description:"An attack that is used in desperation only if the user has no PP. It also hurts the user slightly",
-            pp:10,
-            power:50,
-            accuracy:99999,
-            damageType:DamageType.Physical,
-            makesContact:true,
-            elementalType:ElementType.None, //TODO - fix this.
-            effects:[
+            name: "Struggle",
+            description: "An attack that is used in desperation only if the user has no PP. It also hurts the user slightly",
+            pp: 10,
+            power: 50,
+            accuracy: 99999,
+            damageType: DamageType.Physical,
+            makesContact: true,
+            elementalType: ElementType.None, //TODO - fix this.
+            effects: [
                 {
-                    type:EffectType.StruggleRecoilDamage
+                    type: EffectType.StruggleRecoilDamage
                 }
             ]
         },
         {
-            name:"Foul Play",
-            description:"The user turns the target's power against it. The higher the target's Attack stat, the greater the move's power.",
-            pp:24,
-            power:95,
-            accuracy:100,
-            damageEffect:{type:DamageEffectTypes.FoulPlay},
-            damageType:DamageType.Physical,
-            makesContact:true,
-            elementalType:ElementType.Dark,
-           
+            name: "Foul Play",
+            description: "The user turns the target's power against it. The higher the target's Attack stat, the greater the move's power.",
+            pp: 24,
+            power: 95,
+            accuracy: 100,
+            damageEffect: { type: DamageEffectTypes.FoulPlay },
+            damageType: DamageType.Physical,
+            makesContact: true,
+            elementalType: ElementType.Dark,
+
         },
         {
             name: "Wish",
@@ -489,7 +539,7 @@ export function GetTech(name: string) {
                 {
                     type: EffectType.CreateFieldEffect,
                     effectType: FieldEffectType.Wish,
-                    target:TargetType.Self
+                    target: TargetType.Self
                 }
             ]
         },

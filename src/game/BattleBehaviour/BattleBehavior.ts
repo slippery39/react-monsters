@@ -8,6 +8,7 @@ This is the class that all classes that need to tap into the turn object will ca
 
 import { BattleAction, UseMoveAction } from "game/BattleActions";
 import { IGame } from "game/BattleGame";
+import { DamageModifierInfo } from "game/DamageFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
@@ -19,7 +20,7 @@ export interface IBattleBehaviour{
     //named this way so that it always triggers, even if the pokemon uses a move that misses or not.
     AfterActionStep:(game: IGame, pokemon: Pokemon)=>void;
     EndOfTurn:(game: IGame, pokemon: Pokemon)=>void;
-    OnAfterDamageCalculated:(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game: IGame)=>number;
+    OnAfterDamageCalculated:(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game: IGame)=>number;
     OnDamageDealt:(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number)=>void;
     OnDamageTakenFromTechnique:(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number)=>void;
     ModifyTechnique:(pokemon: Pokemon, technique: Technique)=>Technique;
@@ -59,7 +60,7 @@ export const CreateBattleBehaviour = ()=>{
         EndOfTurn:(game:IGame,pokemon:Pokemon)=>{
 
         },
-        OnAfterDamageCalculated:(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game: IGame)=>{
+        OnAfterDamageCalculated:(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game: IGame)=>{
             return damage;   
         },
         OnDamageDealt:(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number)=>{
@@ -150,7 +151,7 @@ abstract class BattleBehaviour implements IBattleBehaviour {
     EndOfTurn(game: IGame, pokemon: Pokemon) {
 
     }
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any, game: IGame): number {
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game: IGame): number {
         return damage;
     }
     OnDamageDealt(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number) {

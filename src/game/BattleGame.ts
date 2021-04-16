@@ -5,7 +5,7 @@ import BattleBehaviour from "./BattleBehaviour/BattleBehavior";
 import { BattleEvent, BattleEventType, DamageEvent, FaintedPokemonEvent, HealEvent, StatusChangeEvent, SwitchInEvent, SwitchOutEvent, UseItemEvent, UseMoveEvent } from "./BattleEvents";
 import { GetMoveOrder } from "./BattleFunctions";
 import { GetDamageEffect } from "./DamageEffects/DamageEffects";
-import { GetDamageModifier, GetBaseDamage } from "./DamageFunctions";
+import { GetDamageModifier, GetBaseDamage, DamageModifierInfo } from "./DamageFunctions";
 import { BattleEffect, DoEffect, EffectType, InflictVolatileStatus, TargetType } from "./Effects/Effects";
 import { EntryHazard } from "./EntryHazards/EntryHazard";
 import { FieldEffect } from "./FieldEffects/FieldEffects";
@@ -567,7 +567,7 @@ class BattleGame implements IGame {
         });
     }
 
-    ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: any) {
+    ApplyDamage(attackingPokemon: Pokemon, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo) {
 
 
         if (damageInfo.typeEffectivenessBonus !== undefined && damageInfo.typeEffectivenessBonus === 0) {

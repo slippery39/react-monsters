@@ -712,6 +712,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:95
             },
             weight:40.6
+        },
+        {
+            name:"Venomoth",
+            elementalTypes:[ElementType.Bug,ElementType.Poison],
+            baseStats:{
+                hp:70,
+                attack:65,
+                defense:60,
+                spAttack:90,
+                spDefense:75,
+                speed:90
+            },
+            weight:12.5
         }
     ];
 
