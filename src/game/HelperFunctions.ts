@@ -80,7 +80,7 @@ export function ClonePlayer(originalPlayer:Player){
             nature:poke.nature,
             originalStats:poke.originalStats,
              status:poke.status,
-             _statusObj: [Status.Poison,Status.Paralyzed,Status.Frozen,Status.None].includes(poke.status) ? GetHardStatus(poke.status) : {...poke._statusObj},
+             _statusObj: [Status.Poison,Status.Frozen,Status.None].includes(poke.status) ? GetHardStatus(poke.status) : {...poke._statusObj},
             techniqueUsedLast: poke.techniqueUsedLast,
             weight:poke.weight,
             statBoosts:statBoosts,

@@ -2,7 +2,7 @@ import { Actions, BattleAction } from "game/BattleActions";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { IGame } from "game/BattleGame";
 import { ElementType } from "game/ElementType";
-import GetHardStatus, { Status } from "game/HardStatus/HardStatus";
+import { Status } from "game/HardStatus/HardStatus";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
@@ -11,9 +11,6 @@ import { VolatileStatusType } from "game/VolatileStatus/VolatileStatus";
 import _ from "lodash";
 
 export abstract class HeldItem extends BattleBehaviour {
-    OnRemoved(turn: IGame, pokemon: Pokemon) { //might want this for all of our battle behaviours.
-
-    }
     name: string = ""
     description: string = ""
 }
@@ -60,8 +57,7 @@ export class LumBerryHeldItem extends HeldItem {
         let hasCured: boolean = false;
 
         if (pokemon.status !== Status.None) {
-            pokemon.status = Status.None;
-            pokemon._statusObj = GetHardStatus(Status.None);
+            game.SetStatusOfPokemon(pokemon.id,Status.None);
             hasCured = true;
         }
         const confusions = pokemon.volatileStatuses.filter(vStat => vStat.type === VolatileStatusType.Confusion);

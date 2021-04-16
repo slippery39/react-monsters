@@ -41,6 +41,7 @@ export interface IBattleBehaviour{
     ModifyOpponentValidActions:(game:IGame,opponent:Player,validActions:BattleAction[])=>BattleAction[]
     ModifyValidActions:(game:IGame,player:Player,validActions:BattleAction[])=>BattleAction[]
     ModifyDamageCalculationInfo:(game: IGame, damageCalcutionInfo: { pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique })=>{pokemon:Pokemon,defendingPokemon:Pokemon,technique:Technique}
+    OnRemoved:(game:IGame,pokemon:Pokemon)=>void
 }
 
 
@@ -126,6 +127,10 @@ export const CreateBattleBehaviour = ()=>{
         },
         ModifyDamageCalculationInfo(game: IGame, damageCalcutionInfo: { pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique }){
             return damageCalcutionInfo;
+        },
+        //This needs to be implemented in the GameBattle class for each type of battle behaviour for now...
+        OnRemoved(game:IGame,pokemon:Pokemon){
+
         }
     }
     
@@ -214,6 +219,9 @@ abstract class BattleBehaviour implements IBattleBehaviour {
     }
     ModifyDamageCalculationInfo(game: IGame, damageCalcutionInfo: { pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique }){
         return damageCalcutionInfo;
+    }
+    OnRemoved(game:IGame,pokemon:Pokemon){
+
     }
 }
 

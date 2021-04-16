@@ -1,6 +1,5 @@
 import { shuffle } from "lodash";
 import { Actions, BattleAction, UseMoveAction } from "./BattleActions";
-import { Status } from "./HardStatus/HardStatus";
 import { GetActivePokemon } from "./HelperFunctions";
 import { Player } from "./Player/PlayerBuilder";
 import { CalculateStatWithBoost } from "./Pokemon/Pokemon";
@@ -44,7 +43,7 @@ export function GetSpeedPriority(players:Array<Player>,actions:Array<BattleActio
         const activePokemon =  GetActivePokemon(player);
         return {
             action: act,
-            speed:  activePokemon.status === Status.Paralyzed ? CalculateStatWithBoost(activePokemon,Stat.Speed) /4 : CalculateStatWithBoost(activePokemon,Stat.Speed)
+            speed:  CalculateStatWithBoost(activePokemon,Stat.Speed)
         }
     }).sort((a, b) => { return b.speed - a.speed});
 }

@@ -455,8 +455,14 @@ class BattleGame implements IGame {
     }
 
 
-    //For testing only
-    SetStatusOfPokemon(pokemonId: number, status: Status) {
+    //Now we don't need to do this for testing only!.
+    SetStatusOfPokemon(pokemonId: number, status: Status) {    
+        const pokemon = this.GetPokemon(pokemonId);
+
+        if (status === pokemon.status){
+            return;
+        }
+        pokemon._statusObj.OnRemoved(this,pokemon);        
         this.GetPokemon(pokemonId).status = status;
         this.GetPokemon(pokemonId)._statusObj = GetHardStatus(status);
     }
@@ -988,8 +994,7 @@ class BattleGame implements IGame {
         const owner = this.GetPokemonOwner(pokemon);
 
         //TODO - when we update our statuses we would need to update this to use the new method
-        pokemon.status = Status.None;
-        pokemon._statusObj = GetHardStatus(Status.None);
+        this.SetStatusOfPokemon(pokemon.id,Status.None);
         pokemon.volatileStatuses = [];
 
         //Need edge case here for pursuit faints, we should prompt a switch again after pursuit has fainted a pokemon
@@ -1204,8 +1209,7 @@ class BattleGame implements IGame {
                     defaultMessage: `${pokemon.name}  has thawed out from using ${techUsed.name}`
                 }
                 this.AddEvent(statusRestoreEffect);
-                pokemon.status = Status.None;
-                pokemon._statusObj = GetHardStatus(Status.None);
+                this.SetStatusOfPokemon(pokemon.id,Status.None);
                 pokemon.canAttackThisTurn = true;
             }
         }

@@ -164,12 +164,7 @@ export function InflictStatus(game: IGame, pokemon: Pokemon, status: Status, sou
         return;
     }
 
-    targetPokemon.status = status;
-    targetPokemon._statusObj = GetHardStatus(status);
-
-    //TODO - add the actual status here
-
-
+    game.SetStatusOfPokemon(targetPokemon.id,status);
 
     const statusInflictedEffect: StatusChangeEvent = {
         type: BattleEventType.StatusChange,
@@ -179,7 +174,6 @@ export function InflictStatus(game: IGame, pokemon: Pokemon, status: Status, sou
         defaultMessage: `${targetPokemon.name} ${hardStatus.inflictedMessage}`
     };
     game.AddEvent(statusInflictedEffect);
-
     //TODO: OnStatusChange could be a BattleBehavior
     GetAbility(targetPokemon.ability).OnStatusChange(game, pokemon, status, source);
 }
@@ -281,7 +275,7 @@ function ApplyHealingEffect(turn: IGame, pokemon: Pokemon, effect: HealthRestore
     }
 }
 
-function ApplyStatusRestoreEffect(turn: IGame, pokemon: Pokemon, effect: StatusRestoreEffect) {
+function ApplyStatusRestoreEffect(game: IGame, pokemon: Pokemon, effect: StatusRestoreEffect) {
     if (effect.forStatus === 'any' && pokemon.status !== Status.None) {
         let statusRestoreEffect: StatusChangeEvent = {
             type: BattleEventType.StatusChange,
@@ -289,9 +283,8 @@ function ApplyStatusRestoreEffect(turn: IGame, pokemon: Pokemon, effect: StatusR
             targetPokemonId: pokemon.id,
             defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
         }
-        turn.AddEvent(statusRestoreEffect);
-        pokemon.status = Status.None;
-        pokemon._statusObj = GetHardStatus(Status.None);
+        game.AddEvent(statusRestoreEffect);
+        game.SetStatusOfPokemon(pokemon.id,Status.None);
     }
     else if (effect.forStatus === pokemon.status) {
         let statusRestoreEffect: StatusChangeEvent = {
@@ -300,9 +293,8 @@ function ApplyStatusRestoreEffect(turn: IGame, pokemon: Pokemon, effect: StatusR
             targetPokemonId: pokemon.id,
             defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
         }
-        turn.AddEvent(statusRestoreEffect);
-        pokemon.status = Status.None;
-        pokemon._statusObj = GetHardStatus(Status.None);
+        game.AddEvent(statusRestoreEffect);
+        game.SetStatusOfPokemon(pokemon.id,Status.None);
     }
 }
 
@@ -312,12 +304,12 @@ function DrainEffect(turn: IGame, pokemonToHeal: Pokemon, effect: DrainEffect, d
     turn.AddMessage(`${pokemonToHeal.name} drained some energy.`)
 }
 
-function ApplyAromatherapyEffect(turn: IGame, sourcePokemon: Pokemon) {
+function ApplyAromatherapyEffect(game: IGame, sourcePokemon: Pokemon) {
     /*
     Heals all pokemon in the user pokemons party.
     */
 
-    const pokemonOwner = turn.GetPlayers().find(player => player.pokemon.find(poke => poke.id === sourcePokemon.id));
+    const pokemonOwner = game.GetPlayers().find(player => player.pokemon.find(poke => poke.id === sourcePokemon.id));
     if (pokemonOwner === undefined) {
         throw new Error(`Could not find pokemon owner for pokemon : ${sourcePokemon.id}`);
     }
@@ -331,9 +323,8 @@ function ApplyAromatherapyEffect(turn: IGame, sourcePokemon: Pokemon) {
                 targetPokemonId: pokemon.id,
                 defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
             }
-            turn.AddEvent(statusRestoreEffect);
-            pokemon.status = Status.None;
-            pokemon._statusObj = GetHardStatus(Status.None);
+            game.AddEvent(statusRestoreEffect);
+            game.SetStatusOfPokemon(pokemon.id,Status.None);
         }
 
     });

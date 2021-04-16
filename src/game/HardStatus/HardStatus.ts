@@ -7,6 +7,8 @@ import { DamageType, Technique } from "game/Techniques/Technique";
 import { WeatherType } from "game/Weather/Weather";
 import { IGame } from "game/BattleGame";
 import { DamageModifierInfo } from "game/DamageFunctions";
+import { Stat } from "game/Stat";
+import _ from "lodash";
 
 
 
@@ -49,8 +51,7 @@ const RestingStatus:HardStatus & {counter:number} = {...CreateBattleBehaviour(),
 
         if (this.counter >= 2) {
             //Pokemon Wakes Up
-            pokemon.status = Status.None;
-            pokemon._statusObj = GetHardStatus(Status.None);
+            game.SetStatusOfPokemon(pokemon.id,Status.None);
 
             const wakeupEffect: StatusChangeEvent = {
                 type: BattleEventType.StatusChange,
@@ -105,8 +106,7 @@ const SleepStatus:HardStatus &{turnsToSleep:number,counter:number} = {...CreateB
             this.counter--;
             if (this.counter < 0){
                 //Pokemon Wakes Up
-                pokemon.status = Status.None;
-                pokemon._statusObj = GetHardStatus(Status.None);
+                game.SetStatusOfPokemon(pokemon.id,Status.None);
     
                 const wakeupEffect: StatusChangeEvent = {
                     type: BattleEventType.StatusChange,
@@ -141,7 +141,6 @@ const BurnStatus:HardStatus = {...CreateBattleBehaviour(),...{
     },
     OnAfterDamageCalculated(pokemon: Pokemon, techUsed: Technique, defendingPokemon: Pokemon, damage: number, modifierInfo: DamageModifierInfo, game: IGame){
         if (techUsed.damageType === DamageType.Physical){
-            console.log("burn status decreasing damage",damage,damage*0.5);
             return damage*0.5;
         }
         return damage;
@@ -165,8 +164,7 @@ class FrozenStatus extends BattleBehaviour implements HardStatus{
         game.AddMessage(`${pokemon.name} is frozen!`);
         if (game.Roll(this.thawChance)) {
             //Pokemon Wakes Up
-            pokemon.status = Status.None;
-            pokemon._statusObj = GetHardStatus(Status.None);
+            game.SetStatusOfPokemon(pokemon.id,Status.None);
 
             const thawEffect: StatusChangeEvent = {
                 type: BattleEventType.StatusChange,
@@ -197,14 +195,12 @@ class FrozenStatus extends BattleBehaviour implements HardStatus{
     }
 }
 
-class ParalyzeStatus extends BattleBehaviour implements HardStatus{
-  
 
-    statusType = Status.Paralyzed;
-    curedString= 'has been cured of paralysis!'
-    inflictedMessage = 'is now paralyzed!'
-    private cantMoveChance: number = 25;
-
+const ParalyzeStatus:HardStatus & {cantMoveChance:number} = {...CreateBattleBehaviour(),...{
+    statusType:Status.Paralyzed,
+    curedString: 'has been cured of paralysis!',
+    inflictedMessage: 'is now paralyzed!',
+    cantMoveChance:25,
     BeforeAttack(game: IGame, pokemon: Pokemon) {
         if (game.Roll(this.cantMoveChance)) {
             const cantAttackEffect: CannotAttackEvent = {
@@ -217,12 +213,26 @@ class ParalyzeStatus extends BattleBehaviour implements HardStatus{
             return;
         }
         //do the before logic here.
-    }
+    },
     CanApply(game: IGame, pokemon: Pokemon) {
         return !HasElementType(pokemon, ElementType.Electric)
+    },
+    Update(game:IGame,pokemon:Pokemon){
+
+        if (pokemon.statMultipliers.filter(sm=>sm.tag==="paralyze").length===0){
+            pokemon.statMultipliers.push({
+                stat:Stat.Speed,
+                multiplier:0.5,
+                tag:"paralyze"
+            })
+        }
+    },
+    OnRemoved(game:IGame,pokemon:Pokemon){
+        _.remove(pokemon.statMultipliers,sm=>sm.tag==="paralyze");
     }
 
-}
+}}
+
 
 class PoisonStatus extends BattleBehaviour implements HardStatus {    
 
@@ -254,7 +264,7 @@ class NoneStatus extends BattleBehaviour implements HardStatus {
 function GetHardStatus(status: Status): HardStatus {
 
     if (status === Status.Paralyzed) {
-        return new ParalyzeStatus()
+        return {...ParalyzeStatus}
     }
     else if (status === Status.Poison) {
         return new PoisonStatus();
