@@ -211,9 +211,25 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }, []);
     /* eslint-enable */
 
+
+    function getAllyPlayer(){
+        const player = state.field.players.find(p=>p.id === props.battle.GetAllyPlayerID());
+        if (player === undefined){
+            throw new Error(`Could not find player in call to isAllyPokemon()`);
+        }
+        return player;
+    }
+    function getEnemyPlayer(){
+        const player = state.field.players.find(p=>p.id !== props.battle.GetAllyPlayerID());
+        if (player === undefined){
+            throw new Error(`Could not find player in call to isAllyPokemon()`);
+        }
+        return player;
+    }
+
     function isAllyPokemon(id: number): boolean {
-        //TODO - change to use player id instead.
-        return state.field.players[0].pokemon.filter(pokemon => pokemon.id === id).length > 0;
+        const player = getAllyPlayer();
+        return player.pokemon.filter(pokemon => pokemon.id === id).length > 0;
     }
 
     function getPokemonById(id: number): Pokemon {
@@ -226,16 +242,12 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     function getAllyPokemon(): Pokemon {
         //TODO - change to use player id instead
-        return GetActivePokemon(state.field.players[0]);
+        return GetActivePokemon(getAllyPlayer());
     }
     function getEnemyPokemon(): Pokemon {
         //TODO - change to use player id instead.
-        return GetActivePokemon(state.field.players[1]);
+        return GetActivePokemon(getEnemyPlayer());
     }
-
-    //our simple state machine for our events log.
-
-    //This is broken and does not go to the turn over on the last turn.
     const onEndOfTurnLog = useCallback(() => {
 
         if (turnInfo === undefined) {
@@ -276,10 +288,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         //so that the animations don't get set twice.
         setRunningAnimations(true);
 
-        //this could be extracted to the useBattleAnimations() hook
-        //we need to pass in the state
-        //we need to pass in the ref to the messageBox
-        //we need to pass in the ref to the pokemonNodes        
 
         //default times
         const defaultDelayTime: number = 0.1;
@@ -538,16 +546,14 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-enable */
 
     function SetBattleAction(techniqueId: number) {
+        const currentPokemon = GetActivePokemon(getAllyPlayer());
 
-        //todo: use player id instead.
-        const currentPokemon = state.field.players[0].pokemon.find(p => p.id === state.field.players[0].currentPokemonId);
-
-        const pokemonName = currentPokemon?.name;
-        const moveName = currentPokemon?.techniques.find(t => t.id === techniqueId)?.name
+        const pokemonName = currentPokemon.name;
+        const moveName = currentPokemon.techniques.find(t => t.id === techniqueId)?.name
 
         const actionSuccessful = battleService.SetPlayerAction({
-            playerId: 1, //todo : get player id
-            pokemonId: state.field.players[0].currentPokemonId, //todo: get proper pokemon id,
+            playerId: battleService.GetAllyPlayerID(), 
+            pokemonId: GetActivePokemon(getAllyPlayer()).id,
             pokemonName: pokemonName,
             moveId: techniqueId,
             moveName: moveName,
@@ -561,7 +567,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     function SetSwitchAction(pokemonSwitchId: number) {
         const action: SwitchPokemonAction = {
             type: Actions.SwitchPokemon,
-            playerId: 1, //todo : get proper player id.
+            playerId: battleService.GetAllyPlayerID(), 
             switchPokemonId: pokemonSwitchId
         }
         const actionSuccessful = battleService.SetPlayerAction(action);
@@ -572,7 +578,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     function SetUseItemAction(itemId: number) {
         const action: UseItemAction = {
             type: Actions.UseItem,
-            playerId: 1,//todo : use player id instead.
+            playerId: battleService.GetAllyPlayerID(),
             itemId: itemId
         }
         battleService.SetPlayerAction(action);
@@ -618,7 +624,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 if (winningPlayer === undefined) {
                     throw new Error('Could not find winning player for game over screen in Battle.tsx');
                 }
-                if (state.field.players[0].id === winningPlayer) {
+                if (getAllyPlayer().id === winningPlayer) {
                     return `You have won the battle!`
                 }
                 else {
@@ -640,10 +646,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }, [menuState, GetMenuMessage])
 
     const enemyPartyPokeballs = () => {
-        //todo - use enemy player id instead.
         return <div className="enemy-party-pokeballs">
 
-            {state.field.players[1].pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
+            {getEnemyPlayer().pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
                 <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
         </div>
     }
@@ -680,10 +685,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     const allyPartyPokeballs = () => {
-        //todo use player id instead.
         return (menuState === MenuState.MainMenu &&
             <div className="pokemon-party-pokeballs">
-                {state.field.players[0].pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}>
+                {getAllyPlayer().pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}>
                     <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
             </div>)
     }
@@ -692,9 +696,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         const mainMenu = <BattleMenu
             onMenuAttackClick={() => {
-                if (battleService.GetValidActions(state.field.players[0].id).filter(act => act.type === Actions.UseTechnique).length === 0) {
+                //this might cause issues when we set it up for multiplayer.
+                if (battleService.GetValidActions(getAllyPlayer().id).filter(act => act.type === Actions.UseTechnique).length === 0) {
                     //use a struggle command instead
-                    const struggleCommand = battleService.GetValidActions(state.field.players[0].id).find(act => act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
+                    const struggleCommand = battleService.GetValidActions(getAllyPlayer().id).find(act => act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
                     if (struggleCommand === undefined) {
                         throw new Error(`Could not use struggle command`);
                     }
@@ -715,7 +720,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}
             onItemClick={(item: any) => { SetUseItemAction(item.id) }}
-            items={state.field.players[0].items} />
+            items={getAllyPlayer().items} />
 
         const switchMenu = <PokemonMiniInfoList
             showCancelButton={true}
@@ -750,7 +755,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             </div>)
 
         const faintedSwitchMenu = <PokemonMiniInfoList onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
-            player={state.field.players[0]} />
+            player={getAllyPlayer()} />
 
         const pokemonInfoScreen = <PokemonInfo onExitClick={HandlePokemonInfoScreenExit}
             pokemon={pokemonInfo} />

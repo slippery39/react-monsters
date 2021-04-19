@@ -42,6 +42,10 @@ class BattleService {
         this.onStateChange.emit({ newField: _.cloneDeep(this.battle.field) });
     }
 
+    GetAllyPlayerID(){
+        return this.allyPlayerId;
+    }
+
     GetAllyPlayer() {
         return this.GetPlayers().filter(player => player.id === this.allyPlayerId)[0];
     }
