@@ -1,12 +1,14 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import "./StartGameScreen.css";
 
-import {Button, Card} from 'antd';
+import {Button, Card, message} from 'antd';
 import Title from 'components/_General/General';
 import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import styled, { keyframes } from 'styled-components';
 import _ from 'lodash';
+
+import {io} from "socket.io-client";
 
 interface Props{
     onStartClick: ()=>void;
@@ -44,6 +46,46 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
 
 
 
+    useEffect(()=>{
+
+        const URL = "http://localhost:8000";
+        const socket = io(URL);
+
+        socket.onAny((event,...args)=>{
+            message.success(event);
+            console.log(event,args);
+
+            if (event === "newturnlog"){
+                console.log("event found was the new turn log!");
+            }
+            if (event === "game over"){
+                console.log("event found was game over!");
+            }
+        })
+
+
+        return ()=>{socket.close()};
+
+    },[])
+
+
+    const testConnectServer = ()=>{
+        /*
+        console.log("testing");
+        fetch("http://localhost:8000/randombattle")
+        .then(res=>{
+            console.log("then1");
+            console.log(res);
+            return res.json(); //.text or .json()
+        })
+        .then((data)=>{
+            console.log(`Recieved data : ${data}`)
+            message.success(`Recieved data : ${data}`);
+        })
+        .catch(console.log)
+        */
+    }
+
     const [currentPokemon,setCurrentPokemon]  = useState<string>(GetRandomPokemon());
 
     return (
@@ -61,6 +103,9 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
             </Button>
             <Button block type="primary" onClick={()=>props.onTestGameClick()} className="text-outline text-large">
                 Developer Test Game
+            </Button>
+            <Button block type="primary" onClick={()=>testConnectServer()} className="text-outline text-large">
+                Connect to Server
             </Button>
         </div>
     )

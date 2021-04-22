@@ -695,11 +695,12 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const bottomMenu = () => {
 
         const mainMenu = <BattleMenu
-            onMenuAttackClick={() => {
+            onMenuAttackClick={async () => {
                 //this might cause issues when we set it up for multiplayer.
-                if (battleService.GetValidActions(getAllyPlayer().id).filter(act => act.type === Actions.UseTechnique).length === 0) {
+                var validActions = battleService.GetValidActions(getAllyPlayer().id);
+                if (validActions.filter(act => act.type === Actions.UseTechnique).length === 0) {
                     //use a struggle command instead
-                    const struggleCommand = battleService.GetValidActions(getAllyPlayer().id).find(act => act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
+                    const struggleCommand = validActions.find(act => act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
                     if (struggleCommand === undefined) {
                         throw new Error(`Could not use struggle command`);
                     }

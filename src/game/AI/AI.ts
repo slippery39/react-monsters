@@ -21,12 +21,12 @@ class BasicAI implements AI {
     constructor(aiPlayer: Player, service: BattleService) {
         this._playerID = aiPlayer.id;
         this._service = service;
-        this._service.OnActionNeeded.on((args) => {
+        this._service.OnActionNeeded.on((args: { playerIDsNeeded: number[]; }) => {
             if (args.playerIDsNeeded.includes(this._playerID)) {
                 this.ChooseAction();
             }
         })
-        this._service.OnSwitchNeeded.on((args) => {
+        this._service.OnSwitchNeeded.on((args: OnSwitchNeededArgs) => {
             this.ChoosePokemonToSwitchInto(args);
         })
     }

@@ -17,7 +17,22 @@ export interface OnNewTurnArgs {
 }
 
 
-class BattleService {
+interface IBattleService{
+    SetStatusOfPokemon(pokemonId:number,status:Status):void,
+    GetAllyPlayerID():number,
+    GetAllyPlayer():Player,
+    GetEnemyPlayer():Player,
+    Initialize():void,
+    Start():void,
+    SetInitialAction(action:BattleAction):boolean,
+    GetPlayers(): Array<Player>,
+    GetValidPokemonToSwitchInto(playerId: number):Array<Number>
+    GetField():Field
+    GetValidActions(playerId: number):Array<BattleAction>
+}
+
+
+class BattleService implements IBattleService {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
     battle: BattleGame;
