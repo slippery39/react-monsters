@@ -21,21 +21,18 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEvent, BattleEventType } from 'game/BattleEvents'
 import BattleService from 'game/BattleService';
-import { Pokemon, PokemonBuilder } from 'game/Pokemon/Pokemon';
+import { Pokemon } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 import { Status } from 'game/HardStatus/HardStatus';
-import { Player } from 'game/Player/PlayerBuilder';
-import PokemonInfo from 'components/PokemonInfoScreen/PokemonInfoScreen';
-import { ElementType } from 'game/ElementType';
+import { Player, PlayerBuilder } from 'game/Player/PlayerBuilder';
 
 
 import ReactRain from "react-rain-animation";
 import "react-rain-animation/lib/style.css";
 import { WeatherType } from 'game/Weather/Weather';
 import { Field, OnNewTurnLogArgs } from 'game/BattleGame';
+import PokemonInfoMenu from './PokemonInfoMenu/PokemonInfoMenu';
 
-import { Tabs } from 'antd';
-const { TabPane } = Tabs;
 
 gsap.registerPlugin(TextPlugin);
 gsap.registerPlugin(CSSPlugin);
@@ -43,6 +40,7 @@ gsap.registerPlugin(CSSPlugin);
 
 enum MenuState {
     None = 'none',
+    Loading = "loading",
     MainMenu = 'main-menu',
     AttackMenu = 'attack-menu',
     ItemMenu = 'item-menu',
@@ -98,14 +96,15 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     const battleService = props.battle;
 
-    const initialState: State = {
-        field: battleService.GetField(),
+    //TODO - do not initialize the state until a proper connection is formed..
+    const initialBattleState: State = {
+        field: {
+            players: [new PlayerBuilder(1).WithName("Dummy 1").WithRandomPokemon(1).Build(), new PlayerBuilder(2).WithName("Dummy 2").WithRandomPokemon(1).Build()],
+            entryHazards: [],
+        }
     }
 
-    const reducer = function (state = initialState, action: UIAction): State {
-        //making a deep copy of the state object for immutable purposes.
-        //this is the easiest way to get it working, but if our state object gets huge
-        //then we may run into performance issues. but for now it works fine.
+    const reducer = function (state = initialBattleState, action: UIAction): State {
         var newState = _.cloneDeep(state);
         switch (action.type) {
             //for syncing the state with the server.
@@ -164,15 +163,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
     }
 
-    const [menuState, setMenuState] = useState(MenuState.MainMenu);
+
+    const [battleState, dispatch] = useReducer(reducer, initialBattleState);
+    const [menuState, setMenuState] = useState(MenuState.Loading);
     const [turnInfo, setTurnInfo] = useState<OnNewTurnLogArgs | undefined>(undefined);
     //const [battleEvents, setBattleEvents] = useState<Array<BattleEvent>>([]);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
-    const [pokemonInfo, setPokemonInfo] = useState<Pokemon>(PokemonBuilder().UseGenericPokemon().OfElementalTypes([ElementType.Normal]).Build());
+   
 
     //This is causing problems, we need to lazy initialize it.
-    const [pokemonInfoMenuPlayer, setPokemonInfoMenuPlayer] = useState<Player>(battleService.GetAllyPlayer())
+    //this shoud probably be its own component.
 
 
     //using a ref because we had
@@ -180,7 +181,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     //this is used to force update the battle events animation effect, but we use the ref above because of problems getting it to work.
     const [battleEventsTemp, setBattleEventsTemp] = useState<Array<BattleEvent>>([]);
 
-    const [state, dispatch] = useReducer(reducer, initialState);
+
 
     //for animation purposes
     const allyPokemonImage = useRef(null);
@@ -192,14 +193,14 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     /* eslint-disable */
     useEffect(() => {
-        battleService.onNewTurnLog.on(args => {
+        battleService.OnNewTurnLog.on(args => {
             setTurnInfo(args);
             setMenuState(MenuState.ShowingTurn);
             setBattleEventsTemp(battleEvents.current);
             battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
         });
 
-        battleService.onStateChange.on(args => {
+        battleService.OnStateChange.on(args => {
             dispatch({
                 id: 0,
                 type: 'state-change',
@@ -207,21 +208,29 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             })
         });
 
+        dispatch({
+            id: 0,
+            type: 'state-change',
+            field: _.cloneDeep(battleService.GetField())
+        })
+
+       
         battleService.Start();
+        setMenuState(MenuState.MainMenu);
     }, []);
     /* eslint-enable */
 
 
-    function getAllyPlayer(){
-        const player = state.field.players.find(p=>p.id === props.battle.GetAllyPlayerID());
-        if (player === undefined){
+    function getAllyPlayer() {
+        const player = battleState.field.players.find(p => p.id === props.battle.GetAllyPlayerID());
+        if (player === undefined) {
             throw new Error(`Could not find player in call to isAllyPokemon()`);
         }
         return player;
     }
-    function getEnemyPlayer(){
-        const player = state.field.players.find(p=>p.id !== props.battle.GetAllyPlayerID());
-        if (player === undefined){
+    function getEnemyPlayer() {
+        const player = battleState.field.players.find(p => p.id !== props.battle.GetAllyPlayerID());
+        if (player === undefined) {
             throw new Error(`Could not find player in call to isAllyPokemon()`);
         }
         return player;
@@ -233,7 +242,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     function getPokemonById(id: number): Pokemon {
-        const pokemon = state.field.players.map(player => {
+        const pokemon = battleState.field.players.map(player => {
             return player.pokemon;
         }).flat().filter(pokemon => pokemon.id === id);
 
@@ -372,7 +381,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
             case BattleEventType.UseItem: {
                 const pokemon = getPokemonById(effect.targetPokemonId);
-                const owner = getPokemonAndOwner(state, pokemon.id).owner;
+                const owner = getPokemonAndOwner(battleState, pokemon.id).owner;
 
                 if (owner === undefined) {
                     throw new Error("Owner was undefined in call getPokemonAndOwner @ Animation Effect Use Item");
@@ -431,7 +440,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
             case BattleEventType.SwitchIn: {
                 const pokemon = getPokemonById(effect.switchInPokemonId);
-                const owner = getPokemonAndOwner(state, pokemon.id).owner;
+                const owner = getPokemonAndOwner(battleState, pokemon.id).owner;
 
                 let switchInMessage;
                 isAllyPokemon(pokemon.id) ? switchInMessage = `Go ${pokemon.name}!` : switchInMessage = `${owner?.name} has sent out ${pokemon.name}!`;
@@ -457,7 +466,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             case BattleEventType.SwitchOut: {
 
                 const pokemon = getPokemonById(effect.switchOutPokemonId);
-                const owner = getPokemonAndOwner(state, pokemon.id).owner;
+                const owner = getPokemonAndOwner(battleState, pokemon.id).owner;
 
                 let switchOutMessage;
                 isAllyPokemon(pokemon.id) ? switchOutMessage = `Enough ${pokemon.name}, come back!` : switchOutMessage = `${owner?.name} has returned ${pokemon.name}!`;
@@ -552,7 +561,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const moveName = currentPokemon.techniques.find(t => t.id === techniqueId)?.name
 
         const actionSuccessful = battleService.SetPlayerAction({
-            playerId: battleService.GetAllyPlayerID(), 
+            playerId: getAllyPlayer().id,
             pokemonId: GetActivePokemon(getAllyPlayer()).id,
             pokemonName: pokemonName,
             moveId: techniqueId,
@@ -567,7 +576,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     function SetSwitchAction(pokemonSwitchId: number) {
         const action: SwitchPokemonAction = {
             type: Actions.SwitchPokemon,
-            playerId: battleService.GetAllyPlayerID(), 
+            playerId: getAllyPlayer().id,
             switchPokemonId: pokemonSwitchId
         }
         const actionSuccessful = battleService.SetPlayerAction(action);
@@ -578,30 +587,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     function SetUseItemAction(itemId: number) {
         const action: UseItemAction = {
             type: Actions.UseItem,
-            playerId: battleService.GetAllyPlayerID(),
+            playerId: getAllyPlayer().id,
             itemId: itemId
         }
         battleService.SetPlayerAction(action);
     }
 
-    function HandlePokemonInfoScreenExit() {
-        setMenuState(MenuState.PokemonInfoMenu);
-    }
-    function SwitchPokemonInfoMenuPlayer() {
-
-        if (pokemonInfoMenuPlayer.id === battleService.GetAllyPlayer().id) {
-            setPokemonInfoMenuPlayer(battleService.GetEnemyPlayer())
-        }
-        else {
-            setPokemonInfoMenuPlayer(battleService.GetAllyPlayer())
-        }
-    }
-
-
-
-
     const GetMenuMessage = useCallback(() => {
         switch (menuState) {
+            case MenuState.Loading:{
+                return "..."
+            }
             case MenuState.MainMenu: {
                 return `What will ${getAllyPokemon().name} do?`
             }
@@ -697,6 +693,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const mainMenu = <BattleMenu
             onMenuAttackClick={async () => {
                 //this might cause issues when we set it up for multiplayer.
+                //maybe this should come with the state?
                 var validActions = battleService.GetValidActions(getAllyPlayer().id);
                 if (validActions.filter(act => act.type === Actions.UseTechnique).length === 0) {
                     //use a struggle command instead
@@ -727,39 +724,13 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             showCancelButton={true}
             onCancelClick={() => setMenuState(MenuState.MainMenu)}
             onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
-            player={battleService.GetAllyPlayer()} />
-
-        const pokemonInfoMenu = (
-            <div>
-                <Tabs defaultActiveKey="1" onChange={SwitchPokemonInfoMenuPlayer}>
-                    <TabPane tab="Ally Pokemon" key="1">
-                        <PokemonMiniInfoList
-                            showCancelButton={true}
-                            onCancelClick={() => setMenuState(MenuState.MainMenu)}
-                            onPokemonClick={(pokemon) => {
-                                setPokemonInfo(pokemon);
-                                setMenuState(MenuState.ShowPokemonInfo)
-                            }}
-                            player={battleService.GetAllyPlayer()} />
-                    </TabPane>
-                    <TabPane tab="Enemy Pokemon" key="2">
-                        <PokemonMiniInfoList
-                            showCancelButton={true}
-                            onCancelClick={() => setMenuState(MenuState.MainMenu)}
-                            onPokemonClick={(pokemon) => {
-                                setPokemonInfo(pokemon);
-                                setMenuState(MenuState.ShowPokemonInfo)
-                            }}
-                            player={battleService.GetEnemyPlayer()} />
-                    </TabPane>
-                </Tabs>
-            </div>)
-
-        const faintedSwitchMenu = <PokemonMiniInfoList onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
             player={getAllyPlayer()} />
 
-        const pokemonInfoScreen = <PokemonInfo onExitClick={HandlePokemonInfoScreenExit}
-            pokemon={pokemonInfo} />
+ 
+
+        const faintedSwitchMenu = <PokemonMiniInfoList onCancelClick={()=>setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
+            player={getAllyPlayer()} />
+     
 
         const gameOver = <GameOverScreen onReturnClick={() => props.onEnd()} />
 
@@ -781,10 +752,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return mainMenu;
             }
             case MenuState.PokemonInfoMenu: {
-                return pokemonInfoMenu;
-            }
-            case MenuState.ShowPokemonInfo: {
-                return pokemonInfoScreen;
+                return <PokemonInfoMenu players={[getAllyPlayer(),getEnemyPlayer()]}/>
             }
             case MenuState.SwitchMenu: {
                 return switchMenu;
@@ -796,14 +764,14 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     return (
-        <div className="App">
-            {props.showDebug && <Debug field={state.field} battleService={battleService} />}
+        ( menuState === MenuState.Loading? <div></div> : <div className="App">
+            {props.showDebug && <Debug field={battleState.field} battleService={battleService} />}
             <div className="battle-window">
                 <div className="top-screen">
                     <div className='battle-terrain'>
-                        {state.field.weather?.name === WeatherType.Sunny && <div className='sunny-container'></div>}
-                        {state.field.weather?.name === WeatherType.Rain && <ReactRain id="react-rain" numDrops="100" />}
-                        {state.field.weather?.name === WeatherType.Sandstorm && <div className='sandstorm-container'></div>}
+                        {battleState.field.weather?.name === WeatherType.Sunny && <div className='sunny-container'></div>}
+                        {battleState.field.weather?.name === WeatherType.Rain && <ReactRain id="react-rain" numDrops="100" />}
+                        {battleState.field.weather?.name === WeatherType.Sandstorm && <div className='sandstorm-container'></div>}
                         {enemyPartyPokeballs()}
                         {enemyPokemonDisplay()}
                         {allyPokemonDisplay()}
@@ -818,7 +786,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     {bottomMenu()}
                 </div>
             </div>
-        </div >
+        </div>)
+
     );
 }
 

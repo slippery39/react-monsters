@@ -32,7 +32,7 @@ class BasicAI implements AI {
     }
 
     private GetPlayerFromTurn(): Player {
-        const player = this._service.battle.GetPlayers().find(player => player.id === this._playerID);
+        const player = this._service.GetPlayers().find(player => player.id === this._playerID);
 
         if (player === undefined) {
             throw new Error(`Could not find player with id ${this._playerID} in the game state to use for AI Brain`);
@@ -44,7 +44,7 @@ class BasicAI implements AI {
     async ChooseAction() { //this is run simulation
         const aiPlayer = this.GetPlayerFromTurn();
         const minMaxAlgo = new MiniMax();
-        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer, this._service.battle.field);
+        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer, this._service.GetField());
         const chosenAction = calculatedPointsForUs[0].action;
         this._service.SetPlayerAction(chosenAction);
     }

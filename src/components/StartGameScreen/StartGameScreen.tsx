@@ -47,6 +47,7 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
 
 
     useEffect(()=>{
+        /*
 
         const URL = "http://localhost:8000";
         const socket = io(URL);
@@ -65,6 +66,7 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
 
 
         return ()=>{socket.close()};
+        */
 
     },[])
 

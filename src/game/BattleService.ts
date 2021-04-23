@@ -5,6 +5,9 @@ import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
 import BattleGame, { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
+import { Socket } from "dgram";
+import { message } from "antd";
+import { io } from "socket.io-client";
 
 
 
@@ -17,27 +20,71 @@ export interface OnNewTurnArgs {
 }
 
 
-interface IBattleService{
-    SetStatusOfPokemon(pokemonId:number,status:Status):void,
-    GetAllyPlayerID():number,
-    GetAllyPlayer():Player,
-    GetEnemyPlayer():Player,
-    Initialize():void,
-    Start():void,
-    SetInitialAction(action:BattleAction):boolean,
+interface IBattleService {
+    SetStatusOfPokemon(pokemonId: number, status: Status): void,
+    GetAllyPlayerID(): number,
+    GetAllyPlayer(): Player,
+    GetEnemyPlayer(): Player,
+    Initialize(): void,
+    Start(): void,
+    SetInitialAction(action: BattleAction): boolean,
     GetPlayers(): Array<Player>,
-    GetValidPokemonToSwitchInto(playerId: number):Array<Number>
-    GetField():Field
-    GetValidActions(playerId: number):Array<BattleAction>
+    GetValidPokemonToSwitchInto(playerId: number): Array<Number>
+    GetField(): Field
+    GetValidActions(playerId: number): Array<BattleAction>
+    OnNewTurnLog: TypedEvent<OnNewTurnLogArgs>
+    OnStateChange: TypedEvent<OnStateChangeArgs>
+    OnNewTurn: TypedEvent<OnNewTurnArgs>
+    OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs>
+    OnActionNeeded: TypedEvent<OnActionNeededArgs>
+    OnGameOver: TypedEvent<OnGameOverArgs>
+}
+
+interface HandleBattleEvents{
+    OnNewTurnLog: TypedEvent<OnNewTurnLogArgs>
+    OnStateChange: TypedEvent<OnStateChangeArgs>
+    OnNewTurn: TypedEvent<OnNewTurnArgs>
+    OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs>
+    OnActionNeeded: TypedEvent<OnActionNeededArgs>
+    OnGameOver: TypedEvent<OnGameOverArgs>
 }
 
 
+export class RemoteBattleService implements HandleBattleEvents {
+
+    OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
+    OnStateChange = new TypedEvent<OnStateChangeArgs>();
+    //the number type is temporary
+    OnNewTurn = new TypedEvent<OnNewTurnArgs>();
+    OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
+    OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
+    OnGameOver = new TypedEvent<OnGameOverArgs>();
+
+    Initialize() {
+        const URL = "http://localhost:8000";
+        const socket = io(URL);
+
+        socket.onAny((event, ...args) => {
+            if (event === "newturnlog") {
+                this.OnNewTurnLog.emit(args as unknown as OnNewTurnLogArgs);
+                console.log("event found was the new turn log!");
+            }
+            if (event === "gameover") {
+                this.OnGameOver.emit(args as unknown as OnGameOverArgs)
+                console.log("event found was game over!");
+            }
+
+        });
+    }
+}
+
+//Acts as a middleman between the client and the game logic for 1 player.
 class BattleService implements IBattleService {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
     battle: BattleGame;
-    onNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
-    onStateChange = new TypedEvent<OnStateChangeArgs>();
+    OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
+    OnStateChange = new TypedEvent<OnStateChangeArgs>();
     //the number type is temporary
     OnNewTurn = new TypedEvent<OnNewTurnArgs>();
     OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
@@ -48,16 +95,19 @@ class BattleService implements IBattleService {
 
 
     constructor(player1: Player, player2: Player, saveTurnLog: boolean) {
+        //this should be moved out? doesn't make any sense to have it constructed here now...
         this.battle = new BattleGame([player1, player2], saveTurnLog);
     }
+
+
 
     //For testing purposes only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
         this.battle.SetStatusOfPokemon(pokemonId, status);
-        this.onStateChange.emit({ newField: _.cloneDeep(this.battle.field) });
+        this.OnStateChange.emit({ newField: _.cloneDeep(this.battle.field) });
     }
 
-    GetAllyPlayerID(){
+    GetAllyPlayerID() {
         return this.allyPlayerId;
     }
 
@@ -76,7 +126,7 @@ class BattleService implements IBattleService {
             this.OnNewTurn.emit(args);
         });
         this.battle.OnNewLogReady.on((info) => {
-            this.onNewTurnLog.emit(info);
+            this.OnNewTurnLog.emit(info);
         });
         this.battle.OnSwitchNeeded.on(args => this.OnSwitchNeeded.emit(args));
         this.battle.OnGameOver.on(args => this.OnGameOver.emit(args));
@@ -97,33 +147,33 @@ class BattleService implements IBattleService {
     }
 
     //Returns a boolean to dictate whether the action was successful or not, for UI purposes.
-    SetInitialAction(action: BattleAction) : boolean{
+    SetInitialAction(action: BattleAction): boolean {
 
 
-        const player = this.GetPlayers().find(p=>p.id === action.playerId);
-        if (player === undefined){
-            throw new Error(`Could not find player to set initial action`);            
+        const player = this.GetPlayers().find(p => p.id === action.playerId);
+        if (player === undefined) {
+            throw new Error(`Could not find player to set initial action`);
         }
 
-        const validActions = this.GetValidActions(player.id).filter(act=>{
-             if (action.type === Actions.SwitchPokemon){
+        const validActions = this.GetValidActions(player.id).filter(act => {
+            if (action.type === Actions.SwitchPokemon) {
                 const switchPokemonAction = act as SwitchPokemonAction;
                 return switchPokemonAction.playerId === act.playerId && switchPokemonAction.switchPokemonId === action.switchPokemonId;
-             }
-             else if (action.type === Actions.UseTechnique){
-               const useTechniqueAction = act as UseMoveAction;
-               return useTechniqueAction.playerId === action.playerId && useTechniqueAction.moveId === action.moveId;
-             
-             }
-             return true;
-            });
+            }
+            else if (action.type === Actions.UseTechnique) {
+                const useTechniqueAction = act as UseMoveAction;
+                return useTechniqueAction.playerId === action.playerId && useTechniqueAction.moveId === action.moveId;
 
-        if (validActions.length === 0){
+            }
+            return true;
+        });
+
+        if (validActions.length === 0) {
             //console.error(`Invalid action set for player ${player.name}`,action,this.GetValidActions(player.id));
             return false;
-            
+
         }
-    
+
 
         this.battle.SetInitialPlayerAction(action);
         return true;
@@ -132,27 +182,27 @@ class BattleService implements IBattleService {
         this.battle.SetSwitchPromptAction(action);
     }
     SetPlayerAction(action: BattleAction) {
-        
+
         if (this.gameEnded) {
             return;
         }
-        if (this.battle.GetCurrentState()=== 'awaiting-initial-actions') {
+        if (this.battle.GetCurrentState() === 'awaiting-initial-actions') {
             return this.SetInitialAction(action);
-            
+
         }
-        else if (this.battle.GetCurrentState()=== 'awaiting-switch-action') {
+        else if (this.battle.GetCurrentState() === 'awaiting-switch-action') {
             //RIGHT HERE IS WHERE IT'S HAPPENING!, WE NEED TO VALIDATE HERE....
             if (action.type !== 'switch-pokemon-action') {
                 console.error(`Somehow a wrong action type got into the awaiting-switch-action branch of SetPlayerAction...`);
                 return;
             }
             let switchAction = (action as SwitchPokemonAction);
-            
-            if (this.GetValidPokemonToSwitchInto(action.playerId).includes(action.switchPokemonId)){
-            this.SetSwitchFaintedPokemonAction(switchAction);
-               return true;
+
+            if (this.GetValidPokemonToSwitchInto(action.playerId).includes(action.switchPokemonId)) {
+                this.SetSwitchFaintedPokemonAction(switchAction);
+                return true;
             }
-            else{
+            else {
                 return false;
             }
         }
