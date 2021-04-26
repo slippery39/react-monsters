@@ -5,11 +5,7 @@ import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
 import BattleGame, { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
-import { Socket } from "dgram";
-import { message } from "antd";
 import { io } from "socket.io-client";
-
-
 
 export interface OnStateChangeArgs {
     newField: Field
@@ -18,8 +14,7 @@ export interface OnStateChangeArgs {
 export interface OnNewTurnArgs {
 
 }
-
-
+/*
 interface IBattleService {
     SetStatusOfPokemon(pokemonId: number, status: Status): void,
     GetAllyPlayerID(): number,
@@ -39,19 +34,23 @@ interface IBattleService {
     OnActionNeeded: TypedEvent<OnActionNeededArgs>
     OnGameOver: TypedEvent<OnGameOverArgs>
 }
+*/
 
-interface HandleBattleEvents{
+export interface GameEventHandler{
     OnNewTurnLog: TypedEvent<OnNewTurnLogArgs>
     OnStateChange: TypedEvent<OnStateChangeArgs>
     OnNewTurn: TypedEvent<OnNewTurnArgs>
     OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs>
     OnActionNeeded: TypedEvent<OnActionNeededArgs>
     OnGameOver: TypedEvent<OnGameOverArgs>
+    OnGameStart:TypedEvent<OnGameStartArgs>
 }
 
+export interface OnGameStartArgs{
+    field:Field
+}
 
-export class RemoteBattleService implements HandleBattleEvents {
-
+export class RemoteBattleService implements GameEventHandler {
     OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
     OnStateChange = new TypedEvent<OnStateChangeArgs>();
     //the number type is temporary
@@ -59,27 +58,36 @@ export class RemoteBattleService implements HandleBattleEvents {
     OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
     OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
+    OnGameStart = new TypedEvent<OnGameStartArgs>();    
 
     Initialize() {
         const URL = "http://localhost:8000";
         const socket = io(URL);
-
+    
         socket.onAny((event, ...args) => {
+            if (event === "gamestart"){
+                this.OnGameStart.emit(args[0] as unknown as OnGameStartArgs)
+                console.log("initial state has been found");
+                socket.emit("gamestartready",[]);
+            }
             if (event === "newturnlog") {
-                this.OnNewTurnLog.emit(args as unknown as OnNewTurnLogArgs);
+               this.OnNewTurnLog.emit(args[0] as unknown as OnNewTurnLogArgs);
+                console.log(args);
                 console.log("event found was the new turn log!");
             }
             if (event === "gameover") {
-                this.OnGameOver.emit(args as unknown as OnGameOverArgs)
+                this.OnGameOver.emit(args[0] as unknown as OnGameOverArgs)
                 console.log("event found was game over!");
             }
-
+            if (event === "update-state"){
+                this.OnStateChange.emit(args[0] as unknown as OnStateChangeArgs);
+            }
         });
     }
 }
 
 //Acts as a middleman between the client and the game logic for 1 player.
-class BattleService implements IBattleService {
+class BattleService implements GameEventHandler {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
     battle: BattleGame;
@@ -89,6 +97,7 @@ class BattleService implements IBattleService {
     OnNewTurn = new TypedEvent<OnNewTurnArgs>();
     OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
     OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
+    OnGameStart:TypedEvent<OnGameStartArgs> = new TypedEvent<OnGameStartArgs>();
     OnGameOver = new TypedEvent<OnGameOverArgs>();
 
     gameEnded: boolean = false;
@@ -98,27 +107,14 @@ class BattleService implements IBattleService {
         //this should be moved out? doesn't make any sense to have it constructed here now...
         this.battle = new BattleGame([player1, player2], saveTurnLog);
     }
-
-
-
     //For testing purposes only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
         this.battle.SetStatusOfPokemon(pokemonId, status);
         this.OnStateChange.emit({ newField: _.cloneDeep(this.battle.field) });
     }
-
     GetAllyPlayerID() {
         return this.allyPlayerId;
     }
-
-    GetAllyPlayer() {
-        return this.GetPlayers().filter(player => player.id === this.allyPlayerId)[0];
-    }
-    GetEnemyPlayer() {
-        return this.GetPlayers().filter(player => player.id !== this.allyPlayerId)[0];
-    }
-
-
 
     //eventually this will run a start event or something.
     Initialize() {
@@ -139,7 +135,8 @@ class BattleService implements IBattleService {
     }
 
     Start() {
-        this.battle.StartGame();
+        this.OnGameStart.emit({field:this.battle.field});
+        this.battle.StartGame();        
     }
     //Used for our AI vs AI, so we have an off switch in case of never ending games.
     EndGame() {
@@ -148,8 +145,6 @@ class BattleService implements IBattleService {
 
     //Returns a boolean to dictate whether the action was successful or not, for UI purposes.
     SetInitialAction(action: BattleAction): boolean {
-
-
         const player = this.GetPlayers().find(p => p.id === action.playerId);
         if (player === undefined) {
             throw new Error(`Could not find player to set initial action`);
@@ -171,9 +166,7 @@ class BattleService implements IBattleService {
         if (validActions.length === 0) {
             //console.error(`Invalid action set for player ${player.name}`,action,this.GetValidActions(player.id));
             return false;
-
         }
-
 
         this.battle.SetInitialPlayerAction(action);
         return true;
@@ -218,8 +211,8 @@ class BattleService implements IBattleService {
         return player.pokemon.filter(poke => poke.id !== player.currentPokemonId && poke.currentStats.hp > 0).map(poke => poke.id)
     }
 
-    GetField(): Field {
-        return _.cloneDeep(this.battle.field);
+    GetField(): Promise<Field> {
+        return Promise.resolve(_.cloneDeep(this.battle.field));
     }
 
     GetValidActions(playerId: number) {

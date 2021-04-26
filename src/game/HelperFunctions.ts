@@ -8,7 +8,7 @@ import { Stat } from "./Stat";
 import { Technique } from "./Techniques/Technique";
 
 export function GetActivePokemon(player: Player) {
-    const pokemon = player.pokemon.find(p => p.id === player.currentPokemonId);
+    const pokemon = player.pokemon.find(p => p.id === player.currentPokemonId);  
 
     if (pokemon === undefined) {
         throw new Error(`invalid pokemon id ${player.currentPokemonId}`);

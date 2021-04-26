@@ -14,6 +14,7 @@ import BasicAI from 'game/AI/AI';
 import BattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
+import RemoteAIvsAIBattle from 'components/Battle/RemoteAIvsAIBattle/RemoteAIvsAI';
 
 const history = createBrowserHistory();
 
@@ -60,7 +61,8 @@ const routing = (
         <Route exact path="/" component={App}/>
         <Route exact path="/battle" component={BattleSetupController}/>
         <Route exact path="/battleSimulator" component={BattleSimulatorMenu}/>
-        <Route exact path="/devtestbattle" render={()=><Battle showDebug battle={initializeTestBattle()} onEnd={()=>history.push("/")}/>}/>
+        <Route exact path="/devtestbattle" render={()=><Battle allyPlayerID={1} showDebug battle={initializeTestBattle()} onEnd={()=>history.push("/")}/>}/>
+        <Route exact path="/remotebattle" render={()=><RemoteAIvsAIBattle/>}/>
       </Switch>
      </Content>
    </Layout>

@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback, useReducer, useRef } from 'react';
 
-
-
 import { Actions, SwitchPokemonAction, UseItemAction } from "game/BattleActions";
 import BattleMenu from "components/battlemenu/BattleMenu";
 import BattlePokemonDisplay, { OwnerType } from "components/BattlePokemonDisplay/BattlePokemonDisplay";
@@ -20,12 +18,11 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEvent, BattleEventType } from 'game/BattleEvents'
-import BattleService from 'game/BattleService';
+import BattleService, { GameEventHandler } from 'game/BattleService';
 import { Pokemon } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 import { Status } from 'game/HardStatus/HardStatus';
-import { Player, PlayerBuilder } from 'game/Player/PlayerBuilder';
-
+import { Player } from 'game/Player/PlayerBuilder';
 
 import ReactRain from "react-rain-animation";
 import "react-rain-animation/lib/style.css";
@@ -63,6 +60,7 @@ type UIAction = {
     newHealth?: number | undefined
     field?: Field,
     newStatus?: Status
+    
 }
 
 const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: Pokemon } {
@@ -89,22 +87,18 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
 interface Props {
     onEnd: () => void;
     battle: BattleService,
+    gameEventHandler?:GameEventHandler,
+    allyPlayerID:number,
     showDebug?: boolean,
+    hideMenu?: boolean
+    onLoad?:()=>void;
 }
 
 const Battle: React.FunctionComponent<Props> = (props) => {
 
     const battleService = props.battle;
 
-    //TODO - do not initialize the state until a proper connection is formed..
-    const initialBattleState: State = {
-        field: {
-            players: [new PlayerBuilder(1).WithName("Dummy 1").WithRandomPokemon(1).Build(), new PlayerBuilder(2).WithName("Dummy 2").WithRandomPokemon(1).Build()],
-            entryHazards: [],
-        }
-    }
-
-    const reducer = function (state = initialBattleState, action: UIAction): State {
+    const reducer = function (state:State, action: UIAction): State {
         var newState = _.cloneDeep(state);
         switch (action.type) {
             //for syncing the state with the server.
@@ -163,20 +157,20 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
     }
 
-
-    const [battleState, dispatch] = useReducer(reducer, initialBattleState);
+    const initialState:State = {
+        field:{
+            players:[],
+            entryHazards:[]
+        }
+    }
+    const [battleState, dispatch] = useReducer(reducer,initialState);
     const [menuState, setMenuState] = useState(MenuState.Loading);
     const [turnInfo, setTurnInfo] = useState<OnNewTurnLogArgs | undefined>(undefined);
-    //const [battleEvents, setBattleEvents] = useState<Array<BattleEvent>>([]);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
-   
-
-    //This is causing problems, we need to lazy initialize it.
-    //this shoud probably be its own component.
 
 
-    //using a ref because we had
+
     const battleEvents = useRef<Array<BattleEvent>>([]);
     //this is used to force update the battle events animation effect, but we use the ref above because of problems getting it to work.
     const [battleEventsTemp, setBattleEventsTemp] = useState<Array<BattleEvent>>([]);
@@ -192,44 +186,79 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const enemyPotionNode = useRef(null);
 
     /* eslint-disable */
-    useEffect(() => {
-        battleService.OnNewTurnLog.on(args => {
+    useEffect( () => {
+
+     function initializeService (){
+
+            let eventHandler: GameEventHandler = battleService;
+            if (props.gameEventHandler){
+                console.log("game event handler found",props.gameEventHandler);
+                eventHandler = props.gameEventHandler
+            }
+
+            eventHandler.OnGameStart.on(args=>{
+            
+                if (menuState === MenuState.ShowingTurn){
+                    return;
+                }
+                
+                console.log("on game start in the event handler!",args);
+                
+    
+                dispatch({
+                    id:0,
+                    type:'state-change',
+                    field:_.cloneDeep(args.field)
+                })
+            
+               setMenuState(MenuState.MainMenu);
+                
+            }); 
+
+        eventHandler.OnNewTurnLog.on( args => {
+            console.log("testing our new turn log?",args);
+
             setTurnInfo(args);
             setMenuState(MenuState.ShowingTurn);
             setBattleEventsTemp(battleEvents.current);
             battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
         });
-
-        battleService.OnStateChange.on(args => {
+        eventHandler.OnStateChange.on((args: { newField: any; }) => {
+            console.log("state - change is happening",args);
             dispatch({
                 id: 0,
                 type: 'state-change',
                 field: _.cloneDeep(args.newField)
             })
+
+            //in case we are joining a game in progress.
+            if (menuState === MenuState.Loading){
+                setMenuState(MenuState.MainMenu);
+            }
         });
 
-        dispatch({
-            id: 0,
-            type: 'state-change',
-            field: _.cloneDeep(battleService.GetField())
-        })
 
-       
-        battleService.Start();
-        setMenuState(MenuState.MainMenu);
+        console.log("our game has loiaded???",eventHandler,props.gameEventHandler);
+
+        //battleService.Start();
+    }
+    initializeService();
+    props.onLoad  && props.onLoad();
     }, []);
     /* eslint-enable */
 
 
     function getAllyPlayer() {
-        const player = battleState.field.players.find(p => p.id === props.battle.GetAllyPlayerID());
+        //TODO - we need to pass in the ally player id here.
+        const player = battleState.field.players.find(p => p.id === props.allyPlayerID);
         if (player === undefined) {
             throw new Error(`Could not find player in call to isAllyPokemon()`);
         }
         return player;
     }
     function getEnemyPlayer() {
-        const player = battleState.field.players.find(p => p.id !== props.battle.GetAllyPlayerID());
+        //TODO - we need to pass in the ally player id here.
+        const player = battleState.field.players.find(p => p.id !== props.allyPlayerID);
         if (player === undefined) {
             throw new Error(`Could not find player in call to isAllyPokemon()`);
         }
@@ -250,11 +279,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     function getAllyPokemon(): Pokemon {
-        //TODO - change to use player id instead
         return GetActivePokemon(getAllyPlayer());
     }
     function getEnemyPokemon(): Pokemon {
-        //TODO - change to use player id instead.
         return GetActivePokemon(getEnemyPlayer());
     }
     const onEndOfTurnLog = useCallback(() => {
@@ -270,7 +297,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             setWinningPlayer(turnLogCopy.winningPlayerId);
             setMenuState(MenuState.GameOver)
         }
-        else if (turnInfo.currentTurnState === 'awaiting-switch-action' && turnInfo.waitingForSwitchIds.filter(id => id === 1).length > 0) {
+        else if (turnInfo.currentTurnState === 'awaiting-switch-action' && turnInfo.waitingForSwitchIds.filter(id => id === getAllyPlayer().id).length > 0) {
             //should check to see if it is our pokemon
             setMenuState(MenuState.FaintedSwitchMenu);
         }
@@ -284,6 +311,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             })
         }
 
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [turnInfo]);
 
     /* eslint-disable */
@@ -595,11 +623,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     const GetMenuMessage = useCallback(() => {
         switch (menuState) {
-            case MenuState.Loading:{
+            case MenuState.Loading: {
                 return "..."
             }
             case MenuState.MainMenu: {
+                //TODO - check if this is fixed.. we should not need a try catch block here.
+                try{
                 return `What will ${getAllyPokemon().name} do?`
+                }
+                catch(e){
+                    return `What will you do?`
+                }
             }
             case MenuState.SwitchMenu: {
                 return `Which pokemon do you want to switch to?`
@@ -639,7 +673,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     useEffect(() => {
         setMenuMessage(GetMenuMessage());
-    }, [menuState, GetMenuMessage])
+    }, [menuState, GetMenuMessage]) 
 
     const enemyPartyPokeballs = () => {
         return <div className="enemy-party-pokeballs">
@@ -678,12 +712,12 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             animated={false}
             message={" "}
             messageRef={el => { messageBox.current = el; }} />)
-    }
+    } 
 
     const allyPartyPokeballs = () => {
-        return (menuState === MenuState.MainMenu &&
+            return (
             <div className="pokemon-party-pokeballs">
-                {getAllyPlayer().pokemon.map(p => (<span key={p.id} style={{ width: "30px", marginRight: "10px" }}>
+                {getAllyPlayer().pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
                     <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
             </div>)
     }
@@ -726,11 +760,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
             player={getAllyPlayer()} />
 
- 
 
-        const faintedSwitchMenu = <PokemonMiniInfoList onCancelClick={()=>setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
+
+        const faintedSwitchMenu = <PokemonMiniInfoList onCancelClick={() => setMenuState(MenuState.MainMenu)} onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
             player={getAllyPlayer()} />
-     
+
 
         const gameOver = <GameOverScreen onReturnClick={() => props.onEnd()} />
 
@@ -752,7 +786,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return mainMenu;
             }
             case MenuState.PokemonInfoMenu: {
-                return <PokemonInfoMenu players={[getAllyPlayer(),getEnemyPlayer()]}/>
+                return <PokemonInfoMenu onCancelClick={()=>setMenuState(MenuState.MainMenu)} players={[getAllyPlayer(), getEnemyPlayer()]} />
             }
             case MenuState.SwitchMenu: {
                 return switchMenu;
@@ -764,7 +798,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     return (
-        ( menuState === MenuState.Loading? <div></div> : <div className="App">
+        (menuState === MenuState.Loading ? <div>Loading...</div> : <div className="App">
             {props.showDebug && <Debug field={battleState.field} battleService={battleService} />}
             <div className="battle-window">
                 <div className="top-screen">
@@ -774,6 +808,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                         {battleState.field.weather?.name === WeatherType.Sandstorm && <div className='sandstorm-container'></div>}
                         {enemyPartyPokeballs()}
                         {enemyPokemonDisplay()}
+                        {allyPartyPokeballs()}
                         {allyPokemonDisplay()}
                     </div>
                     <div style={{ height: "75px", border: "5px solid black", textAlign: "left" }}>
@@ -781,10 +816,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                         {turnLogMessage()}
                     </div>
                 </div>
-                <div className="bottom-screen">
-                    {allyPartyPokeballs()}
+                {(props.hideMenu === undefined || props.hideMenu===false) && <div className="bottom-screen">
                     {bottomMenu()}
                 </div>
+                }
             </div>
         </div>)
 

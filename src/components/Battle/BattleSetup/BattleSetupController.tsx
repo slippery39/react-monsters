@@ -36,6 +36,7 @@ function CreatePlayerVsPlayerBattle(settings: BattleSettings) {
     new BasicAI(player2, battleService);
 
     battleService.Initialize();
+ 
     return battleService;
 }
 
@@ -47,7 +48,8 @@ const PlayerBattleController = () => {
 
     const handleSetupComplete = (settings:BattleSettings)=>{
         setBattleService(CreatePlayerVsPlayerBattle(settings)); 
-        setBattleState("in-battle")
+        setBattleState("in-battle");
+        battleService?.Start();
     }
     const handleBattleEnded = ()=>{
         setBattleState("setup");
@@ -56,7 +58,7 @@ const PlayerBattleController = () => {
     return (
         <div>
             {battleState === "setup" && <BattleSetup onOk={handleSetupComplete} />}
-            {(battleState === "in-battle" && battleService !== undefined) && <Battle battle={battleService} onEnd={handleBattleEnded} />}
+            {(battleState === "in-battle" && battleService !== undefined) && <Battle onLoad={()=>battleService.Start()} allyPlayerID={battleService.GetPlayers()[0].id} battle={battleService} onEnd={handleBattleEnded} />}
         </div>
     )
 }

@@ -44,7 +44,7 @@ class BasicAI implements AI {
     async ChooseAction() { //this is run simulation
         const aiPlayer = this.GetPlayerFromTurn();
         const minMaxAlgo = new MiniMax();
-        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer, this._service.GetField());
+        const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer,await this._service.GetField());
         const chosenAction = calculatedPointsForUs[0].action;
         this._service.SetPlayerAction(chosenAction);
     }
@@ -71,7 +71,7 @@ class BasicAI implements AI {
         const switches = await miniMax.GetBestPokemonSwitch(this.GetPlayerFromTurn(), this._service.battle);
 
         if (switches.length === 0) {
-            console.error(`error in SwitchPokemonSmart .... needed to switch but had no valid switches for our AI`, this, this._service, this._service.GetField());
+            console.error(`error in SwitchPokemonSmart .... needed to switch but had no valid switches for our AI`, this, this._service,await  this._service.GetField());
         }
         this._service.SetSwitchFaintedPokemonAction(switches[0].action as SwitchPokemonAction, false);
     }

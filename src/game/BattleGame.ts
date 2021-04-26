@@ -236,7 +236,7 @@ class BattleGame implements IGame {
         AutoAssignCurrentPokemonIds(this.field.players);
         AutoAssignItemIds(this.field.players);
         AutoAssignTechniqueIds(this.field.players);
-        this.NextTurn();
+
     }
 
     //New Interface Implementation Here
@@ -456,13 +456,13 @@ class BattleGame implements IGame {
 
 
     //Now we don't need to do this for testing only!.
-    SetStatusOfPokemon(pokemonId: number, status: Status) {    
+    SetStatusOfPokemon(pokemonId: number, status: Status) {
         const pokemon = this.GetPokemon(pokemonId);
 
-        if (status === pokemon.status){
+        if (status === pokemon.status) {
             return;
         }
-        pokemon._statusObj.OnRemoved(this,pokemon);        
+        pokemon._statusObj.OnRemoved(this, pokemon);
         this.GetPokemon(pokemonId).status = status;
         this.GetPokemon(pokemonId)._statusObj = GetHardStatus(status);
     }
@@ -818,7 +818,7 @@ class BattleGame implements IGame {
             this.ApplyBeforeDamageEffects(technique, pokemon, defendingPokemon);
 
             let damage: number = this.DoDamageTechnique(pokemon, defendingPokemon, technique);
-  
+
 
             //
             if (damage > 0) {
@@ -925,7 +925,7 @@ class BattleGame implements IGame {
             infoForDamageCalculating = GetDamageEffect(technique.damageEffect.type).ModifyDamageCalculationInfo(this, infoForDamageCalculating)
         }
 
-        
+
 
         const damageModifierInfo = GetDamageModifier(infoForDamageCalculating.pokemon, infoForDamageCalculating.defendingPokemon, infoForDamageCalculating.technique);
 
@@ -972,14 +972,14 @@ class BattleGame implements IGame {
         })
 
         //clamp the damage taken to the pokemon's max health
-        newDamage = Math.min(newDamage,defendingPokemon.currentStats.hp);
+        newDamage = Math.min(newDamage, defendingPokemon.currentStats.hp);
 
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
         this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
             b.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, technique, newDamage);
         })
 
-      
+
         return newDamage;
     }
 
@@ -994,7 +994,7 @@ class BattleGame implements IGame {
         const owner = this.GetPokemonOwner(pokemon);
 
         //TODO - when we update our statuses we would need to update this to use the new method
-        this.SetStatusOfPokemon(pokemon.id,Status.None);
+        this.SetStatusOfPokemon(pokemon.id, Status.None);
         pokemon.volatileStatuses = [];
 
         //Need edge case here for pursuit faints, we should prompt a switch again after pursuit has fainted a pokemon
@@ -1209,7 +1209,7 @@ class BattleGame implements IGame {
                     defaultMessage: `${pokemon.name}  has thawed out from using ${techUsed.name}`
                 }
                 this.AddEvent(statusRestoreEffect);
-                this.SetStatusOfPokemon(pokemon.id,Status.None);
+                this.SetStatusOfPokemon(pokemon.id, Status.None);
                 pokemon.canAttackThisTurn = true;
             }
         }
@@ -1406,6 +1406,7 @@ class BattleGame implements IGame {
     }
 
     StartGame() {
+        this.NextTurn();
         const pokemon1 = GetActivePokemon(this.GetPlayers()[0]);
         const pokemon2 = GetActivePokemon(this.GetPlayers()[1]);
         this.GetBehavioursForPokemon(pokemon1).forEach(b => {

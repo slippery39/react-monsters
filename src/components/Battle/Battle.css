@@ -21,10 +21,10 @@
 }
 
 .pokemon-party-pokeballs{
-    padding-top:10px;
+    position:absolute;
     display:flex;
-    padding-bottom:10px;
-    padding-left:10px;
+    top: 50px;
+    margin-left: 21px;
 }
 
 .enemy-party-pokeballs{
