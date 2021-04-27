@@ -34,12 +34,12 @@ function initializeTestBattle(){
 
   const player1 = new PlayerBuilder(1)
   .WithName("Shayne")
-  .WithCustomPokemon(dugtrio1)
+  .WithRandomPokemon(6)
   .Build();
 
 const player2 = new PlayerBuilder(2)
   .WithName("Bob")
-  .WithCustomPokemon(dugtrio2)
+  .WithRandomPokemon(6)
   .Build();
 
   let battleService = new BattleService(player1, player2,true);
@@ -49,6 +49,13 @@ const player2 = new PlayerBuilder(2)
   return battleService;
 }
 
+
+const devTestBattle = ()=>{
+
+  const testBattle = initializeTestBattle();
+
+  return (<Battle allyPlayerID={1} onLoad={()=>testBattle.Start()} showDebug battle={testBattle} onEnd={()=>history.push("/")}/>)
+}
 
 const routing = (
   <Router history={history}>
@@ -61,7 +68,7 @@ const routing = (
         <Route exact path="/" component={App}/>
         <Route exact path="/battle" component={BattleSetupController}/>
         <Route exact path="/battleSimulator" component={BattleSimulatorMenu}/>
-        <Route exact path="/devtestbattle" render={()=><Battle allyPlayerID={1} showDebug battle={initializeTestBattle()} onEnd={()=>history.push("/")}/>}/>
+        <Route exact path="/devtestbattle" render={()=>devTestBattle()}/>
         <Route exact path="/remotebattle" render={()=><RemoteAIvsAIBattle/>}/>
       </Switch>
      </Content>

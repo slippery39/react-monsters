@@ -46,7 +46,7 @@ class BasicAI implements AI {
         const minMaxAlgo = new MiniMax();
         const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer,await this._service.GetField());
         const chosenAction = calculatedPointsForUs[0].action;
-        this._service.SetPlayerAction(chosenAction);
+        await this._service.SetPlayerAction(chosenAction);
     }
 
     GetOtherPlayer(players: Array<Player>) {
@@ -84,7 +84,7 @@ class BasicAI implements AI {
         if (AIShouldSwitch) {
 
             //TODO - If both players switch, pick randomly.
-            const validPokemon = this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
+            const validPokemon = await this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
             if (validPokemon.length === 0) {
                 console.error(args, this._service, this._service.battle);
                 throw new Error(`No valid pokemon for ChoosePokemonToSwitchInto`);

@@ -185,6 +185,16 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const allyPotionNode = useRef(null);
     const enemyPotionNode = useRef(null);
 
+
+
+    const newTurnLogCallback = useCallback((args:OnNewTurnLogArgs)=>{
+        console.log("testing our new turn log?",args,menuState,battleEvents,turnInfo);        
+        setTurnInfo(args);
+        setMenuState(MenuState.ShowingTurn);        
+        battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
+        setBattleEventsTemp(battleEvents.current);
+    },[]);
+
     /* eslint-disable */
     useEffect( () => {
 
@@ -215,14 +225,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 
             }); 
 
-        eventHandler.OnNewTurnLog.on( args => {
-            console.log("testing our new turn log?",args);
+        eventHandler.OnNewTurnLog.on(newTurnLogCallback);
 
-            setTurnInfo(args);
-            setMenuState(MenuState.ShowingTurn);
-            setBattleEventsTemp(battleEvents.current);
-            battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
-        });
         eventHandler.OnStateChange.on((args: { newField: any; }) => {
             console.log("state - change is happening",args);
             dispatch({
@@ -316,6 +320,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     /* eslint-disable */
     useEffect(() => {
+
+        console.log("trying to run animations",turnInfo,menuState,battleEvents,runningAnimations);
         if (turnInfo === undefined || menuState !== MenuState.ShowingTurn || battleEvents.current.length == 0) {
             return;
         }
@@ -324,6 +330,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
         //so that the animations don't get set twice.
         setRunningAnimations(true);
+
+        console.log("animations a",turnInfo,menuState,battleEvents,runningAnimations);
 
 
         //default times
@@ -372,6 +380,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 delay: defaultDelayTime, duration: messageAnimationTime, text: text, ease: "none", immediateRender: false, onComplete: onComplete
             });
         }
+
+        console.log("we got to running animations!",effect);
         switch (effect.type) {
 
 
@@ -579,16 +589,16 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         return;
 
-    }, [onEndOfTurnLog, turnInfo, battleEventsTemp]);
+    }, [onEndOfTurnLog, turnInfo,menuState, battleEventsTemp]);
     /* eslint-enable */
 
-    function SetBattleAction(techniqueId: number) {
+    async function SetBattleAction(techniqueId: number) {
         const currentPokemon = GetActivePokemon(getAllyPlayer());
 
         const pokemonName = currentPokemon.name;
         const moveName = currentPokemon.techniques.find(t => t.id === techniqueId)?.name
 
-        const actionSuccessful = battleService.SetPlayerAction({
+        const actionSuccessful = await battleService.SetPlayerAction({
             playerId: getAllyPlayer().id,
             pokemonId: GetActivePokemon(getAllyPlayer()).id,
             pokemonName: pokemonName,
@@ -601,13 +611,14 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
         }
     }
-    function SetSwitchAction(pokemonSwitchId: number) {
+    async function SetSwitchAction(pokemonSwitchId: number) {
         const action: SwitchPokemonAction = {
             type: Actions.SwitchPokemon,
             playerId: getAllyPlayer().id,
             switchPokemonId: pokemonSwitchId
         }
-        const actionSuccessful = battleService.SetPlayerAction(action);
+        const actionSuccessful = await battleService.SetPlayerAction(action);
+        console.log("set switch action has been returned",actionSuccessful);
         if (!actionSuccessful) {
             setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
         }
@@ -796,6 +807,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
         }
     }
+
 
     return (
         (menuState === MenuState.Loading ? <div>Loading...</div> : <div className="App">
