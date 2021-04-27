@@ -1,6 +1,6 @@
 import { shuffle } from "lodash";
 import { CreateSwitchAction, SwitchPokemonAction } from "game/BattleActions";
-import BattleService from "game/BattleService";
+import LocalBattleService from "game/BattleService";
 import { Player } from "game/Player/PlayerBuilder";
 import MiniMax from "./MiniMax";
 import { OnSwitchNeededArgs } from "game/BattleGame";
@@ -16,9 +16,9 @@ interface AI {
 class BasicAI implements AI {
 
     private _playerID: number;
-    private _service: BattleService;
+    private _service: LocalBattleService;
 
-    constructor(aiPlayer: Player, service: BattleService) {
+    constructor(aiPlayer: Player, service: LocalBattleService) {
         this._playerID = aiPlayer.id;
         this._service = service;
         this._service.OnActionNeeded.on((args: { playerIDsNeeded: number[]; }) => {

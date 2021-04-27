@@ -11,7 +11,7 @@ import Layout, { Content, Header } from 'antd/lib/layout/layout';
 import { Button } from 'antd';
 import Battle from 'components/Battle/Battle';
 import BasicAI from 'game/AI/AI';
-import BattleService from 'game/BattleService';
+import LocalBattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import RemoteAIvsAIBattle from 'components/Battle/RemoteAIvsAIBattle/RemoteAIvsAI';
@@ -42,7 +42,7 @@ const player2 = new PlayerBuilder(2)
   .WithRandomPokemon(6)
   .Build();
 
-  let battleService = new BattleService(player1, player2,true);
+  let battleService = new LocalBattleService(player1, player2,true);
   new BasicAI(player2, battleService);
   battleService.Initialize();
 

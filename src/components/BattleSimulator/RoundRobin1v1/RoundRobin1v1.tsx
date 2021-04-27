@@ -2,7 +2,7 @@ import { Button,InputNumber, message } from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import { OnGameOverArgs } from 'game/BattleGame';
-import BattleService from 'game/BattleService';
+import LocalBattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 import { shuffle } from 'lodash';
@@ -35,7 +35,7 @@ async function RunRoundRobinBattle1v1(pokemon1: string, pokemon2: string): Promi
             .WithPokemon(pokemon2)
             .Build();
 
-        let battleService = new BattleService(ai1, ai2, false);
+        let battleService = new LocalBattleService(ai1, ai2, false);
         new BasicAI(ai1, battleService);
         new BasicAI(ai2, battleService);
 

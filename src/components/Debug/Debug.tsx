@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import BattleService from 'game/BattleService';
+import LocalBattleService, { BattleService } from 'game/BattleService';
 import { GetActivePokemon } from 'game/HelperFunctions';
 import './Debug.css'
 import { Pokemon } from 'game/Pokemon/Pokemon';

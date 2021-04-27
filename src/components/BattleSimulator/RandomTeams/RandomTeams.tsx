@@ -3,7 +3,7 @@ import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import waitForSeconds from 'game/AI/CoroutineTest';
 import { OnGameOverArgs } from 'game/BattleGame';
-import BattleService from 'game/BattleService';
+import LocalBattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import _ from 'lodash';
 import React, { useCallback, useState } from 'react';
@@ -46,7 +46,7 @@ async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise
         const ai2 = aiBuilder2.Build();
 
 
-        let battleService = new BattleService(ai1, ai2, false);
+        let battleService = new LocalBattleService(ai1, ai2, false);
         new BasicAI(ai1, battleService);
         new BasicAI(ai2, battleService);
 

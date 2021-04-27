@@ -1,5 +1,5 @@
 import BasicAI from "game/AI/AI";
-import BattleService from "game/BattleService";
+import LocalBattleService from "game/BattleService";
 import { PlayerBuilder } from "game/Player/PlayerBuilder";
 import React, { useState } from "react";
 import Battle from "../Battle";
@@ -27,7 +27,7 @@ function CreatePlayerVsPlayerBattle(settings: BattleSettings) {
     const player1 = player1Builder.Build();
     const player2 = player2Builder.Build();
 
-    let battleService = new BattleService(player1, player2, true);
+    let battleService = new LocalBattleService(player1, player2, true);
 
     if (settings.team1Type === 'computer') {
         new BasicAI(player1, battleService);
@@ -44,7 +44,7 @@ function CreatePlayerVsPlayerBattle(settings: BattleSettings) {
 const PlayerBattleController = () => {
 
     const [battleState, setBattleState] = useState<"setup" | "in-battle">("setup");
-    const [battleService, setBattleService] = useState<BattleService | undefined>(undefined);
+    const [battleService, setBattleService] = useState<LocalBattleService | undefined>(undefined);
 
     const handleSetupComplete = (settings:BattleSettings)=>{
         setBattleService(CreatePlayerVsPlayerBattle(settings)); 

@@ -5,7 +5,7 @@ import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
 import BattleGame, { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 export interface OnStateChangeArgs {
     newField: Field
@@ -47,11 +47,28 @@ export interface GameEventHandler {
 }
 
 export interface GameServiceGetters {
-    GetPlayers(): Player[]
+    GetPlayers(): Player[],
     GetValidPokemonToSwitchInto(playerId: number): Promise<number[]>
     GetField(): Field
-    GetValidActions(playerId: number): BattleAction[]
+    GetValidActions(playerId: number): Promise<BattleAction[]>
 }
+
+export interface GameActionSetters{
+    SetInitialAction(action: BattleAction): Promise<boolean>,
+    SetPlayerAction(action: BattleAction)  : Promise<boolean>,
+    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean):void,   
+    SetStatusOfPokemon(pokemonId: number, status: Status):void
+}
+
+export interface ServiceInitializers{
+    Initialize:()=>void,
+    Start:()=>void
+}
+
+
+export type BattleService = (GameEventHandler & GameServiceGetters & GameActionSetters & ServiceInitializers)
+
+
 
 export interface OnGameStartArgs {
     field: Field
@@ -59,7 +76,9 @@ export interface OnGameStartArgs {
 
 
 //note this has not been updated.
-export class RemoteBattleService implements GameEventHandler {
+export class RemoteBattleService implements BattleService {
+    
+ 
     OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
     OnStateChange = new TypedEvent<OnStateChangeArgs>();
     //the number type is temporary
@@ -71,26 +90,25 @@ export class RemoteBattleService implements GameEventHandler {
 
 
     //Temp Saved State
-    private savedState: { field: Field, validActions1: BattleAction[], validActions2: BattleAction[] } = {
+    private savedState: { field: Field } = {
         field: {
             players: [],
             entryHazards: [],
         },
-        validActions1: [],
-        validActions2: []
     }
 
     private playerId = 1; //TODO this should be dyanmic.
 
     private URL = "http://localhost:8000";
+    private socket = io(this.URL);
 
     Initialize() {
-        const socket = io(this.URL);
-
+        let socket = this.socket;
         socket.onAny((event, ...args) => {
             if (event === "gamestart") {
 
                 let gameStartArgs = args[0] as unknown as OnGameStartArgs;
+                this.savedState.field = gameStartArgs.field;
                 this.OnGameStart.emit(gameStartArgs);
                 console.log("initial state has been found");
                 socket.emit("gamestartready", []);
@@ -117,41 +135,63 @@ export class RemoteBattleService implements GameEventHandler {
         });
     }
 
+    Start(){
+        //not tested yet.
+        this.socket.emit("gamestartready",[]);
+    }
+
     GetPlayers() {
         return this.savedState.field.players;
     }
-    GetValidPokemonToSwitchInto() {
+    async GetValidPokemonToSwitchInto(playerId:number) {
         //TODO - the player here should be dynamic.
         //we will need to grab this from the server.
 
-        const validActions = fetch(this.URL + "/getvalidactions");
-        const validActionsConverted = validActions as unknown as BattleAction[];
+        const validActions = await fetch(this.URL + "/getvalidactions");
+        const validActionsConverted = validActions.json() as unknown as BattleAction[];
 
         const validSwitchActions = validActionsConverted.filter(act => act.type === Actions.SwitchPokemon);
 
-        return validSwitchActions.map(act => {
+        const validSwitchIds = validSwitchActions.map(act=>{
             if (act.type === Actions.SwitchPokemon) {
                 return act.switchPokemonId;
             }
             else {
                 throw new Error('invalid action type');
             }
-        })
+        });
 
+        return validSwitchIds;
     }
     GetField() {
-        return Promise.resolve(this.savedState.field);
+        return this.savedState.field;
     }
     async GetValidActions(playerId: number) {
         const validActions = await fetch(this.URL + "/getvalidactions");
-        const validActionsConverted = validActions as unknown as BattleAction[];
-
+        const validActionsConverted = validActions.json() as unknown as BattleAction[];
         return validActionsConverted;
-
     }
+    SetInitialAction(action: BattleAction): Promise<boolean> {
+
+        this.socket.emit("action",action);
+        return Promise.resolve(true); //lol who knows?
+    }
+    SetPlayerAction(action: BattleAction): Promise<boolean> {
+        this.socket.emit("action",action);
+        return Promise.resolve(true); //lol who knows?
+        //throw new Error("Method not implemented.");
+    }
+    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean): void {
+        this.socket.emit("action",action);
+        //throw new Error("Method not implemented.");
+    }
+    SetStatusOfPokemon(pokemonId: number, status: Status): void {
+        throw new Error("Method not implemented.");
+    }
+
 }
 //Acts as a middleman between the client and the game logic for 1 player.
-class BattleService implements GameEventHandler,GameServiceGetters {
+class LocalBattleService implements BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
     battle: BattleGame;
@@ -176,10 +216,6 @@ class BattleService implements GameEventHandler,GameServiceGetters {
         this.battle.SetStatusOfPokemon(pokemonId, status);
         this.OnStateChange.emit({ newField: _.cloneDeep(this.battle.field) });
     }
-    GetAllyPlayerID() {
-        return this.allyPlayerId;
-    }
-
     //eventually this will run a start event or something.
     Initialize() {
         this.battle.OnNewTurn.on((args) => {
@@ -202,19 +238,18 @@ class BattleService implements GameEventHandler,GameServiceGetters {
         this.OnGameStart.emit({ field: this.battle.field });
         this.battle.StartGame();
     }
-    //Used for our AI vs AI, so we have an off switch in case of never ending games.
-    EndGame() {
-        this.gameEnded = true;
-    }
-
     //Returns a boolean to dictate whether the action was successful or not, for UI purposes.
-    SetInitialAction(action: BattleAction): boolean {
+
+    //TODO-why is this async.
+    async SetInitialAction(action: BattleAction): Promise<boolean> {
         const player = this.GetPlayers().find(p => p.id === action.playerId);
         if (player === undefined) {
             throw new Error(`Could not find player to set initial action`);
         }
 
-        const validActions = this.GetValidActions(player.id).filter(act => {
+        const actions = await this.GetValidActions(player.id);
+        
+        const validActions = actions.filter(act => {
             if (action.type === Actions.SwitchPokemon) {
                 const switchPokemonAction = act as SwitchPokemonAction;
                 return switchPokemonAction.playerId === act.playerId && switchPokemonAction.switchPokemonId === action.switchPokemonId;
@@ -222,7 +257,6 @@ class BattleService implements GameEventHandler,GameServiceGetters {
             else if (action.type === Actions.UseTechnique) {
                 const useTechniqueAction = act as UseMoveAction;
                 return useTechniqueAction.playerId === action.playerId && useTechniqueAction.moveId === action.moveId;
-
             }
             return true;
         });
@@ -236,8 +270,6 @@ class BattleService implements GameEventHandler,GameServiceGetters {
         return true;
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean) {
-
-        console.log("SETTING SWITCH FAINTED POKEMON ACTION!");
         this.battle.SetSwitchPromptAction(action);
     }
     async SetPlayerAction(action: BattleAction) {
@@ -245,7 +277,7 @@ class BattleService implements GameEventHandler,GameServiceGetters {
         console.log("setting player action");
 
         if (this.gameEnded) {
-            return;
+            return false;
         }
         if (this.battle.GetCurrentState() === 'awaiting-initial-actions') {
             return this.SetInitialAction(action);
@@ -255,7 +287,7 @@ class BattleService implements GameEventHandler,GameServiceGetters {
             //RIGHT HERE IS WHERE IT'S HAPPENING!, WE NEED TO VALIDATE HERE....
             if (action.type !== 'switch-pokemon-action') {
                 console.error(`Somehow a wrong action type got into the awaiting-switch-action branch of SetPlayerAction...`);
-                return;
+                return false;
             }
             let switchAction = (action as SwitchPokemonAction);
             const validPokemon = await this.GetValidPokemonToSwitchInto(action.playerId);
@@ -271,10 +303,11 @@ class BattleService implements GameEventHandler,GameServiceGetters {
                 return false;
             }
         }
+        return false;
     }
 
     //Gets a cloned version of the game state, nobody outside of here should be able to modify the state directly.
-    GetPlayers(): Array<Player> {
+    GetPlayers(){
         return _.cloneDeep(this.battle.GetPlayers());
     }
 
@@ -292,8 +325,8 @@ class BattleService implements GameEventHandler,GameServiceGetters {
         if (player === undefined) {
             throw new Error(`Could not find player`);
         }
-        return this.battle.GetValidActions(player);
+        return Promise.resolve(this.battle.GetValidActions(player));
     }
 }
 
-export default BattleService;
+export default LocalBattleService;

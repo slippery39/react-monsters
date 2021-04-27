@@ -18,7 +18,7 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEvent, BattleEventType } from 'game/BattleEvents'
-import BattleService, { GameEventHandler } from 'game/BattleService';
+import LocalBattleService, { BattleService, GameEventHandler } from 'game/BattleService';
 import { Pokemon } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 import { Status } from 'game/HardStatus/HardStatus';
@@ -381,6 +381,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
         }
 
+
+        //TODO - look into the "useImperativeHandle hook along with forwardRefs to make our encapsulated "
         console.log("we got to running animations!",effect);
         switch (effect.type) {
 
@@ -541,6 +543,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 }
                 break;
             }
+
+            //TODO - do we even need these anymore? If we are just updating state after every event anyways?
             case BattleEventType.SubstituteBroken: {
                 dispatch({
                     type: 'substitute-broken',
@@ -739,7 +743,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onMenuAttackClick={async () => {
                 //this might cause issues when we set it up for multiplayer.
                 //maybe this should come with the state?
-                var validActions = battleService.GetValidActions(getAllyPlayer().id);
+                let validActions = await battleService.GetValidActions(getAllyPlayer().id);
+                console.log(validActions);
                 if (validActions.filter(act => act.type === Actions.UseTechnique).length === 0) {
                     //use a struggle command instead
                     const struggleCommand = validActions.find(act => act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
