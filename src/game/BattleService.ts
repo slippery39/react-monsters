@@ -5,7 +5,7 @@ import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
 import BattleGame, { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 
 export interface OnStateChangeArgs {
     newField: Field
@@ -72,6 +72,129 @@ export type BattleService = (GameEventHandler & GameServiceGetters & GameActionS
 
 export interface OnGameStartArgs {
     field: Field
+}
+
+
+//temporary class... hard coded battle service for the second player....
+//just want to see if we can get the player vs player going. afterwards we will delete this and refactor our code to handle it.
+
+export class RemoteBattleService2 implements BattleService {
+    
+ 
+    OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
+    OnStateChange = new TypedEvent<OnStateChangeArgs>();
+    //the number type is temporary
+    OnNewTurn = new TypedEvent<OnNewTurnArgs>();
+    OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
+    OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
+    OnGameOver = new TypedEvent<OnGameOverArgs>();
+    OnGameStart = new TypedEvent<OnGameStartArgs>();
+
+
+    //Temp Saved State
+    private savedState: { field: Field } = {
+        field: {
+            players: [],
+            entryHazards: [],
+        },
+    }
+
+    private playerId = 2; //TODO this should be dyanmic.
+
+    private URL = "http://192.168.2.118:8000" //"http://localhost:8000";
+
+    private socket = io(this.URL);
+
+    Initialize() {
+        let socket = this.socket;
+        socket.onAny((event, ...args) => {
+            if (event === "gamestart") {
+
+                let gameStartArgs = args[0] as unknown as OnGameStartArgs;
+                this.savedState.field = gameStartArgs.field;
+                this.OnGameStart.emit(gameStartArgs);
+                console.log("initial state has been found");
+                socket.emit("gamestartready", []);
+            }
+            if (event === "newturnlog") {
+                var evtLog = args[0] as unknown as OnNewTurnLogArgs;
+
+                this.OnNewTurnLog.emit(evtLog);
+                console.log(evtLog);
+                console.log("event found was the new turn log!");
+
+                //save our field and state....                 
+                this.savedState.field = evtLog.field;
+            }
+            if (event === "gameover") {
+                this.OnGameOver.emit(args[0] as unknown as OnGameOverArgs)
+                console.log("event found was game over!");
+            }
+            if (event === "update-state") {
+                let stateChangeArgs = args[0] as unknown as OnStateChangeArgs;
+                this.OnStateChange.emit(stateChangeArgs);
+                this.savedState.field = stateChangeArgs.newField;
+            }
+        });
+    }
+
+    Start(){
+        //not tested yet.
+        this.socket.emit("gamestartready",[]);
+    }
+
+    GetPlayers() {
+        return this.savedState.field.players;
+    }
+    async GetValidPokemonToSwitchInto(playerId:number) {
+        //TODO - the player here should be dynamic.
+        //we will need to grab this from the server.
+
+        //possible bug here with Dugtrio's Arena Trap... test this out to see if the player can still switch out properly.
+        const validActions = await fetch(this.URL + "/getvalidactions" + playerId);
+        const validActionsConverted = validActions.json() as unknown as BattleAction[];
+
+        const validSwitchActions = validActionsConverted.filter(act => act.type === Actions.SwitchPokemon);
+
+        const validSwitchIds = validSwitchActions.map(act=>{
+            if (act.type === Actions.SwitchPokemon) {
+                return act.switchPokemonId;
+            }
+            else {
+                throw new Error('invalid action type');
+            }
+        });
+
+        return validSwitchIds;
+    }
+    GetField() {
+        return this.savedState.field;
+    }
+
+    //this needs to change for 
+    async GetValidActions(playerId: number) {
+        const validActions = await fetch(this.URL + "/getvalidactions" + playerId.toString());
+        const validActionsConverted = validActions.json() as unknown as BattleAction[];
+        return validActionsConverted;
+    }
+    SetInitialAction(action: BattleAction): Promise<boolean> {
+
+        this.socket.emit("action",action);
+        return Promise.resolve(true); //lol who knows?
+    }
+    SetPlayerAction(action: BattleAction): Promise<boolean> {
+        this.socket.emit("action",action);
+        return Promise.resolve(true); //lol who knows?
+        //throw new Error("Method not implemented.");
+    }
+    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean): void {
+        this.socket.emit("action",action);
+        //throw new Error("Method not implemented.");
+    }
+    SetStatusOfPokemon(pokemonId: number, status: Status): void {
+        throw new Error("Method not implemented.");
+    }
+
 }
 
 
@@ -147,7 +270,8 @@ export class RemoteBattleService implements BattleService {
         //TODO - the player here should be dynamic.
         //we will need to grab this from the server.
 
-        const validActions = await fetch(this.URL + "/getvalidactions");
+        //possible bug here with Dugtrio's Arena Trap... test this out to see if the player can still switch out properly.
+        const validActions = await fetch(this.URL + "/getvalidactions" + playerId.toString());
         const validActionsConverted = validActions.json() as unknown as BattleAction[];
 
         const validSwitchActions = validActionsConverted.filter(act => act.type === Actions.SwitchPokemon);
@@ -166,10 +290,20 @@ export class RemoteBattleService implements BattleService {
     GetField() {
         return this.savedState.field;
     }
+
+    //this needs to change for 
     async GetValidActions(playerId: number) {
-        const validActions = await fetch(this.URL + "/getvalidactions");
-        const validActionsConverted = validActions.json() as unknown as BattleAction[];
-        return validActionsConverted;
+
+        const apiURL = this.URL + "/getvalidactions" + playerId.toString();
+        console.log(apiURL);
+        const validActions = await fetch(apiURL);
+
+        const validActionsConverted = await validActions.json();
+        console.log(validActionsConverted);
+
+        console.log(validActions);
+        console.log(validActionsConverted);
+        return Promise.resolve(validActionsConverted as unknown as BattleAction[]);
     }
     SetInitialAction(action: BattleAction): Promise<boolean> {
 

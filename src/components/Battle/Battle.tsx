@@ -18,7 +18,7 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEvent, BattleEventType } from 'game/BattleEvents'
-import LocalBattleService, { BattleService, GameEventHandler } from 'game/BattleService';
+import { BattleService, GameEventHandler } from 'game/BattleService';
 import { Pokemon } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 import { Status } from 'game/HardStatus/HardStatus';
@@ -29,6 +29,7 @@ import "react-rain-animation/lib/style.css";
 import { WeatherType } from 'game/Weather/Weather';
 import { Field, OnNewTurnLogArgs } from 'game/BattleGame';
 import PokemonInfoMenu from './PokemonInfoMenu/PokemonInfoMenu';
+
 
 
 gsap.registerPlugin(TextPlugin);
@@ -60,7 +61,7 @@ type UIAction = {
     newHealth?: number | undefined
     field?: Field,
     newStatus?: Status
-    
+
 }
 
 const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: Pokemon } {
@@ -87,18 +88,18 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
 interface Props {
     onEnd: () => void;
     battle: BattleService,
-    gameEventHandler?:GameEventHandler,
-    allyPlayerID:number,
+    gameEventHandler?: GameEventHandler,
+    allyPlayerID: number,
     showDebug?: boolean,
     hideMenu?: boolean
-    onLoad?:()=>void;
+    onLoad?: () => void;
 }
 
 const Battle: React.FunctionComponent<Props> = (props) => {
 
     const battleService = props.battle;
 
-    const reducer = function (state:State, action: UIAction): State {
+    const reducer = function (state: State, action: UIAction): State {
         var newState = _.cloneDeep(state);
         switch (action.type) {
             //for syncing the state with the server.
@@ -157,13 +158,13 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
     }
 
-    const initialState:State = {
-        field:{
-            players:[],
-            entryHazards:[]
+    const initialState: State = {
+        field: {
+            players: [],
+            entryHazards: []
         }
     }
-    const [battleState, dispatch] = useReducer(reducer,initialState);
+    const [battleState, dispatch] = useReducer(reducer, initialState);
     const [menuState, setMenuState] = useState(MenuState.Loading);
     const [turnInfo, setTurnInfo] = useState<OnNewTurnLogArgs | undefined>(undefined);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
@@ -187,67 +188,74 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
 
 
-    const newTurnLogCallback = useCallback((args:OnNewTurnLogArgs)=>{
-        console.log("testing our new turn log?",args,menuState,battleEvents,turnInfo);        
+    const newTurnLogCallback = useCallback((args: OnNewTurnLogArgs) => {
+        console.log("testing our new turn log?", args, menuState, battleEvents, turnInfo);
         setTurnInfo(args);
-        setMenuState(MenuState.ShowingTurn);        
+        setMenuState(MenuState.ShowingTurn);
         battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
         setBattleEventsTemp(battleEvents.current);
-    },[]);
+    }, [menuState, turnInfo]);
 
     /* eslint-disable */
-    useEffect( () => {
+    useEffect(() => {
 
-     function initializeService (){
+        function initializeService() {
 
             let eventHandler: GameEventHandler = battleService;
-            if (props.gameEventHandler){
-                console.log("game event handler found",props.gameEventHandler);
+            if (props.gameEventHandler) {
+                console.log("game event handler found", props.gameEventHandler);
                 eventHandler = props.gameEventHandler
             }
 
-            eventHandler.OnGameStart.on(args=>{
-            
-                if (menuState === MenuState.ShowingTurn){
+            eventHandler.OnGameStart.on(args => {
+
+                if (menuState === MenuState.ShowingTurn) {
                     return;
                 }
-                
-                console.log("on game start in the event handler!",args);
-                
-    
+
+                console.log("on game start in the event handler!", args);
+
+
                 dispatch({
-                    id:0,
-                    type:'state-change',
-                    field:_.cloneDeep(args.field)
+                    id: 0,
+                    type: 'state-change',
+                    field: _.cloneDeep(args.field)
                 })
-            
-               setMenuState(MenuState.MainMenu);
-                
-            }); 
 
-        eventHandler.OnNewTurnLog.on(newTurnLogCallback);
-
-        eventHandler.OnStateChange.on((args: { newField: any; }) => {
-            console.log("state - change is happening",args);
-            dispatch({
-                id: 0,
-                type: 'state-change',
-                field: _.cloneDeep(args.newField)
-            })
-
-            //in case we are joining a game in progress.
-            if (menuState === MenuState.Loading){
                 setMenuState(MenuState.MainMenu);
-            }
-        });
+
+            });
+
+            eventHandler.OnNewTurnLog.on((args: OnNewTurnLogArgs) => {
+                console.log("testing our new turn log?", args, menuState, battleEvents, turnInfo);
+                setTurnInfo(args);
+                setMenuState(MenuState.ShowingTurn);
+                battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
+                setBattleEventsTemp(battleEvents.current);
+            });
+
+            eventHandler.OnStateChange.on((args: { newField: any; }) => {
+                console.log("state - change is happening", args);
+                dispatch({
+                    id: 0,
+                    type: 'state-change',
+                    field: _.cloneDeep(args.newField)
+                })
 
 
-        console.log("our game has loiaded???",eventHandler,props.gameEventHandler);
+                //in case we are joining a game in progress.
+                if (menuState === MenuState.Loading) {
+                    setMenuState(MenuState.MainMenu);
+                }
+            });
 
-        //battleService.Start();
-    }
-    initializeService();
-    props.onLoad  && props.onLoad();
+
+            console.log("our game has loiaded???", eventHandler, props.gameEventHandler);
+
+            //battleService.Start();
+        }
+        initializeService();
+        props.onLoad && props.onLoad();
     }, []);
     /* eslint-enable */
 
@@ -321,7 +329,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-disable */
     useEffect(() => {
 
-        console.log("trying to run animations",turnInfo,menuState,battleEvents,runningAnimations);
+        console.log("trying to run animations", turnInfo, menuState, battleEvents, runningAnimations);
         if (turnInfo === undefined || menuState !== MenuState.ShowingTurn || battleEvents.current.length == 0) {
             return;
         }
@@ -331,7 +339,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         //so that the animations don't get set twice.
         setRunningAnimations(true);
 
-        console.log("animations a",turnInfo,menuState,battleEvents,runningAnimations);
+        console.log("animations a", turnInfo, menuState, battleEvents, runningAnimations);
 
 
         //default times
@@ -383,7 +391,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
 
         //TODO - look into the "useImperativeHandle hook along with forwardRefs to make our encapsulated "
-        console.log("we got to running animations!",effect);
+        console.log("we got to running animations!", effect);
         switch (effect.type) {
 
 
@@ -593,7 +601,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         return;
 
-    }, [onEndOfTurnLog, turnInfo,menuState, battleEventsTemp]);
+    }, [onEndOfTurnLog, turnInfo, menuState, battleEventsTemp]);
     /* eslint-enable */
 
     async function SetBattleAction(techniqueId: number) {
@@ -622,7 +630,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             switchPokemonId: pokemonSwitchId
         }
         const actionSuccessful = await battleService.SetPlayerAction(action);
-        console.log("set switch action has been returned",actionSuccessful);
+        console.log("set switch action has been returned", actionSuccessful);
         if (!actionSuccessful) {
             setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
         }
@@ -643,10 +651,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
             case MenuState.MainMenu: {
                 //TODO - check if this is fixed.. we should not need a try catch block here.
-                try{
-                return `What will ${getAllyPokemon().name} do?`
+                try {
+                    return `What will ${getAllyPokemon().name} do?`
                 }
-                catch(e){
+                catch (e) {
                     return `What will you do?`
                 }
             }
@@ -688,7 +696,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
     useEffect(() => {
         setMenuMessage(GetMenuMessage());
-    }, [menuState, GetMenuMessage]) 
+    }, [menuState, GetMenuMessage])
 
     const enemyPartyPokeballs = () => {
         return <div className="enemy-party-pokeballs">
@@ -727,10 +735,10 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             animated={false}
             message={" "}
             messageRef={el => { messageBox.current = el; }} />)
-    } 
+    }
 
     const allyPartyPokeballs = () => {
-            return (
+        return (
             <div className="pokemon-party-pokeballs">
                 {getAllyPlayer().pokemon.map(p => (<span key={p.id} style={{ width: "15px", marginRight: "10px" }}>
                     <Pokeball isFainted={p.currentStats.hp === 0} /></span>))}
@@ -802,7 +810,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return mainMenu;
             }
             case MenuState.PokemonInfoMenu: {
-                return <PokemonInfoMenu onCancelClick={()=>setMenuState(MenuState.MainMenu)} players={[getAllyPlayer(), getEnemyPlayer()]} />
+                return <PokemonInfoMenu onCancelClick={() => setMenuState(MenuState.MainMenu)} players={[getAllyPlayer(), getEnemyPlayer()]} />
             }
             case MenuState.SwitchMenu: {
                 return switchMenu;
@@ -833,7 +841,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                         {turnLogMessage()}
                     </div>
                 </div>
-                {(props.hideMenu === undefined || props.hideMenu===false) && <div className="bottom-screen">
+                {(props.hideMenu === undefined || props.hideMenu === false) && <div className="bottom-screen">
                     {bottomMenu()}
                 </div>
                 }

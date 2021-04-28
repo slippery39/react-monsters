@@ -13,23 +13,33 @@ interface AI {
     ChoosePokemonToSwitchInto: (args: OnSwitchNeededArgs) => void
 }
 
+interface AIOptions{
+    chooseDelayMS?:number
+}
+
 class BasicAI implements AI {
 
     private _playerID: number;
     private _service: LocalBattleService;
 
-    constructor(aiPlayer: Player, service: LocalBattleService) {
+    constructor(aiPlayer: Player, service: LocalBattleService,options?:AIOptions) {
         this._playerID = aiPlayer.id;
         this._service = service;
         this._service.OnActionNeeded.on((args: { playerIDsNeeded: number[]; }) => {
             if (args.playerIDsNeeded.includes(this._playerID)) {
-                this.ChooseAction();
+                if (options?.chooseDelayMS){
+                setTimeout(()=>this.ChooseAction(),options.chooseDelayMS)
+                }
+                else{
+                    this.ChooseAction();
+                }
             }
         })
         this._service.OnSwitchNeeded.on((args: OnSwitchNeededArgs) => {
             this.ChoosePokemonToSwitchInto(args);
         })
     }
+
 
     private GetPlayerFromTurn(): Player {
         const player = this._service.GetPlayers().find(player => player.id === this._playerID);

@@ -12,7 +12,7 @@ import { DamageModifierInfo } from "game/DamageFunctions";
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon } from "game/Pokemon/Pokemon";
 import { Technique } from "game/Techniques/Technique";
-
+    
 
 
 export interface IBattleBehaviour{

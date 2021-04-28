@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './components/app/App';
 import * as serviceWorker from './serviceWorker';
-import { Route, Router,Switch } from 'react-router-dom';
+import { Route, Router,Switch} from 'react-router-dom';
 import { createBrowserHistory } from 'history';
 import BattleSetupController from 'components/Battle/BattleSetup/BattleSetupController';
 import BattleSimulatorMenu from 'components/BattleSimulator/BattleSimulator';
@@ -13,24 +13,23 @@ import Battle from 'components/Battle/Battle';
 import BasicAI from 'game/AI/AI';
 import LocalBattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
-import { PokemonBuilder } from 'game/Pokemon/Pokemon';
-import RemoteAIvsAIBattle from 'components/Battle/RemoteAIvsAIBattle/RemoteAIvsAI';
+import RemoteAIvsAIBattle from 'components/Battle/RemoteBattle/RemoteBattle';
 
 const history = createBrowserHistory();
 
 function initializeTestBattle(){
-
+/*
   const dugtrioTest = PokemonBuilder()
   .GetPremadePokemon("Dugtrio")
   .WithTechniques([
     "Quick Attack",  ]);
 
-  
+  /*
   const dugtrio1 = dugtrioTest.Build();
 
 
   const dugtrio2 = dugtrioTest.Build();
-
+*/
 
   const player1 = new PlayerBuilder(1)
   .WithName("Shayne")
@@ -57,6 +56,16 @@ const devTestBattle = ()=>{
   return (<Battle allyPlayerID={1} onLoad={()=>testBattle.Start()} showDebug battle={testBattle} onEnd={()=>history.push("/")}/>)
 }
 
+interface RemoteBattleParams{
+  id:string | undefined
+}
+
+interface Props{
+
+}
+
+
+
 const routing = (
   <Router history={history}>
    <Layout>
@@ -69,7 +78,8 @@ const routing = (
         <Route exact path="/battle" component={BattleSetupController}/>
         <Route exact path="/battleSimulator" component={BattleSimulatorMenu}/>
         <Route exact path="/devtestbattle" render={()=>devTestBattle()}/>
-        <Route exact path="/remotebattle" render={()=><RemoteAIvsAIBattle/>}/>
+        <Route exact path="/remotebattle1/" render={(props)=><RemoteAIvsAIBattle playerId={1}/>}/>
+        <Route exact path="/remotebattle2/" render={(props)=><RemoteAIvsAIBattle playerId={2}/>}/>
       </Switch>
      </Content>
    </Layout>
