@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs", //commonjs
+    "rootDir": "../..",
+    "outDir": "./build",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "baseUrl":"src",
+    "moduleResolution": "node",
+    "lib":[
+      "es2019","DOM"
+    ],
+    "paths":{
+      "game/*":["../../react-monsters/src/game/*"]
+    },
+  },
+
+  "include":["src","../../react-monsters/src/game/**/*"],
+  "exclude":["node_modules"],
+}
