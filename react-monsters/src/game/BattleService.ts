@@ -4,10 +4,10 @@ import _ from "lodash";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
-import BattleGame, { Field, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
+import BattleGame, { Field, GameEventArgs, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
 import { io } from "socket.io-client";
 
-export interface OnStateChangeArgs {
+export interface OnStateChangeArgs extends GameEventArgs {
     newField: Field
 }
 
@@ -101,7 +101,7 @@ export class RemoteBattleService2 implements BattleService {
 
     private playerId = 2; //TODO this should be dyanmic.
 
-    private URL = "http://192.168.2.118:8000" //"http://localhost:8000";
+    private URL = "http://192.168.2.112:8000" //"http://localhost:8000";
 
     private socket = io(this.URL);
 
@@ -177,20 +177,26 @@ export class RemoteBattleService2 implements BattleService {
         const validActionsConverted = validActions.json() as unknown as BattleAction[];
         return validActionsConverted;
     }
-    SetInitialAction(action: BattleAction): Promise<boolean> {
-
-        this.socket.emit("action",action);
-        return Promise.resolve(true); //lol who knows?
+    async SetInitialAction(action: BattleAction): Promise<boolean> {
+        const success = await new Promise<boolean>(resolve=>{
+            return this.socket.emit("action",action,
+             (data:{success:boolean})=>resolve(data.success))
+         }) 
+         return success;
     }
-    SetPlayerAction(action: BattleAction): Promise<boolean> {
-        this.socket.emit("action",action);
-        return Promise.resolve(true); //lol who knows?
-        //throw new Error("Method not implemented.");
+    async SetPlayerAction(action: BattleAction): Promise<boolean> {
+        const success = await new Promise<boolean>(resolve=>{
+            return this.socket.emit("action",action,
+             (data:{success:boolean})=>resolve(data.success))
+         }) 
+         return success;
     }
-    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean): void {
-        this.socket.emit("action",action);
-        //throw new Error("Method not implemented.");
-    }
+    async SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean): Promise<void> {
+        await new Promise<boolean>(resolve=>{
+            return this.socket.emit("action",action,
+             (data:{success:boolean})=>resolve(data.success))
+         }) 
+     }
     SetStatusOfPokemon(pokemonId: number, status: Status): void {
         throw new Error("Method not implemented.");
     }
@@ -305,19 +311,26 @@ export class RemoteBattleService implements BattleService {
         console.log(validActionsConverted);
         return Promise.resolve(validActionsConverted as unknown as BattleAction[]);
     }
-    SetInitialAction(action: BattleAction): Promise<boolean> {
+    async SetInitialAction(action: BattleAction): Promise<boolean> {
+        const success = await new Promise<boolean>(resolve=>{
+           return this.socket.emit("action",action,
+            (data:{success:boolean})=>resolve(data.success))
+        })
 
-        this.socket.emit("action",action);
-        return Promise.resolve(true); //lol who knows?
+        return success;
     }
-    SetPlayerAction(action: BattleAction): Promise<boolean> {
-        this.socket.emit("action",action);
-        return Promise.resolve(true); //lol who knows?
-        //throw new Error("Method not implemented.");
+    async SetPlayerAction(action: BattleAction): Promise<boolean> {
+        const success = await new Promise<boolean>(resolve=>{
+            return this.socket.emit("action",action,
+             (data:{success:boolean})=>resolve(data.success))
+         }) 
+         return success;
     }
-    SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean): void {
-        this.socket.emit("action",action);
-        //throw new Error("Method not implemented.");
+    async SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean): Promise<void> {
+        await new Promise<boolean>(resolve=>{
+            return this.socket.emit("action",action,
+             (data:{success:boolean})=>resolve(data.success))
+         }) 
     }
     SetStatusOfPokemon(pokemonId: number, status: Status): void {
         throw new Error("Method not implemented.");
@@ -348,7 +361,7 @@ class LocalBattleService implements BattleService {
     //For testing purposes only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
         this.battle.SetStatusOfPokemon(pokemonId, status);
-        this.OnStateChange.emit({ newField: _.cloneDeep(this.battle.field) });
+        this.OnStateChange.emit({ newField: _.cloneDeep(this.battle.field),currentTurnState:this.battle.currentState,actionsNeededIds:this.battle.GetPlayerIdsThatNeedActions() });
     }
     //eventually this will run a start event or something.
     Initialize() {

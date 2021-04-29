@@ -18,7 +18,7 @@ import { CSSPlugin } from "gsap/CSSPlugin";
 
 import _ from "lodash"; //for deep cloning purposes to make our functions pure.
 import { BattleEvent, BattleEventType } from 'game/BattleEvents'
-import { BattleService, GameEventHandler } from 'game/BattleService';
+import { BattleService, GameEventHandler, OnStateChangeArgs } from 'game/BattleService';
 import { Pokemon } from 'game/Pokemon/Pokemon';
 import GameOverScreen from 'components/GameOverScreen/GameOverScreen';
 import { Status } from 'game/HardStatus/HardStatus';
@@ -27,8 +27,9 @@ import { Player } from 'game/Player/PlayerBuilder';
 import ReactRain from "react-rain-animation";
 import "react-rain-animation/lib/style.css";
 import { WeatherType } from 'game/Weather/Weather';
-import { Field, OnNewTurnLogArgs } from 'game/BattleGame';
+import { Field, OnNewTurnLogArgs, TurnState } from 'game/BattleGame';
 import PokemonInfoMenu from './PokemonInfoMenu/PokemonInfoMenu';
+import { message } from 'antd';
 
 
 
@@ -47,11 +48,13 @@ enum MenuState {
     ShowingTurn = 'showing-turn',
     PokemonInfoMenu = 'pokemon-info-menu',
     ShowPokemonInfo = 'pokemon-info',
+    Waiting = 'waiting',
     GameOver = 'game-over',
 }
 
 type State = {
     field: Field,
+
 }
 
 type UIAction = {
@@ -88,7 +91,6 @@ const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: 
 interface Props {
     onEnd: () => void;
     battle: BattleService,
-    gameEventHandler?: GameEventHandler,
     allyPlayerID: number,
     showDebug?: boolean,
     hideMenu?: boolean
@@ -170,13 +172,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
 
-
-
     const battleEvents = useRef<Array<BattleEvent>>([]);
     //this is used to force update the battle events animation effect, but we use the ref above because of problems getting it to work.
     const [battleEventsTemp, setBattleEventsTemp] = useState<Array<BattleEvent>>([]);
-
-
 
     //for animation purposes
     const allyPokemonImage = useRef(null);
@@ -186,35 +184,18 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const allyPotionNode = useRef(null);
     const enemyPotionNode = useRef(null);
 
-
-
-    const newTurnLogCallback = useCallback((args: OnNewTurnLogArgs) => {
-        console.log("testing our new turn log?", args, menuState, battleEvents, turnInfo);
-        setTurnInfo(args);
-        setMenuState(MenuState.ShowingTurn);
-        battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
-        setBattleEventsTemp(battleEvents.current);
-    }, [menuState, turnInfo]);
-
     /* eslint-disable */
     useEffect(() => {
 
         function initializeService() {
 
             let eventHandler: GameEventHandler = battleService;
-            if (props.gameEventHandler) {
-                console.log("game event handler found", props.gameEventHandler);
-                eventHandler = props.gameEventHandler
-            }
 
             eventHandler.OnGameStart.on(args => {
-
                 if (menuState === MenuState.ShowingTurn) {
                     return;
                 }
-
                 console.log("on game start in the event handler!", args);
-
 
                 dispatch({
                     id: 0,
@@ -223,7 +204,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 })
 
                 setMenuState(MenuState.MainMenu);
-
             });
 
             eventHandler.OnNewTurnLog.on((args: OnNewTurnLogArgs) => {
@@ -234,7 +214,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 setBattleEventsTemp(battleEvents.current);
             });
 
-            eventHandler.OnStateChange.on((args: { newField: any; }) => {
+            eventHandler.OnStateChange.on((args: OnStateChangeArgs) => {
                 console.log("state - change is happening", args);
                 dispatch({
                     id: 0,
@@ -242,15 +222,23 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     field: _.cloneDeep(args.newField)
                 })
 
-
                 //in case we are joining a game in progress.
                 if (menuState === MenuState.Loading) {
-                    setMenuState(MenuState.MainMenu);
+                    console.log(args);
+                    if (args.currentTurnState === TurnState.WaitingForSwitchActions && args.actionsNeededIds.filter(id => id === props.allyPlayerID).length > 0) {
+                        setMenuState(MenuState.FaintedSwitchMenu)
+                    }
+                    else if (args.actionsNeededIds.filter(id => id === props.allyPlayerID).length > 0) {
+                        setMenuState(MenuState.MainMenu);
+                    }
+                    else {
+                        setMenuState(MenuState.Waiting)
+                    }
                 }
             });
 
 
-            console.log("our game has loiaded???", eventHandler, props.gameEventHandler);
+            console.log("our game has loiaded???", eventHandler);
 
             //battleService.Start();
         }
@@ -303,18 +291,31 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         }
 
         const turnLogCopy = turnInfo;
+        //why is this here like this?
         setTurnInfo(undefined);
-
-        if (turnInfo.currentTurnState === 'game-over') {
+        if (turnLogCopy.currentTurnState === 'game-over') {
             setWinningPlayer(turnLogCopy.winningPlayerId);
             setMenuState(MenuState.GameOver)
         }
-        else if (turnInfo.currentTurnState === 'awaiting-switch-action' && turnInfo.waitingForSwitchIds.filter(id => id === getAllyPlayer().id).length > 0) {
-            //should check to see if it is our pokemon
-            setMenuState(MenuState.FaintedSwitchMenu);
+        else if (turnLogCopy.currentTurnState === 'awaiting-switch-action') {
+            if (turnLogCopy.waitingForSwitchIds.filter(id => id === getAllyPlayer().id).length > 0) {
+                //should check to see if it is our pokemon
+                setMenuState(MenuState.FaintedSwitchMenu);
+            }
+            else {
+                setMenuState(MenuState.Waiting);
+            }
         }
         //Perhaps this should happen all the time no matter what
         else {
+
+            if (turnLogCopy.actionsNeededIds.filter(id => id === getAllyPlayer().id).length > 0) {
+                setMenuState(MenuState.MainMenu);
+            }
+            else {
+                setMenuState(MenuState.Waiting)
+            }
+
             setMenuState(MenuState.MainMenu);
             dispatch({
                 id: 0,
@@ -329,7 +330,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-disable */
     useEffect(() => {
 
-        console.log("trying to run animations", turnInfo, menuState, battleEvents, runningAnimations);
         if (turnInfo === undefined || menuState !== MenuState.ShowingTurn || battleEvents.current.length == 0) {
             return;
         }
@@ -391,7 +391,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
 
         //TODO - look into the "useImperativeHandle hook along with forwardRefs to make our encapsulated "
-        console.log("we got to running animations!", effect);
         switch (effect.type) {
 
 
@@ -610,6 +609,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const pokemonName = currentPokemon.name;
         const moveName = currentPokemon.techniques.find(t => t.id === techniqueId)?.name
 
+
         const actionSuccessful = await battleService.SetPlayerAction({
             playerId: getAllyPlayer().id,
             pokemonId: GetActivePokemon(getAllyPlayer()).id,
@@ -619,7 +619,16 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             type: Actions.UseTechnique
         });
 
-        if (!actionSuccessful) {
+        if (actionSuccessful) {
+            setMenuState((prevState) => {
+                //added this in so we don't accidently overwrite a potential showing turn state
+                if (prevState !== MenuState.ShowingTurn) {
+                    return MenuState.Waiting
+                }
+                return prevState;
+            })
+        }
+        else {
             setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
         }
     }
@@ -629,9 +638,19 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             playerId: getAllyPlayer().id,
             switchPokemonId: pokemonSwitchId
         }
+
         const actionSuccessful = await battleService.SetPlayerAction(action);
-        console.log("set switch action has been returned", actionSuccessful);
-        if (!actionSuccessful) {
+
+        if (actionSuccessful) {
+            setMenuState((prevState) => {
+                //added this in so we don't accidently overwrite a potential showing turn state
+                if (prevState !== MenuState.ShowingTurn) {
+                    return MenuState.Waiting
+                }
+                return prevState;
+            })
+        }
+        else {
             setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
         }
     }
@@ -672,6 +691,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
             case MenuState.PokemonInfoMenu: {
                 return 'Select a pokemon to view its stats and information'
+            }
+            case MenuState.Waiting: {
+                return "Waiting for other player..."
             }
             case MenuState.GameOver: {
                 if (winningPlayer === undefined) {
@@ -771,7 +793,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }} />
 
         const attackMenu = <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onAttackClick={(tech: any) => { SetBattleAction(tech.id); }}
+            onAttackClick={async (tech: any) => { await SetBattleAction(tech.id); }}
             techniques={getAllyPokemon().techniques} />
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}
@@ -781,7 +803,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const switchMenu = <PokemonMiniInfoList
             showCancelButton={true}
             onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onPokemonClick={(pokemon) => { SetSwitchAction(pokemon.id); }}
+            onPokemonClick={async (pokemon) => { await SetSwitchAction(pokemon.id); }}
             player={getAllyPlayer()} />
 
 
@@ -814,6 +836,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
             case MenuState.SwitchMenu: {
                 return switchMenu;
+            }
+            case MenuState.Waiting: {
+                return <></>
             }
             default: {
                 return <></>

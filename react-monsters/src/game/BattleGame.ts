@@ -24,9 +24,7 @@ import { Weather } from "./Weather/Weather";
 /*
 This file is for testing out our new updated battle class and what we want from it.
 */
-
-function AutoAssignPokemonIds(players: Array<Player>): void {
-
+function AutoAssignPokemonIds(players:Player[]): void {
     let nextPokemonId = 1;
 
     players.flat().map(player => {
@@ -36,8 +34,7 @@ function AutoAssignPokemonIds(players: Array<Player>): void {
     });
 }
 
-function AutoAssignItemIds(players: Array<Player>): void {
-
+function AutoAssignItemIds(players:Player[]): void {
     let nextItemId = 1;
 
     players.flat().map(player => {
@@ -49,7 +46,7 @@ function AutoAssignItemIds(players: Array<Player>): void {
     });
 }
 
-function AutoAssignCurrentPokemonIds(players: Array<Player>): void {
+function AutoAssignCurrentPokemonIds(players:Player[]): void {
     if (players[0].currentPokemonId === -1) {
         players[0].currentPokemonId = players[0].pokemon[0].id;
     }
@@ -58,10 +55,8 @@ function AutoAssignCurrentPokemonIds(players: Array<Player>): void {
     }
 }
 
-function AutoAssignTechniqueIds(players: Array<Player>): void {
-
+function AutoAssignTechniqueIds(players:Player[]): void {
     let nextTechId = 1;
-
     players.flat().map(player => {
         return player.pokemon
     }).flat().map(pokemon => {
@@ -70,7 +65,6 @@ function AutoAssignTechniqueIds(players: Array<Player>): void {
         tech.id = nextTechId++;
     });
 }
-
 
 export enum TurnState {
     WaitingForInitialActions = 'awaiting-initial-actions',
@@ -81,12 +75,11 @@ export enum TurnState {
 }
 
 export interface Field {
-    players: Array<Player>,
-    entryHazards: Array<EntryHazard>,
+    players: Player[],
+    entryHazards: EntryHazard[],
     weather?: Weather,
-    fieldEffects?: Array<FieldEffect>, //for effects like light screen / reflect / wish etc.
+    fieldEffects?: FieldEffect[], //for effects like light screen / reflect / wish etc.
 }
-
 
 export enum TurnStep {
     PreAction1 = 'pre-action-1',
@@ -99,34 +92,39 @@ export enum TurnStep {
     End = 'end'
 }
 
-export interface OnGameOverArgs {
+export interface GameEventArgs{
+    currentTurnState:TurnState,
+    actionsNeededIds:number[] //ids needed on an action prompt will be stored here for all events.
+}
+
+export interface OnGameOverArgs extends GameEventArgs {
     winningPlayer?: Player,
     losingPlayer?: Player,
 }
 
-export interface OnNewTurnLogArgs {
-    currentTurnLog: Array<BattleEvent>,
-    eventsSinceLastTime: Array<BattleEvent>,
+export interface OnNewTurnLogArgs extends GameEventArgs {
+    currentTurnLog: BattleEvent[],
+    eventsSinceLastTime: BattleEvent[],
     field: Field,
     currentTurnState: TurnState,
-    waitingForSwitchIds: Array<number>
+    waitingForSwitchIds: number[],
     winningPlayerId?: number | undefined
 }
-export interface OnActionNeededArgs {
+
+export interface OnActionNeededArgs extends GameEventArgs {
     turnId: number,
-    playerIDsNeeded: Array<number>,
-    currentlyStoredActions: Array<BattleAction>,
-}
-export interface OnSwitchNeededArgs {
-    turnId: number,
-    playerIDsNeeded: Array<number>,
-    currentlyStoredSwitchActions: Array<BattleAction>
+    currentlyStoredActions: BattleAction[],
 }
 
+export interface OnSwitchNeededArgs extends GameEventArgs {
+    turnId: number,
+    playerIDsNeeded: number[],
+    currentlyStoredSwitchActions: BattleAction[]
+}
 
 export interface IGame {
-    GetEvents: () => Array<BattleEvent>,
-    GetEventsSinceLastAction: () => Array<BattleEvent>,
+    GetEvents: () => BattleEvent[],
+    GetEventsSinceLastAction: () => BattleEvent[],
     //move order? - keep this in the turn?
     //initial actions? - keep this in the turn?
     GetCurrentState: () => TurnState,
@@ -146,7 +144,7 @@ export interface IGame {
     SetSwitchPromptAction: (action: SwitchPokemonAction) => void;
     AddMessage: (message: string) => void;
     GetPlayers: () => Array<Player>;
-    GetBehavioursForPokemon: (pokemon: Pokemon) => Array<BattleBehaviour>;
+    GetBehavioursForPokemon: (pokemon: Pokemon) => BattleBehaviour[];
     SetStatusOfPokemon: (pokemonId: number, status: Status) => void;
     PromptForSwitch: (pokemon: Pokemon) => void;
     ApplyHealing: (pokemon: Pokemon, amount: number) => void;
@@ -160,21 +158,15 @@ export interface IGame {
     UseTechnique: (pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique) => void;
     Roll: (chance: number) => boolean;
     AddEvent: (effect: BattleEvent) => void;
-    GetValidSwitchIns: (player: Player) => Array<Pokemon>;
+    GetValidSwitchIns: (player: Player) => Pokemon[];
     GetPokemonOwner: (pokemon: Pokemon) => Player;
     GetMoveOrder: () => Array<BattleAction>;
     GetOtherPokemon: (pokemon: Pokemon) => Pokemon;
 }
 
-
-
-
 interface GameOptions {
     processEvents: boolean
 }
-
-
-
 
 class BattleGame implements IGame {
     //note this variable gets set at the start but doesn't get updated at the moment, once we move more of the turn stuff over into here we can deal with that.
@@ -189,20 +181,17 @@ class BattleGame implements IGame {
     OnGameOver = new TypedEvent<OnGameOverArgs>();
     shouldProcessEvents: boolean = false;
 
-
-    eventLog: Array<BattleEvent> = [];
+    eventLog: BattleEvent[] = [];
     //Events that have occured since the last time it was calculated. (In case the turn stops calculating half way through due to a switch needed)
-    eventsSinceLastAction: Array<BattleEvent> = [];
-
-
+    eventsSinceLastAction: BattleEvent[] = [];
     //Variables from the turn class
-    initialActions: Array<BattleAction> = [];
+    initialActions: BattleAction[] = [];
     //Cached move order
-    private _moveOrder: Array<BattleAction> = [];
+    private _moveOrder: BattleAction[] = [];
     //Stores a list of players who currently have a fainted pokemon, these players will need to switch their pokemon out.
-    playersWhoNeedToSwitch: Array<Player> = [];
+    playersWhoNeedToSwitch: Player[] = [];
     //Stores the fainted pokemon actions if a player needs to switch thier pokemon.
-    private _switchNeededActions: Array<SwitchPokemonAction> = [];
+    private _switchNeededActions: SwitchPokemonAction[] = [];
 
     //Turn State Variables
     currentBattleStep = TurnStep.PreAction1;
@@ -210,15 +199,10 @@ class BattleGame implements IGame {
     winningPlayerId: number = -1; //removed from the current state;
 
     turnOver: boolean = false;
-
-
     //performance purposes:
     pokemonCached: Record<string, Pokemon> = {};
 
-
-
-
-    constructor(players: Array<Player>, processEvents: boolean) {
+    constructor(players: Player[], processEvents: boolean) {
         if (players.length !== 2) {
             throw new Error(`Need exactly 2 players to properly initialize a battle`);
         }
@@ -240,10 +224,10 @@ class BattleGame implements IGame {
     }
 
     //New Interface Implementation Here
-    GetEvents(): Array<BattleEvent> {
+    GetEvents(): BattleEvent[] {
         return this.eventLog;
     }
-    GetEventsSinceLastAction(): Array<BattleEvent> {
+    GetEventsSinceLastAction(): BattleEvent[] {
         return this.eventsSinceLastAction;
     }
 
@@ -325,6 +309,23 @@ class BattleGame implements IGame {
         //push the new action in.
         this.initialActions.push(action);
     }
+
+    GetPlayerIdsThatNeedActions():number[]{
+        if (this.currentState === TurnState.WaitingForInitialActions){
+        const playersWithActions = this.initialActions.map(act => act.playerId);
+        const playersWeNeedActionsFor = this.GetPlayers().filter(player => {
+            if (!playersWithActions.includes(player.id)) {
+                return true
+            }
+            return false;
+        }).map(player => player.id);
+        return playersWeNeedActionsFor;
+        }
+        else if (this.currentState === TurnState.WaitingForSwitchActions){
+            return this.playersWhoNeedToSwitch.map(player=>player.id);
+        }
+        return []
+    }
     StartTurn() {
 
         const pokemon1 = GetActivePokemon(this.field.players[0]);
@@ -355,23 +356,14 @@ class BattleGame implements IGame {
                 throw Error(`error at force action pokemon 2.... trying to see what is causing it`);
             }
         });
-
-        //Check which players still need to choose an action
-
-        const playersWithActions = this.initialActions.map(act => act.playerId);
-        const playersWeNeedActionsFor = this.GetPlayers().filter(player => {
-            if (!playersWithActions.includes(player.id)) {
-                return true
-            }
-            return false;
-        }).map(player => player.id);
-
+        const playersWeNeedActionsFor = this.GetPlayerIdsThatNeedActions();
 
         if (playersWeNeedActionsFor.length > 0) {
             this.OnActionNeeded.emit({
                 turnId: this.currentTurnId,
-                playerIDsNeeded: playersWeNeedActionsFor,
-                currentlyStoredActions: [...this.initialActions]
+                actionsNeededIds: playersWeNeedActionsFor,
+                currentlyStoredActions: [...this.initialActions],
+                currentTurnState:this.currentState
             });
         }
 
@@ -633,7 +625,8 @@ class BattleGame implements IGame {
             field: _.cloneDeep(this.field),
             winningPlayerId: this.winningPlayerId,
             currentTurnState: this.currentState,
-            waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id)
+            waitingForSwitchIds: this.playersWhoNeedToSwitch.map(p => p.id),
+            actionsNeededIds:this.GetPlayerIdsThatNeedActions()
         };
         this.eventsSinceLastAction = []; //clear the cached events
         this.OnNewLogReady.emit(newTurnLogArgs);
@@ -1133,10 +1126,12 @@ class BattleGame implements IGame {
 
 
         if (this.currentState === TurnState.WaitingForSwitchActions && this.turnOver === false) {
-            const switchNeededInfo = {
+            const switchNeededInfo : OnSwitchNeededArgs = {
                 turnId: this.currentTurnId,
                 playerIDsNeeded: this.playersWhoNeedToSwitch.map(p => p.id),
-                currentlyStoredSwitchActions: this._switchNeededActions
+                currentlyStoredSwitchActions: this._switchNeededActions,
+                currentTurnState:this.currentState,
+                actionsNeededIds:this.GetPlayerIdsThatNeedActions()             
             }
             this.OnSwitchNeeded.emit(switchNeededInfo);
         }
@@ -1156,7 +1151,9 @@ class BattleGame implements IGame {
 
             this.OnGameOver.emit({
                 winningPlayer: winningPlayer,
-                losingPlayer: losingPlayer
+                losingPlayer: losingPlayer,
+                currentTurnState:this.currentState,
+                actionsNeededIds:this.GetPlayerIdsThatNeedActions()
             });
         }
     }

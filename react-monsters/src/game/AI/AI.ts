@@ -25,8 +25,8 @@ class BasicAI implements AI {
     constructor(aiPlayer: Player, service: LocalBattleService,options?:AIOptions) {
         this._playerID = aiPlayer.id;
         this._service = service;
-        this._service.OnActionNeeded.on((args: { playerIDsNeeded: number[]; }) => {
-            if (args.playerIDsNeeded.includes(this._playerID)) {
+        this._service.OnActionNeeded.on((args) => {
+            if (args.actionsNeededIds.includes(this._playerID)) {
                 if (options?.chooseDelayMS){
                 setTimeout(()=>this.ChooseAction(),options.chooseDelayMS)
                 }
