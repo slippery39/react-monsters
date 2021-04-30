@@ -14,26 +14,30 @@ import BasicAI from 'game/AI/AI';
 import LocalBattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import RemoteAIvsAIBattle from 'components/Battle/RemoteBattle/RemoteBattle';
+import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 
 const history = createBrowserHistory();
 
 function initializeTestBattle(){
-/*
-  const dugtrioTest = PokemonBuilder()
-  .GetPremadePokemon("Dugtrio")
-  .WithTechniques([
-    "Quick Attack",  ]);
 
-  /*
+  const dugtrioTest = PokemonBuilder()
+  .GetPremadePokemon("Sceptile")
+  .WithTechniques([
+    "Giga Drain",  ]);
+
+  
   const dugtrio1 = dugtrioTest.Build();
+
+  dugtrio1.currentStats.hp = 1;
+  dugtrio1.currentStats.speed = 99999;
 
 
   const dugtrio2 = dugtrioTest.Build();
-*/
+
 
   const player1 = new PlayerBuilder(1)
   .WithName("Shayne")
-  .WithRandomPokemon(6)
+  .WithCustomPokemon(dugtrio1)
   .Build();
 
 const player2 = new PlayerBuilder(2)

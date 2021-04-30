@@ -32,7 +32,7 @@ export class LifeOrbHeldItem extends HeldItem {
     OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: any): number {
         return damage * 1.3;
     }
-    OnDamageDealt(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number) {
+    OnAfterDamageAttack(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, technique:Technique, damageDealt: number) {
         //take recoil damage
         const recoilDamage = attackingPokemon.originalStats.hp / 10;
         game.ApplyIndirectDamage(attackingPokemon, recoilDamage);

@@ -817,6 +817,7 @@ class BattleGame implements IGame {
             if (damage > 0) {
                 this.ApplyTechniqueEffects(technique, pokemon, defendingPokemon, damage);
             }
+            this.GetBehavioursForPokemon(pokemon).forEach((b)=>b.OnAfterDamageAttack(this,pokemon,defendingPokemon,technique,damage));
         }
         else {
             this.DoStatusTechnique(technique, defendingPokemon, pokemon);
@@ -970,9 +971,7 @@ class BattleGame implements IGame {
         this.ApplyDamage(pokemon, defendingPokemon, newDamage, damageModifierInfo);
         this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
             b.OnDamageTakenFromTechnique(this, pokemon, defendingPokemon, technique, newDamage);
-        })
-
-
+        });
         return newDamage;
     }
 

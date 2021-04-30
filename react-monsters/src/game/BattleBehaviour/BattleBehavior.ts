@@ -21,6 +21,7 @@ export interface IBattleBehaviour{
     AfterActionStep:(game: IGame, pokemon: Pokemon)=>void;
     EndOfTurn:(game: IGame, pokemon: Pokemon)=>void;
     OnAfterDamageCalculated:(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game: IGame)=>number;
+    OnAfterDamageAttack:(game:IGame,pokemon:Pokemon,defendingPokemon:Pokemon,technique:Technique,newDamage:number)=>void;
     OnDamageDealt:(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number)=>void;
     OnDamageTakenFromTechnique:(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number)=>void;
     ModifyTechnique:(pokemon: Pokemon, technique: Technique)=>Technique;
@@ -62,6 +63,9 @@ export const CreateBattleBehaviour = ()=>{
         },
         OnAfterDamageCalculated:(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game: IGame)=>{
             return damage;   
+        },
+        OnAfterDamageAttack:(game:IGame,pokemon:Pokemon,defendingPokemon:Pokemon,technique:Technique,newDamage:number)=>{
+
         },
         OnDamageDealt:(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number)=>{
 
@@ -153,6 +157,9 @@ abstract class BattleBehaviour implements IBattleBehaviour {
     }
     OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game: IGame): number {
         return damage;
+    }
+    OnAfterDamageAttack(game:IGame,pokemon:Pokemon,defendingPokemon:Pokemon,technique:Technique,newDamage:number){
+
     }
     OnDamageDealt(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, damageDealt: number) {
 
