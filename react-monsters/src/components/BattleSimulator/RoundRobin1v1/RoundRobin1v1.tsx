@@ -25,17 +25,17 @@ interface MatchResult {
 async function RunRoundRobinBattle1v1(pokemon1: string, pokemon2: string): Promise<OnGameOverArgs> {
 
     return new Promise(resolve => {
-        const ai1 = new PlayerBuilder(1)
+        const ai1 = new PlayerBuilder()
             .WithName("AI Joe")
             .WithPokemon(pokemon1)
             .Build();
 
-        const ai2 = new PlayerBuilder(2)
+        const ai2 = new PlayerBuilder()
             .WithName("AI Shayne")
             .WithPokemon(pokemon2)
             .Build();
 
-        let battleService = new LocalBattleService(ai1, ai2, false);
+        let battleService = new LocalBattleService(false);
         new BasicAI(ai1, battleService);
         new BasicAI(ai2, battleService);
 

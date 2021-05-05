@@ -235,10 +235,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     }
                 }
             });
-
-
-            console.log("our game has loiaded???", eventHandler);
-
             //battleService.Start();
         }
         initializeService();
@@ -251,7 +247,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         //TODO - we need to pass in the ally player id here.
         const player = battleState.field.players.find(p => p.id === props.allyPlayerID);
         if (player === undefined) {
-            throw new Error(`Could not find player in call to isAllyPokemon()`);
+            throw new Error(`Could not find player in call to getAllyPlayer() - id : ${props.allyPlayerID}`);
         }
         return player;
     }
@@ -259,7 +255,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         //TODO - we need to pass in the ally player id here.
         const player = battleState.field.players.find(p => p.id !== props.allyPlayerID);
         if (player === undefined) {
-            throw new Error(`Could not find player in call to isAllyPokemon()`);
+            throw new Error(`Could not find player in call to getEnemyPlayer()`);
         }
         return player;
     }

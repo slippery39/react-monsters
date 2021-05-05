@@ -70,17 +70,19 @@ io.on("connection", (socket) => {
 
         console.log("a user connected to room " + room);
         //initialize a game.
-        const player1 = new PlayerBuilder(1)
+
+        
+        const player1 = new PlayerBuilder()
             .WithName("Shayne")
             .WithRandomPokemon(6)
             .Build();
 
-        const ai1 = new PlayerBuilder(2)
+        const ai1 = new PlayerBuilder()
             .WithName("AI John")
             .WithRandomPokemon(6)
             .Build();
 
-        let battleService = new BattleService(player1, ai1, true);
+        let battleService = new BattleService(true);
         servicesPerRoom.set("Room - 1", battleService);
 
 
@@ -123,8 +125,8 @@ io.on("connection", (socket) => {
 
         const updateStateArgs : OnStateChangeArgs = {
             newField:battleService?.GetField(),
-            currentTurnState:battleService.battle.currentState,
-            actionsNeededIds:battleService.battle.GetPlayerIdsThatNeedActions()
+            currentTurnState:battleService.GetBattle().currentState,
+            actionsNeededIds:battleService.GetBattle().GetPlayerIdsThatNeedActions()
         }
         io.to(room).emit("update-state",updateStateArgs);
         //Try setting an action here.

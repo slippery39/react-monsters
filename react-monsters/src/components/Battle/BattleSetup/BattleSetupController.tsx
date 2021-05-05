@@ -8,14 +8,14 @@ import BattleSetup, { BattleSettings } from "./BattleSetup";
 
 function CreatePlayerVsPlayerBattle(settings: BattleSettings) {
 
-    const player1Builder = new PlayerBuilder(1);
+    const player1Builder = new PlayerBuilder();
     settings.team1.forEach(name => { //this looks a bit weird but it works
         player1Builder.WithPokemon(name);
     });
     player1Builder.WithName("Player 1");
     player1Builder.Build();
 
-    const player2Builder = new PlayerBuilder(2);
+    const player2Builder = new PlayerBuilder();
 
     settings.team2.forEach(name => {
         player2Builder.WithPokemon(name);
@@ -27,7 +27,7 @@ function CreatePlayerVsPlayerBattle(settings: BattleSettings) {
     const player1 = player1Builder.Build();
     const player2 = player2Builder.Build();
 
-    let battleService = new LocalBattleService(player1, player2, true);
+    let battleService = new LocalBattleService(true);
 
     if (settings.team1Type === 'computer') {
         new BasicAI(player1, battleService);

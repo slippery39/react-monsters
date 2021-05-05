@@ -21,9 +21,37 @@ import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { VolatileStatusType, SubstituteVolatileStatus } from "./VolatileStatus/VolatileStatus";
 import { Weather } from "./Weather/Weather";
 
-/*
-This file is for testing out our new updated battle class and what we want from it.
-*/
+export class GameBuilder {
+    private players:Player[] = [];
+    private processEvents : boolean = true;
+
+    AddPlayer(player:Player){
+        if (this.players.length<2){
+            this.players.push(player);
+            player.id = this.players.length;
+            return player;
+        }
+        else{
+            throw new Error(`Cannot add more than 2 players to a game`);
+        }
+    }
+    ProcessEvents(flag:boolean){
+        this.processEvents = flag;
+    }
+
+    ValidateSettings(){
+        //For now we are just throwing errors, but eventually we might want to pass these messages to a front end in a less breaking way.
+        if (this.players.length<2){
+            throw new Error(`Game needs at least 2 players`);
+        }
+    }
+
+    Build(){
+        this.ValidateSettings();
+        return new BattleGame(this.players,this.processEvents);
+    }
+}
+
 function AutoAssignPokemonIds(players:Player[]): void {
     let nextPokemonId = 1;
 
@@ -220,7 +248,6 @@ class BattleGame implements IGame {
         AutoAssignCurrentPokemonIds(this.field.players);
         AutoAssignItemIds(this.field.players);
         AutoAssignTechniqueIds(this.field.players);
-
     }
 
     //New Interface Implementation Here

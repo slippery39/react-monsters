@@ -27,7 +27,7 @@ async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise
 
     return new Promise(resolve => {
         const randomizedPool = _.shuffle(_.cloneDeep(pokemonPool));
-        const aiBuilder1 = new PlayerBuilder(1)
+        const aiBuilder1 = new PlayerBuilder()
             .WithName("AI John");
         const randomPokemon = _.take(randomizedPool, teamSize);
 
@@ -36,7 +36,7 @@ async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise
         })
         const ai1 = aiBuilder1.Build();
 
-        const aiBuilder2 = new PlayerBuilder(2)
+        const aiBuilder2 = new PlayerBuilder()
             .WithName("AI Bob")
         const randomPokemon2 = _.take(_.shuffle(randomizedPool), teamSize);
 
@@ -46,7 +46,7 @@ async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise
         const ai2 = aiBuilder2.Build();
 
 
-        let battleService = new LocalBattleService(ai1, ai2, false);
+        let battleService = new LocalBattleService(false);
         new BasicAI(ai1, battleService);
         new BasicAI(ai2, battleService);
 

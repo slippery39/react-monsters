@@ -35,17 +35,17 @@ function initializeTestBattle(){
   //const dugtrio2 = dugtrioTest.Build();
 
 
-  const player1 = new PlayerBuilder(1)
+  const player1 = new PlayerBuilder()
   .WithName("Shayne")
   .WithCustomPokemon(dugtrio1)
   .Build();
 
-const player2 = new PlayerBuilder(2)
+const player2 = new PlayerBuilder()
   .WithName("Bob")
   .WithRandomPokemon(6)
   .Build();
 
-  let battleService = new LocalBattleService(player1, player2,true);
+  let battleService = new LocalBattleService(true);
   new BasicAI(player2, battleService);
   battleService.Initialize();
 

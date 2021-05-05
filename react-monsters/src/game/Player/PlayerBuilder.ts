@@ -18,10 +18,10 @@ export class PlayerBuilder {
 
     private player: Player;
 
-    constructor(id: number) {
+    constructor() {
 
         this.player = {
-            id: id, //id's will be assigned by the game itself.
+            id: -1, //id's will be assigned by the game itself.
             name: "",
             pokemon: [],
             currentPokemonId: -1, //id's will be assigned by the game itself

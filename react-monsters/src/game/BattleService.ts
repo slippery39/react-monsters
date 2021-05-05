@@ -4,7 +4,7 @@ import _ from "lodash";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
-import BattleGame, { Field, GameEventArgs, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
+import BattleGame, { Field, GameBuilder, GameEventArgs, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
 import { io } from "socket.io-client";
 
 export interface OnStateChangeArgs extends GameEventArgs {
@@ -61,6 +61,7 @@ export interface GameActionSetters{
 }
 
 export interface ServiceInitializers{
+    RegisterPlayer:(player:Player)=>Player,
     Initialize:()=>void,
     Start:()=>void
 }
@@ -105,6 +106,8 @@ export class RemoteBattleService2 implements BattleService {
 
     private socket = io(this.URL);
 
+ 
+
     Initialize() {
         let socket = this.socket;
         socket.onAny((event, ...args) => {
@@ -141,6 +144,11 @@ export class RemoteBattleService2 implements BattleService {
     Start(){
         //not tested yet.
         this.socket.emit("gamestartready",[]);
+    }
+
+    RegisterPlayer(player:Player){
+        throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
+        return player;
     }
 
     GetPlayers() {
@@ -269,6 +277,11 @@ export class RemoteBattleService implements BattleService {
         this.socket.emit("gamestartready",[]);
     }
 
+    RegisterPlayer(player:Player){
+        throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
+        return player;
+    }
+
     GetPlayers() {
         return this.savedState.field.players;
     }
@@ -341,7 +354,7 @@ export class RemoteBattleService implements BattleService {
 class LocalBattleService implements BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
     allyPlayerId: number = 1;
-    battle: BattleGame;
+    private battle: BattleGame | undefined;
     OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
     OnStateChange = new TypedEvent<OnStateChangeArgs>();
     //the number type is temporary
@@ -353,41 +366,60 @@ class LocalBattleService implements BattleService {
 
     gameEnded: boolean = false;
 
+    private _gameBuilder :GameBuilder = new GameBuilder();
+    
 
-    constructor(player1: Player, player2: Player, saveTurnLog: boolean) {
+
+    constructor(saveTurnLog: boolean) {
         //this should be moved out? doesn't make any sense to have it constructed here now...
-        this.battle = new BattleGame([player1, player2], saveTurnLog);
+       this._gameBuilder = new GameBuilder();
+       this._gameBuilder.ProcessEvents(saveTurnLog);
     }
+
+    GetBattle() : BattleGame{
+        if (this.battle === undefined){
+            throw new Error(`Battle has not yet been initialized in the Battle Service`);
+        }
+        return this.battle;
+    }
+
     //For testing purposes only
     SetStatusOfPokemon(pokemonId: number, status: Status) {
-        this.battle.SetStatusOfPokemon(pokemonId, status);
-        this.OnStateChange.emit({ newField: _.cloneDeep(this.battle.field),currentTurnState:this.battle.currentState,actionsNeededIds:this.battle.GetPlayerIdsThatNeedActions() });
+        this.GetBattle().SetStatusOfPokemon(pokemonId, status);
+        this.OnStateChange.emit({ newField: _.cloneDeep(this.GetBattle().field),currentTurnState:this.GetBattle().currentState,actionsNeededIds:this.GetBattle().GetPlayerIdsThatNeedActions() });
     }
     //eventually this will run a start event or something.
     Initialize() {
-        this.battle.OnNewTurn.on((args) => {
+
+
+
+        this.GetBattle().OnNewTurn.on((args) => {
             this.OnNewTurn.emit(args);
         });
-        this.battle.OnNewLogReady.on((info) => {
+        this.GetBattle().OnNewLogReady.on((info) => {
             this.OnNewTurnLog.emit(info);
         });
-        this.battle.OnSwitchNeeded.on(args => this.OnSwitchNeeded.emit(args));
-        this.battle.OnGameOver.on(args => this.OnGameOver.emit(args));
-        this.battle.OnActionNeeded.on(args => {
+        this.GetBattle().OnSwitchNeeded.on(args => this.OnSwitchNeeded.emit(args));
+        this.GetBattle().OnGameOver.on(args => this.OnGameOver.emit(args));
+        this.GetBattle().OnActionNeeded.on(args => {
             this.OnActionNeeded.emit(args);
         });
-        this.battle.Initialize();
+        this.GetBattle().Initialize();
         //TODO - working on this.
 
     }
 
     Start() {
-        this.OnGameStart.emit({ field: this.battle.field });
-        this.battle.StartGame();
+        this.OnGameStart.emit({ field: this.GetBattle().field });
+        this.GetBattle().StartGame();
     }
-    //Returns a boolean to dictate whether the action was successful or not, for UI purposes.
 
-    //TODO-why is this async.
+    RegisterPlayer(player:Player){
+
+        throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
+        return player;
+    }
+
     async SetInitialAction(action: BattleAction): Promise<boolean> {
         const player = this.GetPlayers().find(p => p.id === action.playerId);
         if (player === undefined) {
@@ -413,11 +445,11 @@ class LocalBattleService implements BattleService {
             return false;
         }
 
-        this.battle.SetInitialPlayerAction(action);
+        this.GetBattle().SetInitialPlayerAction(action);
         return true;
     }
     SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean) {
-        this.battle.SetSwitchPromptAction(action);
+        this.GetBattle().SetSwitchPromptAction(action);
     }
     async SetPlayerAction(action: BattleAction) {
 
@@ -426,11 +458,11 @@ class LocalBattleService implements BattleService {
         if (this.gameEnded) {
             return false;
         }
-        if (this.battle.GetCurrentState() === 'awaiting-initial-actions') {
+        if (this.GetBattle().GetCurrentState() === 'awaiting-initial-actions') {
             return this.SetInitialAction(action);
 
         }
-        else if (this.battle.GetCurrentState() === 'awaiting-switch-action') {
+        else if (this.GetBattle().GetCurrentState() === 'awaiting-switch-action') {
             //RIGHT HERE IS WHERE IT'S HAPPENING!, WE NEED TO VALIDATE HERE....
             if (action.type !== 'switch-pokemon-action') {
                 console.error(`Somehow a wrong action type got into the awaiting-switch-action branch of SetPlayerAction...`);
@@ -455,24 +487,24 @@ class LocalBattleService implements BattleService {
 
     //Gets a cloned version of the game state, nobody outside of here should be able to modify the state directly.
     GetPlayers(){
-        return _.cloneDeep(this.battle.GetPlayers());
+        return _.cloneDeep(this.GetBattle().GetPlayers());
     }
 
     GetValidPokemonToSwitchInto(playerId: number) {
-        const player = this.battle.GetPlayerById(playerId);
+        const player = this.GetBattle().GetPlayerById(playerId);
         return Promise.resolve(player.pokemon.filter(poke => poke.id !== player.currentPokemonId && poke.currentStats.hp > 0).map(poke => poke.id))
     }
 
     GetField(): Field {
-        return _.cloneDeep(this.battle.field);
+        return _.cloneDeep(this.GetBattle().field);
     }
 
     GetValidActions(playerId: number) {
-        const player = this.battle.GetPlayers().find(p => p.id === playerId);
+        const player = this.GetBattle().GetPlayers().find(p => p.id === playerId);
         if (player === undefined) {
             throw new Error(`Could not find player`);
         }
-        return Promise.resolve(this.battle.GetValidActions(player));
+        return Promise.resolve(this.GetBattle().GetValidActions(player));
     }
 }
 

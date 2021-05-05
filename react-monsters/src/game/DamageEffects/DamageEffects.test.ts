@@ -1,4 +1,5 @@
 import 'core-js'
+import BattleGame from 'game/BattleGame';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import { GetTech } from 'game/Techniques/PremadeTechniques';
@@ -30,20 +31,16 @@ describe('Low Kick Tests', ()=>{
             const lowKick = GetTech("Low Kick");
 
               //needed for our damage effects now sadly.
-        const turn = new Turn(1,{
-            players:[new PlayerBuilder(1).WithPokemon("Charizard").Build(),new PlayerBuilder(2).WithPokemon("Blastoise").Build()],
-            entryHazards:[],
-            
-        },true);
+        const game = new BattleGame([new PlayerBuilder().WithPokemon("Charizard").Build(),new PlayerBuilder().WithPokemon("Blastoise").Build()],true);
 
             //lower test
             defendingPokemon.weight = val.lower;
-            const lowRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon,turn).power;
+            const lowRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon,game).power;
             expect(lowRangePower).toBe(val.power);
 
             //upper test
             defendingPokemon.weight = val.upper;
-            const highRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon,turn).power;
+            const highRangePower = lowKickEffect.ModifyTechnique(techUser,lowKick,defendingPokemon,game).power;
             expect(highRangePower).toBe(val.power);
 
         });
@@ -68,27 +65,24 @@ describe('Eruption Tests',()=>{
     const techinque = GetTech("eruption");
     const eruptionEffect = GetDamageEffect("eruption");
 
-        //needed for our damage effects now sadly.
-        const turn = new Turn(1,{
-            players:[new PlayerBuilder(1).WithPokemon("Charizard").Build(),new PlayerBuilder(2).WithPokemon("Blastoise").Build()],
-            entryHazards:[]
-        },true);
+                    //needed for our damage effects now sadly.
+                    const game = new BattleGame([new PlayerBuilder().WithPokemon("Charizard").Build(),new PlayerBuilder().WithPokemon("Blastoise").Build()],true);
 
 
-    const newTechInfo : Technique  = eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,turn);
+    const newTechInfo : Technique  = eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,game);
 
     //100% health should be 150 power;
     expect(newTechInfo.power).toBe(150);
 
     //1 health should be 1 power
     pokemon.currentStats.hp = 1;
-    const newTechInfo2 : Technique =  eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,turn);
+    const newTechInfo2 : Technique =  eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,game);
     expect(newTechInfo2.power).toBe(1);
 
     //50% health should be 75 power
 
     pokemon.currentStats.hp = 75;
-    const newTechInfo3 : Technique =  eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,turn);
+    const newTechInfo3 : Technique =  eruptionEffect.ModifyTechnique(pokemon,techinque,pokemon,game);
     expect(newTechInfo3.power).toBe(75);     
 
     });
