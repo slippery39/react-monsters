@@ -18,7 +18,10 @@ const AttackContainer: React.FunctionComponent<Props> = (props) => {
             <div className="attack-container">
                 <div className="attack-name">{props.technique.name}</div>
                 <ElementIcon element={props.technique.elementalType} />
+                <div>
                  <div className="attack-pp">PP: {props.technique.currentPP} / {props.technique.pp}</div>
+                 <div>BP : {props.technique.power}</div>
+                 </div>
             </div>
         </div>
     );

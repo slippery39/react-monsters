@@ -32,7 +32,7 @@ function initializeTestBattle(){
   dugtrio1.currentStats.speed = 99999;
 
 
-  const dugtrio2 = dugtrioTest.Build();
+  //const dugtrio2 = dugtrioTest.Build();
 
 
   const player1 = new PlayerBuilder(1)

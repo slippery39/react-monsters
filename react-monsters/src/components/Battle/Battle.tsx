@@ -29,7 +29,6 @@ import "react-rain-animation/lib/style.css";
 import { WeatherType } from 'game/Weather/Weather';
 import { Field, OnNewTurnLogArgs, TurnState } from 'game/BattleGame';
 import PokemonInfoMenu from './PokemonInfoMenu/PokemonInfoMenu';
-import { message } from 'antd';
 
 
 
