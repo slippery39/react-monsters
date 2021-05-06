@@ -46,6 +46,10 @@ const player2 = new PlayerBuilder()
   .Build();
 
   let battleService = new LocalBattleService(true);
+
+  battleService.RegisterPlayer(player1);
+  battleService.RegisterPlayer(player2);
+  
   new BasicAI(player2, battleService);
   battleService.Initialize();
 

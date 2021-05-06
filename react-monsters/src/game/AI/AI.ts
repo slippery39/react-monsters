@@ -78,7 +78,7 @@ class BasicAI implements AI {
 
     private async SwitchPokemonSmart(validPokemon: Array<number>) {
         const miniMax = new MiniMax();
-        const switches = await miniMax.GetBestPokemonSwitch(this.GetPlayerFromTurn(), this._service.battle);
+        const switches = await miniMax.GetBestPokemonSwitch(this.GetPlayerFromTurn(), this._service.GetBattle());
 
         if (switches.length === 0) {
             console.error(`error in SwitchPokemonSmart .... needed to switch but had no valid switches for our AI`, this, this._service,await  this._service.GetField());
@@ -96,7 +96,7 @@ class BasicAI implements AI {
             //TODO - If both players switch, pick randomly.
             const validPokemon = await this._service.GetValidPokemonToSwitchInto(this.GetPlayerFromTurn().id);
             if (validPokemon.length === 0) {
-                console.error(args, this._service, this._service.battle);
+                console.error(args, this._service, this._service.GetBattle());
                 throw new Error(`No valid pokemon for ChoosePokemonToSwitchInto`);
 
             }

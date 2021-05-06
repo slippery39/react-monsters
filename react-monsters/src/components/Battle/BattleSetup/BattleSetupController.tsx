@@ -29,6 +29,10 @@ function CreatePlayerVsPlayerBattle(settings: BattleSettings) {
 
     let battleService = new LocalBattleService(true);
 
+
+    battleService.RegisterPlayer(player1);
+    battleService.RegisterPlayer(player2);
+
     if (settings.team1Type === 'computer') {
         new BasicAI(player1, battleService);
     }

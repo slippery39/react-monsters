@@ -106,6 +106,8 @@ export class RemoteBattleService2 implements BattleService {
 
     private socket = io(this.URL);
 
+
+
  
 
     Initialize() {
@@ -392,6 +394,8 @@ class LocalBattleService implements BattleService {
     Initialize() {
 
 
+        this._gameBuilder.ValidateSettings();
+        this.battle = this._gameBuilder.Build();
 
         this.GetBattle().OnNewTurn.on((args) => {
             this.OnNewTurn.emit(args);
@@ -415,9 +419,9 @@ class LocalBattleService implements BattleService {
     }
 
     RegisterPlayer(player:Player){
-
-        throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
-        return player;
+        const updatedPlayerInfo = this._gameBuilder.AddPlayer(player);
+        console.log("register player testing, original player object vs updated player object", player === updatedPlayerInfo,player,updatedPlayerInfo);
+        return updatedPlayerInfo;
     }
 
     async SetInitialAction(action: BattleAction): Promise<boolean> {

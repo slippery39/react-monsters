@@ -83,6 +83,9 @@ io.on("connection", (socket) => {
             .Build();
 
         let battleService = new BattleService(true);
+
+        battleService.RegisterPlayer(player1);
+        battleService.RegisterPlayer(ai1);
         servicesPerRoom.set("Room - 1", battleService);
 
 
@@ -111,6 +114,10 @@ io.on("connection", (socket) => {
         });
 
         battleService.Initialize();
+
+        //this is the problem right here.
+
+        console.log(battleService.GetField());
         io.to(room).emit("gamestart", { field: battleService.GetField() });
         console.log("game starting");
     }

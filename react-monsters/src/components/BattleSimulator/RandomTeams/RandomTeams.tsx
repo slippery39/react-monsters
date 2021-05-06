@@ -34,7 +34,7 @@ async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise
         randomPokemon.forEach(poke => {
             aiBuilder1.WithPokemon(poke);
         })
-        const ai1 = aiBuilder1.Build();
+        let ai1 = aiBuilder1.Build();
 
         const aiBuilder2 = new PlayerBuilder()
             .WithName("AI Bob")
@@ -43,10 +43,14 @@ async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise
         randomPokemon2.forEach(poke => {
             aiBuilder2.WithPokemon(poke);
         });
-        const ai2 = aiBuilder2.Build();
+        let ai2 = aiBuilder2.Build();
 
 
         let battleService = new LocalBattleService(false);
+
+        ai1 = battleService.RegisterPlayer(ai1);
+        ai2 = battleService.RegisterPlayer(ai2);
+
         new BasicAI(ai1, battleService);
         new BasicAI(ai2, battleService);
 
