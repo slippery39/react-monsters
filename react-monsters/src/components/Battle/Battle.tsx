@@ -68,7 +68,7 @@ type BattleEventLogAction = {
 }
 
 const BattleEventLogReducer = function (state: BattleEventLogState, action: BattleEventLogAction): BattleEventLogState {
-    const { currentEvent, remainingEvents } = state;
+    const { currentEvent, remainingEvents } = _.cloneDeep(state);
     const { type, eventsToAdd,eventsArgs } = action;
     switch (type) {
         case 'add-events': {
@@ -85,15 +85,22 @@ const BattleEventLogReducer = function (state: BattleEventLogState, action: Batt
             console.log(newEvents);
             let newCurrentEvent = undefined
             if (currentEvent === undefined) {
-                newCurrentEvent = newEvents[0];
+                newCurrentEvent = newEvents[0];                
+                newEvents = newEvents.slice(1);
             }
-            newEvents = newEvents.slice(1);
+            else{
+                newCurrentEvent = currentEvent
+            }
+            console.log("slam", newCurrentEvent);
+           
             console.log(newEvents);
 
 
             return { ...state, ...{allEvents:eventsArgs.currentTurnLog,currentEvent:newCurrentEvent, remainingEvents: newEvents } }
         }
         case 'next-event': {
+
+        
 
             //We have no more events to play.
             if (remainingEvents.length === 0){
@@ -102,10 +109,14 @@ const BattleEventLogReducer = function (state: BattleEventLogState, action: Batt
 
             console.log("dispatching next event 2");
             let newRemainingEvents: BattleEvent[] = [];
-            console.log(remainingEvents);           
-            newRemainingEvents = _.cloneDeep(remainingEvents).slice(1);
+            console.log(remainingEvents);    
+            newRemainingEvents = _.cloneDeep(remainingEvents).slice(1);       
+            const nextEvent = remainingEvents[0];
+            console.log("boom, next event",nextEvent);
+            //newRemainingEvents = _.cloneDeep(remainingEvents).slice(1);
             console.log(newRemainingEvents);
-            const nextEvent = newRemainingEvents[0];
+         
+            
             return { ...state, ...{ currentEvent: nextEvent, remainingEvents: newRemainingEvents } }
         }
         default: {
@@ -288,6 +299,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-disable */
     useEffect(() => {
 
+        console.log("is our effect being used twice?");
         function initializeService() {
 
             let eventHandler: GameEventHandler = battleService;
@@ -298,7 +310,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 if (menuState === MenuState.ShowingTurn) {
                     return;
                 }
-                console.log("on game start in the event handler!", args);
 
                 dispatch({
                     type: 'state-change',
@@ -309,7 +320,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
 
             eventHandler.OnNewTurnLog.on((args: OnNewTurnLogArgs) => {
-                console.log("testing our new turn log?", args, menuState, turnInfo);
+  
                 dispatchBattleEvent({
                     type: 'add-events',
                     eventsToAdd: args.eventsSinceLastTime,
@@ -320,7 +331,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
 
             eventHandler.OnStateChange.on((args: OnStateChangeArgs) => {
-                console.log("state - change is happening", args);
+           
                 dispatch({
                     type: 'state-change',
                     field: _.cloneDeep(args.newField)
@@ -387,8 +398,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const onEndOfTurnLog = useCallback(() => {
 
 
-        console.log("end of turn log happening");
-
         if (turnInfo === undefined) {
             return;
         }
@@ -432,6 +441,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     /* eslint-disable */
     useEffect(() => {
 
+
+        console.log("entering animation use effect",turnInfo,menuState,battleEventsState);
+
         //TODO - test the battleEventsState.remainingEvents... this might not be what we want here.
         if (turnInfo === undefined || menuState !== MenuState.ShowingTurn || battleEventsState.currentEvent===undefined) {
             return;
@@ -439,15 +451,16 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         if (runningAnimations === true) {
             return;
         }
+
         //so that the animations don't get set twice.
         setRunningAnimations(true);
-
+   console.log("entering animation use effect",turnInfo,menuState,battleEventsState);
         //console.log("animations a", turnInfo, menuState, battleEvents, runningAnimations);
 
 
         //default times
-        const defaultDelayTime: number = 0.1;
-        const healthAnimationTime: number = 0.1;
+        const defaultDelayTime: number = 1;
+        const healthAnimationTime: number = 2;
         const messageAnimationTime: number = 0.1;
         const attackAnimationTime: number = 0.1;
         const damageAnimationTime: number = 0.1;
@@ -465,6 +478,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             dispatchBattleEvent({
                     type: 'next-event'
                 });
+                console.log("next event has been dispatched",battleEventsState.currentEvent);
             }
         
 
@@ -475,6 +489,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
                     console.log("we have completed the battle animation");
                     setRunningAnimations(false);
+                    console.log("set running animation to false",runningAnimations);
 
                     if (currentEvent.resultingState !== undefined) {
                         dispatch({
@@ -494,6 +509,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
         }
 
+        console.warn("animation used for this event",currentEvent);
 
         //TODO - look into the "useImperativeHandle hook along with forwardRefs to make our encapsulated "
         switch (currentEvent.type) {
@@ -680,6 +696,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 let pokemonObj;
                 isAllyPokemon(currentEvent.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon();
 
+
+                
+
                 //Pokemon damaged animation
                 timeLine.to(pokemonNode, { delay: defaultDelayTime, filter: "brightness(50)", duration: damageAnimationTime });
                 timeLine.to(pokemonNode, { filter: "brightness(1)", duration: damageAnimationTime });
@@ -688,6 +707,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     hp: currentEvent.targetFinalHealth,
                     duration: healthAnimationTime,
                     onUpdate: (val: any) => {
+
+
+                        
                         dispatch({
                             type: 'health-change',
                             id: val.id,
@@ -705,7 +727,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
         return;
 
-    }, [onEndOfTurnLog, turnInfo, menuState,battleEventsState]); //TODO: potential failure point here, our animation system might need to be aware of when our reducer state changes.
+    }, [menuState,battleEventsState.currentEvent]); //TODO: potential failure point here, our animation system might need to be aware of when our reducer state changes.
     /* eslint-enable */
 
     async function SetBattleAction(techniqueId: number) {
@@ -879,7 +901,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 //this might cause issues when we set it up for multiplayer.
                 //maybe this should come with the state?
                 let validActions = await battleService.GetValidActions(getAllyPlayer().id);
-                console.log(validActions);
+        
+                
                 if (validActions.filter(act => act.type === Actions.UseTechnique).length === 0) {
                     //use a struggle command instead
                     const struggleCommand = validActions.find(act => act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
