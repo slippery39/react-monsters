@@ -53,16 +53,45 @@ enum MenuState {
 
 type State = {
     field: Field,
+}
+
+type BattleEventLogState = {
+    currentEvent:BattleEvent | undefined
+    remainingEvents:BattleEvent[]
+}
+
+type BattleEventLogAction = {
+    type:'next-event' | 'add-events'
+    eventsToAdd?:BattleEvent[]
+}
+
+const BattleEventLogReducer = (state:BattleEventLogState,action : BattleEventLogAction)=>{
+     const {currentEvent,remainingEvents} = state;
+     const {type,eventsToAdd} = action;
+     switch(type){
+         case 'add-events':{            
+            if (eventsToAdd === undefined){
+                throw new Error(`We need some events to be able to add-events in Battle.tsx`);
+            }
+             return {...state,...{remainingEvents:state.remainingEvents.concat(eventsToAdd)}}
+         }
+         case 'next-event':{
+             const  nextEvent = remainingEvents[0];
+             const newRemainingEvents = _.cloneDeep(remainingEvents).shift();
+             return {...state,...{currentEvent:nextEvent,remainingEvents:newRemainingEvents}}
+         }
+     }
 
 }
 
 type UIAction = {
-    type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique' | 'substitute-broken' | 'substitute-created'
-    id: number,
+    type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique' | 'substitute-broken' | 'substitute-created' | 'set-current-event'
+    id?: number,
     targetId?: number | undefined,
     newHealth?: number | undefined
     field?: Field,
-    newStatus?: Status
+    newStatus?: Status,
+    newBattleEvent?:BattleEvent
 
 }
 
@@ -105,9 +134,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         switch (action.type) {
             //for syncing the state with the server.
             case 'state-change': {
-                return { field: action.field! };
+
+                if (action.field === undefined){
+                    throw new Error(`need a field for a state change action`);
+                }
+               return {...newState,...{field:action.field}}
             }
             case 'health-change': {
+
+                if (action.id === undefined){
+                    throw new Error(`Need an id for a health-change action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (action.newHealth === undefined) {
                     return state;
@@ -116,6 +153,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return newState;
             }
             case 'status-change': {
+                if (action.id === undefined){
+                    throw new Error(`Need an id for a status-change action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
 
                 if (action.newStatus === undefined) {
@@ -126,16 +166,25 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return newState;
             }
             case 'substitute-broken': {
+                if (action.id === undefined){
+                    throw new Error(`Need an id for a substitute broken action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 pokemonData.pokemon.hasSubstitute = false;
                 return newState;
             }
             case `substitute-created`: {
+                if (action.id === undefined){
+                    throw new Error(`Need an id for a substitute created action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 pokemonData.pokemon.hasSubstitute = true;
                 return newState;
             }
             case 'switch-in': {
+                if (action.id === undefined){
+                    throw new Error(`Need an id for a switch in action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (pokemonData.owner) {
                     pokemonData.owner.currentPokemonId = action.id;
@@ -144,6 +193,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return newState;
             }
             case 'switch-out': {
+                if (action.id === undefined){
+                    throw new Error(`Need an id for a switch out action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (pokemonData.owner) {
                     pokemonData.owner.currentPokemonId = -1;
@@ -163,13 +215,15 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         field: {
             players: [],
             entryHazards: []
-        }
+        },
     }
     const [battleState, dispatch] = useReducer(reducer, initialState);
     const [menuState, setMenuState] = useState(MenuState.Loading);
     const [turnInfo, setTurnInfo] = useState<OnNewTurnLogArgs | undefined>(undefined);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
     const [runningAnimations, setRunningAnimations] = useState(false);
+
+
 
     const battleEvents = useRef<Array<BattleEvent>>([]);
     //this is used to force update the battle events animation effect, but we use the ref above because of problems getting it to work.
@@ -191,13 +245,14 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             let eventHandler: GameEventHandler = battleService;
 
             eventHandler.OnGameStart.on(args => {
+
+            
                 if (menuState === MenuState.ShowingTurn) {
                     return;
                 }
                 console.log("on game start in the event handler!", args);
 
                 dispatch({
-                    id: 0,
                     type: 'state-change',
                     field: _.cloneDeep(args.field)
                 })
@@ -216,7 +271,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             eventHandler.OnStateChange.on((args: OnStateChangeArgs) => {
                 console.log("state - change is happening", args);
                 dispatch({
-                    id: 0,
                     type: 'state-change',
                     field: _.cloneDeep(args.newField)
                 })
@@ -313,8 +367,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
             setMenuState(MenuState.MainMenu);
             dispatch({
-                id: 0,
-                type: 'state-change',
+                 type: 'state-change',
                 field: turnInfo.field
             })
         }
