@@ -34,7 +34,8 @@ function CreatePlayerVsPlayerBattle(settings: BattleSettings) {
     battleService.RegisterPlayer(player2);
 
     if (settings.team1Type === 'computer') {
-        new BasicAI(player1, battleService);
+        //adding a delay or else the ui gets really laggy for ai vs ai battles.
+        new BasicAI(player1, battleService,{chooseDelayMS:1000});
     }
     //player 2 is always an ai for now.
     new BasicAI(player2, battleService);

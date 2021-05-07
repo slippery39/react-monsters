@@ -58,7 +58,7 @@ type State = {
 type BattleEventLogState = {
     currentEvent: BattleEvent | undefined
     remainingEvents: BattleEvent[],
-    allEventsInfo?: OnNewTurnLogArgs
+    allEventsInfo?: OnNewTurnLogArgs,
 }
 
 type BattleEventLogAction = {
@@ -250,6 +250,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const [battleState, dispatch] = useReducer(reducer, initialState);
     const [battleEventsState, dispatchBattleEvent] = useReducer(BattleEventLogReducer, createInitialEventState());
 
+
+    const[eventAnimationsRunning,setEventAnimationsRunning] = useState<boolean>(false);
+
     const [menuState, setMenuState] = useState(MenuState.Loading);
     const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
 
@@ -414,6 +417,14 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             return;
         }
 
+        //Important, we have a weird bug where sometimes this effect runs twice when it shouldn't, this should stop that from occuring
+        if (eventAnimationsRunning){
+            return;
+        }
+        setEventAnimationsRunning(true);
+
+        console.log('running event animations',{...battleEventsState});
+
         //default times
         const defaultDelayTime: number = 0.3;
         const healthAnimationTime: number = 0.5;
@@ -423,11 +434,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         const defaultAnimationTime: number = 0.1;
 
         const currentEvent = battleEventsState.currentEvent;
-
-        if (currentEvent === undefined) {
-            console.error("could not find current event to run event animation", battleEventsState);
-            return;
-        }
 
         const nextEvent = () => {
             dispatchBattleEvent({
@@ -439,6 +445,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             {
                 paused: true,
                 onComplete: () => {
+                    setEventAnimationsRunning(false);
                     if (currentEvent.resultingState !== undefined) {
                         dispatch({
                             type: 'state-change',
@@ -661,7 +668,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
         }
         //add 1 second of padding.
-        timeLine.set({}, {}, "+=0.1");
+        timeLine.set({}, {}, "+=0.3");
         timeLine.play();
 
         return;
