@@ -18,7 +18,9 @@ export interface Technique extends BaseTechnique {
     accuracy: number,
 }
 
-
+export function DecrementPP(technique:Technique){
+    technique.currentPP = Math.max(0,technique.currentPP-1);
+}
 
 //A way to build techniques a little easier while we are testing.
 class _TechniqueBuilder {

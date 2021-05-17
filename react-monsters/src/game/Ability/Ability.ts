@@ -9,7 +9,7 @@ import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/Hel
 import { Player } from "game/Player/PlayerBuilder";
 import { Pokemon, StatMultiplier } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import { DamageType, Technique } from "game/Techniques/Technique";
+import { DamageType, DecrementPP, Technique } from "game/Techniques/Technique";
 import { RainingWeather, SandstormWeather, SunnyWeather, WeatherType } from "game/Weather/Weather";
 import _, { shuffle } from "lodash";
 
@@ -465,7 +465,7 @@ class PressureAbility extends AbstractAbility {
     description = "The Pokémon raises the foe's PP usage."
 
     OnOppTechniqueUsed(turn: IGame, pokemon: Pokemon, tech: Technique) {
-        tech.currentPP -= 1;
+        DecrementPP(tech);
     }
 }
 

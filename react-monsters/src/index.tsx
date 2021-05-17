@@ -20,16 +20,22 @@ const history = createBrowserHistory();
 
 function initializeTestBattle(){
 
-  const dugtrioTest = PokemonBuilder()
-  .GetPremadePokemon("Sceptile")
+  const zapdos= PokemonBuilder()
+  .GetPremadePokemon("Zapdos")
   .WithTechniques([
     "Giga Drain",  ]);
 
   
-  const dugtrio1 = dugtrioTest.Build();
+  const zapdos1 = zapdos.Build();
 
-  dugtrio1.currentStats.hp = 1;
-  dugtrio1.currentStats.speed = 99999;
+
+  const ppPokemon = PokemonBuilder()
+  .GetRandomPremade()
+  .Build();
+
+  ppPokemon.techniques.forEach(tech=>tech.currentPP=1);
+  zapdos1.techniques.forEach(tech=>tech.currentPP=1);
+  
 
 
   //const dugtrio2 = dugtrioTest.Build();
@@ -37,12 +43,12 @@ function initializeTestBattle(){
 
   const player1 = new PlayerBuilder()
   .WithName("Shayne")
-  .WithCustomPokemon(dugtrio1)
+  .WithCustomPokemon(ppPokemon)
   .Build();
 
 const player2 = new PlayerBuilder()
   .WithName("Bob")
-  .WithRandomPokemon(6)
+   .WithCustomPokemon(zapdos1)
   .Build();
 
   let battleService = new LocalBattleService(true);

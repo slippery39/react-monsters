@@ -16,7 +16,7 @@ import { Player } from "./Player/PlayerBuilder";
 import { CalculateStatWithBoost, Pokemon } from "./Pokemon/Pokemon";
 import { Stat } from "./Stat";
 import { GetTech } from "./Techniques/PremadeTechniques";
-import { Technique } from "./Techniques/Technique";
+import { DecrementPP, Technique } from "./Techniques/Technique";
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { VolatileStatusType, SubstituteVolatileStatus } from "./VolatileStatus/VolatileStatus";
 import { Weather } from "./Weather/Weather";
@@ -761,8 +761,7 @@ class BattleGame implements IGame {
 
         }
         this.AddEvent(useTechniqueEffect);
-
-        technique.currentPP -= 1;
+        DecrementPP(technique);
 
         //quick hack for the pressure ability, perhaps we want an OnOppTechniqueUsed event?
         this.GetBehavioursForPokemon(defendingPokemon).forEach(b => {
