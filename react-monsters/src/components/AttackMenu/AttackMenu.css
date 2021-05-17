@@ -1,7 +1,0 @@
-.technique-container{
-    cursor:pointer;
-    border:1px solid black;
-}
-.technique-container:hover{
-    background-color:yellow;
-}
