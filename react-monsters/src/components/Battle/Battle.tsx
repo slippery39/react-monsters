@@ -119,7 +119,7 @@ type UIAction = {
     type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique' | 'substitute-broken' | 'substitute-created'
     id?: number,
     targetId?: number | undefined,
-    newHealth?: number | undefined
+    newHealth?: number | undefined,
     field?: Field,
     newStatus?: Status,
     newBattleEvent?: BattleEvent
