@@ -53,17 +53,76 @@ enum MenuState {
 
 type State = {
     field: Field,
+}
 
+type BattleEventLogState = {
+    currentEvent: BattleEvent | undefined
+    remainingEvents: BattleEvent[],
+    allEventsInfo?: OnNewTurnLogArgs,
+}
+
+type BattleEventLogAction = {
+    type: 'next-event' | 'add-events' | 'end-events'
+    eventsToAdd?: BattleEvent[],
+    eventsArgs?: OnNewTurnLogArgs
+}
+
+const BattleEventLogReducer = function (state: BattleEventLogState, action: BattleEventLogAction): BattleEventLogState {
+    const { currentEvent, remainingEvents } = _.cloneDeep(state);
+    const { type, eventsToAdd, eventsArgs } = action;
+    switch (type) {
+        case 'add-events': {
+            if (eventsToAdd === undefined) {
+                throw new Error(`We need some events to be able to add-events in Battle.tsx`);
+            }
+            if (eventsArgs === undefined) {
+                throw new Error(`We need some events to be able to add-events in Battle.tsx`);
+            }
+            let newEvents = remainingEvents.concat(eventsToAdd);
+            let newCurrentEvent = undefined
+            if (currentEvent === undefined) {
+                newCurrentEvent = newEvents[0];
+                newEvents = newEvents.slice(1);
+            }
+            else {
+                newCurrentEvent = currentEvent
+            }
+            return { ...state, ...{ allEventsInfo: eventsArgs, currentEvent: newCurrentEvent, remainingEvents: newEvents } }
+        }
+        case 'next-event': {
+            if (remainingEvents.length === 0) {
+                return { ...state, ...{ currentEvent: undefined } }
+            }
+            let newRemainingEvents: BattleEvent[] = [];
+            newRemainingEvents = _.cloneDeep(remainingEvents).slice(1);
+            const nextEvent = remainingEvents[0];
+            return { ...state, ...{ currentEvent: nextEvent, remainingEvents: newRemainingEvents } }
+        }
+        case 'end-events': {
+            return { ...state, ...{ currentEvent: undefined, remainingEvents: [] } }
+        }
+        default: {
+            throw new Error();
+        }
+    }
+}
+
+const createInitialEventState: () => BattleEventLogState = () => {
+    return {
+        currentEvent: undefined,
+        remainingEvents: [],
+        allEventsInfo: undefined
+    }
 }
 
 type UIAction = {
     type: 'status-change' | 'switch-in' | 'switch-out' | 'health-change' | 'state-change' | 'use-technique' | 'substitute-broken' | 'substitute-created'
-    id: number,
+    id?: number,
     targetId?: number | undefined,
-    newHealth?: number | undefined
+    newHealth?: number | undefined,
     field?: Field,
-    newStatus?: Status
-
+    newStatus?: Status,
+    newBattleEvent?: BattleEvent
 }
 
 const getPokemonAndOwner = function (state: State, pokemonId: number): { owner: Player, pokemon: Pokemon } {
@@ -105,9 +164,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         switch (action.type) {
             //for syncing the state with the server.
             case 'state-change': {
-                return { field: action.field! };
+
+                if (action.field === undefined) {
+                    throw new Error(`need a field for a state change action`);
+                }
+                return { ...newState, ...{ field: action.field } }
             }
             case 'health-change': {
+
+                if (action.id === undefined) {
+                    throw new Error(`Need an id for a health-change action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (action.newHealth === undefined) {
                     return state;
@@ -116,6 +183,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return newState;
             }
             case 'status-change': {
+                if (action.id === undefined) {
+                    throw new Error(`Need an id for a status-change action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
 
                 if (action.newStatus === undefined) {
@@ -126,16 +196,25 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return newState;
             }
             case 'substitute-broken': {
+                if (action.id === undefined) {
+                    throw new Error(`Need an id for a substitute broken action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 pokemonData.pokemon.hasSubstitute = false;
                 return newState;
             }
             case `substitute-created`: {
+                if (action.id === undefined) {
+                    throw new Error(`Need an id for a substitute created action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 pokemonData.pokemon.hasSubstitute = true;
                 return newState;
             }
             case 'switch-in': {
+                if (action.id === undefined) {
+                    throw new Error(`Need an id for a switch in action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (pokemonData.owner) {
                     pokemonData.owner.currentPokemonId = action.id;
@@ -144,6 +223,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 return newState;
             }
             case 'switch-out': {
+                if (action.id === undefined) {
+                    throw new Error(`Need an id for a switch out action`);
+                }
                 const pokemonData = getPokemonAndOwner(newState, action.id);
                 if (pokemonData.owner) {
                     pokemonData.owner.currentPokemonId = -1;
@@ -163,17 +245,16 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         field: {
             players: [],
             entryHazards: []
-        }
+        },
     }
     const [battleState, dispatch] = useReducer(reducer, initialState);
-    const [menuState, setMenuState] = useState(MenuState.Loading);
-    const [turnInfo, setTurnInfo] = useState<OnNewTurnLogArgs | undefined>(undefined);
-    const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
-    const [runningAnimations, setRunningAnimations] = useState(false);
+    const [battleEventsState, dispatchBattleEvent] = useReducer(BattleEventLogReducer, createInitialEventState());
 
-    const battleEvents = useRef<Array<BattleEvent>>([]);
-    //this is used to force update the battle events animation effect, but we use the ref above because of problems getting it to work.
-    const [battleEventsTemp, setBattleEventsTemp] = useState<Array<BattleEvent>>([]);
+
+    const[eventAnimationsRunning,setEventAnimationsRunning] = useState<boolean>(false);
+
+    const [menuState, setMenuState] = useState(MenuState.Loading);
+    const [winningPlayer, setWinningPlayer] = useState<number | undefined>(undefined)
 
     //for animation purposes
     const allyPokemonImage = useRef(null);
@@ -183,21 +264,27 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const allyPotionNode = useRef(null);
     const enemyPotionNode = useRef(null);
 
+    //Set Menu State
+    useEffect(() => {
+        if (battleEventsState.currentEvent !== undefined) {
+            setMenuState(MenuState.ShowingTurn);
+        }
+    }, [battleEventsState.currentEvent]);
+
     /* eslint-disable */
     useEffect(() => {
-
         function initializeService() {
 
             let eventHandler: GameEventHandler = battleService;
 
             eventHandler.OnGameStart.on(args => {
+
+
                 if (menuState === MenuState.ShowingTurn) {
                     return;
                 }
-                console.log("on game start in the event handler!", args);
 
                 dispatch({
-                    id: 0,
                     type: 'state-change',
                     field: _.cloneDeep(args.field)
                 })
@@ -206,24 +293,23 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
 
             eventHandler.OnNewTurnLog.on((args: OnNewTurnLogArgs) => {
-                console.log("testing our new turn log?", args, menuState, battleEvents, turnInfo);
-                setTurnInfo(args);
-                setMenuState(MenuState.ShowingTurn);
-                battleEvents.current = battleEvents.current.concat(args.eventsSinceLastTime);
-                setBattleEventsTemp(battleEvents.current);
+
+                dispatchBattleEvent({
+                    type: 'add-events',
+                    eventsToAdd: args.eventsSinceLastTime,
+                    eventsArgs: args
+                })
             });
 
             eventHandler.OnStateChange.on((args: OnStateChangeArgs) => {
-                console.log("state - change is happening", args);
+
                 dispatch({
-                    id: 0,
                     type: 'state-change',
                     field: _.cloneDeep(args.newField)
                 })
 
                 //in case we are joining a game in progress.
                 if (menuState === MenuState.Loading) {
-                    console.log(args);
                     if (args.currentTurnState === TurnState.WaitingForSwitchActions && args.actionsNeededIds.filter(id => id === props.allyPlayerID).length > 0) {
                         setMenuState(MenuState.FaintedSwitchMenu)
                     }
@@ -279,21 +365,23 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     function getEnemyPokemon(): Pokemon {
         return GetActivePokemon(getEnemyPlayer());
     }
-    const onEndOfTurnLog = useCallback(() => {
+    const endEventAnimations = useCallback(() => {
 
-        if (turnInfo === undefined) {
+        const eventsInfo = battleEventsState.allEventsInfo;
+
+        dispatchBattleEvent(
+            { type: 'end-events' }
+        );
+
+        if (eventsInfo === undefined) {
             return;
         }
-
-        const turnLogCopy = turnInfo;
-        //why is this here like this?
-        setTurnInfo(undefined);
-        if (turnLogCopy.currentTurnState === 'game-over') {
-            setWinningPlayer(turnLogCopy.winningPlayerId);
+        if (eventsInfo.currentTurnState === 'game-over') {
+            setWinningPlayer(eventsInfo.winningPlayerId);
             setMenuState(MenuState.GameOver)
         }
-        else if (turnLogCopy.currentTurnState === 'awaiting-switch-action') {
-            if (turnLogCopy.waitingForSwitchIds.filter(id => id === getAllyPlayer().id).length > 0) {
+        else if (eventsInfo.currentTurnState === 'awaiting-switch-action') {
+            if (eventsInfo.waitingForSwitchIds.filter(id => id === getAllyPlayer().id).length > 0) {
                 //should check to see if it is our pokemon
                 setMenuState(MenuState.FaintedSwitchMenu);
             }
@@ -304,7 +392,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         //Perhaps this should happen all the time no matter what
         else {
 
-            if (turnLogCopy.actionsNeededIds.filter(id => id === getAllyPlayer().id).length > 0) {
+            if (eventsInfo.actionsNeededIds.filter(id => id === getAllyPlayer().id).length > 0) {
                 setMenuState(MenuState.MainMenu);
             }
             else {
@@ -313,69 +401,65 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
             setMenuState(MenuState.MainMenu);
             dispatch({
-                id: 0,
                 type: 'state-change',
-                field: turnInfo.field
+                field: eventsInfo.field
             })
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [turnInfo]);
+    }, [battleEventsState.allEventsInfo]);
 
     /* eslint-disable */
     useEffect(() => {
 
-        if (turnInfo === undefined || menuState !== MenuState.ShowingTurn || battleEvents.current.length == 0) {
+        //TODO - test the battleEventsState.remainingEvents... this might not be what we want here.
+        if (menuState !== MenuState.ShowingTurn || battleEventsState.currentEvent === undefined) {
             return;
         }
-        if (runningAnimations === true) {
+
+        //Important, we have a weird bug where sometimes this effect runs twice when it shouldn't, this should stop that from occuring
+        if (eventAnimationsRunning){
             return;
         }
-        //so that the animations don't get set twice.
-        setRunningAnimations(true);
+        setEventAnimationsRunning(true);
 
-        console.log("animations a", turnInfo, menuState, battleEvents, runningAnimations);
-
+        console.log('running event animations',{...battleEventsState});
 
         //default times
-        const defaultDelayTime: number = 0.1;
-        const healthAnimationTime: number = 0.1;
+        const defaultDelayTime: number = 0.3;
+        const healthAnimationTime: number = 0.5;
         const messageAnimationTime: number = 0.1;
         const attackAnimationTime: number = 0.1;
         const damageAnimationTime: number = 0.1;
         const defaultAnimationTime: number = 0.1;
 
-        const effect = battleEvents.current[0];
+        const currentEvent = battleEventsState.currentEvent;
 
         const nextEvent = () => {
-
-            //update the state based on the current effect
-            let tempEvents = _.cloneDeep(battleEvents.current);
-            tempEvents.shift();
-            battleEvents.current = tempEvents;
-            setBattleEventsTemp(battleEvents.current)
-            if (battleEvents.current.length === 0) {
-                onEndOfTurnLog();
-            }
+            dispatchBattleEvent({
+                type: 'next-event'
+            });
         }
 
         const timeLine = gsap.timeline(
             {
                 paused: true,
                 onComplete: () => {
-                    setRunningAnimations(false);
-
-                    if (effect.resultingState !== undefined) {
+                    setEventAnimationsRunning(false);
+                    if (currentEvent.resultingState !== undefined) {
                         dispatch({
-                            id: 0,
                             type: 'state-change',
-                            field: _.cloneDeep(effect.resultingState)
+                            field: _.cloneDeep(currentEvent.resultingState)
                         })
                     }
-                    nextEvent();
+                    if (battleEventsState.remainingEvents.length === 0) {
+                        endEventAnimations();
+                    }
+                    else {
+                        nextEvent();
+                    }
                 }
             });
-
 
         //testing our animate message timeline function
         const animateMessage = function (text: string, onComplete?: () => void | undefined) {
@@ -384,19 +468,15 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
         }
 
-
         //TODO - look into the "useImperativeHandle hook along with forwardRefs to make our encapsulated "
-        switch (effect.type) {
-
-
+        switch (currentEvent.type) {
             case BattleEventType.GenericMessage: {
-                animateMessage(effect.defaultMessage);
+                animateMessage(currentEvent.defaultMessage);
                 break;
             }
 
             case BattleEventType.Heal: {
-                const pokemon = getPokemonById(effect.targetPokemonId);
-
+                const pokemon = getPokemonById(currentEvent.targetPokemonId);
                 let animObj;
                 isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
                 timeLine.to(
@@ -407,7 +487,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                             isAllyPokemon(pokemon.id) ? animObj = getAllyPokemon() : animObj = getEnemyPokemon();
                         },
                         delay: defaultDelayTime,
-                        hp: effect.targetFinalHealth,
+                        hp: currentEvent.targetFinalHealth,
                         duration: healthAnimationTime,
                         onUpdate: (val: any) => {
                             dispatch({
@@ -420,9 +500,9 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     })
                 break;
             }
-
+            //We don't really have items anymore
             case BattleEventType.UseItem: {
-                const pokemon = getPokemonById(effect.targetPokemonId);
+                const pokemon = getPokemonById(currentEvent.targetPokemonId);
                 const owner = getPokemonAndOwner(battleState, pokemon.id).owner;
 
                 if (owner === undefined) {
@@ -430,7 +510,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 }
 
                 //Show the message box
-                animateMessage(`${owner.name} used ${effect.itemName} on ${pokemon.name}`);
+                animateMessage(`${owner.name} used ${currentEvent.itemName} on ${pokemon.name}`);
 
                 let potionNode;
                 isAllyPokemon(pokemon.id) ? potionNode = allyPotionNode.current : potionNode = enemyPotionNode.current
@@ -439,49 +519,47 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 break;
             }
             case BattleEventType.PokemonFainted: {
-                const pokemon = getPokemonById(effect.targetPokemonId);
+                const pokemon = getPokemonById(currentEvent.targetPokemonId);
 
                 let pokemonNode;
                 isAllyPokemon(pokemon.id) ? pokemonNode = allyPokemonImage.current : pokemonNode = enemyPokemonImage.current;
 
                 timeLine.to(pokemonNode, { delay: defaultDelayTime, top: "+=100", opacity: 0, duration: defaultAnimationTime })
-                timeLine.fromTo(messageBox.current, { text: "" }, {
-                    delay: defaultDelayTime, duration: messageAnimationTime, text: `${pokemon.name} has fainted!`, ease: "none"
-                });
-
+                animateMessage(`${pokemon.name} has fainted!`);
                 break;
             }
 
             case BattleEventType.StatusChange: {
-                const pokemon = getPokemonById(effect.targetPokemonId);
+                const pokemon = getPokemonById(currentEvent.targetPokemonId);
 
-                let message = `${pokemon.name} is now ${effect.status.toLowerCase()}`;
-                if (effect.defaultMessage) {
-                    message = effect.defaultMessage;
+                let message = `${pokemon.name} is now ${currentEvent.status.toLowerCase()}`;
+                if (currentEvent.defaultMessage) {
+                    message = currentEvent.defaultMessage;
                 }
                 animateMessage(message, () => {
                     dispatch({
                         type: 'state-change',
                         id: pokemon.id,
-                        field: effect.resultingState!
+                        field: currentEvent.resultingState!
                     });
                 })
                 break;
             }
 
+            //TODO -> use our generic messages instead.
             case BattleEventType.CantAttack: {
 
-                const pokemon = getPokemonById(effect.targetPokemonId);
+                const pokemon = getPokemonById(currentEvent.targetPokemonId);
                 timeLine.fromTo(messageBox.current, { text: "" }, {
                     delay: defaultDelayTime,
                     duration: messageAnimationTime,
-                    text: `${pokemon.name} could not attack due to being ${effect.reason.toLowerCase()}`,
+                    text: `${pokemon.name} could not attack due to being ${currentEvent.reason.toLowerCase()}`,
                 })
                 break;
             }
 
             case BattleEventType.SwitchIn: {
-                const pokemon = getPokemonById(effect.switchInPokemonId);
+                const pokemon = getPokemonById(currentEvent.switchInPokemonId);
                 const owner = getPokemonAndOwner(battleState, pokemon.id).owner;
 
                 let switchInMessage;
@@ -507,7 +585,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
             case BattleEventType.SwitchOut: {
 
-                const pokemon = getPokemonById(effect.switchOutPokemonId);
+                const pokemon = getPokemonById(currentEvent.switchOutPokemonId);
                 const owner = getPokemonAndOwner(battleState, pokemon.id).owner;
 
                 let switchOutMessage;
@@ -527,15 +605,15 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 break;
             }
             case BattleEventType.UseTechnique: {
-                const pokemon = getPokemonById(effect.userId);
-                animateMessage(`${pokemon.name} used ${effect.techniqueName}`);
+                const pokemon = getPokemonById(currentEvent.userId);
+                animateMessage(`${pokemon.name} used ${currentEvent.techniqueName}`);
 
-                if (!effect.didTechniqueHit) {
+                if (!currentEvent.didTechniqueHit) {
                     animateMessage('But it missed');
                     break;
 
                 }
-                if (isAllyPokemon(effect.userId)) {
+                if (isAllyPokemon(currentEvent.userId)) {
                     timeLine.to(allyPokemonImage.current, { delay: defaultDelayTime, left: "60px", duration: attackAnimationTime })
                     timeLine.to(allyPokemonImage.current, { left: "40px", duration: attackAnimationTime })
                 }
@@ -550,14 +628,14 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             case BattleEventType.SubstituteBroken: {
                 dispatch({
                     type: 'substitute-broken',
-                    id: effect.targetPokemonId
+                    id: currentEvent.targetPokemonId
                 })
                 break;
             }
             case BattleEventType.SubstituteCreated: {
                 dispatch({
                     type: 'substitute-created',
-                    id: effect.targetPokemonId
+                    id: currentEvent.targetPokemonId
                 })
                 break;
             }
@@ -565,17 +643,17 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 //when this is made on a switch out, the ally pokemon is the original pokemon
 
                 let pokemonNode;
-                isAllyPokemon(effect.targetPokemonId) ? pokemonNode = allyPokemonImage.current : pokemonNode = enemyPokemonImage.current;
+                isAllyPokemon(currentEvent.targetPokemonId) ? pokemonNode = allyPokemonImage.current : pokemonNode = enemyPokemonImage.current;
 
                 let pokemonObj;
-                isAllyPokemon(effect.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon();
+                isAllyPokemon(currentEvent.targetPokemonId) ? pokemonObj = getAllyPokemon() : pokemonObj = getEnemyPokemon();
 
                 //Pokemon damaged animation
                 timeLine.to(pokemonNode, { delay: defaultDelayTime, filter: "brightness(50)", duration: damageAnimationTime });
                 timeLine.to(pokemonNode, { filter: "brightness(1)", duration: damageAnimationTime });
                 timeLine.to(
                     pokemonObj.currentStats, {
-                    hp: effect.targetFinalHealth,
+                    hp: currentEvent.targetFinalHealth,
                     duration: healthAnimationTime,
                     onUpdate: (val: any) => {
                         dispatch({
@@ -590,12 +668,12 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             }
         }
         //add 1 second of padding.
-        timeLine.set({}, {}, "+=0.1");
+        timeLine.set({}, {}, "+=0.3");
         timeLine.play();
 
         return;
 
-    }, [onEndOfTurnLog, turnInfo, menuState, battleEventsTemp]);
+    }, [menuState, battleEventsState.currentEvent]); //TODO: potential failure point here, our animation system might need to be aware of when our reducer state changes.
     /* eslint-enable */
 
     async function SetBattleAction(techniqueId: number) {
@@ -769,7 +847,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 //this might cause issues when we set it up for multiplayer.
                 //maybe this should come with the state?
                 let validActions = await battleService.GetValidActions(getAllyPlayer().id);
-                console.log(validActions);
+
+
                 if (validActions.filter(act => act.type === Actions.UseTechnique).length === 0) {
                     //use a struggle command instead
                     const struggleCommand = validActions.find(act => act.type === Actions.ForcedTechnique && act.technique.name.toLowerCase() === "struggle");
