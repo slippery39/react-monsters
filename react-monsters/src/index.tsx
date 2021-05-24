@@ -15,6 +15,8 @@ import LocalBattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import RemoteAIvsAIBattle from 'components/Battle/RemoteBattle/RemoteBattle';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
+import ConnectToServer from 'components/NetworkPlay/ConnectToServerScreen';
+import NetworkPlayController from 'components/NetworkPlay/NetworkPlayController';
 
 const history = createBrowserHistory();
 
@@ -94,6 +96,7 @@ const routing = (
         <Route exact path="/devtestbattle" render={()=>devTestBattle()}/>
         <Route exact path="/remotebattle1/" render={(props)=><RemoteAIvsAIBattle playerId={1}/>}/>
         <Route exact path="/remotebattle2/" render={(props)=><RemoteAIvsAIBattle playerId={2}/>}/>
+        <Route exact path="/networked-play" component={NetworkPlayController}/>
       </Switch>
      </Content>
    </Layout>

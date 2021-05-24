@@ -102,7 +102,7 @@ export class RemoteBattleService2 implements BattleService {
 
     private playerId = 2; //TODO this should be dyanmic.
 
-    private URL = "http://192.168.2.112:8000" //"http://localhost:8000";
+    private URL = "http://192.168.0.12:8000";
 
     private socket = io(this.URL);
 
@@ -112,6 +112,7 @@ export class RemoteBattleService2 implements BattleService {
 
     Initialize() {
         let socket = this.socket;
+        socket.emit("testgame");
         socket.onAny((event, ...args) => {
             if (event === "gamestart") {
 
@@ -238,11 +239,12 @@ export class RemoteBattleService implements BattleService {
 
     private playerId = 1; //TODO this should be dyanmic.
 
-    private URL = "http://localhost:8000";
+    private URL = "http://192.168.0.12:8000";
     private socket = io(this.URL);
 
     Initialize() {
         let socket = this.socket;
+        socket.emit("testgame");
         socket.onAny((event, ...args) => {
             if (event === "gamestart") {
 
