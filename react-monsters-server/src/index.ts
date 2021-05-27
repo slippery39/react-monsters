@@ -6,13 +6,14 @@ import _ from 'lodash';
 import { OnNewTurnLogArgs } from '../../react-monsters/src/game/BattleGame';
 import http from "http";
 import { Server, Socket } from "socket.io";
-import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import bodyParser from 'body-parser';
+
 
 export interface MatchResult {
     winningPokemon: string[],
     losingPokemon: string[],
 }
+
 
 const app = express();
 const server = http.createServer(app);
@@ -32,43 +33,56 @@ app.get("/test", (req, res) => {
     console.log("test recieved!");
     return res.send("Hello world!");
 });
-
-var roomID = 1;
-const NextRoom = () => {
-    return "Room - " + roomID++;
-}
-
+   
 
 const servicesPerRoom: Map<string, BattleService> = new Map<string, BattleService>();
 
 
 interface CustomSocket extends Socket{
-    username:string
+   decoded_token:any //don't know how to remove compiler errors to check this.
+   username:string
 }
 
 let loggedInUsers: string[] = [];
 
-//users in battle. -> keep track of these eventually. users who disconnect should be 
-//reconnected inside their battle.
 
+function GetLoggedInUsers(){
+    return loggedInUsers;
+}
 
 io.on("connection", (socket) => {
 
+    let customSocket= (socket as CustomSocket);  
+
     socket.on("login",(username)=>{
-        var customSocket = (socket as CustomSocket);
         customSocket.username = username;
         console.log(`${customSocket.username} has logged in!`);
     });
 
     socket.on("disconnect",()=>{     
-        var customSocket = (socket as CustomSocket);
-       console.log(`removing ${customSocket.username}`);
        _.remove(loggedInUsers,(user)=>user===customSocket.username);
-       console.log(loggedInUsers);
-        //get the name of the socket
+       io.sockets.emit("users-changed",loggedInUsers);
     });
 
+    socket.on("challenge-request",async (challengeOptions)=>{
+        console.log(challengeOptions.player1);
+        console.log(challengeOptions.player2);
+        //Get socket id of player2.
+        const sockets = await io.sockets.fetchSockets();
 
+       const player2Socket =  sockets.find(sock=>{
+            let customSock = (sock as unknown as CustomSocket);
+            return customSock.username === challengeOptions.player2;
+        });
+
+        if (player2Socket === undefined){
+            console.error("Could not find socket for challenge request",challengeOptions.player2);
+            return;
+        }
+        console.log("emitting event");
+        player2Socket.emit("challenge-request-received",challengeOptions);          
+    });
+ 
     //Below here shouldn't matter anymore.
     socket.on("testgame", () => {
         console.log("test game has been started");
@@ -159,25 +173,30 @@ io.on("connection", (socket) => {
 })
 
 
+app.get("/getOnlineUsers",async(req,res)=>{
+    return res.json({users:loggedInUsers})
+}); 
+
 
 app.post('/login',async(req,res)=>{    
     console.log("login request recieved");
     console.log(req.body);
-    //if username is not currently connected, then log in.
+    //fail
     if (loggedInUsers.find(user=>user===req.body.name)!==undefined){
-        return res.json({status:"not successful",username:req.body.name,message:"Connection Failed - Username already connected!"});
+        return res.status(401).send({
+            message: 'Connection Failed - Username already connected!'
+         });
     }
-    else{
+    else{ //success
         loggedInUsers.push(req.body.name)
+        io.sockets.emit("users-changed",loggedInUsers);
         return res.json({status:"success",username:req.body.name});
     }
 });
 
-
+/* -> Marked For Deletion.
 app.get("/getvalidactions1", async (req, res) => {
     //hard coded room and player id for now.
-
-
     const service = servicesPerRoom.get("Room - 1");
     const validActions = await service?.GetValidActions(1);
     console.log("get valid actions 1 has been called!");
@@ -194,6 +213,7 @@ app.get("/getvalidactions2", async (req, res) => {
     console.log(JSON.stringify(validActions));
     return res.json(validActions);
 });
+*/
 
 
 server.listen(PORT, () => {

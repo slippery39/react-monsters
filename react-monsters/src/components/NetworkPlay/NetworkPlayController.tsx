@@ -1,26 +1,41 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
+import { Socket } from "socket.io-client";
 import ConnectToServer from "./ConnectToServerScreen";
+import MainLobby from "./MainLobby";
 
+
+export interface NetworkInfo{
+    socket?:Socket,
+    serverAddress:string,
+    currentUser:string
+}
 
 interface Props{
-
 }
+
+
+
 
 const NetworkPlayController= (props: Props) => {
     const [uiState,setUiState] = useState<string>("login-screen");
-
+    const networkInfo = useRef<NetworkInfo>({
+        socket:undefined,
+        serverAddress:"",
+        currentUser:""
+    });   
 
     const handleLogIn = (username:string)=>{
+        networkInfo.current.currentUser = username;
         setUiState("main-lobby");
     }
 
     const render = ()=>{
         switch(uiState){
             case "login-screen":{
-                return <ConnectToServer OnLogIn = {handleLogIn}/>
+                return <ConnectToServer networkInfo={networkInfo.current} OnLogIn = {handleLogIn}/>
             }
             case "main-lobby":{
-                return <div>You are in the main lobby!</div>
+                return <MainLobby networkInfo={networkInfo.current}/>
             }
             default:{
                 return <div> Error, no ui state found for network play! </div>
