@@ -1006,6 +1006,23 @@ const premades: Array<PremadePokemon> = [
             spDefense:4,
             speed:252
         }
+    },
+    {
+        species:"Golem",
+        heldItem:"Leftovers",
+        ability:"Sturdy",
+        nature:NatureType.Adamant,
+        techniques:[
+            "Stealth Rock",
+            "Earthquake",
+            "Stone Edge",
+            "Toxic"
+        ],
+        evs:{
+            hp:252,
+            attack:32,
+            spDefense:224
+        }
     }
 
 ]

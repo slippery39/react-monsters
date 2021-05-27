@@ -725,6 +725,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:90
             },
             weight:12.5
+        },
+        {
+            name:"Golem",
+            elementalTypes:[ElementType.Rock,ElementType.Ground],
+            baseStats:{
+                hp:80,
+                attack:120,
+                defense:130,
+                spAttack:55,
+                spDefense:65,
+                speed:45
+            },
+            weight:316
         }
     ];
 
