@@ -7,7 +7,7 @@ import MainLobby from "./MainLobby";
 export interface NetworkInfo{
     socket?:Socket,
     serverAddress:string,
-    currentUser:string
+    currentPlayer:string
 }
 
 interface Props{
@@ -21,11 +21,11 @@ const NetworkPlayController= (props: Props) => {
     const networkInfo = useRef<NetworkInfo>({
         socket:undefined,
         serverAddress:"",
-        currentUser:""
+        currentPlayer:""
     });   
 
     const handleLogIn = (username:string)=>{
-        networkInfo.current.currentUser = username;
+        networkInfo.current.currentPlayer = username;
         setUiState("main-lobby");
     }
 

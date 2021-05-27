@@ -1,65 +1,66 @@
-import { UserSwitchOutlined } from "@ant-design/icons";
-import { Button, Card, Form, Input, message } from "antd"
+import { Card, message } from "antd"
 
 import React, { useEffect, useState } from "react"
 import { NetworkInfo } from "./NetworkPlayController";
+import PlayerProfile from "./PlayerProfile";
 
 interface Props {
-    networkInfo:NetworkInfo
+    networkInfo: NetworkInfo
 }
 
 
 const MainLobby = (props: Props) => {
-    const [form] = Form.useForm();
-    const[onlineUsers,setOnlineUsers] = useState<string[]>([]);
+    const [onlinePlayers, setOnlinePlayers] = useState<string[]>([]);
 
 
-    const handleUsersChanged = (users:string[])=>{
-        setOnlineUsers(users);
+    const handleUsersChanged = (players: string[]) => {
+        setOnlinePlayers(players);
     }
 
-    const handleUserClick = ( (user:string)=>{
+    const onChallengeClick = ((player: string) => {
         //TODO: do not handle is user clicked is the connected user.
-        console.log(user);
-        props.networkInfo.socket!.emit("challenge-request",{
-            player1:props.networkInfo.currentUser,
-            player2:user
+        console.log(player);
+        props.networkInfo.socket!.emit("challenge-request", {
+            player1: props.networkInfo.currentPlayer,
+            player2: player
         })
     })
 
     useEffect(() => {
         (async () => {
-            const response = await fetch(props.networkInfo.serverAddress+"/getOnlineUsers", {
+            const response = await fetch(props.networkInfo.serverAddress + "/getOnlineUsers", {
                 method: 'GET',
                 headers: { 'content-type': 'application/json;charset=UTF-8', }
             });
             const resJSON = await response.json();
 
-            setOnlineUsers(resJSON.users);
+            setOnlinePlayers(resJSON.users);
         }
         )();
 
-        props.networkInfo.socket!.on("users-changed",handleUsersChanged);
+        props.networkInfo.socket!.on("users-changed", handleUsersChanged);
 
-        return ()=>{
-            props.networkInfo.socket!.off("users-changed",handleUsersChanged);
+        return () => {
+            props.networkInfo.socket!.off("users-changed", handleUsersChanged);
         }
 
     }, []);
 
-    useEffect(()=>{
-        props.networkInfo.socket!.on("challenge-request-received",(options)=>{
+    useEffect(() => {
+        props.networkInfo.socket!.on("challenge-request-received", (options) => {
             message.info(`${options.player1} has challenged you to a battle!`)
         });
-    },[]);
+    }, []);
 
-    const renderUsers = ()=>{
-        return onlineUsers.map(user=><div key={user}><button onClick={()=>handleUserClick(user)} key={user}>{user}</button></div>)
-    }
+    const otherPlayerList = onlinePlayers
+        .filter(player => player !== props.networkInfo.currentPlayer)
+        .map(player => <PlayerProfile onChallengeClick={onChallengeClick} player={player}></PlayerProfile>)
+
 
     return (<Card>
-        Main Lobby<br/>
-        {renderUsers()}
+        <div>Main Lobby</div>
+        <div>Players online: {onlinePlayers.length}</div>
+        {otherPlayerList.length === 0 ? <div>No other players are online!</div> : otherPlayerList}
     </Card>)
 }
 
