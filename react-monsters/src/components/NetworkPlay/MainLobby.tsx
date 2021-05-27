@@ -2,6 +2,7 @@ import { Card, message } from "antd"
 
 import React, { useEffect, useState } from "react"
 import { NetworkInfo } from "./NetworkPlayController";
+import NetworkPlayerInfo, { NetworkPlayerStatus } from "./NetworkPlayer";
 import PlayerProfile from "./PlayerProfile";
 
 interface Props {
@@ -52,9 +53,16 @@ const MainLobby = (props: Props) => {
         });
     }, []);
 
+    const createPlayerInfo = (player:string):NetworkPlayerInfo=>{
+        return {
+            name:player,
+            onlineStatus: onlinePlayers.includes(player) ? NetworkPlayerStatus.Online : NetworkPlayerStatus.Offline
+        }
+    }
+
     const otherPlayerList = onlinePlayers
         .filter(player => player !== props.networkInfo.currentPlayer)
-        .map(player => <PlayerProfile onChallengeClick={onChallengeClick} player={player}></PlayerProfile>)
+        .map(player => <PlayerProfile onChallengeClick={onChallengeClick} player={createPlayerInfo(player)}></PlayerProfile>)
 
 
     return (<Card>
