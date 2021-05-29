@@ -278,7 +278,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             let eventHandler: GameEventHandler = battleService;
 
             eventHandler.OnGameStart.on(args => {
-
+                
 
                 if (menuState === MenuState.ShowingTurn) {
                     return;

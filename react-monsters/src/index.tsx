@@ -94,8 +94,6 @@ const routing = (
         <Route exact path="/battle" component={BattleSetupController}/>
         <Route exact path="/battleSimulator" component={BattleSimulatorMenu}/>
         <Route exact path="/devtestbattle" render={()=>devTestBattle()}/>
-        <Route exact path="/remotebattle1/" render={(props)=><RemoteAIvsAIBattle playerId={1}/>}/>
-        <Route exact path="/remotebattle2/" render={(props)=><RemoteAIvsAIBattle playerId={2}/>}/>
         <Route exact path="/networked-play" component={NetworkPlayController}/>
       </Switch>
      </Content>

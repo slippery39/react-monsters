@@ -7,7 +7,8 @@ import NetworkPlayerInfo, { NetworkPlayerStatus } from "./NetworkPlayer";
 import PlayerProfile from "./PlayerProfile";
 
 interface Props {
-    networkInfo: NetworkInfo
+    networkInfo: NetworkInfo,
+    onGameStart:(info:any)=>void;
 }
 
 
@@ -58,6 +59,7 @@ const MainLobby = (props: Props) => {
             props.networkInfo.socket.on("match-begin",(info)=>{
                 message.info("Match is beginning");
                 console.log(info);
+                props.onGameStart(info);
             });     
 
             let challengeRecievedModal:any | undefined = undefined;
@@ -105,7 +107,8 @@ const MainLobby = (props: Props) => {
 
             props.networkInfo.socket!.on("challenge-ready",()=>{
                 waitingForResponseModal?.destroy();
-                message.info(`Challenge has been accepted`);                        
+                message.info(`Challenge has been accepted`);  
+                                      
             });
 
             props.networkInfo.socket!.on("challenge-request-declined",()=>{

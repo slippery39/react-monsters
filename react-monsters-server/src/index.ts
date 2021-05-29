@@ -231,11 +231,20 @@ io.on("connection", (socket) => {
             player2Socket?.emit("gameover",args);
         });
 
-        socket.on("gamestartready", (data) => {
-            battleService!.Start();
+        //we can't start the game right away... we need to 
+        //wait until the remote battle services have send messages to here
+        socket.on("connected-to-game",()=>{
+        
+        });
+        battleService!.Start();
+        socket.on("testgame",()=>{
             player1Socket?.emit("gamestart", { field: battleService.GetField() });
             player2Socket?.emit("gamestart", { field: battleService.GetField() });
-        });     
+
+        }); 
+        //This needs to fire first, then the client side socket will send the game start ready.
+       // player1Socket?.emit("gamestart", { field: battleService.GetField() });
+      //  player2Socket?.emit("gamestart", { field: battleService.GetField() });
         
         //todo: put into game.
     });
@@ -362,8 +371,8 @@ app.post('/login', async (req, res) => {
         return res.json({ status: "success", username: req.body.name });
     }
 });
-
-app.get("getvalidactions",async(req,res)=>{
+ 
+app.get("/getvalidactions",async(req,res)=>{
     const username = req.params.username;
     const gameInfo = games.find(info=>info.players.find(name=>name==username)!==undefined);
     const playerInGame= gameInfo?.service.GetPlayers().find(player=>player.name === username);
@@ -374,7 +383,9 @@ app.get("getvalidactions",async(req,res)=>{
 
     const validActions = await gameInfo?.service.GetValidActions(playerInGame.id);
     return res.json(validActions);
-});
+}); 
+
+
 
 /* -> Marked For Deletion.
 app.get("/getvalidactions1", async (req, res) => {
