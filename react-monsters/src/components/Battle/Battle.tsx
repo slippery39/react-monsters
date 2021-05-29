@@ -360,6 +360,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     function getAllyPokemon(): Pokemon {
+        console.log(getAllyPlayer());
         return GetActivePokemon(getAllyPlayer());
     }
     function getEnemyPokemon(): Pokemon {

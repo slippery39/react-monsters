@@ -265,7 +265,7 @@ io.on("connection", (socket) => {
     });
 
     //Below here shouldn't matter anymore.
-    socket.on("testgame", () => {
+    socket.on("not in use", () => {
         console.log("test game has been started");
 
         const room = "Room - 1";
