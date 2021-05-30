@@ -135,8 +135,6 @@ io.on("connection", (socket) => {
     socket.on("login", (username) => {
         customSocket.username = username;
         console.log(`${customSocket.username} has logged in!`);
-
-        //TODO - redirect to game if user is logged in.
     });
 
     socket.on("disconnecting", () => {
@@ -202,6 +200,23 @@ io.on("connection", (socket) => {
         fn({ success: success });
     });
 
+    socket.on("get-game-state",()=>{
+
+        const gameInfo = GetGameInfoForPlayer(customSocket.username);
+        const battleService = gameInfo?.service;
+        if (battleService === undefined) {
+            console.error('something is wrong, we could not find the battle service... exiting');
+            return;
+        }
+
+        const updateStateArgs: OnStateChangeArgs = {
+            newField: battleService?.GetField(),
+            currentTurnState: battleService.GetBattle().currentState,
+            actionsNeededIds: battleService.GetBattle().GetPlayerIdsThatNeedActions()
+        }
+        socket.emit("join-game",updateStateArgs);
+    }); 
+
 
     socket.on("challenge-request-accept", async (options) => {
         //challenge has been accepted, remove the challenge and put them both into a game.
@@ -235,13 +250,19 @@ io.on("connection", (socket) => {
         });
 
 
-        battleService.OnNewTurnLog.on((args: OnNewTurnLogArgs) => {
+        battleService.OnNewTurnLog.on(async (args: OnNewTurnLogArgs) => {
+            //We need to find these again, since if the user disconnects and reconnects,
+            //then their socket will be different. 
+            const player1Socket = await FindSocketByUserName(challenge.players[0]);
+            const player2Socket = await FindSocketByUserName(challenge.players[1]);
             //console.log("emitting new turn log", args.currentTurnLog.length);
             player1Socket?.emit("newturnlog", args);
             player2Socket?.emit("newturnlog", args)
         });
 
-        battleService.OnGameOver.on((args) => {
+        battleService.OnGameOver.on(async (args) => {
+            const player1Socket = await FindSocketByUserName(challenge.players[0]);
+            const player2Socket = await FindSocketByUserName(challenge.players[1]);
             player1Socket?.emit("gameover", args);
             player2Socket?.emit("gameover", args);
         });
@@ -366,17 +387,50 @@ app.get("/getOnlineUsers", async (req, res) => {
 
 app.post('/login', async (req, res) => {
     console.log("login request recieved");
-    console.log(req.body);
+
+    var username = req.body.name;
     //fail
-    if (loggedInUsers.find(user => user === req.body.name) !== undefined) {
+    if (loggedInUsers.find(user => user === username) !== undefined) {
         return res.status(401).send({
             message: 'Connection Failed - Username already connected!'
         });
     }
     else { //success
-        loggedInUsers.push(req.body.name)
+        loggedInUsers.push(username)
         io.sockets.emit("users-changed", loggedInUsers);
-        return res.json({ status: "success", username: req.body.name });
+
+        //TODO : grab the game information as well        
+        const game = GetGameInfoForPlayer(username);
+        let userInfo :{
+            isInGame:boolean,
+            inGameId:number
+        } = {
+            isInGame:false,
+            inGameId:-1
+        };
+        if (game!== undefined){
+            const battleService = game.service;
+            const updateStateArgs: OnStateChangeArgs = {
+                newField: battleService?.GetField(),
+                currentTurnState: battleService.GetBattle().currentState,
+                actionsNeededIds: battleService.GetBattle().GetPlayerIdsThatNeedActions()
+            }
+            
+            userInfo.isInGame = true;
+
+            const playerInGame = battleService.GetBattle().GetPlayers().find(p=>p.name===username);
+            if (playerInGame===undefined){
+                userInfo.inGameId = -1;
+                console.error('Could not find player in game for some reason?',username);
+            }
+            else{
+                userInfo.inGameId = playerInGame.id;
+            }
+        }    
+
+ 
+
+        return res.json({ status: "success", username: req.body.name, userInfo:userInfo });
     }
 });
 
@@ -385,11 +439,6 @@ app.get("/getvalidactions", async (req, res) => {
     const username = req.query.username;
     const gameInfo = games.find(info => info.players.find(name => name == username) !== undefined);
     const playerInGame = gameInfo?.service.GetPlayers().find(player => player.name === username);
-
-    console.log(req.params);
-    console.log(username);
-    console.log(gameInfo?.players);
-    console.log(gameInfo?.service);
 
     if (playerInGame === undefined) {
         console.log("could not get valid actions for player");

@@ -2,10 +2,10 @@ import { Button, Card, Form, Input, message } from "antd"
 import { Socket } from "net"
 import React, { useState } from "react"
 import { io } from "socket.io-client";
-import { NetworkInfo } from "./NetworkPlayController";
+import { LoggedInUserInfo, NetworkInfo } from "./NetworkPlayController";
 
 interface Props {
-    OnLogIn: (name:string)=>void
+    OnLogIn: (name:string,userInfo:LoggedInUserInfo)=>void
     networkInfo:NetworkInfo
 }
 
@@ -28,7 +28,11 @@ const ConnectToServer = (props: Props) => {
         
         setIsFetching(true);
 
-        var loggedIn = false;
+        var connectInfo: LoggedInUserInfo = {
+            inGameId:-1,
+            isInGame:false,
+            loggedIn:false
+        }
         
         try{
             const response = await fetch(serverAddress + "/login", {
@@ -39,15 +43,16 @@ const ConnectToServer = (props: Props) => {
         
             const json = await response.json();
         
-            if (json.status === "success"){
-        
-                
+            if (json.status === "success"){                  
                 message.success("Login sucessful!");
                 var socket = io(serverAddress);
                 props.networkInfo.socket = socket;
-                props.networkInfo.serverAddress = serverAddress                
-                socket.emit("login",name);
-                loggedIn = true;
+                props.networkInfo.serverAddress = serverAddress;
+                props.networkInfo.currentInGameId = json.inGameId;
+
+                connectInfo.inGameId = json.userInfo.inGameId;
+                connectInfo.isInGame = json.userInfo.isInGame;
+                connectInfo.loggedIn = true;
             }
             else{
                 message.error(json.message);
@@ -59,7 +64,9 @@ const ConnectToServer = (props: Props) => {
         }
         
         setIsFetching(false);
-        return loggedIn;
+
+     
+        return connectInfo;
             
             
         }
@@ -71,9 +78,9 @@ const ConnectToServer = (props: Props) => {
             name="connectToServer"
             onFinish={
                 async ()=>{                
-                let loggedIn= await onSubmitForm(form.getFieldValue("ipaddress"),form.getFieldValue("username"));
-                if (loggedIn){
-                    props.OnLogIn(form.getFieldValue("username"));
+                let result= await onSubmitForm(form.getFieldValue("ipaddress"),form.getFieldValue("username"));
+                if (result.loggedIn){
+                    props.OnLogIn(form.getFieldValue("username"),result);
                 }              
               
             }}

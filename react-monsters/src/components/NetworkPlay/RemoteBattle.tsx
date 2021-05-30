@@ -1,16 +1,14 @@
 import { NetworkInfo } from "components/NetworkPlay/NetworkPlayController";
 import { RemoteBattleService2 } from "components/NetworkPlay/RemoteBattleService";
-import { BattleService, RemoteBattleService } from "game/BattleService";
-import { PlayerBuilder } from "game/Player/PlayerBuilder";
+import { BattleService } from "game/BattleService";
+
 import React, { useEffect, useRef, useState } from "react";
-import { setConstantValue } from "typescript";
-import Battle from "../Battle";
+import Battle from "../Battle/Battle";
 
 interface Props {
     networkInfo: NetworkInfo
 
 }
-
 
 const RemoteBattle: React.FunctionComponent<Props> = (props) => {
     let remoteBattleService = useRef<BattleService>();

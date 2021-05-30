@@ -1,62 +1,78 @@
-import RemoteBattle from "components/Battle/RemoteBattle/RemoteBattle";
+import RemoteBattle from "components/NetworkPlay/RemoteBattle";
 import React, { useEffect, useRef, useState } from "react"
 import { Socket } from "socket.io-client";
 import ConnectToServer from "./ConnectToServerScreen";
 import MainLobby from "./MainLobby";
 
 
-export interface NetworkInfo{
-    socket?:Socket,
-    serverAddress:string,
-    currentPlayer:string,
-    currentInGameId:number,
+export interface NetworkInfo {
+    socket?: Socket,
+    serverAddress: string,
+    currentPlayer: string,
+    currentInGameId: number,
+}
+
+export interface LoggedInUserInfo {
+    inGameId: number,
+    isInGame: boolean,
+    loggedIn: boolean
 }
 
 
-
-interface Props{
+interface Props {
 }
 
 
-
-
-const NetworkPlayController= (props: Props) => {
-    const [uiState,setUiState] = useState<string>("login-screen");
+const NetworkPlayController = (props: Props) => {
+    const [uiState, setUiState] = useState<string>("login-screen");
     const networkInfo = useRef<NetworkInfo>({
-        socket:undefined,
-        serverAddress:"",
-        currentPlayer:"",
-        currentInGameId:-1
-    });   
+        socket: undefined,
+        serverAddress: "",
+        currentPlayer: "",
+        currentInGameId: -1
+    });
 
-    const handleLogIn = (username:string)=>{
+    const handleLogIn = (username: string, userInfo: LoggedInUserInfo) => {
         networkInfo.current.currentPlayer = username;
-        setUiState("main-lobby");
+        const socket = networkInfo.current.socket;
+        if (socket == undefined) {
+            console.error("Could not find")
+        }
+        socket?.emit("login", username);
+        console.log(userInfo);
+        console.log(networkInfo);
+        if (userInfo.isInGame) {
+            networkInfo.current.currentInGameId = userInfo.inGameId;
+            setUiState("in-game");
+        }
+        else {
+            setUiState("main-lobby");
+        }
     }
 
-    const handleGameStart = (gameStartArgs:any)=>{
+    const handleGameStart = (gameStartArgs: any) => {
         networkInfo.current.currentInGameId = gameStartArgs.myId;
         setUiState("in-game");
     }
 
-    const render = ()=>{
-        switch(uiState){
-            case "login-screen":{
-                return <ConnectToServer networkInfo={networkInfo.current} OnLogIn = {handleLogIn}/>
+    const render = () => {
+        switch (uiState) {
+            case "login-screen": {
+                return <ConnectToServer networkInfo={networkInfo.current} OnLogIn={handleLogIn} />
             }
-            case "main-lobby":{
-                return <MainLobby onGameStart={(info)=>handleGameStart(info)} networkInfo={networkInfo.current}/>
+            case "main-lobby": {
+                return <MainLobby onGameStart={(info) => handleGameStart(info)} networkInfo={networkInfo.current} />
             }
-            case "in-game":{
-                return <RemoteBattle networkInfo={networkInfo.current}/>
+            case "in-game": {
+                return <RemoteBattle networkInfo={networkInfo.current} />
             }
-            default:{
+            default: {
                 return <div> Error, no ui state found for network play! </div>
             }
         }
     }
     return render();
-    
+
 }
 
 

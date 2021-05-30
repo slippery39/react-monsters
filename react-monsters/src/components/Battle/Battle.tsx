@@ -278,7 +278,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             let eventHandler: GameEventHandler = battleService;
 
             eventHandler.OnGameStart.on(args => {
-                
+                console.log("testing our on game start handler");
 
                 if (menuState === MenuState.ShowingTurn) {
                     return;
@@ -303,7 +303,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
 
             eventHandler.OnStateChange.on((args: OnStateChangeArgs) => {
-
+                console.log("tesintg on on state change handler",args);
                 dispatch({
                     type: 'state-change',
                     field: _.cloneDeep(args.newField)
@@ -331,6 +331,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
 
     function getAllyPlayer() {
+
+        console.log(props.allyPlayerID);
         const player = battleState.field.players.find(p => p.id === props.allyPlayerID);
         if (player === undefined) {
             throw new Error(`Could not find player in call to getAllyPlayer() - id : ${props.allyPlayerID}`);
@@ -423,8 +425,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             return;
         }
         setEventAnimationsRunning(true);
-
-        console.log('running event animations',{...battleEventsState});
 
         //default times
         const defaultDelayTime: number = 0.3;

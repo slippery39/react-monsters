@@ -40,48 +40,36 @@ export class RemoteBattleService2 implements BattleService {
     }
 
     Initialize() {
-
         let socket = this.socket;
-        socket.emit("game-ready");
-        console.log("we are being initialized");
-        socket.onAny((event, ...args) => {
-            if (event === "gamestart") {
-                let gameStartArgs = args[0] as unknown as OnGameStartArgs;
-                this.savedState.field = gameStartArgs.field;
-
-                console.log("about to start the game",args,this);
-                this.OnGameStart.emit(gameStartArgs);
-            }
-            if (event === "newturnlog") {
-                var evtLog = args[0] as unknown as OnNewTurnLogArgs;
-
-                this.OnNewTurnLog.emit(evtLog);
-                console.log(evtLog);
-                console.log("event found was the new turn log!");
-
-                //save our field and state....                 
-                this.savedState.field = evtLog.field;
-            }
-            if (event === "gameover") {
-                this.OnGameOver.emit(args[0] as unknown as OnGameOverArgs)
-                console.log("event found was game over!");
-            }
-            if (event === "update-state") {
-                let stateChangeArgs = args[0] as unknown as OnStateChangeArgs;
-                this.OnStateChange.emit(stateChangeArgs);
-                this.savedState.field = stateChangeArgs.newField;
-            }
+        //When we are rejoining a game that we disconnected from, this will be called.
+        socket.on("join-game", (args: OnStateChangeArgs) => {
+            console.log("join-game recieved");
+            this.OnStateChange.emit(args);
+            this.savedState.field = args.newField;
         });
+        socket.on("gamestart", (args: OnGameStartArgs) => {
+            this.savedState.field = args.field;
+            this.OnGameStart.emit(args);
+        });
+        socket.on("newturnlog", (args: OnNewTurnLogArgs) => {
+            this.OnNewTurnLog.emit(args);
+            this.savedState.field = args.field;
+        });
+        socket.on("gameover", (args: OnGameOverArgs) => {
+            this.OnGameOver.emit(args);
+        });       
+        socket.emit("game-ready"); //Only happens initially, perhaps we should do something different instead?
+        socket.emit("get-game-state"); //grabs the game state. maybe should be an API call instead.
     }
 
     Start() {
         //not tested yet.
-        this.socket.emit("gamestartready", []);
+        //this.socket.emit("gamestartready", []);
     }
 
     RegisterPlayer(player: Player) {
         throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
-        return player;
+        return player; //need this to get around compile errors.
     }
 
     GetPlayers() {
@@ -95,7 +83,6 @@ export class RemoteBattleService2 implements BattleService {
 
         let url = new URL(this.URL);
         url.searchParams.append("username", this.playerName);
-        console.log("URL WE ARE SENDNIG", url.toString());
         const validActions = await fetch(url.toString());
         const validActionsConverted = validActions.json() as unknown as BattleAction[];
 
@@ -159,3 +146,5 @@ export class RemoteBattleService2 implements BattleService {
     }
 
 }
+
+

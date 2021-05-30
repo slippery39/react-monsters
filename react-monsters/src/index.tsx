@@ -13,7 +13,7 @@ import Battle from 'components/Battle/Battle';
 import BasicAI from 'game/AI/AI';
 import LocalBattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
-import RemoteAIvsAIBattle from 'components/Battle/RemoteBattle/RemoteBattle';
+import RemoteAIvsAIBattle from 'components/NetworkPlay/RemoteBattle';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
 import ConnectToServer from 'components/NetworkPlay/ConnectToServerScreen';
 import NetworkPlayController from 'components/NetworkPlay/NetworkPlayController';
