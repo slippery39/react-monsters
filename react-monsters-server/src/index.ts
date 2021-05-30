@@ -66,23 +66,29 @@ function FindChallenge(username: string): ChallengeRequest | undefined {
         return chal.players.find(play => play === username) !== undefined;
     });
 }
-function RemoveChallenge(username:string){
+function RemoveChallenge(username: string) {
     _.remove(challenges, (chal => {
-        return chal.players.find((user)=>user===username)!==undefined;
+        return chal.players.find((user) => user === username) !== undefined;
     }));
 }
 
-interface GameInfo{
-    players:string[],
-    service:BattleService
- }
+interface GameInfo {
+    players: string[],
+    service: BattleService
+}
 
- let games: GameInfo[] = [];
+let games: GameInfo[] = [];
 
 function IsInGame(username: string) {
-    return games.find(game=>{
-        return game.players.find(player=>player===username)
-    })!==undefined
+    return games.find(game => {
+        return game.players.find(player => player === username)
+    }) !== undefined
+}
+
+function GetGameInfoForPlayer(username: string) {
+    return games.find(game => {
+        return game.players.find(player => player === username)
+    });
 }
 
 function CreateGame(players: string[]) {
@@ -103,17 +109,17 @@ function CreateGame(players: string[]) {
     battleService.Initialize();
 
     let gameInfo = {
-        players:[...players],
-        service:battleService 
+        players: [...players],
+        service: battleService
     }
     games.push(gameInfo);
 
     return gameInfo;
-    
+
 
 }
 
-async function FindSocketByUserName(username: string){
+async function FindSocketByUserName(username: string) {
     const sockets = await io.sockets.fetchSockets();
     const socket = sockets.find(sock => {
         let customSock = (sock as unknown as CustomSocket);
@@ -138,7 +144,7 @@ io.on("connection", (socket) => {
         _.remove(loggedInUsers, (user) => user === customSocket.username);
         RemoveChallenge(customSocket.username);
 
-        console.log("Challenge Length",challenges.length);
+        console.log("Challenge Length", challenges.length);
         io.sockets.emit("users-changed", loggedInUsers);
     });
 
@@ -146,9 +152,9 @@ io.on("connection", (socket) => {
         console.log(challengeOptions.player1);
         console.log(challengeOptions.player2);
 
-        const {player1,player2} = challengeOptions;
+        const { player1, player2 } = challengeOptions;
 
-        if (FindChallenge(player1) !== undefined || IsInGame(player1)){
+        if (FindChallenge(player1) !== undefined || IsInGame(player1)) {
             //should not be able to issue more than 1 challenge
             return;
         }
@@ -184,11 +190,24 @@ io.on("connection", (socket) => {
         player2Socket.emit("challenge-request-received", challengeOptions);
     });
 
+    socket.on("action", async (action, fn) => {
+        const gameInfo = GetGameInfoForPlayer(customSocket.username);
+        if (gameInfo === undefined) {
+            fn({success:false});
+            return;
+        }
+        console.log("action recieved", action);
+        const success = await gameInfo.service?.SetPlayerAction(action);
+        console.log("success? ", success);
+        fn({ success: success });
+    });
+
+
     socket.on("challenge-request-accept", async (options) => {
         //challenge has been accepted, remove the challenge and put them both into a game.
         const challenge = FindChallenge(customSocket.username);
 
-        if (challenge === undefined){
+        if (challenge === undefined) {
             console.error(`Could not find challenge :(`);
             return;
         }
@@ -202,58 +221,47 @@ io.on("connection", (socket) => {
         console.log("challenge accepted");
         //emit a message to both players
         RemoveChallenge(customSocket.username);
-        const gameInfo = CreateGame(challenge.players); 
+        const gameInfo = CreateGame(challenge.players);
         const battleService = gameInfo.service;
-        player1Socket?.emit("match-begin",{
-            players:gameInfo.players,
-            myId:gameInfo.service.GetPlayers()[0].id,
-            myName:gameInfo.service.GetPlayers()[0].name
+        player1Socket?.emit("match-begin", {
+            players: gameInfo.players,
+            myId: gameInfo.service.GetPlayers()[0].id,
+            myName: gameInfo.service.GetPlayers()[0].name
         })
-        player2Socket?.emit("match-begin",{
-            players:gameInfo.players,
-            myId:gameInfo.service.GetPlayers()[1].id,
-            myName:gameInfo.service.GetPlayers()[1].name
-        });
-        
-        socket.on("action", (action) => {
-            console.log("action recieved", action);
-            battleService?.SetPlayerAction(action);
+        player2Socket?.emit("match-begin", {
+            players: gameInfo.players,
+            myId: gameInfo.service.GetPlayers()[1].id,
+            myName: gameInfo.service.GetPlayers()[1].name
         });
 
+
         battleService.OnNewTurnLog.on((args: OnNewTurnLogArgs) => {
-            console.log("emitting new turn log", args.currentTurnLog.length);
+            //console.log("emitting new turn log", args.currentTurnLog.length);
             player1Socket?.emit("newturnlog", args);
-            player2Socket?.emit("newTurnLog",args)
+            player2Socket?.emit("newturnlog", args)
         });
 
         battleService.OnGameOver.on((args) => {
-            player1Socket?.emit("gameover",args);
-            player2Socket?.emit("gameover",args);
+            player1Socket?.emit("gameover", args);
+            player2Socket?.emit("gameover", args);
         });
-
-        //we can't start the game right away... we need to 
-        //wait until the remote battle services have send messages to here
-        socket.on("connected-to-game",()=>{
-        
-        });
-        battleService!.Start();
-        socket.on("testgame",()=>{
+        socket.on("game-ready", () => {
             player1Socket?.emit("gamestart", { field: battleService.GetField() });
             player2Socket?.emit("gamestart", { field: battleService.GetField() });
-
-        }); 
+            battleService!.Start();
+        });
         //This needs to fire first, then the client side socket will send the game start ready.
-       // player1Socket?.emit("gamestart", { field: battleService.GetField() });
-      //  player2Socket?.emit("gamestart", { field: battleService.GetField() });
-        
+        // player1Socket?.emit("gamestart", { field: battleService.GetField() });
+        //  player2Socket?.emit("gamestart", { field: battleService.GetField() });
+
         //todo: put into game.
     });
 
-  
 
-    socket.on("challenge-request-decline",async ()=>{
+
+    socket.on("challenge-request-decline", async () => {
         const challenge = FindChallenge(customSocket.username);
-        if (challenge === undefined){
+        if (challenge === undefined) {
             console.error(`Could not find challenge :(`);
             return;
         }
@@ -371,19 +379,26 @@ app.post('/login', async (req, res) => {
         return res.json({ status: "success", username: req.body.name });
     }
 });
- 
-app.get("/getvalidactions",async(req,res)=>{
-    const username = req.params.username;
-    const gameInfo = games.find(info=>info.players.find(name=>name==username)!==undefined);
-    const playerInGame= gameInfo?.service.GetPlayers().find(player=>player.name === username);
 
-    if (playerInGame === undefined){
-        return;
+app.get("/getvalidactions", async (req, res) => {
+
+    const username = req.query.username;
+    const gameInfo = games.find(info => info.players.find(name => name == username) !== undefined);
+    const playerInGame = gameInfo?.service.GetPlayers().find(player => player.name === username);
+
+    console.log(req.params);
+    console.log(username);
+    console.log(gameInfo?.players);
+    console.log(gameInfo?.service);
+
+    if (playerInGame === undefined) {
+        console.log("could not get valid actions for player");
+        return res.json({ error: true });
     }
 
     const validActions = await gameInfo?.service.GetValidActions(playerInGame.id);
     return res.json(validActions);
-}); 
+});
 
 
 

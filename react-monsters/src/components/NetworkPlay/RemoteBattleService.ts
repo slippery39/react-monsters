@@ -1,6 +1,6 @@
 import { BattleAction, Actions, SwitchPokemonAction } from "game/BattleActions";
 import { OnNewTurnLogArgs, OnSwitchNeededArgs, OnActionNeededArgs, OnGameOverArgs, Field } from "game/BattleGame";
-import { BattleService,OnStateChangeArgs, OnNewTurnArgs, OnGameStartArgs } from "game/BattleService";
+import { BattleService, OnStateChangeArgs, OnNewTurnArgs, OnGameStartArgs } from "game/BattleService";
 import { Status } from "game/HardStatus/HardStatus";
 import { Player } from "game/Player/PlayerBuilder";
 import { TypedEvent } from "game/TypedEvent/TypedEvent";
@@ -8,8 +8,8 @@ import { io } from "socket.io-client";
 import { NetworkInfo } from "./NetworkPlayController";
 
 export class RemoteBattleService2 implements BattleService {
-    
- 
+
+
     OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
     OnStateChange = new TypedEvent<OnStateChangeArgs>();
     //the number type is temporary
@@ -28,30 +28,28 @@ export class RemoteBattleService2 implements BattleService {
         },
     }
 
-    //How do we get the proper player id?
-    private playerId = 2; //TODO this should be dyanmic.
     private playerName = "";
     //Out of date info.
     private URL = "http://192.168.0.12:8000";
     private socket = io(this.URL);
 
-    constructor(options:NetworkInfo){
+    constructor(options: NetworkInfo) {
         this.URL = options.serverAddress;
         this.socket = options.socket!; //todo , fix this.
         this.playerName = options.currentPlayer;
-    } 
+    }
 
-    Initialize() {       
+    Initialize() {
 
         let socket = this.socket;
-        socket.emit("testgame");
+        socket.emit("game-ready");
         console.log("we are being initialized");
         socket.onAny((event, ...args) => {
             if (event === "gamestart") {
                 let gameStartArgs = args[0] as unknown as OnGameStartArgs;
                 this.savedState.field = gameStartArgs.field;
 
-                console.log("about to start the game");
+                console.log("about to start the game",args,this);
                 this.OnGameStart.emit(gameStartArgs);
             }
             if (event === "newturnlog") {
@@ -76,12 +74,12 @@ export class RemoteBattleService2 implements BattleService {
         });
     }
 
-    Start(){
+    Start() {
         //not tested yet.
-        this.socket.emit("gamestartready",[]);
+        this.socket.emit("gamestartready", []);
     }
 
-    RegisterPlayer(player:Player){
+    RegisterPlayer(player: Player) {
         throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
         return player;
     }
@@ -89,17 +87,21 @@ export class RemoteBattleService2 implements BattleService {
     GetPlayers() {
         return this.savedState.field.players;
     }
-    async GetValidPokemonToSwitchInto(playerId:number) {
+    async GetValidPokemonToSwitchInto(playerId: number) {
         //TODO - the player here should be dynamic.
         //we will need to grab this from the server.
 
         //possible bug here with Dugtrio's Arena Trap... test this out to see if the player can still switch out properly.
-        const validActions = await fetch(this.URL + "/getvalidactions?id=" + this.playerName);
+
+        let url = new URL(this.URL);
+        url.searchParams.append("username", this.playerName);
+        console.log("URL WE ARE SENDNIG", url.toString());
+        const validActions = await fetch(url.toString());
         const validActionsConverted = validActions.json() as unknown as BattleAction[];
 
         const validSwitchActions = validActionsConverted.filter(act => act.type === Actions.SwitchPokemon);
 
-        const validSwitchIds = validSwitchActions.map(act=>{
+        const validSwitchIds = validSwitchActions.map(act => {
             if (act.type === Actions.SwitchPokemon) {
                 return act.switchPokemonId;
             }
@@ -116,30 +118,42 @@ export class RemoteBattleService2 implements BattleService {
 
     //this needs to change for 
     async GetValidActions(playerId: number) {
-        const validActions = await fetch(this.URL + "/getvalidactions?id=" + this.playerName);
+
+        let url = new URL(this.URL + "/getvalidactions");
+
+
+        url.searchParams.append("username", this.playerName);
+
+        console.log("URL WE ARE SENDNIG", url.toString());
+        const validActions = await fetch(url.toString());
         const validActionsConverted = validActions.json() as unknown as BattleAction[];
         return validActionsConverted;
     }
     async SetInitialAction(action: BattleAction): Promise<boolean> {
-        const success = await new Promise<boolean>(resolve=>{
-            return this.socket.emit("action",action,
-             (data:{success:boolean})=>resolve(data.success))
-         }) 
-         return success;
+        const success = await new Promise<boolean>(resolve => {
+            return this.socket.emit("action", action,
+                (data: { success: boolean }) => resolve(data.success))
+        })
+
+
+        return success;
     }
     async SetPlayerAction(action: BattleAction): Promise<boolean> {
-        const success = await new Promise<boolean>(resolve=>{
-            return this.socket.emit("action",action,
-             (data:{success:boolean})=>resolve(data.success))
-         }) 
-         return success;
+
+        console.log("attempting an action");
+        const success = await new Promise<boolean>(resolve => {
+            return this.socket.emit("action", action,
+                (data: { success: boolean }) => resolve(data.success))
+        })
+        console.log(success);
+        return success;
     }
     async SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean): Promise<void> {
-        await new Promise<boolean>(resolve=>{
-            return this.socket.emit("action",action,
-             (data:{success:boolean})=>resolve(data.success))
-         }) 
-     }
+        await new Promise<boolean>(resolve => {
+            return this.socket.emit("action", action,
+                (data: { success: boolean }) => resolve(data.success))
+        })
+    }
     SetStatusOfPokemon(pokemonId: number, status: Status): void {
         throw new Error("Method not implemented.");
     }

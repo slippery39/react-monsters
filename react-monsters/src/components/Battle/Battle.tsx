@@ -284,6 +284,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                     return;
                 }
 
+                console.log("game is starting, here are the args",args);
                 dispatch({
                     type: 'state-change',
                     field: _.cloneDeep(args.field)
@@ -330,17 +331,16 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
 
     function getAllyPlayer() {
-        //TODO - we need to pass in the ally player id here.
         const player = battleState.field.players.find(p => p.id === props.allyPlayerID);
         if (player === undefined) {
             throw new Error(`Could not find player in call to getAllyPlayer() - id : ${props.allyPlayerID}`);
         }
         return player;
     }
-    function getEnemyPlayer() {
-        //TODO - we need to pass in the ally player id here.
+    function getEnemyPlayer() {       
         const player = battleState.field.players.find(p => p.id !== props.allyPlayerID);
         if (player === undefined) {
+            console.error("enemy player call",battleState.field.players);
             throw new Error(`Could not find player in call to getEnemyPlayer()`);
         }
         return player;
@@ -694,6 +694,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         });
 
         if (actionSuccessful) {
+            console.log("action was successful!",menuState);
             setMenuState((prevState) => {
                 //added this in so we don't accidently overwrite a potential showing turn state
                 if (prevState !== MenuState.ShowingTurn) {
@@ -923,7 +924,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
 
     return (
-        (menuState === MenuState.Loading ? <div>Loading...</div> : <div className="App">
+        (menuState === MenuState.Loading && battleState.field.players.length<2 ? <div>Loading...</div> : <div className="App">
             {props.showDebug && <Debug field={battleState.field} battleService={battleService} />}
             <div className="battle-window">
                 <div className="top-screen">
