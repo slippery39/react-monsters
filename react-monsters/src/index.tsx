@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './components/app/App';
 import * as serviceWorker from './serviceWorker';
-import { Route, Router,Switch} from 'react-router-dom';
+import { Route, Router, Switch } from 'react-router-dom';
 import { createBrowserHistory } from 'history';
 import BattleSetupController from 'components/Battle/BattleSetup/BattleSetupController';
 import BattleSimulatorMenu from 'components/BattleSimulator/BattleSimulator';
@@ -18,44 +18,44 @@ import NetworkPlayController from 'components/NetworkPlay/NetworkPlayController'
 
 const history = createBrowserHistory();
 
-function initializeTestBattle(){
+function initializeTestBattle() {
 
-  const zapdos= PokemonBuilder()
-  .GetPremadePokemon("Zapdos")
-  .WithTechniques([
-    "Giga Drain",  ]);
+  const zapdos = PokemonBuilder()
+    .GetPremadePokemon("Zapdos")
+    .WithTechniques([
+      "Giga Drain",]);
 
-  
+
   const zapdos1 = zapdos.Build();
 
 
   const ppPokemon = PokemonBuilder()
-  .GetRandomPremade()
-  .Build();
+    .GetRandomPremade()
+    .Build();
 
-  ppPokemon.techniques.forEach(tech=>tech.currentPP=1);
-  zapdos1.techniques.forEach(tech=>tech.currentPP=1);
-  
+  ppPokemon.techniques.forEach(tech => tech.currentPP = 1);
+  zapdos1.techniques.forEach(tech => tech.currentPP = 1);
+
 
 
   //const dugtrio2 = dugtrioTest.Build();
 
 
   const player1 = new PlayerBuilder()
-  .WithName("Shayne")
-  .WithCustomPokemon(ppPokemon)
-  .Build();
+    .WithName("Shayne")
+    .WithCustomPokemon(ppPokemon)
+    .Build();
 
-const player2 = new PlayerBuilder()
-  .WithName("Bob")
-   .WithCustomPokemon(zapdos1)
-  .Build();
+  const player2 = new PlayerBuilder()
+    .WithName("Bob")
+    .WithCustomPokemon(zapdos1)
+    .Build();
 
-  let battleService = new LocalBattleService(true);
+  const battleService = new LocalBattleService(true);
 
   battleService.RegisterPlayer(player1);
   battleService.RegisterPlayer(player2);
-  
+
   new BasicAI(player2, battleService);
   battleService.Initialize();
 
@@ -63,44 +63,34 @@ const player2 = new PlayerBuilder()
 }
 
 
-const devTestBattle = ()=>{
+const devTestBattle = () => {
 
   const testBattle = initializeTestBattle();
 
-  return (<Battle allyPlayerID={1} onLoad={()=>testBattle.Start()} showDebug battle={testBattle} onEnd={()=>history.push("/")}/>)
+  return (<Battle allyPlayerID={1} onLoad={() => testBattle.Start()} showDebug battle={testBattle} onEnd={() => history.push("/")} />)
 }
-
-interface RemoteBattleParams{
-  id:string | undefined
-}
-
-interface Props{
-
-}
-
-
 
 const routing = (
   <Router history={history}>
-   <Layout>
-     <Header className="header">
-       <Button type="link" onClick={()=>history.push("/")}>Main Menu</Button>
-     </Header>
-     <Content className="page">
-     <Switch>
-        <Route exact path="/" component={App}/>
-        <Route exact path="/battle" component={BattleSetupController}/>
-        <Route exact path="/battleSimulator" component={BattleSimulatorMenu}/>
-        <Route exact path="/devtestbattle" render={()=>devTestBattle()}/>
-        <Route exact path="/networked-play" component={NetworkPlayController}/>
-      </Switch> 
-     </Content>
-   </Layout>
+    <Layout>
+      <Header className="header">
+        <Button type="link" onClick={() => history.push("/")}>Main Menu</Button>
+      </Header>
+      <Content className="page">
+        <Switch>
+          <Route exact path="/" component={App} />
+          <Route exact path="/battle" component={BattleSetupController} />
+          <Route exact path="/battleSimulator" component={BattleSimulatorMenu} />
+          <Route exact path="/devtestbattle" render={() => devTestBattle()} />
+          <Route exact path="/networked-play" component={NetworkPlayController} />
+        </Switch>
+      </Content>
+    </Layout>
   </Router>
 )
-
+ 
 ReactDOM.render(
-     routing,
+  routing,
   document.getElementById('root')
 );
 

@@ -215,9 +215,9 @@ class SereneGraceAbility extends AbstractAbility {
         //Should have no effect for status type moves.
         if (!newTechnique.effects || newTechnique.damageType === DamageType.Status) {
             return newTechnique;
-        }
+        };
 
-        newTechnique.effects?.forEach(effect => {
+        newTechnique.effects.forEach(effect => {
             if (!effect.chance) {
                 effect.chance = 100;
             }

@@ -15,7 +15,7 @@ interface AI {
 
 interface AIOptions{
     chooseDelayMS?:number
-}
+} 
 
 class BasicAI implements AI {
 
@@ -51,7 +51,7 @@ class BasicAI implements AI {
         return player;
     }
 
-    async ChooseAction() { //this is run simulation
+    async ChooseAction():Promise<void> { //this is run simulation
         const aiPlayer = this.GetPlayerFromTurn();
         const minMaxAlgo = new MiniMax();
         const calculatedPointsForUs = await minMaxAlgo.RunSimulation(aiPlayer,await this._service.GetField());
@@ -59,7 +59,7 @@ class BasicAI implements AI {
         await this._service.SetPlayerAction(chosenAction);
     }
 
-    GetOtherPlayer(players: Array<Player>) {
+    GetOtherPlayer(players: Array<Player>):Player {
         const otherPlayer = players.find(p => p.id !== this._playerID);
         if (otherPlayer === undefined) {
             throw new Error(`Could not find other player`);
@@ -76,7 +76,7 @@ class BasicAI implements AI {
         this._service.SetSwitchFaintedPokemonAction(switchPokemonAction, false);
     }
 
-    private async SwitchPokemonSmart(validPokemon: Array<number>) {
+    private async SwitchPokemonSmart() {
         const miniMax = new MiniMax();
         const switches = await miniMax.GetBestPokemonSwitch(this.GetPlayerFromTurn(), this._service.GetBattle());
 
@@ -87,7 +87,7 @@ class BasicAI implements AI {
     }
 
 
-    async ChoosePokemonToSwitchInto(args: OnSwitchNeededArgs) {
+    async ChoosePokemonToSwitchInto(args: OnSwitchNeededArgs) : Promise<void> {
         //Allowing the AI player to switch his fainted pokemon to something else.
 
         const AIShouldSwitch = args.playerIDsNeeded.includes(this._playerID);
@@ -106,11 +106,8 @@ class BasicAI implements AI {
                 return;
             }
             else {
-                await this.SwitchPokemonSmart(validPokemon);
+                await this.SwitchPokemonSmart();
             }
-        }
-        else {
-
         }
     }
 

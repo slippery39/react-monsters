@@ -1,7 +1,5 @@
-import { Button, Card, message } from "antd"
-
-import React, { useEffect, useState } from "react"
-import { NetworkInfo } from "./NetworkPlayController";
+import { Button, Card } from "antd";
+import React from "react"
 import NetworkPlayerInfo from "./NetworkPlayer";
 
 interface Props {

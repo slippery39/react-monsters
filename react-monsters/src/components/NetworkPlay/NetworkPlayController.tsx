@@ -36,9 +36,10 @@ const NetworkPlayController = (props: Props) => {
         networkInfo.current.currentPlayer = username;
         const socket = networkInfo.current.socket;
         if (socket === undefined) {
-            console.error("Could not find socket")
+            console.error("Could not find socket");
+            return;
         }
-        socket?.emit("login", username);
+        socket.emit("login", username);
         if (userInfo.isInGame) {
             networkInfo.current.currentInGameId = userInfo.inGameId;
             setUiState("in-game");

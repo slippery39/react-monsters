@@ -150,6 +150,7 @@ export class RemoteBattleService implements BattleService {
 
     RegisterPlayer(player:Player){
         throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
+        // eslint-disable-next-line 
         return player;
     }
 

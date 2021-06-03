@@ -52,9 +52,13 @@ const PlayerBattleController = () => {
     const [battleService, setBattleService] = useState<LocalBattleService | undefined>(undefined);
 
     const handleSetupComplete = (settings:BattleSettings)=>{
+
+        if (battleService === undefined){
+            throw new Error(`battle service is undefined for some reason in our battle setup controller`);
+        }
         setBattleService(CreatePlayerVsPlayerBattle(settings)); 
         setBattleState("in-battle");
-        battleService?.Start();
+        battleService.Start();
     }
     const handleBattleEnded = ()=>{
         setBattleState("setup");

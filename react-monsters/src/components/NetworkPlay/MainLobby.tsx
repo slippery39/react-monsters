@@ -39,13 +39,17 @@ const MainLobby = (props: Props) => {
         }
             )();
 
-            props.networkInfo.socket!.on("users-changed", handleUsersChanged);
-
-            return () => {
-                props.networkInfo.socket!.off("users-changed", handleUsersChanged);
+            if (props.networkInfo.socket === undefined){
+                throw new Error(`socket was undefined`);
             }
 
-        }, []);
+            props.networkInfo.socket.on("users-changed", handleUsersChanged);
+
+            return () => {
+                props.networkInfo.socket?.off("users-changed", handleUsersChanged);
+            }
+
+        }, [props.networkInfo.serverAddress,props.networkInfo.socket]);
 
         useEffect(() => {
 
@@ -66,13 +70,13 @@ const MainLobby = (props: Props) => {
                 console.log("trying to handle accept");
                 props.networkInfo.socket!.emit("challenge-request-accept");
                 console.log("player request recieved");
-                challengeRecievedModal?.destroy();
+                challengeRecievedModal.destroy();
             }
 
             const handleDecline = ()=>{
                 props.networkInfo.socket!.emit("challenge-request-decline");
                 console.log("player request declined");
-                challengeRecievedModal?.destroy();
+                challengeRecievedModal.destroy();
             }
 
             props.networkInfo.socket!.on("challenge-request-received", (options: { player1: string, player2: string }) => {
@@ -104,16 +108,16 @@ const MainLobby = (props: Props) => {
             });
 
             props.networkInfo.socket!.on("challenge-ready",()=>{
-                waitingForResponseModal?.destroy();
+                waitingForResponseModal.destroy();
                 message.info(`Challenge has been accepted`);  
                                       
             });
 
             props.networkInfo.socket!.on("challenge-request-declined",()=>{
-                waitingForResponseModal?.destroy();
+                waitingForResponseModal.destroy();
                 message.warn("Challenge has been declined");
             });
-    
+            //eslint-disable-next-line
         }, []);
 
         const createPlayerInfo = (player: string): NetworkPlayerInfo => {

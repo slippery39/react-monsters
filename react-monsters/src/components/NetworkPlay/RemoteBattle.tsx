@@ -13,6 +13,7 @@ interface Props {
 const RemoteBattle: React.FunctionComponent<Props> = (props) => {
     let remoteBattleService = useRef<BattleService>();
 
+    // eslint-disable-next-line
     const [forceUpdate,setForceUpdate] = useState<boolean>(false);
 
     useEffect(() => {
@@ -20,7 +21,7 @@ const RemoteBattle: React.FunctionComponent<Props> = (props) => {
             setForceUpdate(prev=>!prev);
             
             console.log(remoteBattleService.current);
-    }, [])
+    }, [props.networkInfo])
 
     const render = () => {
 

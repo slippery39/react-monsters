@@ -1,5 +1,6 @@
 @import '~antd/dist/antd.css';
 
+/*
 @font-face {
   font-family: 'PokemonFont';
   src: url('/fonts/DiamondPearl/PowerClear.woff2') format('woff2'),
@@ -8,6 +9,7 @@
   font-style: normal;
   font-display: swap;
 }
+*/
 
 .text-outline{
   color: #fff;

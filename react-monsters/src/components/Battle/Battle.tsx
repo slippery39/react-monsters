@@ -29,6 +29,8 @@ import "react-rain-animation/lib/style.css";
 import { WeatherType } from 'game/Weather/Weather';
 import { Field, OnNewTurnLogArgs, TurnState } from 'game/BattleGame';
 import PokemonInfoMenu from './PokemonInfoMenu/PokemonInfoMenu';
+import { Technique } from 'game/Techniques/Technique';
+import { Item } from 'game/Items/Item';
 
 
 
@@ -150,7 +152,7 @@ interface Props {
     onEnd: () => void;
     battle: BattleService,
     allyPlayerID: number,
-    showDebug?: boolean,
+    showDebug?: boolean, 
     hideMenu?: boolean
     onLoad?: () => void;
 }
@@ -160,7 +162,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     const battleService = props.battle;
 
     const reducer = function (state: State, action: UIAction): State {
-        var newState = _.cloneDeep(state);
+        const newState = _.cloneDeep(state);
         switch (action.type) {
             //for syncing the state with the server.
             case 'state-change': {
@@ -848,7 +850,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onMenuAttackClick={async () => {
                 //this might cause issues when we set it up for multiplayer.
                 //maybe this should come with the state?
-                let validActions = await battleService.GetValidActions(getAllyPlayer().id);
+                const validActions = await battleService.GetValidActions(getAllyPlayer().id);
 
 
                 if (validActions.filter(act => act.type === Actions.UseTechnique).length === 0) {
@@ -869,11 +871,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             onMenuPokemonInfoClick={() => { setMenuState(MenuState.PokemonInfoMenu) }} />
 
         const attackMenu = <AttackMenuNew onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onAttackClick={async (tech: any) => { await SetBattleAction(tech.id); }}
+            onAttackClick={async (tech:Technique) => { await SetBattleAction(tech.id); }}
             techniques={getAllyPokemon().techniques} />
 
         const itemMenu = <ItemMenu onCancelClick={() => setMenuState(MenuState.MainMenu)}
-            onItemClick={(item: any) => { SetUseItemAction(item.id) }}
+            onItemClick={(item: Item) => { SetUseItemAction(item.id) }}
             items={getAllyPlayer().items} />
 
         const switchMenu = <PokemonMiniInfoList

@@ -9,10 +9,10 @@ export function GetBaseDamage(attackingPokemon: Pokemon, defendingPokemon: Pokem
     const power = techUsed.power;
 
     //Crit will ignore stat boosts when determining base damage.
-   if (goingToCrit){
+   if (goingToCrit){ 
        attackingPokemon = {...attackingPokemon};
        defendingPokemon = {...defendingPokemon};
-
+ 
        if (attackingPokemon.statBoosts[Stat.Attack] < 0){
            attackingPokemon.statBoosts= {...attackingPokemon.statBoosts,...{[Stat.Attack]:0}};
        }
@@ -22,7 +22,7 @@ export function GetBaseDamage(attackingPokemon: Pokemon, defendingPokemon: Pokem
 
        if (attackingPokemon.statBoosts[Stat.SpecialAttack] < 0){
         attackingPokemon.statBoosts= {...attackingPokemon.statBoosts,...{[Stat.SpecialAttack]:0}};
-       }
+       } 
         if (defendingPokemon.statBoosts[Stat.SpecialDefense]> 0){
          defendingPokemon.statBoosts = {...defendingPokemon.statBoosts,...{[Stat.SpecialDefense]:0}}
        }
@@ -111,7 +111,7 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
 
 
         //crit chances by stage
-        let critChances = [1/24,1/8,1/2,1];
+        const critChances = [1/24,1/8,1/2,1];
         const critChanceStage = techUsed.critChanceStage ? techUsed.critChanceStage : 0;    
         const chance = critChances[critChanceStage];
 

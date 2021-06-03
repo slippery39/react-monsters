@@ -5,9 +5,6 @@ All the different "events" that can happen as a result of a turn
 import { Field } from "./BattleGame";
 import { Status } from "./HardStatus/HardStatus";
 
-
-export type BattleEvent = (SwitchOutEvent | SwitchInEvent | DamageEvent | HealEvent | FaintedPokemonEvent | UseMoveEvent | UseItemEvent | StatusChangeEvent | CannotAttackEvent | GenericMessageEvent | SubstituteBrokenEvent |SubstituteCreatedEvent)
-
 export enum BattleEventType {
     Damage = 'damage',
     Heal = 'heal',
@@ -109,3 +106,5 @@ export interface SubstituteCreatedEvent extends BaseBattleEvent{
     type:BattleEventType.SubstituteCreated,
     targetPokemonId:number
 }
+
+export type BattleEvent = (SwitchOutEvent | SwitchInEvent | DamageEvent | HealEvent | FaintedPokemonEvent | UseMoveEvent | UseItemEvent | StatusChangeEvent | CannotAttackEvent | GenericMessageEvent | SubstituteBrokenEvent |SubstituteCreatedEvent)
