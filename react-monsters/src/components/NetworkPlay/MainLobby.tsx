@@ -1,6 +1,4 @@
 import { Card, message, Modal } from "antd"
-import { modalGlobalConfig } from "antd/lib/modal/confirm";
-
 import React, { useEffect, useState } from "react"
 import { NetworkInfo } from "./NetworkPlayController";
 import NetworkPlayerInfo, { NetworkPlayerStatus } from "./NetworkPlayer";

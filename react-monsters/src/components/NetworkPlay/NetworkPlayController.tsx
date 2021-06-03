@@ -1,5 +1,5 @@
 import RemoteBattle from "components/NetworkPlay/RemoteBattle";
-import React, { useEffect, useRef, useState } from "react"
+import React, { useRef, useState } from "react"
 import { Socket } from "socket.io-client";
 import ConnectToServer from "./ConnectToServerScreen";
 import MainLobby from "./MainLobby";
@@ -35,12 +35,10 @@ const NetworkPlayController = (props: Props) => {
     const handleLogIn = (username: string, userInfo: LoggedInUserInfo) => {
         networkInfo.current.currentPlayer = username;
         const socket = networkInfo.current.socket;
-        if (socket == undefined) {
-            console.error("Could not find")
+        if (socket === undefined) {
+            console.error("Could not find socket")
         }
         socket?.emit("login", username);
-        console.log(userInfo);
-        console.log(networkInfo);
         if (userInfo.isInGame) {
             networkInfo.current.currentInGameId = userInfo.inGameId;
             setUiState("in-game");

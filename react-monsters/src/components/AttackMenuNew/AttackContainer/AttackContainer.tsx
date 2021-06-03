@@ -1,7 +1,7 @@
 import React from 'react';
 import ElementIcon from "components/ElementIcon/ElementIcon";
 import "./AttackContainer.css";
-import {DamageType, Technique, TechniqueBuilder } from 'game/Techniques/Technique';
+import {DamageType, Technique } from 'game/Techniques/Technique';
 
 
 interface Props {

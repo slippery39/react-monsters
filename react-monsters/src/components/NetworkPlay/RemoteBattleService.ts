@@ -19,7 +19,7 @@ export class RemoteBattleService2 implements BattleService {
     OnGameOver = new TypedEvent<OnGameOverArgs>();
     OnGameStart = new TypedEvent<OnGameStartArgs>();
 
-
+ 
     //Temp Saved State
     private savedState: { field: Field } = {
         field: {
@@ -67,9 +67,9 @@ export class RemoteBattleService2 implements BattleService {
         //this.socket.emit("gamestartready", []);
     }
 
+    //Don't need to use this yet, players will be registered on the backend for now.
     RegisterPlayer(player: Player) {
-        throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
-        return player; //need this to get around compile errors.
+        return player;        
     }
 
     GetPlayers() {

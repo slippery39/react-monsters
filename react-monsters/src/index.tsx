@@ -13,9 +13,7 @@ import Battle from 'components/Battle/Battle';
 import BasicAI from 'game/AI/AI';
 import LocalBattleService from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
-import RemoteAIvsAIBattle from 'components/NetworkPlay/RemoteBattle';
 import { PokemonBuilder } from 'game/Pokemon/Pokemon';
-import ConnectToServer from 'components/NetworkPlay/ConnectToServerScreen';
 import NetworkPlayController from 'components/NetworkPlay/NetworkPlayController';
 
 const history = createBrowserHistory();
@@ -95,14 +93,14 @@ const routing = (
         <Route exact path="/battleSimulator" component={BattleSimulatorMenu}/>
         <Route exact path="/devtestbattle" render={()=>devTestBattle()}/>
         <Route exact path="/networked-play" component={NetworkPlayController}/>
-      </Switch>
+      </Switch> 
      </Content>
    </Layout>
   </Router>
 )
 
 ReactDOM.render(
-    routing,
+     routing,
   document.getElementById('root')
 );
 
