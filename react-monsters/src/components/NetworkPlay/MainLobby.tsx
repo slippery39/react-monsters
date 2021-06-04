@@ -1,7 +1,7 @@
 import { Card, message, Modal } from "antd"
 import React, { useEffect, useState } from "react"
 import { NetworkInfo } from "./NetworkPlayController";
-import NetworkPlayerInfo, { NetworkPlayerStatus } from "./NetworkPlayer";
+import NetworkPlayerInfo from "./NetworkPlayer";
 import PlayerProfile from "./PlayerProfile";
 
 interface Props {
@@ -9,12 +9,12 @@ interface Props {
     onGameStart:(info:any)=>void;
 }
 
-
 const MainLobby = (props: Props) => {
-    const [onlinePlayers, setOnlinePlayers] = useState<string[]>([]);
+    const [onlinePlayers, setOnlinePlayers] = useState<NetworkPlayerInfo[]>([]);
 
 
-    const handleUsersChanged = (players: string[]) => {
+    const handleUsersChanged = (players: NetworkPlayerInfo[]) => {
+        //TODO - 
         setOnlinePlayers(players);
     }
 
@@ -70,13 +70,13 @@ const MainLobby = (props: Props) => {
                 console.log("trying to handle accept");
                 props.networkInfo.socket!.emit("challenge-request-accept");
                 console.log("player request recieved");
-                challengeRecievedModal.destroy();
+                challengeRecievedModal?.destroy();
             }
 
             const handleDecline = ()=>{
                 props.networkInfo.socket!.emit("challenge-request-decline");
                 console.log("player request declined");
-                challengeRecievedModal.destroy();
+                challengeRecievedModal?.destroy();
             }
 
             props.networkInfo.socket!.on("challenge-request-received", (options: { player1: string, player2: string }) => {
@@ -108,27 +108,28 @@ const MainLobby = (props: Props) => {
             });
 
             props.networkInfo.socket!.on("challenge-ready",()=>{
-                waitingForResponseModal.destroy();
+                waitingForResponseModal?.destroy();
                 message.info(`Challenge has been accepted`);  
                                       
             });
 
             props.networkInfo.socket!.on("challenge-request-declined",()=>{
-                waitingForResponseModal.destroy();
+                waitingForResponseModal?.destroy();
                 message.warn("Challenge has been declined");
             });
             //eslint-disable-next-line
         }, []);
 
-        const createPlayerInfo = (player: string): NetworkPlayerInfo => {
+        const createPlayerInfo = (player: NetworkPlayerInfo): NetworkPlayerInfo => {
             return {
-                name: player,
-                onlineStatus: onlinePlayers.includes(player) ? NetworkPlayerStatus.Online : NetworkPlayerStatus.Offline
+                name: player.name,
+                onlineStatus: player.onlineStatus
             }
         }
 
+        console.log(onlinePlayers);
         const otherPlayerList = onlinePlayers
-        .filter(player => player !== props.networkInfo.currentPlayer)
+        .filter(player => player.name !== props.networkInfo.currentPlayer)
         .map(player => <PlayerProfile onChallengeClick={onChallengeClick} player={createPlayerInfo(player)}></PlayerProfile>)
 
 

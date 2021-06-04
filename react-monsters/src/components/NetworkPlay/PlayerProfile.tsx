@@ -1,6 +1,6 @@
 import { Button, Card } from "antd";
 import React from "react"
-import NetworkPlayerInfo from "./NetworkPlayer";
+import NetworkPlayerInfo, { NetworkPlayerStatus } from "./NetworkPlayer";
 
 interface Props {
     player:NetworkPlayerInfo,
@@ -12,8 +12,8 @@ const PlayerProfile = (props: Props) => {
     return (<Card>
         <div>{props.player.name}</div>
         <div>{props.player.onlineStatus}</div>
-        <div><Button onClick={()=>props.onChallengeClick(props.player.name)}>Challenge!</Button></div>
-    </Card>)
+        {props.player.onlineStatus!== NetworkPlayerStatus.InGame &&<div><Button onClick={()=>props.onChallengeClick(props.player.name)}>Challenge!</Button></div>
+    }    </Card>)
 }
 
 

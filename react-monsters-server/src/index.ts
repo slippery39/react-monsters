@@ -7,12 +7,8 @@ import { OnNewTurnLogArgs } from '../../react-monsters/src/game/BattleGame';
 import http from "http";
 import { Server, Socket } from "socket.io";
 import bodyParser from 'body-parser';
+import { userInfo } from 'node:os';
 
-
-export interface MatchResult {
-    winningPokemon: string[],
-    losingPokemon: string[],
-}
 
 const app = express();
 const server = http.createServer(app);
@@ -35,11 +31,10 @@ app.get("/test", (req, res) => {
 
 
 interface CustomSocket extends Socket {
-    decoded_token: any //don't know how to remove compiler errors to check this.
     username: string
 }
 
-let loggedInUsers: string[] = [];
+
 
 //We need to store who is currently challenging who
 interface ChallengeRequest {
@@ -63,6 +58,13 @@ interface GameInfo {
     players: string[],
     service: BattleService
 }
+
+interface UserInfo{
+    name:string,
+    onlineStatus:"online" | "in-game"
+}
+
+let loggedInUsers: UserInfo[] = [];
 
 let games: GameInfo[] = [];
 
@@ -124,7 +126,7 @@ io.on("connection", (socket) => {
 
     socket.on("disconnecting", () => {
         console.log(customSocket.username + " has disconnected");
-        _.remove(loggedInUsers, (user) => user === customSocket.username);
+        _.remove(loggedInUsers, (user) => user.name === customSocket.username);
         RemoveChallenge(customSocket.username);
 
         console.log("Challenge Length", challenges.length);
@@ -140,11 +142,6 @@ io.on("connection", (socket) => {
         if (FindChallenge(player1) !== undefined || IsInGame(player1)) {
             //should not be able to issue more than 1 challenge
             return;
-        }
-        //Get socket id of player2.
-        const sockets = await io.sockets.fetchSockets();
-        const challengeRequest: ChallengeRequest = {
-            players: []
         }
         const player1Socket = await FindSocketByUserName(player1);
         if (player1Socket === undefined) {
@@ -233,6 +230,16 @@ io.on("connection", (socket) => {
             myName: gameInfo.service.GetPlayers()[1].name
         });
 
+        let userInfo1 =  loggedInUsers.find(p=>p.name === challenge.players[0]);
+        if (userInfo1!==undefined){
+            userInfo1.onlineStatus = 'in-game';
+        }
+
+        let userInfo2 =  loggedInUsers.find(p=>p.name === challenge.players[1]);
+        if (userInfo2!==undefined){
+            userInfo2.onlineStatus = 'in-game';
+        }
+
 
         battleService.OnNewTurnLog.on(async (args: OnNewTurnLogArgs) => {
             //We need to find these again, since if the user disconnects and reconnects,
@@ -269,22 +276,28 @@ io.on("connection", (socket) => {
     });
 })
 
+
+//TODO - change our front end code.
 app.get("/getOnlineUsers", async (req, res) => {
+    console.log(loggedInUsers);
     return res.json({ users: loggedInUsers })
 });
 
 app.post('/login', async (req, res) => {
-    var username = req.body.name;
+    var username = req.body.name as unknown as string;
     //fail
-    if (loggedInUsers.find(user => user === username) !== undefined) {
+    if (loggedInUsers.find(user => user.name === username) !== undefined) {
         return res.status(401).send({
             message: 'Connection Failed - Username already connected!'
         });
     }
     else { //success
-        loggedInUsers.push(username)
-        io.sockets.emit("users-changed", loggedInUsers);
 
+        let user: UserInfo = {
+            name:username,
+            onlineStatus:"online"
+        }
+ 
         //TODO : grab the game information as well        
         const game = GetGameInfoForPlayer(username);
         let userInfo :{
@@ -311,8 +324,12 @@ app.post('/login', async (req, res) => {
             }
             else{
                 userInfo.inGameId = playerInGame.id;
+                user.onlineStatus = "in-game"
             }
         }
+        loggedInUsers.push(user);
+        io.sockets.emit("users-changed",loggedInUsers);
+        
         return res.json({ status: "success", username: req.body.name, userInfo:userInfo });
     }
 });
