@@ -1023,8 +1023,24 @@ const premades: Array<PremadePokemon> = [
             attack:32,
             spDefense:224
         }
+    },
+    {
+        species:"Slowbro",
+        heldItem:"Rocky Helmet",
+        ability:"Regenerator",
+        nature:NatureType.Bold,
+        techniques:[
+            "Scald",
+            "Slack Off",
+            "Toxic",
+            "Ice Beam"
+        ],
+        evs:{
+            hp:252,
+            defense:176,
+            spDefense:80
+        }
     }
-
 ]
 
 

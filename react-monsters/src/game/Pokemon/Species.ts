@@ -738,6 +738,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:45
             },
             weight:316
+        },
+        {
+            name:"Slowbro",
+            elementalTypes:[ElementType.Water,ElementType.Psychic],
+            baseStats:{
+                hp:95,
+                attack:75,
+                defense:110,
+                spAttack:100,
+                spDefense:80,
+                speed:30
+            },
+            weight:78.5
         }
     ];
 

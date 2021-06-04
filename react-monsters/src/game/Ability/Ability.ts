@@ -15,8 +15,6 @@ import _, { shuffle } from "lodash";
 
 
 
-
-
 abstract class AbstractAbility extends BattleBehaviour {
     name: string = "";
     description: string = "";
@@ -640,9 +638,19 @@ class TintedLensAbility extends AbstractAbility{
             return damage*2; //technically doubles the power of non effective moves... if you search it up.
         }
         return damage;
-    }
-    
+    } 
+}
 
+class RegeneratorAbility extends AbstractAbility{
+    name="Regenerator"
+    description = "Restores a little HP when withdrawn from battle.";
+
+    OnSwitchedOut(game: IGame, pokemon: Pokemon) {
+        pokemon.currentStats.hp+= Math.ceil(pokemon.originalStats.hp/3);
+        if (pokemon.currentStats.hp>pokemon.originalStats.hp){
+            pokemon.currentStats.hp = pokemon.originalStats.hp;
+        }
+    }
 }
 
 class NoAbility extends AbstractAbility {
@@ -760,6 +768,9 @@ function GetAbility(name: String) {
         }
         case 'tinted lens':{
             return new TintedLensAbility();
+        }
+        case 'regenerator':{
+            return new RegeneratorAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

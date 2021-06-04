@@ -57,6 +57,22 @@ function CreateAllHiddenPowers() {
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
         {
+            name: "Slack Off",
+            description: "The user slacks off, restoring its own HP by up to half of its max HP.",
+            pp: 10,
+            power: 0,
+            damageType: DamageType.Status,
+            elementalType: ElementType.Normal,
+            accuracy: 100,
+            effects: [{
+                type: EffectType.HealthRestore,
+                target: TargetType.Self,
+                restoreType: HealthRestoreType.PercentMaxHealth,
+                amount: 50,
+                chance: 100
+            }]
+        },
+        {
             name:"Bug Buzz",
             description:"The user generates a damaging sound wave by vibration. This may also lower the target's Sp. Def stat.",
             damageType:DamageType.Special,
