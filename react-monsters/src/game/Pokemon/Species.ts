@@ -751,6 +751,19 @@ export function GetSpecies(name: string): ISpecies {
                 speed:30
             },
             weight:78.5
+        },
+        {
+            name:"Tentacruel",
+            elementalTypes:[ElementType.Water,ElementType.Poison],
+            baseStats:{
+                hp:80,
+                attack:70,
+                defense:65,
+                spAttack:80,
+                spDefense:120,
+                speed:100
+            },
+            weight:55.0
         }
     ];
 

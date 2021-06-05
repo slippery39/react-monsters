@@ -922,7 +922,7 @@ class BattleGame implements IGame {
             }
             const effectSuccess = this.Roll(chance);
             if (effectSuccess) {
-                DoEffect(this, targetPokemon, effect, { sourcePokemon: pokemon, sourceTechnique: technique, sourceDamage: techniqueDamage });
+                DoEffect(this, targetPokemon, effect, { sourcePokemon: pokemon, sourceTechnique: technique, sourceDamage: techniqueDamage,defendingPokemon:pokemon });
             }
         });
     }

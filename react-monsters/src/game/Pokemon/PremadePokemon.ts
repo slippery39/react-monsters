@@ -1040,6 +1040,23 @@ const premades: Array<PremadePokemon> = [
             defense:176,
             spDefense:80
         }
+    },
+    {
+        species:"Tentacruel",
+        heldItem:"Black Sludge",
+        ability:"Liquid Ooze",
+        nature:NatureType.Timid,
+        techniques:[
+            "Rapid Spin",
+            "Scald",
+            "Toxic Spikes",
+            "Acid Spray"
+        ],
+        evs:{
+            hp:240,
+            defense:244,
+            speed:24
+        }
     }
 ]
 

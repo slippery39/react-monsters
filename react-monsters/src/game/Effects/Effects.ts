@@ -150,7 +150,16 @@ export type BattleEffect = { target?: TargetType, chance?: number } & (InflictSt
 
 
 
-export function InflictStatus(game: IGame, pokemon: Pokemon, status: Status, source: Pokemon) : void{
+
+interface ApplyInflictStatusOptions{
+    game:IGame,
+    targetPokemon:Pokemon,
+    status:Status,
+    sourcePokemon:Pokemon,
+    message?: string
+}
+
+export function ApplyInflictStatus(game: IGame, pokemon: Pokemon, status: Status, source: Pokemon) : void{
     const targetPokemon = pokemon;
     //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
     if (targetPokemon.status !== Status.None || targetPokemon.currentStats.hp === 0) {
@@ -300,10 +309,21 @@ function ApplyStatusRestoreEffect(game: IGame, pokemon: Pokemon, effect: StatusR
     }
 }
 
-function ApplyDrainEffect(turn: IGame, pokemonToHeal: Pokemon, effect: DrainEffect, damage: number) {
+
+
+
+
+function ApplyDrainEffect(game: IGame, pokemonToHeal: Pokemon,effect: DrainEffect, damage: number,damagedPokemon:Pokemon) {
     const drainAmount = damage * (effect.amount * 0.01);
-    turn.ApplyHealing(pokemonToHeal, drainAmount);
-    turn.AddMessage(`${pokemonToHeal.name} drained some energy.`)
+
+    if (damagedPokemon.ability.toLowerCase() === "liquid ooze"){
+        game.ApplyIndirectDamage(pokemonToHeal,drainAmount);
+        game.AddMessage(`${pokemonToHeal.name} has taken damage due to ${damagedPokemon.name}'s liquid ooze`)
+    }
+    else{
+        game.ApplyHealing(pokemonToHeal, drainAmount);
+        game.AddMessage(`${pokemonToHeal.name} drained some energy.`)
+    }
 }
 
 function ApplyAromatherapyEffect(game: IGame, sourcePokemon: Pokemon) {
@@ -450,7 +470,8 @@ export interface EffectSource {
     sourcePokemon?: Pokemon,
     sourceTechnique?: Technique,
     sourceDamage?: number,
-    sourceItem?: Item
+    sourceItem?: Item,
+    defendingPokemon?:Pokemon //the pokemnon who is not the source of this ability.
 }
 
 
@@ -466,7 +487,7 @@ export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, so
             if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - inflict-status");
             }
-            InflictStatus(turn, pokemon, effect.status, source.sourcePokemon);
+            ApplyInflictStatus(turn, pokemon, effect.status, source.sourcePokemon);
             break;
         }
         case EffectType.StatBoost: {
@@ -502,7 +523,11 @@ export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, so
             if (source.sourceDamage === undefined) {
                 throw new Error("Need a source damage to DoEffect - drain");
             }
-            ApplyDrainEffect(turn, pokemon, effect, source.sourceDamage);
+
+            if (source.defendingPokemon === undefined){
+                throw new Error(`Defending Pokemon needs to be defined for DoEffect - Drain`)
+            }
+            ApplyDrainEffect(turn, pokemon, effect, source.sourceDamage,source.defendingPokemon);
             break;
         }
         case EffectType.Aromatherapy: {
