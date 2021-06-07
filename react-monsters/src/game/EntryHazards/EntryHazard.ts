@@ -243,7 +243,7 @@ export class StealthRock extends EntryHazard {
         }
     }
 }
-
+ 
 export class ToxicSpikes extends EntryHazard{
     stage: number = 0;
     type: EntryHazardType = EntryHazardType.ToxicSpikes;
