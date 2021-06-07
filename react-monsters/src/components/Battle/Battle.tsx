@@ -536,8 +536,8 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                 const pokemon = getPokemonById(currentEvent.targetPokemonId);
 
                 let message = `${pokemon.name} is now ${currentEvent.status.toLowerCase()}`;
-                if (currentEvent.defaultMessage) {
-                    message = currentEvent.defaultMessage;
+                if (currentEvent.message) {
+                    message = currentEvent.message;
                 }
                 animateMessage(message, () => {
                     dispatch({

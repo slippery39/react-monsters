@@ -1228,7 +1228,7 @@ class BattleGame implements IGame {
                     type: BattleEventType.StatusChange,
                     status: Status.None,
                     targetPokemonId: pokemon.id,
-                    defaultMessage: `${pokemon.name}  has thawed out from using ${techUsed.name}`
+                    message: `${pokemon.name}  has thawed out from using ${techUsed.name}`
                 }
                 this.AddEvent(statusRestoreEffect);
                 this.SetStatusOfPokemon(pokemon.id, Status.None);

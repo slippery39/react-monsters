@@ -1,7 +1,7 @@
 
 import { DamageEffect, DamageEffectTypes } from "game/DamageEffects/DamageEffects";
 import { BattleEffect, TargetType, HealthRestoreType, EffectType, RecoilDamageType } from "game/Effects/Effects";
-import { EntryHazardType } from "game/EntryHazards/EntryHazard";
+import { EntryHazard, EntryHazardType } from "game/EntryHazards/EntryHazard";
 import { FieldEffectType } from "game/FieldEffects/FieldEffects";
 import { Status } from "game/HardStatus/HardStatus";
 import { Stat } from "game/Stat";
@@ -56,6 +56,34 @@ function CreateAllHiddenPowers() {
 
 export function GetTech(name: string) {
     const techs: Array<BaseTechnique> = [
+        {
+            name:"Acid Spray",
+            description:"The user spits fluid that works to melt the target. This harshly lowers the target's Sp. Def stat.",
+            pp:32,
+            power:40,
+            accuracy:100,
+            damageType:DamageType.Special,
+            elementalType:ElementType.Poison,
+            effects:[{
+                type:EffectType.StatBoost,
+                stat:Stat.SpecialDefense,
+                amount:-2,
+                target:TargetType.Enemy
+            }]
+        },
+        {
+            name:"Toxic Spikes",
+            description:"The user lays a trap of poison spikes at the feet of the opposing team. The spikes will poison opposing Pokémon that switch into battle.",
+            pp:32,
+            power:0,
+            accuracy:100,
+            damageType:DamageType.Status,
+            elementalType:ElementType.Poison,
+            effects:[{
+                type:EffectType.PlaceEntryHazard,
+                hazard:EntryHazardType.ToxicSpikes
+            }]
+        },
         {
             name: "Slack Off",
             description: "The user slacks off, restoring its own HP by up to half of its max HP.",

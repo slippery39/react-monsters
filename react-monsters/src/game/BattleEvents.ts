@@ -46,9 +46,8 @@ export interface CannotAttackEvent extends BaseBattleEvent{
 export interface StatusChangeEvent extends BaseBattleEvent {
     type:BattleEventType.StatusChange,
     targetPokemonId:number,
-    attackerPokemonId?:number
     status: Status,
-    defaultMessage?:string
+    message?:string
 }
 
 export interface DamageEvent extends BaseBattleEvent {

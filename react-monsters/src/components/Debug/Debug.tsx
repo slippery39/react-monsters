@@ -91,6 +91,10 @@ const Debug: React.FunctionComponent<Props> = (props) => {
                 <div> {GetAllyPokemon().volatileStatuses.map(vStat=>vStat.type)}</div>
                 <div> Enemy Pokemon Volatile Statuses </div>
                 <div> {GetEnemyPokemon().volatileStatuses.map(vStat=>vStat.type)}</div>
+                <div> Entry Hazards on Ally Field</div>
+                <div>{props.field.entryHazards.filter(entry=>entry.player && entry.player.id === props.field.players[0].id).map(obj=><div>{obj.type} Stage: {obj.stage}</div>)}</div>
+                <div> Entry Hazards on Enemy Field</div>
+                <div>{props.field.entryHazards.filter(entry=>entry.player && entry.player.id === props.field.players[1].id).map(obj=><div>{obj.type} Stage: {obj.stage}</div>)}</div>
             </div>
         </div>
     )

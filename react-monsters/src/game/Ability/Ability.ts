@@ -2,7 +2,7 @@ import { BattleAction } from "game/BattleActions";
 import BattleBehaviour from "game/BattleBehaviour/BattleBehavior";
 import { IGame } from "game/BattleGame";
 import { DamageModifierInfo } from "game/DamageFunctions";
-import { ApplyWeather, DoStatBoost, DoStatBoostParameters, InflictStatus, TargetType } from "game/Effects/Effects";
+import { ApplyWeather, DoStatBoost, DoStatBoostOptions, ApplyInflictStatus, TargetType } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon, GetPercentageHealth, GetPokemonOwner } from "game/HelperFunctions";
@@ -19,7 +19,7 @@ abstract class AbstractAbility extends BattleBehaviour {
     name: string = "";
     description: string = "";
 
-    OnStatusChange(game: IGame, pokemon: Pokemon, status: Status, source: Pokemon) {
+    OnStatusChange(game: IGame, pokemon: Pokemon, status: Status, source: Pokemon | undefined) {
 
     }
 }
@@ -152,7 +152,12 @@ class StaticAbility extends AbstractAbility {
         if (move.makesContact) {
             const shouldParalyze = game.Roll(30);
             if (shouldParalyze) {
-                InflictStatus(game, attackingPokemon, Status.Paralyzed, defendingPokemon)
+                ApplyInflictStatus({
+                    game:game,
+                    targetPokemon:attackingPokemon,
+                    status:Status.Paralyzed,
+                    sourcePokemon:defendingPokemon
+                })
             }
         }
     }
@@ -276,7 +281,7 @@ class IntimidateAbility extends AbstractAbility {
 
         const otherTrainersPokemon = GetActivePokemon(otherTrainer);
 
-        const params: DoStatBoostParameters = {
+        const params: DoStatBoostOptions = {
             game: game,
             pokemon: otherTrainersPokemon,
             stat: Stat.Attack,
@@ -310,7 +315,12 @@ class EffectSporeAbility extends AbstractAbility {
             if (shouldInflictStatus) {
                 const statusToInflict = shuffle([Status.Poison, Status.Sleep, Status.Paralyzed])[0];
                 game.AddMessage(`${defendingPokemon.name} has released spores from contact!`);
-                InflictStatus(game, attackingPokemon, statusToInflict, defendingPokemon);
+                ApplyInflictStatus({
+                    game:game,
+                    sourcePokemon:defendingPokemon,
+                    targetPokemon:attackingPokemon,
+                    status:statusToInflict
+                });
             }
         }
     }
@@ -426,7 +436,11 @@ class SynchronizeAbility extends AbstractAbility {
     name = "Synchronize"
     description = "The attacker will receive the same status condition if it inflicts a burn, poison, or paralysis to the Pokémon."
 
-    OnStatusChange(game: IGame, pokemon: Pokemon, status: Status, source: Pokemon) {
+    OnStatusChange(game: IGame, pokemon: Pokemon, status: Status, source: Pokemon | undefined) {
+        
+        if (source === undefined){
+            return;
+        }
         if (source.id !== pokemon.id && [Status.Burned, Status.Paralyzed, Status.Poison, Status.ToxicPoison].includes(status)) {
             if (source.status === Status.None) {
                 game.SetStatusOfPokemon(pokemon.id,status);
@@ -526,7 +540,7 @@ class JustifiedAbility extends AbstractAbility {
     OnDamageTakenFromTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, tech: Technique, damage: number) {
         if (tech.elementalType === ElementType.Dark) {
 
-            const statBoostParams: DoStatBoostParameters = {
+            const statBoostParams: DoStatBoostOptions = {
                 game: game,
                 pokemon: defendingPokemon,
                 amount: 1,
@@ -653,6 +667,14 @@ class RegeneratorAbility extends AbstractAbility{
     }
 }
 
+class LiquidOozeAbility extends AbstractAbility{
+    name="Liquid Ooze";
+    description="The oozed liquid has a strong stench, which damages attackers using any draining move.";
+
+    //NOTE: This ability has been programmed inside the "drain effect";
+    
+}
+
 class NoAbility extends AbstractAbility {
 
 }
@@ -771,6 +793,9 @@ function GetAbility(name: String) {
         }
         case 'regenerator':{
             return new RegeneratorAbility();
+        }
+        case 'liquid ooze':{
+            return new LiquidOozeAbility();
         }
         default: {
             console.warn(`Warning: Could not find passive ability for ability name : { ${name} } - using no ability instead`);

@@ -57,7 +57,7 @@ const RestingStatus:HardStatus & {counter:number} = {...CreateBattleBehaviour(),
                 type: BattleEventType.StatusChange,
                 targetPokemonId: pokemon.id,
                 status: Status.None,
-                defaultMessage: `${pokemon.name} has woken up!`
+                message: `${pokemon.name} has woken up!`
             }
             game.AddEvent(wakeupEffect)            
         }
@@ -112,7 +112,7 @@ const SleepStatus:HardStatus &{turnsToSleep:number,counter:number} = {...CreateB
                     type: BattleEventType.StatusChange,
                     targetPokemonId: pokemon.id,
                     status: Status.None,
-                    defaultMessage: `${pokemon.name} has woken up!`
+                    message: `${pokemon.name} has woken up!`
                 }
                 game.AddEvent(wakeupEffect);
             }
@@ -170,7 +170,7 @@ class FrozenStatus extends BattleBehaviour implements HardStatus{
                 type: BattleEventType.StatusChange,
                 targetPokemonId: pokemon.id,
                 status: Status.None,
-                defaultMessage: `${pokemon.name} is not frozen anymore!`
+                message: `${pokemon.name} is not frozen anymore!`
             }
             game.AddEvent(thawEffect);
         }
@@ -187,8 +187,7 @@ class FrozenStatus extends BattleBehaviour implements HardStatus{
                 type: BattleEventType.StatusChange,
                 status: Status.None,
                 targetPokemonId: defendingPokemon.id,
-                attackerPokemonId: attackingPokemon.id,
-                defaultMessage: `${attackingPokemon.name}'s fire attack thawed ${defendingPokemon.name}!`
+                 message: `${attackingPokemon.name}'s fire attack thawed ${defendingPokemon.name}!`
             }
             game.AddEvent(thawEffect);
         }

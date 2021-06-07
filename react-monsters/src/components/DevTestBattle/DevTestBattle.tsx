@@ -8,9 +8,9 @@ import React from "react";
 function initializeTestBattle() {
 
     const zapdos = PokemonBuilder()
-        .GetPremadePokemon("Zapdos")
+        .GetPremadePokemon("Tentacruel")
         .WithTechniques([
-            "Giga Drain",]);
+            "Toxic Spikes",]);
 
 
     const zapdos1 = zapdos.Build();
@@ -20,17 +20,13 @@ function initializeTestBattle() {
         .GetPremadePokemon("Tentacruel")
         .Build();
 
-    ppPokemon.techniques.forEach(tech => tech.currentPP = 1);
-    zapdos1.techniques.forEach(tech => tech.currentPP = 1);
-
-
-
     //const dugtrio2 = dugtrioTest.Build();
-
 
     const player1 = new PlayerBuilder()
         .WithName("Shayne")
-        .WithCustomPokemon(ppPokemon)
+        .WithPokemon("Zapdos")
+        .WithPokemon("Lucario")
+        .WithPokemon("Tentacruel")
         .Build();
 
     const player2 = new PlayerBuilder()

@@ -1,16 +1,19 @@
 import { IGame } from "game/BattleGame";
 import { GetTypeMod } from "game/DamageFunctions";
-import { DoStatBoost } from "game/Effects/Effects";
+import { ApplyInflictStatus, DoStatBoost } from "game/Effects/Effects";
 import { ElementType } from "game/ElementType";
+import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
-import { Pokemon } from "game/Pokemon/Pokemon";
+import { Pokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
+import _ from "lodash";
 
 export enum EntryHazardType {
     Spikes = 'spikes',
     StealthRock = 'stealth-rock',
-    StickyWeb = 'sticky-web'
+    StickyWeb = 'sticky-web',
+    ToxicSpikes = 'toxic-spikes'
 }
 
 
@@ -64,6 +67,24 @@ export function ApplyEntryHazard(game: IGame, player: Player, type: EntryHazardT
             }
             else{
                 stickyWeb.OnApplyFail(game,player);
+            }
+            break;
+        }
+
+        case EntryHazardType.ToxicSpikes:{
+            let toxicSpikes = getEntryHazard(EntryHazardType.ToxicSpikes,player);
+            if (toxicSpikes === undefined){
+                toxicSpikes = new ToxicSpikes(player);
+                game.field.entryHazards.push(toxicSpikes);
+                toxicSpikes.OnApplied(game,player);
+            }
+            else{
+                if (toxicSpikes.CanApply(game,player)){
+                    toxicSpikes.OnApplied(game, player);
+                }
+                else{
+                    toxicSpikes.OnApplyFail(game, player);
+                }
             }
             break;
         }
@@ -220,6 +241,68 @@ export class StealthRock extends EntryHazard {
             const damage = pokemon.originalStats.hp * (damageMod/100);
             game.ApplyIndirectDamage(pokemon, damage,`${pokemon.name} was hurt by stealth rock.`);
         }
+    }
+}
+
+export class ToxicSpikes extends EntryHazard{
+    stage: number = 0;
+    type: EntryHazardType = EntryHazardType.ToxicSpikes;
+    player: Player;
+
+    constructor(player: Player) {
+        super(player);
+        this.player = player;
+    }
+
+    CanApply(game: IGame, player: Player) {
+        return this.stage < 2;
+    }
+
+    OnApplied(game: IGame, player: Player) {
+        this.stage = Math.min(this.stage+1,2);
+    }
+    OnApplyFail(game: IGame, player: Player) {
+        game.AddMessage("But it failed!");
+    }
+    OnPokemonEntry(game: IGame, pokemon: Pokemon) {
+        let pokemonOwner = game.GetPokemonOwner(pokemon);
+
+        if (pokemonOwner.id !== this.player.id) {
+            return;
+        }
+
+        if (pokemon.elementalTypes.includes(ElementType.Flying) || pokemon.elementalTypes.includes(ElementType.Steel)){
+            return;
+        }
+
+        if (pokemon.elementalTypes.includes(ElementType.Poison)){     
+               //Destroy the toxic spikes           
+            
+               game.field.entryHazards = game.field.entryHazards?.filter(hazard => {
+                console.log("testing toxic spikes", hazard.player,hazard.type);
+                console.error(hazard.player?.id,pokemonOwner.id);
+                return (hazard.player && hazard.player.id===pokemonOwner.id) && (hazard.type !== EntryHazardType.ToxicSpikes)
+            });
+            game.AddMessage(`${pokemon.name} absorbed the toxic spikes on the field`);
+            return;
+        }
+  
+        if (this.stage === 1) {
+           ApplyInflictStatus({
+              game:game,
+              targetPokemon:pokemon,
+              status:Status.Poison,
+              message:`Toxic spikes have poisoned ${pokemon.name}`
+           })
+        }
+        else if (this.stage>=2){
+            ApplyInflictStatus({
+                game:game,
+                targetPokemon:pokemon,
+                status:Status.ToxicPoison,
+                message:`Toxic spikes have badly poisoned ${pokemon.name}`
+             })
+        }    
     }
 }
 

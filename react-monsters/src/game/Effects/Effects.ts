@@ -155,18 +155,19 @@ interface ApplyInflictStatusOptions{
     game:IGame,
     targetPokemon:Pokemon,
     status:Status,
-    sourcePokemon:Pokemon,
+    sourcePokemon?:Pokemon,
     message?: string
 }
 
-export function ApplyInflictStatus(game: IGame, pokemon: Pokemon, status: Status, source: Pokemon) : void{
-    const targetPokemon = pokemon;
+export function ApplyInflictStatus(options:ApplyInflictStatusOptions) : void{
+    const {targetPokemon,sourcePokemon,game,status} = options;
+
     //cannot apply a status to a pokemon that has one, and cannot apply a status to a fainted pokemon.
-    if (targetPokemon.status !== Status.None || targetPokemon.currentStats.hp === 0) {
+    if (targetPokemon.status !== Status.None || targetPokemon.currentStats.hp <= 0) {
         return;
     }
 
-    if (targetPokemon.hasSubstitute && source !== pokemon) {
+    if (targetPokemon.hasSubstitute && sourcePokemon !== targetPokemon) {
         return;
     }
 
@@ -177,20 +178,24 @@ export function ApplyInflictStatus(game: IGame, pokemon: Pokemon, status: Status
 
     game.SetStatusOfPokemon(targetPokemon.id,status);
 
+    
+    if (!options.message){
+        options.message = `${targetPokemon.name} ${hardStatus.inflictedMessage}`;
+    }
+
     const statusInflictedEffect: StatusChangeEvent = {
         type: BattleEventType.StatusChange,
         status: status,
-        attackerPokemonId: pokemon.id,
         targetPokemonId: targetPokemon.id,
-        defaultMessage: `${targetPokemon.name} ${hardStatus.inflictedMessage}`
+        message: options.message
     };
     game.AddEvent(statusInflictedEffect);
     //TODO: OnStatusChange could be a BattleBehavior
-    GetAbility(targetPokemon.ability).OnStatusChange(game, pokemon, status, source);
+    GetAbility(targetPokemon.ability).OnStatusChange(game,targetPokemon, status, sourcePokemon);
 }
 
 
-export interface DoStatBoostParameters {
+export interface DoStatBoostOptions {
     game: IGame,
     pokemon: Pokemon,
     stat: Stat,
@@ -199,17 +204,12 @@ export interface DoStatBoostParameters {
     messageOverride?: string
 }
 
-export function DoStatBoost(params: DoStatBoostParameters): void {
+export function DoStatBoost(options: DoStatBoostOptions): void {
 
-    const turn = params.game;
-    const pokemon = params.pokemon;
-    let amount = params.amount;
-    const sourcePokemon = params.sourcePokemon;
-    const stat = params.stat;
-    const messageOverride = params.messageOverride;
+    let {game,pokemon,amount,sourcePokemon,stat,messageOverride} = options;
 
     const targetPokemon = pokemon;
-    amount = GetAbility(pokemon.ability).ModifyStatBoostAmount(turn, pokemon, amount, sourcePokemon);
+    amount = GetAbility(pokemon.ability).ModifyStatBoostAmount(game, pokemon, amount, sourcePokemon);
     if (amount === 0) {
         return;
     }
@@ -256,10 +256,10 @@ export function DoStatBoost(params: DoStatBoostParameters): void {
         }
     }
 
-    turn.AddMessage(message);
+    game.AddMessage(message);
 }
 
-export function InflictVolatileStatus(turn: IGame, pokemon: Pokemon, status: VolatileStatusType, source: Pokemon) {
+export function InflictVolatileStatus(game: IGame, pokemon: Pokemon, status: VolatileStatusType, source: Pokemon) {
     const targetPokemon = pokemon;
     const vStatus = GetVolatileStatus(status);
 
@@ -268,21 +268,21 @@ export function InflictVolatileStatus(turn: IGame, pokemon: Pokemon, status: Vol
         return;
     }
 
-    if (!vStatus.CanApply(turn, targetPokemon)) {
+    if (!vStatus.CanApply(game, targetPokemon)) {
         return;
     }
     targetPokemon.volatileStatuses.push(vStatus);
-    vStatus.OnApply(turn, targetPokemon);
-    turn.AddMessage(vStatus.InflictedMessage(targetPokemon));
+    vStatus.OnApply(game, targetPokemon);
+    game.AddMessage(vStatus.InflictedMessage(targetPokemon));
 }
 
-function ApplyHealingEffect(turn: IGame, pokemon: Pokemon, effect: HealthRestoreEffect) {
+function ApplyHealingEffect(game: IGame, pokemon: Pokemon, effect: HealthRestoreEffect) {
     if (effect.restoreType === HealthRestoreType.Flat) {
-        turn.ApplyHealing(pokemon, effect.amount);
+        game.ApplyHealing(pokemon, effect.amount);
     }
     else if (effect.restoreType === HealthRestoreType.PercentMaxHealth) {
         const amount = Math.floor(pokemon.originalStats.hp / (100 / effect.amount));
-        turn.ApplyHealing(pokemon, amount);
+        game.ApplyHealing(pokemon, amount);
     }
 }
 
@@ -292,7 +292,7 @@ function ApplyStatusRestoreEffect(game: IGame, pokemon: Pokemon, effect: StatusR
             type: BattleEventType.StatusChange,
             status: Status.None,
             targetPokemonId: pokemon.id,
-            defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
+            message: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
         }
         game.AddEvent(statusRestoreEffect);
         game.SetStatusOfPokemon(pokemon.id,Status.None);
@@ -302,7 +302,7 @@ function ApplyStatusRestoreEffect(game: IGame, pokemon: Pokemon, effect: StatusR
             type: BattleEventType.StatusChange,
             status: Status.None,
             targetPokemonId: pokemon.id,
-            defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
+            message: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
         }
         game.AddEvent(statusRestoreEffect);
         game.SetStatusOfPokemon(pokemon.id,Status.None);
@@ -343,7 +343,7 @@ function ApplyAromatherapyEffect(game: IGame, sourcePokemon: Pokemon) {
                 type: BattleEventType.StatusChange,
                 status: Status.None,
                 targetPokemonId: pokemon.id,
-                defaultMessage: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
+                message: `${pokemon.name} ` + GetHardStatus(pokemon.status).curedString
             }
             game.AddEvent(statusRestoreEffect);
             game.SetStatusOfPokemon(pokemon.id,Status.None);
@@ -352,28 +352,28 @@ function ApplyAromatherapyEffect(game: IGame, sourcePokemon: Pokemon) {
     });
 }
 
-function ApplySwitchPokemonEffect(turn: IGame, sourcePokemon: Pokemon) {
+function ApplySwitchPokemonEffect(game: IGame, sourcePokemon: Pokemon) {
     //check to see if there is valid pokemon to switch into
-    if (turn.GetValidSwitchIns(turn.GetPokemonOwner(sourcePokemon)).length === 0) {
+    if (game.GetValidSwitchIns(game.GetPokemonOwner(sourcePokemon)).length === 0) {
         return;
     }
-    turn.PromptForSwitch(sourcePokemon);
+    game.PromptForSwitch(sourcePokemon);
 }
 
-function ApplyPlaceEntryHazardEffect(turn: IGame, type: EntryHazardType, player: Player) {
-    ApplyEntryHazard(turn, player, type);
+function ApplyPlaceEntryHazardEffect(game: IGame, type: EntryHazardType, player: Player) {
+    ApplyEntryHazard(game, player, type);
 }
 
-function ApplyWhirlwindEffect(turn: IGame, player: Player) {
+function ApplyWhirlwindEffect(game: IGame, player: Player) {
     //Choose a random pokemon other than the current one
     //Switch that pokemon in
     const otherValidPokemon = player.pokemon.filter(poke => poke.currentStats.hp > 0 && poke.id !== player.currentPokemonId);
     if (otherValidPokemon.length < 1) {
-        turn.AddMessage("But it failed!");
+        game.AddMessage("But it failed!");
         return;
     }
     const randomPokemon = shuffle(otherValidPokemon)[0];
-    turn.SwitchPokemon(player, randomPokemon);
+    game.SwitchPokemon(player, randomPokemon);
 }
 
 
@@ -385,7 +385,7 @@ function ClearHazards(turn: IGame, player: Player) {
         turn.AddMessage(`All hazards on ${player.name}'s side have been removed!`);
     }
     turn.field.entryHazards = turn.field.entryHazards?.filter(hazard => {
-        return hazard.player !== player;
+        return hazard.player === player;
     });
 }
 
@@ -476,7 +476,7 @@ export interface EffectSource {
 
 
 //need someting more abstract for the source, but for now just having the pokemon will do.
-export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, source: EffectSource) {
+export function DoEffect(game: IGame, pokemon: Pokemon, effect: BattleEffect, source: EffectSource) {
 
 
     //TODO: We need a sourceInfo object,
@@ -487,15 +487,20 @@ export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, so
             if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - inflict-status");
             }
-            ApplyInflictStatus(turn, pokemon, effect.status, source.sourcePokemon);
+            ApplyInflictStatus({
+                game:game,
+                targetPokemon:pokemon,
+                status:effect.status,
+                sourcePokemon:source.sourcePokemon
+            });
             break;
         }
         case EffectType.StatBoost: {
             if (source.sourcePokemon === undefined) {
                 throw new Error(`Need a source pokemon to DoEffect - effect.sourcePokemon`);
             }
-            const params: DoStatBoostParameters = {
-                game: turn,
+            const params: DoStatBoostOptions = {
+                game: game,
                 pokemon: pokemon,
                 stat: effect.stat,
                 amount: effect.amount,
@@ -508,15 +513,15 @@ export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, so
             if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - inflict-volatile-status");
             }
-            InflictVolatileStatus(turn, pokemon, effect.status, source.sourcePokemon);
+            InflictVolatileStatus(game, pokemon, effect.status, source.sourcePokemon);
             break;
         }
         case EffectType.HealthRestore: {
-            ApplyHealingEffect(turn, pokemon, effect);
+            ApplyHealingEffect(game, pokemon, effect);
             break;
         }
         case EffectType.StatusRestore: {
-            ApplyStatusRestoreEffect(turn, pokemon, effect);
+            ApplyStatusRestoreEffect(game, pokemon, effect);
             break;
         }
         case EffectType.Drain: {
@@ -527,32 +532,32 @@ export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, so
             if (source.defendingPokemon === undefined){
                 throw new Error(`Defending Pokemon needs to be defined for DoEffect - Drain`)
             }
-            ApplyDrainEffect(turn, pokemon, effect, source.sourceDamage,source.defendingPokemon);
+            ApplyDrainEffect(game, pokemon, effect, source.sourceDamage,source.defendingPokemon);
             break;
         }
         case EffectType.Aromatherapy: {
             if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - aromatherapy");
             }
-            ApplyAromatherapyEffect(turn, source.sourcePokemon);
+            ApplyAromatherapyEffect(game, source.sourcePokemon);
             break;
         }
         case EffectType.SwitchPokemon: {
             if (source.sourcePokemon === undefined) {
                 throw new Error("Need a source pokemon to DoEffect - aromatherapy");
             }
-            ApplySwitchPokemonEffect(turn, source.sourcePokemon);
+            ApplySwitchPokemonEffect(game, source.sourcePokemon);
             break;
         }
         case EffectType.PlaceEntryHazard: {
             if (effect.hazard === undefined) {
                 throw new Error('No hazard define for DoEffect - place entry hazard');
             }
-            ApplyPlaceEntryHazardEffect(turn, effect.hazard, turn.GetPokemonOwner(pokemon));
+            ApplyPlaceEntryHazardEffect(game, effect.hazard, game.GetPokemonOwner(pokemon));
             break;
         }
         case EffectType.Whirlwind: {
-            ApplyWhirlwindEffect(turn, turn.GetPokemonOwner(pokemon));
+            ApplyWhirlwindEffect(game, game.GetPokemonOwner(pokemon));
             break;
         }
         case EffectType.ClearHazards: {
@@ -560,7 +565,16 @@ export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, so
             if (source.sourcePokemon === undefined) {
                 throw new Error(`No source pokemon defined for DoEFfect - PlaceEntryHazard`);
             }
-            ClearHazards(turn, turn.GetPokemonOwner(source.sourcePokemon))
+
+            const effectSource = game.GetPokemonOwner(source.sourcePokemon);
+            const otherPlayer = game.GetPlayers().find(player=>player.id!==effectSource.id);
+
+            if (otherPlayer === undefined){
+                throw new Error(`Could not find other player for Clear Hazard effect`);
+            }
+
+
+            ClearHazards(game, otherPlayer)
             break;
         }
         case EffectType.Recoil: {
@@ -573,45 +587,45 @@ export function DoEffect(turn: IGame, pokemon: Pokemon, effect: BattleEffect, so
 
             if (effect.recoilType === RecoilDamageType.PercentDamageDealt) {
                 const damage = source.sourceDamage * (effect.amount /100);
-                ApplyRecoilEffect(turn, source.sourcePokemon, damage)
+                ApplyRecoilEffect(game, source.sourcePokemon, damage)
             }
             else if (effect.recoilType === RecoilDamageType.PercentMaxHealth) {
-                ApplyRecoilEffect(turn, source.sourcePokemon, source.sourcePokemon.originalStats.hp * (effect.amount / 100))
+                ApplyRecoilEffect(game, source.sourcePokemon, source.sourcePokemon.originalStats.hp * (effect.amount / 100))
             }
             break;
         }
         case EffectType.RemoveStatBoosts: {
-            RemoveStatBoosts(turn);
+            RemoveStatBoosts(game);
             break;
         }
         case EffectType.PainSplit: {
             if (source.sourcePokemon === undefined) {
                 throw new Error(`Could not find source pokemon for Pain Split effect`);
             }
-            ApplyPainSplitEffect(turn, source.sourcePokemon, pokemon);
+            ApplyPainSplitEffect(game, source.sourcePokemon, pokemon);
             break;
         }
         case EffectType.RemoveHeldItem: {
-            ApplyRemoveHeldItemEffect(turn, pokemon);
+            ApplyRemoveHeldItemEffect(game, pokemon);
             break;
         }
         case EffectType.CreateFieldEffect: {
-            ApplyCreateFieldEffect(turn, pokemon, effect.effectType)
+            ApplyCreateFieldEffect(game, pokemon, effect.effectType)
             break;
         }
         case EffectType.StruggleRecoilDamage: {
             if (source.sourcePokemon === undefined) {
                 throw new Error(`Could not find source for struggle recoil damage`);
             }
-            ApplyStruggleRecoilEffect(turn, source.sourcePokemon);
+            ApplyStruggleRecoilEffect(game, source.sourcePokemon);
             break;
         }
         case EffectType.ApplyWeather: {
             if (effect.weather === WeatherType.Rain) {
-                ApplyWeather(turn, new RainingWeather())
+                ApplyWeather(game, new RainingWeather())
             }
             else if (effect.weather === WeatherType.Sunny) {
-                ApplyWeather(turn, new SunnyWeather())
+                ApplyWeather(game, new SunnyWeather())
             }
             else {
                 throw new Error(`Could not find weather to apply`);
