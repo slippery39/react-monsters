@@ -1,7 +1,7 @@
 import { Card, message, Modal } from "antd"
 import React, { useEffect, useState } from "react"
 import { NetworkInfo } from "./NetworkPlayController";
-import NetworkPlayerInfo from "./NetworkPlayer";
+import NetworkPlayerInfo from "../../game/NetworkPlay/NetworkPlayer";
 import PlayerProfile from "./PlayerProfile";
 
 interface Props {

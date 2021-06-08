@@ -3,11 +3,12 @@ import cors from "cors";
 import BattleService, { OnStateChangeArgs } from 'game/BattleService';
 import { PlayerBuilder } from 'game/Player/PlayerBuilder';
 import _ from 'lodash';
-import { OnNewTurnLogArgs } from '../../react-monsters/src/game/BattleGame';
+import { OnNewTurnLogArgs } from 'game/BattleGame';
 import http from "http";
 import { Server, Socket } from "socket.io";
 import bodyParser from 'body-parser';
-import { userInfo } from 'node:os';
+import NetworkInfo, { NetworkPlayerInfo, NetworkPlayerStatus } from "game/NetworkPlay/NetworkPlayer";
+
 
 
 const app = express();
@@ -59,12 +60,7 @@ interface GameInfo {
     service: BattleService
 }
 
-interface UserInfo{
-    name:string,
-    onlineStatus:"online" | "in-game"
-}
-
-let loggedInUsers: UserInfo[] = [];
+let loggedInUsers: NetworkPlayerInfo[] = [];
 
 let games: GameInfo[] = [];
 
@@ -232,12 +228,12 @@ io.on("connection", (socket) => {
 
         let userInfo1 =  loggedInUsers.find(p=>p.name === challenge.players[0]);
         if (userInfo1!==undefined){
-            userInfo1.onlineStatus = 'in-game';
+            userInfo1.onlineStatus = NetworkPlayerStatus.InGame;
         }
 
         let userInfo2 =  loggedInUsers.find(p=>p.name === challenge.players[1]);
         if (userInfo2!==undefined){
-            userInfo2.onlineStatus = 'in-game';
+            userInfo2.onlineStatus = NetworkPlayerStatus.InGame;
         }
 
 
@@ -260,6 +256,7 @@ io.on("connection", (socket) => {
             player1Socket?.emit("gamestart", { field: battleService.GetField() });
             player2Socket?.emit("gamestart", { field: battleService.GetField() });
             battleService!.Start();
+            io.sockets.emit("users-changed", loggedInUsers);
         });
     });
 
@@ -293,9 +290,9 @@ app.post('/login', async (req, res) => {
     }
     else { //success
 
-        let user: UserInfo = {
+        let user: NetworkPlayerInfo = {
             name:username,
-            onlineStatus:"online"
+            onlineStatus:NetworkPlayerStatus.Online
         }
  
         //TODO : grab the game information as well        
@@ -324,7 +321,7 @@ app.post('/login', async (req, res) => {
             }
             else{
                 userInfo.inGameId = playerInGame.id;
-                user.onlineStatus = "in-game"
+                user.onlineStatus = NetworkPlayerStatus.InGame
             }
         }
         loggedInUsers.push(user);

@@ -1,6 +1,6 @@
 import { Button, Card } from "antd";
+import NetworkPlayerInfo, { NetworkPlayerStatus } from "game/NetworkPlay/NetworkPlayer";
 import React from "react"
-import NetworkPlayerInfo, { NetworkPlayerStatus } from "./NetworkPlayer";
 import "./PlayerProfile.css";
 
 interface Props {
