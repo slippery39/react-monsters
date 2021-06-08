@@ -256,7 +256,7 @@ io.on("connection", (socket) => {
             player1Socket?.emit("gamestart", { field: battleService.GetField() });
             player2Socket?.emit("gamestart", { field: battleService.GetField() });
             battleService!.Start();
-            io.sockets.emit("users-changed", loggedInUsers);
+            io.sockets.emit("users-changed", loggedInUsers); 
         });
     });
 
