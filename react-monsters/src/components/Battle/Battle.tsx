@@ -705,7 +705,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             })
         }
         else {
-            setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
+            setMenuMessage((prev) => prev === "Something is preventing you from doing this." ? prev + "" : "Something is preventing you from doing this.");
         }
     }
     async function SetSwitchAction(pokemonSwitchId: number) {
@@ -727,7 +727,7 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             })
         }
         else {
-            setMenuMessage((prev) => prev === "You cannot use this technique due to an ability, status or held item!" ? prev + "" : "You cannot use this technique due to an ability, status or held item!");
+            setMenuMessage((prev) => prev === "Something is preventing you from doing this." ? prev + "" : "Something is preventing you from doing this.");
         }
     }
     function SetUseItemAction(itemId: number) {
