@@ -16,9 +16,6 @@ function initializeTestBattle() {
     const zapdos1 = zapdos.Build();
 
 
-    const ppPokemon = PokemonBuilder()
-        .GetPremadePokemon("Tentacruel")
-        .Build();
 
     //const dugtrio2 = dugtrioTest.Build();
 

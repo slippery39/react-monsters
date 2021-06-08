@@ -696,7 +696,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
         });
 
         if (actionSuccessful) {
-            console.log("action was successful!",menuState);
             setMenuState((prevState) => {
                 //added this in so we don't accidently overwrite a potential showing turn state
                 if (prevState !== MenuState.ShowingTurn) {

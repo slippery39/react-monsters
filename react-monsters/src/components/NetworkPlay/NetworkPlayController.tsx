@@ -63,7 +63,7 @@ const NetworkPlayController = (props: Props) => {
                 return <MainLobby onGameStart={(info) => handleGameStart(info)} networkInfo={networkInfo.current} />
             }
             case "in-game": {
-                return <RemoteBattle networkInfo={networkInfo.current} />
+                return <RemoteBattle onGameEnd={()=>setUiState("main-lobby")} networkInfo={networkInfo.current} />
             }
             default: {
                 return <div> Error, no ui state found for network play! </div>

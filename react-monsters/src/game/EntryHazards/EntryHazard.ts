@@ -5,9 +5,8 @@ import { ElementType } from "game/ElementType";
 import { Status } from "game/HardStatus/HardStatus";
 import { GetActivePokemon } from "game/HelperFunctions";
 import { Player } from "game/Player/PlayerBuilder";
-import { Pokemon, PokemonBuilder } from "game/Pokemon/Pokemon";
+import { Pokemon } from "game/Pokemon/Pokemon";
 import { Stat } from "game/Stat";
-import _ from "lodash";
 
 export enum EntryHazardType {
     Spikes = 'spikes',

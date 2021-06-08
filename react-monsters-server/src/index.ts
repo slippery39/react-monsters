@@ -62,7 +62,17 @@ interface GameInfo {
 
 let loggedInUsers: NetworkPlayerInfo[] = [];
 
+function FindLoggedInUser(username:string){
+    return loggedInUsers.find(user=>user.name===username);
+}
+
 let games: GameInfo[] = [];
+
+function RemoveGameByUserName(username:string){
+    _.remove(games,(gameInfo=>{
+        gameInfo.players.includes(username);
+    }));
+}
 
 function IsInGame(username: string) {
     return games.find(game => {
@@ -102,6 +112,10 @@ function CreateGame(players: string[]) {
     return gameInfo;
 }
 
+function NotifyPlayerStatusChange(){
+    io.sockets.emit("users-changed", loggedInUsers); 
+}
+
 async function FindSocketByUserName(username: string) {
     const sockets = await io.sockets.fetchSockets();
     const socket = sockets.find(sock => {
@@ -126,7 +140,7 @@ io.on("connection", (socket) => {
         RemoveChallenge(customSocket.username);
 
         console.log("Challenge Length", challenges.length);
-        io.sockets.emit("users-changed", loggedInUsers);
+        NotifyPlayerStatusChange();
     });
 
     socket.on("challenge-request", async (challengeOptions) => {
@@ -174,7 +188,6 @@ io.on("connection", (socket) => {
         }
         console.log("action recieved", action);
         const success = await gameInfo.service?.SetPlayerAction(action);
-        console.log("success? ", success);
         fn({ success: success });
     });
 
@@ -249,6 +262,11 @@ io.on("connection", (socket) => {
         battleService.OnGameOver.on(async (args) => {
             const player1Socket = await FindSocketByUserName(challenge.players[0]);
             const player2Socket = await FindSocketByUserName(challenge.players[1]);
+
+            //remove the game..
+            RemoveGameByUserName(challenge.players[0]);
+            
+
             player1Socket?.emit("gameover", args);
             player2Socket?.emit("gameover", args);
         });
@@ -256,8 +274,17 @@ io.on("connection", (socket) => {
             player1Socket?.emit("gamestart", { field: battleService.GetField() });
             player2Socket?.emit("gamestart", { field: battleService.GetField() });
             battleService!.Start();
-            io.sockets.emit("users-changed", loggedInUsers); 
+            NotifyPlayerStatusChange();
         });
+    });
+
+    socket.on("leave-game",async()=>{
+        const player = FindLoggedInUser(customSocket.username);
+        if (player === undefined){
+            return;
+        }
+        player.onlineStatus = NetworkPlayerStatus.Online;
+        NotifyPlayerStatusChange();
     });
 
 
@@ -276,7 +303,6 @@ io.on("connection", (socket) => {
 
 //TODO - change our front end code.
 app.get("/getOnlineUsers", async (req, res) => {
-    console.log(loggedInUsers);
     return res.json({ users: loggedInUsers })
 });
 
@@ -325,7 +351,7 @@ app.post('/login', async (req, res) => {
             }
         }
         loggedInUsers.push(user);
-        io.sockets.emit("users-changed",loggedInUsers);
+        NotifyPlayerStatusChange();
         
         return res.json({ status: "success", username: req.body.name, userInfo:userInfo });
     }
