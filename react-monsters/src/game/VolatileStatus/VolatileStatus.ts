@@ -38,7 +38,7 @@ export abstract class VolatileStatus extends BattleBehaviour {
 
     }
     CanApply(game: IGame, pokemon: Pokemon) {
-        return !HasVolatileStatus(pokemon, this.type)
+        return pokemon.currentStats.hp>0 && !HasVolatileStatus(pokemon, this.type) 
     }
     Remove(game: IGame, pokemon: Pokemon) {
         _.remove(pokemon.volatileStatuses, (vStat) =>
