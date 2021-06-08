@@ -277,6 +277,9 @@ export function InflictVolatileStatus(game: IGame, pokemon: Pokemon, status: Vol
 }
 
 function ApplyHealingEffect(game: IGame, pokemon: Pokemon, effect: HealthRestoreEffect) {
+    if (pokemon.currentStats.hp >= pokemon.originalStats.hp){
+        return;
+    }
     if (effect.restoreType === HealthRestoreType.Flat) {
         game.ApplyHealing(pokemon, effect.amount);
     }
