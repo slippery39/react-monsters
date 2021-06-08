@@ -565,16 +565,21 @@ export function DoEffect(game: IGame, pokemon: Pokemon, effect: BattleEffect, so
             if (source.sourcePokemon === undefined) {
                 throw new Error(`No source pokemon defined for DoEFfect - PlaceEntryHazard`);
             }
+            console.log(effect.target);
 
             const effectSource = game.GetPokemonOwner(source.sourcePokemon);
-            const otherPlayer = game.GetPlayers().find(player=>player.id!==effectSource.id);
-
-            if (otherPlayer === undefined){
-                throw new Error(`Could not find other player for Clear Hazard effect`);
+            
+            let playerToTarget = game.GetPlayers().find(player=>player.id!==effectSource.id);
+            if (effect.target === TargetType.Enemy){
+                //confusing because entry hazards on our side ot the fields are technically the enemies
+                playerToTarget = game.GetPlayers().find(player=>player.id===effectSource.id);
             }
 
+            if (playerToTarget === undefined){
+                throw new Error(`could not find player for clear hazard effect`);
+            }
 
-            ClearHazards(game, otherPlayer)
+                ClearHazards(game, playerToTarget)
             break;
         }
         case EffectType.Recoil: {

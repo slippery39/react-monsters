@@ -333,8 +333,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
 
 
     function getAllyPlayer() {
-
-        console.log(props.allyPlayerID);
         const player = battleState.field.players.find(p => p.id === props.allyPlayerID);
         if (player === undefined) {
             throw new Error(`Could not find player in call to getAllyPlayer() - id : ${props.allyPlayerID}`);
@@ -364,7 +362,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
     }
 
     function getAllyPokemon(): Pokemon {
-        console.log(getAllyPlayer());
         return GetActivePokemon(getAllyPlayer());
     }
     function getEnemyPokemon(): Pokemon {
