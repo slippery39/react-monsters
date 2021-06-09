@@ -188,9 +188,14 @@ io.on("connection", (socket) => {
             console.error("Could not find socket for challenge request", player2);
             return;
         }
+        if (FindChallenge(player1) !== undefined || IsInGame(player1)) {
+            player1Socket.emit("challenge-request-error",`You can only challenge one player at a time`);
+            return;
+        }
 
         if (FindChallenge(player2) !== undefined || IsInGame(player2)) {
-            player1Socket.emit("challenge-request-error", { message: `${challengeOptions.player2} cannot be challenged at the moment!` })
+            
+            player1Socket.emit("challenge-request-error", `${challengeOptions.player2} cannot be challenged at the moment!`)
             return;
         }
 

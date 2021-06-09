@@ -109,12 +109,18 @@ const MainLobby = (props: Props) => {
 
             props.networkInfo.socket!.on("challenge-ready",()=>{
                 waitingForResponseModal?.destroy();
-                message.info(`Challenge has been accepted`);  
-                                      
+                message.info(`Challenge has been accepted`);                                        
             });
 
             props.networkInfo.socket!.on("challenge-request-declined",(serverMessage)=>{
                 waitingForResponseModal?.destroy();
+                console.log(serverMessage);
+                message.warn(serverMessage);
+            });
+
+            props.networkInfo.socket!.on("challenge-request-error",(serverMessage)=>{
+                waitingForResponseModal?.destroy();
+                console.log("testing");
                 console.log(serverMessage);
                 message.warn(serverMessage);
             });
