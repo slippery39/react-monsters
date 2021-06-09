@@ -55,6 +55,24 @@ function RemoveChallenge(username: string) {
     }));
 }
 
+async function DeclineChallenge(username:string){
+    const challenge = FindChallenge(username);
+    if (challenge === undefined) {
+        console.error(`Could not find challenge :(`);
+        return;
+    }
+    const otherPlayer = challenge.players.find(p=>p!==username);
+
+    if (otherPlayer === undefined){
+        console.error("Could not find other player for challenge :(");
+        return;
+    }
+    const otherPlayerSocket = await FindSocketByUserName(otherPlayer);
+    otherPlayerSocket?.emit("challenge-request-declined");
+}
+
+
+
 interface GameInfo {
     players: string[],
     service: BattleService
@@ -137,8 +155,8 @@ io.on("connection", (socket) => {
     socket.on("disconnecting", () => {
         console.log(customSocket.username + " has disconnected");
         _.remove(loggedInUsers, (user) => user.name === customSocket.username);
+        DeclineChallenge(customSocket.username);
         RemoveChallenge(customSocket.username);
-
         console.log("Challenge Length", challenges.length);
         NotifyPlayerStatusChange();
     });
