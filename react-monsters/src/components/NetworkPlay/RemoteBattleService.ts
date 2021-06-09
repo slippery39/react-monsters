@@ -4,10 +4,9 @@ import { BattleService, OnStateChangeArgs, OnNewTurnArgs, OnGameStartArgs } from
 import { Status } from "game/HardStatus/HardStatus";
 import { Player } from "game/Player/PlayerBuilder";
 import { TypedEvent } from "game/TypedEvent/TypedEvent";
-import { io } from "socket.io-client";
 import { NetworkInfo } from "./NetworkPlayController";
 
-export class RemoteBattleService2 implements BattleService {
+export class RemoteBattleService implements BattleService {
 
 
     OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
@@ -30,8 +29,8 @@ export class RemoteBattleService2 implements BattleService {
 
     private playerName = "";
     //Out of date info.
-    private URL = "http://192.168.0.12:8000";
-    private socket = io(this.URL);
+    private URL //= "http://192.168.0.12:8000";
+    private socket //= io(this.URL);
 
     constructor(options: NetworkInfo) {
         this.URL = options.serverAddress;

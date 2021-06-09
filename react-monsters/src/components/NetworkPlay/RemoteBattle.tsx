@@ -1,5 +1,5 @@
 import { NetworkInfo } from "components/NetworkPlay/NetworkPlayController";
-import { RemoteBattleService2 } from "components/NetworkPlay/RemoteBattleService";
+import { RemoteBattleService } from "components/NetworkPlay/RemoteBattleService";
 import { BattleService } from "game/BattleService";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -27,7 +27,7 @@ const RemoteBattle: React.FunctionComponent<Props> = (props) => {
     }
 
     useEffect(() => {
-            remoteBattleService.current = new RemoteBattleService2(props.networkInfo);
+            remoteBattleService.current = new RemoteBattleService(props.networkInfo);
             setForceUpdate(prev=>!prev);
             
             console.log(remoteBattleService.current);

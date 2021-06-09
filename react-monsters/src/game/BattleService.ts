@@ -1,12 +1,9 @@
 import { Actions, BattleAction, SwitchPokemonAction, UseMoveAction } from "./BattleActions";
 import _ from "lodash";
-
 import { TypedEvent } from "./TypedEvent/TypedEvent";
 import { Status } from "./HardStatus/HardStatus";
 import { Player } from "./Player/PlayerBuilder";
 import BattleGame, { Field, GameBuilder, GameEventArgs, OnActionNeededArgs, OnGameOverArgs, OnNewTurnLogArgs, OnSwitchNeededArgs } from "./BattleGame";
-import { io } from "socket.io-client";
-
 
 export interface OnStateChangeArgs extends GameEventArgs {
     newField: Field
@@ -15,27 +12,7 @@ export interface OnStateChangeArgs extends GameEventArgs {
 export interface OnNewTurnArgs {
 
 }
-/*
-interface IBattleService {
-    SetStatusOfPokemon(pokemonId: number, status: Status): void,
-    GetAllyPlayerID(): number,
-    GetAllyPlayer(): Player,
-    GetEnemyPlayer(): Player,
-    Initialize(): void,
-    Start(): void,
-    SetInitialAction(action: BattleAction): boolean,
-    GetPlayers(): Array<Player>,
-    GetValidPokemonToSwitchInto(playerId: number): Array<Number>
-    GetField(): Field
-    GetValidActions(playerId: number): Array<BattleAction>
-    OnNewTurnLog: TypedEvent<OnNewTurnLogArgs>
-    OnStateChange: TypedEvent<OnStateChangeArgs>
-    OnNewTurn: TypedEvent<OnNewTurnArgs>
-    OnSwitchNeeded: TypedEvent<OnSwitchNeededArgs>
-    OnActionNeeded: TypedEvent<OnActionNeededArgs>
-    OnGameOver: TypedEvent<OnGameOverArgs>
-}
-*/
+
 
 export interface GameEventHandler {
     OnNewTurnLog: TypedEvent<OnNewTurnLogArgs>
@@ -80,148 +57,6 @@ export interface OnGameStartArgs {
 //temporary class... hard coded battle service for the second player....
 //just want to see if we can get the player vs player going. afterwards we will delete this and refactor our code to handle it.
 
-
-
-//note this has not been updated.
-export class RemoteBattleService implements BattleService {
-    
- 
-    OnNewTurnLog = new TypedEvent<OnNewTurnLogArgs>();
-    OnStateChange = new TypedEvent<OnStateChangeArgs>();
-    //the number type is temporary
-    OnNewTurn = new TypedEvent<OnNewTurnArgs>();
-    OnSwitchNeeded = new TypedEvent<OnSwitchNeededArgs>();
-    OnActionNeeded = new TypedEvent<OnActionNeededArgs>();
-    OnGameOver = new TypedEvent<OnGameOverArgs>();
-    OnGameStart = new TypedEvent<OnGameStartArgs>();
-
-
-    //Temp Saved State
-    private savedState: { field: Field } = {
-        field: {
-            players: [],
-            entryHazards: [],
-        },
-    }
-
-    private playerId = 1; //TODO this should be dyanmic.
-
-    private URL = "http://192.168.0.12:8000";
-    private socket = io(this.URL);
-
-    Initialize() {
-        let socket = this.socket;
-        socket.emit("testgame");
-        socket.onAny((event, ...args) => {
-            if (event === "gamestart") {
-
-                let gameStartArgs = args[0] as unknown as OnGameStartArgs;
-                this.savedState.field = gameStartArgs.field;
-                this.OnGameStart.emit(gameStartArgs);
-                console.log("initial state has been found");
-                socket.emit("gamestartready", []);
-            }
-            if (event === "newturnlog") {
-                var evtLog = args[0] as unknown as OnNewTurnLogArgs;
-
-                this.OnNewTurnLog.emit(evtLog);
-                console.log(evtLog);
-                console.log("event found was the new turn log!");
-
-                //save our field and state....                 
-                this.savedState.field = evtLog.field;
-            }
-            if (event === "gameover") {
-                this.OnGameOver.emit(args[0] as unknown as OnGameOverArgs)
-                console.log("event found was game over!");
-            }
-            if (event === "update-state") {
-                let stateChangeArgs = args[0] as unknown as OnStateChangeArgs;
-                this.OnStateChange.emit(stateChangeArgs);
-                this.savedState.field = stateChangeArgs.newField;
-            }
-        });
-    }
-
-    Start(){
-        //not tested yet.
-        this.socket.emit("gamestartready",[]);
-    }
-
-    RegisterPlayer(player:Player){
-        throw new Error(`Register Player has not been implemented in RemoteBattleService2`);
-        // eslint-disable-next-line 
-        return player;
-    }
-
-    GetPlayers() {
-        return this.savedState.field.players;
-    }
-    async GetValidPokemonToSwitchInto(playerId:number) {
-        //TODO - the player here should be dynamic.
-        //we will need to grab this from the server.
-
-        //possible bug here with Dugtrio's Arena Trap... test this out to see if the player can still switch out properly.
-        const validActions = await fetch(this.URL + "/getvalidactions" + playerId.toString());
-        const validActionsConverted = validActions.json() as unknown as BattleAction[];
-
-        const validSwitchActions = validActionsConverted.filter(act => act.type === Actions.SwitchPokemon);
-
-        const validSwitchIds = validSwitchActions.map(act=>{
-            if (act.type === Actions.SwitchPokemon) {
-                return act.switchPokemonId;
-            }
-            else {
-                throw new Error('invalid action type');
-            }
-        });
-
-        return validSwitchIds;
-    }
-    GetField() {
-        return this.savedState.field;
-    }
-
-    //this needs to change for 
-    async GetValidActions(playerId: number) {
-
-        const apiURL = this.URL + "/getvalidactions" + playerId.toString();
-        console.log(apiURL);
-        const validActions = await fetch(apiURL);
-
-        const validActionsConverted = await validActions.json();
-        console.log(validActionsConverted);
-
-        console.log(validActions);
-        console.log(validActionsConverted);
-        return Promise.resolve(validActionsConverted as unknown as BattleAction[]);
-    }
-    async SetInitialAction(action: BattleAction): Promise<boolean> {
-        const success = await new Promise<boolean>(resolve=>{
-           return this.socket.emit("action",action,
-            (data:{success:boolean})=>resolve(data.success))
-        })
-
-        return success;
-    }
-    async SetPlayerAction(action: BattleAction): Promise<boolean> {
-        const success = await new Promise<boolean>(resolve=>{
-            return this.socket.emit("action",action,
-             (data:{success:boolean})=>resolve(data.success))
-         }) 
-         return success;
-    }
-    async SetSwitchFaintedPokemonAction(action: SwitchPokemonAction, diffLog?: boolean): Promise<void> {
-        await new Promise<boolean>(resolve=>{
-            return this.socket.emit("action",action,
-             (data:{success:boolean})=>resolve(data.success))
-         }) 
-    }
-    SetStatusOfPokemon(pokemonId: number, status: Status): void {
-        throw new Error("Method not implemented.");
-    }
-
-}
 //Acts as a middleman between the client and the game logic for 1 player.
 class LocalBattleService implements BattleService {
     //so now after every turn, we should create a new turn with copies of the players?
