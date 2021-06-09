@@ -113,9 +113,10 @@ const MainLobby = (props: Props) => {
                                       
             });
 
-            props.networkInfo.socket!.on("challenge-request-declined",()=>{
+            props.networkInfo.socket!.on("challenge-request-declined",(serverMessage)=>{
                 waitingForResponseModal?.destroy();
-                message.warn("Challenge has been declined");
+                console.log(serverMessage);
+                message.warn(serverMessage);
             });
             //eslint-disable-next-line
         }, []);

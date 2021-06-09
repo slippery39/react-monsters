@@ -55,7 +55,7 @@ function RemoveChallenge(username: string) {
     }));
 }
 
-async function DeclineChallenge(username:string){
+async function DeclineChallenge(username:string,message?:string){
     const challenge = FindChallenge(username);
     if (challenge === undefined) {
         console.error(`Could not find challenge :(`);
@@ -68,7 +68,12 @@ async function DeclineChallenge(username:string){
         return;
     }
     const otherPlayerSocket = await FindSocketByUserName(otherPlayer);
-    otherPlayerSocket?.emit("challenge-request-declined");
+
+    if (message === undefined){
+        message = "Challenge has been declined"
+    }
+
+    otherPlayerSocket?.emit("challenge-request-declined",message);
 }
 
 
@@ -155,7 +160,7 @@ io.on("connection", (socket) => {
     socket.on("disconnecting", () => {
         console.log(customSocket.username + " has disconnected");
         _.remove(loggedInUsers, (user) => user.name === customSocket.username);
-        DeclineChallenge(customSocket.username);
+        DeclineChallenge(customSocket.username,"Challenge has been cancelled - other player has disconnected");
         RemoveChallenge(customSocket.username);
         console.log("Challenge Length", challenges.length);
         NotifyPlayerStatusChange();
