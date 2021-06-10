@@ -1,0 +1,14 @@
+{
+    "name": "react-msonters-root",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+      "start": "cd react-monsters-server && nodemon -e ts,js --exec ts-node -r tsconfig-paths/register ./src/index.ts",
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "build": "cd react-monsters-server && tsc --project ./"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+  }
+  
