@@ -153,7 +153,7 @@ interface Props {
     battle: BattleService,
     allyPlayerID: number,
     showDebug?: boolean, 
-    hideMenu?: boolean
+    spectateMode?:boolean,
     onLoad?: () => void;
 }
 
@@ -936,11 +936,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
                         {allyPokemonDisplay()}
                     </div>
                     <div style={{ height: "75px", border: "5px solid black", textAlign: "left" }}>
-                        {idleMenuMessage()}
+                        { (!props.spectateMode || menuState===MenuState.GameOver) && idleMenuMessage()}
                         {turnLogMessage()}
                     </div>
                 </div>
-                {(props.hideMenu === undefined || props.hideMenu === false) && <div className="bottom-screen">
+                {(!props.spectateMode || menuState===MenuState.GameOver) && <div className="bottom-screen">
                     {bottomMenu()}
                 </div>
                 }
