@@ -89,7 +89,7 @@ function FindLoggedInUser(username:string){
     return loggedInUsers.find(user=>user.name===username);
 }
 
-let games: GameInfo[] = [];
+let games: GameInfo[] = []; 
 
 function RemoveGameByUserName(username:string){
     _.remove(games,(gameInfo=>{

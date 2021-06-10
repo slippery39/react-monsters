@@ -78,7 +78,7 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
                 AI vs AI Battle Simulator
             </Button>
             <Button block type="primary" onClick={() => handleConnectToServerClick()} className="text-outline text-large">
-                Connect to server.
+                Connect to server
             </Button>
             {false &&<Button block type="primary" onClick={() => handleTestGameClick()} className="text-outline text-large">
                 Developer Test Game
