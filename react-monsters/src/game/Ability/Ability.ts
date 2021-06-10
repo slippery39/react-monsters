@@ -660,6 +660,9 @@ class RegeneratorAbility extends AbstractAbility{
     description = "Restores a little HP when withdrawn from battle.";
 
     OnSwitchedOut(game: IGame, pokemon: Pokemon) {
+        if (pokemon.currentStats.hp ===  0){
+            return; //bug fix -> this triggers when they switch out after fainting otherwise.
+        }
         pokemon.currentStats.hp+= Math.ceil(pokemon.originalStats.hp/3);
         if (pokemon.currentStats.hp>pokemon.originalStats.hp){
             pokemon.currentStats.hp = pokemon.originalStats.hp;
