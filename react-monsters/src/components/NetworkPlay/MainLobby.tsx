@@ -79,6 +79,11 @@ const MainLobby = (props: Props) => {
                 challengeRecievedModal?.destroy();
             }
 
+            const handleCancel = ()=>{
+                props.networkInfo.socket!.emit("challenge-cancel")
+                waitingForResponseModal?.destroy();
+            }
+
             props.networkInfo.socket!.on("challenge-request-received", (options: { player1: string, player2: string }) => {
    
                 challengeRecievedModal = Modal.confirm({
@@ -99,10 +104,10 @@ const MainLobby = (props: Props) => {
             let waitingForResponseModal:any |undefined;
             props.networkInfo.socket!.on("challenge-request-sent", (options: { player1: string, player2: string })=>{
                
-                waitingForResponseModal = Modal.info({
+                waitingForResponseModal = Modal.confirm({
                     content: `Waiting for ${options.player2} to respond`,
-                    title: `Battle Request`,    
-                    cancelButtonProps:{disabled:true,style:{display:'none'}},
+                    title: `Battle Request`,  
+                    onCancel:()=>handleCancel(),  
                     okButtonProps:{disabled:true,style:{display:'none'}}                 
                     });   
             });
@@ -114,6 +119,7 @@ const MainLobby = (props: Props) => {
 
             props.networkInfo.socket!.on("challenge-request-declined",(serverMessage)=>{
                 waitingForResponseModal?.destroy();
+                challengeRecievedModal?.destroy(); //in case the issuing player cancels the challenge.
                 console.log(serverMessage);
                 message.warn(serverMessage);
             });

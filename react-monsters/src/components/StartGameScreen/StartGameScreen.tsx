@@ -7,13 +7,11 @@ import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import styled, { keyframes } from 'styled-components';
 import _ from 'lodash';
+import { useHistory } from 'react-router-dom';
 
 
 
 interface Props {
-    onStartClick: () => void;
-    onBattleSimClick: () => void;
-    onTestGameClick: () => void;
 }
 
 //Animation that is used with with the styled div below
@@ -44,6 +42,26 @@ const GetRandomPokemon = () => {
 
 const StartGameScreen: React.FunctionComponent<Props> = (props) => {
 
+    const history = useHistory();
+
+    
+  function handleHumanVsCPU() {
+    history.push('/battle');
+  }
+  function handleBattleSimClick(){
+    history.push('./battleSimulator')
+  }
+
+  function handleTestGameClick(){
+    history.push("./devtestbattle");
+  }
+
+
+  function handleConnectToServerClick(){
+      history.push("./networked-play");
+  }
+
+
     const [currentPokemon, setCurrentPokemon] = useState<string>(GetRandomPokemon());
 
     return (
@@ -53,15 +71,19 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
                 console.log("animation has ended");
                 setCurrentPokemon(GetRandomPokemon())
             }}><PokemonImage name={currentPokemon} type="front" /></ComeFromLeft></Card>
-            <Button block type="primary" onClick={() => props.onStartClick()} className="text-outline text-large">
+            <Button block type="primary" onClick={() => handleHumanVsCPU()} className="text-outline text-large">
                 Play vs Computer Opponent
             </Button>
-            <Button block type="primary" onClick={() => props.onBattleSimClick()} className="text-outline text-large">
+            <Button block type="primary" onClick={() => handleBattleSimClick} className="text-outline text-large">
                 AI vs AI Battle Simulator
             </Button>
-            <Button block type="primary" onClick={() => props.onTestGameClick()} className="text-outline text-large">
-                Developer Test Game
+            <Button block type="primary" onClick={() => handleConnectToServerClick()} className="text-outline text-large">
+                Connect to server.
             </Button>
+            {false &&<Button block type="primary" onClick={() => handleTestGameClick()} className="text-outline text-large">
+                Developer Test Game
+            </Button>}
+
         </div>
     )
 }

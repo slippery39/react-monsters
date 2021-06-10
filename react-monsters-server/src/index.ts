@@ -236,6 +236,18 @@ io.on("connection", (socket) => {
         socket.emit("join-game",updateStateArgs);
     }); 
 
+    //If the issuing player cancels the challenge.
+    socket.on("challenge-cancel",async()=>{
+        const challenge = FindChallenge(customSocket.username);
+        if (challenge === undefined) {
+            console.error(`Could not find challenge :(`);
+            return;
+        }
+        const player2Socket = await FindSocketByUserName(challenge.players[1]);
+        player2Socket?.emit("challenge-request-declined",`${customSocket.username} cancelled the challenge`);
+        RemoveChallenge(customSocket.username);
+    })
+
 
     socket.on("challenge-request-accept", async (options) => {
         //challenge has been accepted, remove the challenge and put them both into a game.
