@@ -145,7 +145,14 @@ export function GetDamageModifier(attackingPokemon: Pokemon, defendingPokemon: P
         }
     }
     function GetEffectiveness() {
-        return GetTypeMod(defendingPokemon.elementalTypes, techUsed.elementalType)
+
+        let typeMod = GetTypeMod(defendingPokemon.elementalTypes, techUsed.elementalType);
+
+        //Hacky solution to make seismic toss not show any super / not very effective messages.
+        if (techUsed.name.toLowerCase() === "seismic toss" && typeMod>0){
+            return 1;
+        }  
+        return typeMod;      
     }
 
 

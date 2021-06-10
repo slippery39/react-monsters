@@ -7,28 +7,36 @@ import React from "react";
 
 function initializeTestBattle() {
 
-    const zapdos = PokemonBuilder()
-        .GetPremadePokemon("Tentacruel")
+    const zapdosBuilder = PokemonBuilder()
+        .GetPremadePokemon("Zapdos")
+        .WithHeldItem("Choice Band")
         .WithTechniques([
-            "Toxic Spikes",]);
+            "Swords Dance",]);
 
+    const zapdos1 = zapdosBuilder.Build();
 
-    const zapdos1 = zapdos.Build();
+    zapdos1.techniques.forEach(tech=>{
+        tech.currentPP = 1;
+    })
 
-
-
+    const otherBuilder = PokemonBuilder()
+    .GetPremadePokemon("Dugtrio")
+    .WithTechniques([
+        "Swords Dance"
+    ])
+    
     //const dugtrio2 = dugtrioTest.Build();
 
     const player1 = new PlayerBuilder()
         .WithName("Shayne")
-        .WithPokemon("Zapdos")
+        .WithCustomPokemon(zapdos1)
         .WithPokemon("Lucario")
         .WithPokemon("Tentacruel")
         .Build();
 
     const player2 = new PlayerBuilder()
         .WithName("Bob")
-        .WithCustomPokemon(zapdos1)
+        .WithCustomPokemon(otherBuilder.Build())
         .Build();
 
     const battleService = new LocalBattleService(true);
