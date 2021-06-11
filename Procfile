@@ -1,1 +1,1 @@
-web: node ./react-monsters-server/build/react-monsters-server/index.js --prefix react-monsters-server
+web: npm run start --prefix react-monsters-server
