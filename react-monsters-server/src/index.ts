@@ -19,7 +19,7 @@ const io = new Server(server, {
         methods: ["GET", "POST"]
     }
 });
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
 app.use(cors());
 app.use(bodyParser.json());
