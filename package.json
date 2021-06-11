@@ -1,7 +1,7 @@
 {
-    "name": "foobar-app",
+    "name": "react-monsters-app",
     "version": "0.1.0",
     "scripts": {
-        "postinstall": "npm install --prefix react-monsters-server && npm install --prefix react-monsters"
+        "postinstall": "npm install --prefix react-monsters-server && npm install --prefix react-monsters && npm build --prefix react-monsters"
     }
 }
