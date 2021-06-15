@@ -1,6 +1,8 @@
 .player-profile-online{
-    color:green;
+    background-color: green;
+    color:white;
 }
 .player-profile-in-game{
-    color:darkorange;
+    background-color:darkorange;
+    color:white;
 }

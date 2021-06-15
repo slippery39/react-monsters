@@ -12,7 +12,6 @@ interface Props {
 const MainLobby = (props: Props) => {
     const [onlinePlayers, setOnlinePlayers] = useState<NetworkPlayerInfo[]>([]);
 
-
     const handleUsersChanged = (players: NetworkPlayerInfo[]) => {
         //TODO - 
         setOnlinePlayers(players);
@@ -145,11 +144,9 @@ const MainLobby = (props: Props) => {
         .filter(player => player.name !== props.networkInfo.currentPlayer)
         .map(player => <PlayerProfile onChallengeClick={onChallengeClick} player={createPlayerInfo(player)}></PlayerProfile>)
 
-
-
-
     return (<Card>
-        <div>Main Lobby</div>
+        <div><h1>Main Lobby</h1></div>
+        <div><h3>Welcome {props.networkInfo.currentPlayer}!</h3></div>
         <div>Players online: {onlinePlayers.length}</div>
         {otherPlayerList.length === 0 ? <div>No other players are online!</div> : otherPlayerList}
     </Card>)
