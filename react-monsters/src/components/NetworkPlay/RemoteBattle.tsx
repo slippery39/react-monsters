@@ -29,8 +29,7 @@ const RemoteBattle: React.FunctionComponent<Props> = (props) => {
     useEffect(() => {
             remoteBattleService.current = new RemoteBattleService(props.networkInfo);
             setForceUpdate(prev=>!prev);
-            
-            console.log(remoteBattleService.current);
+
     }, [props.networkInfo])
 
     const render = () => {

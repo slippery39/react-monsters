@@ -275,11 +275,8 @@ export class ToxicSpikes extends EntryHazard{
         }
 
         if (pokemon.elementalTypes.includes(ElementType.Poison)){     
-               //Destroy the toxic spikes           
-            
+               
                game.field.entryHazards = game.field.entryHazards?.filter(hazard => {
-                console.log("testing toxic spikes", hazard.player,hazard.type);
-                console.error(hazard.player?.id,pokemonOwner.id);
                 return (hazard.player && hazard.player.id===pokemonOwner.id) && (hazard.type !== EntryHazardType.ToxicSpikes)
             });
             game.AddMessage(`${pokemon.name} absorbed the toxic spikes on the field`);

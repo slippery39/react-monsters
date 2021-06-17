@@ -55,7 +55,6 @@ async function RunAIvsAIBattle(teamSize: number, pokemonPool: string[]): Promise
         new BasicAI(ai2, battleService);
 
         battleService.OnGameOver.on((args) => {
-            console.log("game is over");
             resolve(args);
         })
 
@@ -82,7 +81,7 @@ async function RunNBattles(numberOfBattles: number, teamSize: number, battleEnde
         battleEndedFunc(stats, matchResults);
     }
     //Saving this so we can use this later to check stats.
-    console.log(JSON.stringify(matchResults));
+
 }
 
 

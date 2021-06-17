@@ -208,13 +208,6 @@ class SereneGraceAbility extends AbstractAbility {
 
         let newTechnique = _.cloneDeep(technique);
 
-        /*
-        if (technique.name.toLowerCase() === 'headbutt'){
-        console.log("original technique",technique);
-        
-        }
-        */
-
         //Should have no effect for status type moves.
         if (!newTechnique.effects || newTechnique.damageType === DamageType.Status) {
             return newTechnique;
@@ -226,11 +219,6 @@ class SereneGraceAbility extends AbstractAbility {
             }
             effect.chance = effect.chance * 2;
         });
-        /*
-        if (technique.name.toLowerCase() === 'headbutt'){
-            console.log("Technique has been modified",newTechnique);
-        }
-        */
         return newTechnique;
     }
 }

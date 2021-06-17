@@ -568,7 +568,6 @@ export function DoEffect(game: IGame, pokemon: Pokemon, effect: BattleEffect, so
             if (source.sourcePokemon === undefined) {
                 throw new Error(`No source pokemon defined for DoEFfect - PlaceEntryHazard`);
             }
-            console.log(effect.target);
 
             const effectSource = game.GetPokemonOwner(source.sourcePokemon);
             

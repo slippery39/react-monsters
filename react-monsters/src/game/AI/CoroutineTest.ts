@@ -7,7 +7,6 @@ export default function waitForSeconds(seconds:number):Promise<void>{
 
 export async function waitForSecondsExample(): Promise<void>{
     for (var i=0;i<9999999;i++){
-        console.log("wooo",i);
         await waitForSeconds(1);
     }
 }

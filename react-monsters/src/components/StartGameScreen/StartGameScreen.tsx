@@ -68,7 +68,6 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
         <div className="start-screen-container">
             <Title>Pokemon Battle Simulator</Title>
             <Card style={{ overflow: "hidden" }}><ComeFromLeft onAnimationIteration={() => {
-                console.log("animation has ended");
                 setCurrentPokemon(GetRandomPokemon())
             }}><PokemonImage name={currentPokemon} type="front" /></ComeFromLeft></Card>
             <Button block type="primary" onClick={() => handleHumanVsCPU()} className="text-outline text-large">

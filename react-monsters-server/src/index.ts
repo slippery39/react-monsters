@@ -348,9 +348,26 @@ app.get("/getOnlineUsers", async (req, res) => {
     return res.json({ users: loggedInUsers })
 });
 
+
+function ValidateUserName(username:string):string{
+    if (username.length>10){
+        return "Your username has to be 10 characters or less";
+    }
+    if (!username.match("^[A-Za-z]+$")){
+        return "Your username must only contain letters";
+    }
+    return "success"
+}
+
 app.post('/login', async (req, res) => {
     var username = req.body.name as unknown as string;
     //fail
+
+    if (ValidateUserName(username) !=="success"){
+        return res.status(401).send({
+            message: ValidateUserName(username)
+        });
+    }
     if (loggedInUsers.find(user => user.name === username) !== undefined) {
         return res.status(401).send({
             message: 'Connection Failed - Username already connected!'

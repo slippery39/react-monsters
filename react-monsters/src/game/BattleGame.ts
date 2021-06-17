@@ -366,9 +366,7 @@ class BattleGame implements IGame {
                 b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon1), pokemon1);
             }
             catch {
-                console.log(this);
-                console.log(pokemon1);
-                console.log(b);
+                console.log(this,pokemon1,b);
                 throw Error(`error at force action pokemon 1.. trying to check what is causing it`);
             }
         });
@@ -377,9 +375,7 @@ class BattleGame implements IGame {
                 b.ForceAction(this, GetPokemonOwner(this.field.players, pokemon2), pokemon2);
             }
             catch {
-                console.log(this);
-                console.log(pokemon2);
-                console.log(b);
+                console.log(this,pokemon2,b);
                 throw Error(`error at force action pokemon 2.... trying to see what is causing it`);
             }
         });
@@ -738,11 +734,8 @@ class BattleGame implements IGame {
 
     UseTechnique(pokemon: Pokemon, defendingPokemon: Pokemon, technique: Technique) {
 
-
         if (technique.currentPP <= 0) {
-            console.log(this);
-            console.log(pokemon);
-            console.log(technique);
+            console.log(this,pokemon,technique);
             throw new Error(`pp is less than 0, we should not be using this technique... something is wrong`)
         }
 

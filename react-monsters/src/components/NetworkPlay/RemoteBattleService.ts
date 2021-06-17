@@ -42,7 +42,6 @@ export class RemoteBattleService implements BattleService {
         let socket = this.socket;
         //When we are rejoining a game that we disconnected from, this will be called.
         socket.on("join-game", (args: OnStateChangeArgs) => {
-            console.log("join-game recieved");
             this.OnStateChange.emit(args);
             this.savedState.field = args.newField;
         });
@@ -106,11 +105,7 @@ export class RemoteBattleService implements BattleService {
     async GetValidActions(playerId: number) {
 
         let url = new URL(this.URL + "/getvalidactions");
-
-
         url.searchParams.append("username", this.playerName);
-
-        console.log("URL WE ARE SENDNIG", url.toString());
         const validActions = await fetch(url.toString());
         const validActionsConverted = validActions.json() as unknown as BattleAction[];
         return validActionsConverted;

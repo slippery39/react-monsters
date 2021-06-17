@@ -280,13 +280,11 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             let eventHandler: GameEventHandler = battleService;
 
             eventHandler.OnGameStart.on(args => {
-                console.log("testing our on game start handler");
 
                 if (menuState === MenuState.ShowingTurn) {
                     return;
                 }
 
-                console.log("game is starting, here are the args",args);
                 dispatch({
                     type: 'state-change',
                     field: _.cloneDeep(args.field)
@@ -305,7 +303,6 @@ const Battle: React.FunctionComponent<Props> = (props) => {
             });
 
             eventHandler.OnStateChange.on((args: OnStateChangeArgs) => {
-                console.log("tesintg on on state change handler",args);
                 dispatch({
                     type: 'state-change',
                     field: _.cloneDeep(args.newField)

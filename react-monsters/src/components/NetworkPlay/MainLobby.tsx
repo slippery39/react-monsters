@@ -56,11 +56,9 @@ const MainLobby = (props: Props) => {
                 throw new Error(`something went wrong, socket is undefined`);
             }
 
-            console.log("Network Info in the Main Lobby",props.networkInfo)
 
             props.networkInfo.socket.on("match-begin",(info)=>{
                 message.info("Match is beginning");
-                console.log(info);
                 props.onGameStart(info);
             });     
 
@@ -144,7 +142,6 @@ const MainLobby = (props: Props) => {
             }
         }
 
-        console.log(onlinePlayers);
         const otherPlayerList = onlinePlayers
         .filter(player => player.name !== props.networkInfo.currentPlayer)
         .map(player => <PlayerProfile onChallengeClick={onChallengeClick} player={createPlayerInfo(player)}></PlayerProfile>)

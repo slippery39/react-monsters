@@ -125,7 +125,6 @@ class LocalBattleService implements BattleService {
 
     RegisterPlayer(player:Player){
         const updatedPlayerInfo = this._gameBuilder.AddPlayer(player);
-        console.log("register player testing, original player object vs updated player object", player === updatedPlayerInfo,player,updatedPlayerInfo);
         return updatedPlayerInfo;
     }
 
@@ -162,7 +161,6 @@ class LocalBattleService implements BattleService {
     }
     async SetPlayerAction(action: BattleAction) {
 
-        console.log("setting player action");
 
         if (this.gameEnded) {
             return false;
@@ -183,11 +181,9 @@ class LocalBattleService implements BattleService {
             if (validPokemon.includes(action.switchPokemonId)) {
               
                 this.SetSwitchFaintedPokemonAction(switchAction);
-                console.log("player switch action success!")
                 return true;
             }
             else {
-                console.log("player switch action failed");
                 return false;
             }
         }
