@@ -34,22 +34,14 @@ const NetworkPlayController = (props: Props) => {
 
 
     useEffect(()=>{
-
-        let mounted = true;
-
-        console.log("current network info",networkInfo.current)
-
         return function cleanup(){
 
             if (networkInfo.current.socket === undefined){
                 return;
             }
-
-            console.log("logging off",networkInfo.current);
-            networkInfo.current.socket?.emit("logoff");
+            networkInfo.current.socket.emit("logoff");
+            //eslint-disable-next-line
             networkInfo.current.socket.close();
-            
-
         }
     },[])
 

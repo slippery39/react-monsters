@@ -26,7 +26,6 @@ app.use(bodyParser.json());
 
 app.get("/", (req, res) => res.send(`Pokemon Battle Simulator Server`));
 app.get("/test", (req, res) => {
-    console.log("test recieved!");
     return res.send("Hello world!");
 });
 
@@ -218,7 +217,6 @@ io.on("connection", (socket) => {
             fn({success:false});
             return;
         }
-        console.log("action recieved", action);
         const success = await gameInfo.service?.SetPlayerAction(action);
         fn({ success: success });
     });
