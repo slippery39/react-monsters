@@ -55,6 +55,7 @@ const MainLobby = (props: Props) => {
                 console.error(`something went wrong, socket is undefined`);
                 throw new Error(`something went wrong, socket is undefined`);
             }
+     
 
 
             props.networkInfo.socket.on("match-begin",(info)=>{

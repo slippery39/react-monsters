@@ -54,25 +54,25 @@ function RemoveChallenge(username: string) {
     }));
 }
 
-async function DeclineChallenge(username:string,message?:string){
+async function DeclineChallenge(username: string, message?: string) {
     const challenge = FindChallenge(username);
     if (challenge === undefined) {
         console.error(`Could not find challenge :(`);
         return;
     }
-    const otherPlayer = challenge.players.find(p=>p!==username);
+    const otherPlayer = challenge.players.find(p => p !== username);
 
-    if (otherPlayer === undefined){
+    if (otherPlayer === undefined) {
         console.error("Could not find other player for challenge :(");
         return;
     }
     const otherPlayerSocket = await FindSocketByUserName(otherPlayer);
 
-    if (message === undefined){
+    if (message === undefined) {
         message = "Challenge has been declined"
     }
 
-    otherPlayerSocket?.emit("challenge-request-declined",message);
+    otherPlayerSocket?.emit("challenge-request-declined", message);
 }
 
 
@@ -84,14 +84,14 @@ interface GameInfo {
 
 let loggedInUsers: NetworkPlayerInfo[] = [];
 
-function FindLoggedInUser(username:string){
-    return loggedInUsers.find(user=>user.name===username);
+function FindLoggedInUser(username: string) {
+    return loggedInUsers.find(user => user.name === username);
 }
 
-let games: GameInfo[] = []; 
+let games: GameInfo[] = [];
 
-function RemoveGameByUserName(username:string){
-    _.remove(games,(gameInfo=>{
+function RemoveGameByUserName(username: string) {
+    _.remove(games, (gameInfo => {
         gameInfo.players.includes(username);
     }));
 }
@@ -134,8 +134,8 @@ function CreateGame(players: string[]) {
     return gameInfo;
 }
 
-function NotifyPlayerStatusChange(){
-    io.sockets.emit("users-changed", loggedInUsers); 
+function NotifyPlayerStatusChange() {
+    io.sockets.emit("users-changed", loggedInUsers);
 }
 
 async function FindSocketByUserName(username: string) {
@@ -147,10 +147,10 @@ async function FindSocketByUserName(username: string) {
     return socket;
 }
 
-const LogOff = (customSocket:CustomSocket)=>{
+const LogOff = (customSocket: CustomSocket) => {
     console.log(customSocket.username + " has disconnected");
     _.remove(loggedInUsers, (user) => user.name === customSocket.username);
-    DeclineChallenge(customSocket.username,"Challenge has been cancelled - other player has disconnected");
+    DeclineChallenge(customSocket.username, "Challenge has been cancelled - other player has disconnected");
     RemoveChallenge(customSocket.username);
     NotifyPlayerStatusChange();
 }
@@ -168,7 +168,7 @@ io.on("connection", (socket) => {
         LogOff(customSocket);
     });
 
-    socket.on("logoff",()=>{
+    socket.on("logoff", () => {
         LogOff(customSocket);
     });
 
@@ -192,12 +192,12 @@ io.on("connection", (socket) => {
             return;
         }
         if (FindChallenge(player1) !== undefined || IsInGame(player1)) {
-            player1Socket.emit("challenge-request-error",`You can only challenge one player at a time`);
+            player1Socket.emit("challenge-request-error", `You can only challenge one player at a time`);
             return;
         }
 
         if (FindChallenge(player2) !== undefined || IsInGame(player2)) {
-            
+
             player1Socket.emit("challenge-request-error", `${challengeOptions.player2} cannot be challenged at the moment!`)
             return;
         }
@@ -214,14 +214,14 @@ io.on("connection", (socket) => {
     socket.on("action", async (action, fn) => {
         const gameInfo = GetGameInfoForPlayer(customSocket.username);
         if (gameInfo === undefined) {
-            fn({success:false});
+            fn({ success: false });
             return;
         }
         const success = await gameInfo.service?.SetPlayerAction(action);
         fn({ success: success });
     });
 
-    socket.on("get-game-state",()=>{
+    socket.on("get-game-state", () => {
 
         const gameInfo = GetGameInfoForPlayer(customSocket.username);
         const battleService = gameInfo?.service;
@@ -235,18 +235,18 @@ io.on("connection", (socket) => {
             currentTurnState: battleService.GetBattle().currentState,
             actionsNeededIds: battleService.GetBattle().GetPlayerIdsThatNeedActions()
         }
-        socket.emit("join-game",updateStateArgs);
-    }); 
+        socket.emit("join-game", updateStateArgs);
+    });
 
     //If the issuing player cancels the challenge.
-    socket.on("challenge-cancel",async()=>{
+    socket.on("challenge-cancel", async () => {
         const challenge = FindChallenge(customSocket.username);
         if (challenge === undefined) {
             console.error(`Could not find challenge :(`);
             return;
         }
         const player2Socket = await FindSocketByUserName(challenge.players[1]);
-        player2Socket?.emit("challenge-request-declined",`${customSocket.username} cancelled the challenge`);
+        player2Socket?.emit("challenge-request-declined", `${customSocket.username} cancelled the challenge`);
         RemoveChallenge(customSocket.username);
     })
 
@@ -281,13 +281,13 @@ io.on("connection", (socket) => {
             myName: gameInfo.service.GetPlayers()[1].name
         });
 
-        let userInfo1 =  loggedInUsers.find(p=>p.name === challenge.players[0]);
-        if (userInfo1!==undefined){
+        let userInfo1 = loggedInUsers.find(p => p.name === challenge.players[0]);
+        if (userInfo1 !== undefined) {
             userInfo1.onlineStatus = NetworkPlayerStatus.InGame;
         }
 
-        let userInfo2 =  loggedInUsers.find(p=>p.name === challenge.players[1]);
-        if (userInfo2!==undefined){
+        let userInfo2 = loggedInUsers.find(p => p.name === challenge.players[1]);
+        if (userInfo2 !== undefined) {
             userInfo2.onlineStatus = NetworkPlayerStatus.InGame;
         }
 
@@ -307,7 +307,7 @@ io.on("connection", (socket) => {
 
             //remove the game..
             RemoveGameByUserName(challenge.players[0]);
-            
+
 
             player1Socket?.emit("gameover", args);
             player2Socket?.emit("gameover", args);
@@ -320,9 +320,9 @@ io.on("connection", (socket) => {
         });
     });
 
-    socket.on("leave-game",async()=>{
+    socket.on("leave-game", async () => {
         const player = FindLoggedInUser(customSocket.username);
-        if (player === undefined){
+        if (player === undefined) {
             return;
         }
         player.onlineStatus = NetworkPlayerStatus.Online;
@@ -349,11 +349,11 @@ app.get("/getOnlineUsers", async (req, res) => {
 });
 
 
-function ValidateUserName(username:string):string{
-    if (username.length>10){
+function ValidateUserName(username: string): string {
+    if (username.length > 10) {
         return "Your username has to be 10 characters or less";
     }
-    if (!username.match("^[A-Za-z]+$")){
+    if (!username.match("^[A-Za-z]+$")) {
         return "Your username must only contain letters";
     }
     return "success"
@@ -363,7 +363,7 @@ app.post('/login', async (req, res) => {
     var username = req.body.name as unknown as string;
     //fail
 
-    if (ValidateUserName(username) !=="success"){
+    if (ValidateUserName(username) !== "success") {
         return res.status(401).send({
             message: ValidateUserName(username)
         });
@@ -376,43 +376,43 @@ app.post('/login', async (req, res) => {
     else { //success
 
         let user: NetworkPlayerInfo = {
-            name:username,
-            onlineStatus:NetworkPlayerStatus.Online
+            name: username,
+            onlineStatus: NetworkPlayerStatus.Online
         }
- 
+
         //TODO : grab the game information as well        
         const game = GetGameInfoForPlayer(username);
-        let userInfo :{
-            isInGame:boolean,
-            inGameId:number
+        let userInfo: {
+            isInGame: boolean,
+            inGameId: number
         } = {
-            isInGame:false,
-            inGameId:-1
+            isInGame: false,
+            inGameId: -1
         };
-        if (game!== undefined){
+        if (game !== undefined) {
             const battleService = game.service;
             const updateStateArgs: OnStateChangeArgs = {
                 newField: battleService?.GetField(),
                 currentTurnState: battleService.GetBattle().currentState,
                 actionsNeededIds: battleService.GetBattle().GetPlayerIdsThatNeedActions()
             }
-            
+
             userInfo.isInGame = true;
 
-            const playerInGame = battleService.GetBattle().GetPlayers().find(p=>p.name===username);
-            if (playerInGame===undefined){
+            const playerInGame = battleService.GetBattle().GetPlayers().find(p => p.name === username);
+            if (playerInGame === undefined) {
                 userInfo.inGameId = -1;
-                console.error('Could not find player in game for some reason?',username);
+                console.error('Could not find player in game for some reason?', username);
             }
-            else{
+            else {
                 userInfo.inGameId = playerInGame.id;
                 user.onlineStatus = NetworkPlayerStatus.InGame
             }
         }
         loggedInUsers.push(user);
         NotifyPlayerStatusChange();
-        
-        return res.json({ status: "success", username: req.body.name, userInfo:userInfo });
+
+        return res.json({ status: "success", username: req.body.name, userInfo: userInfo });
     }
 });
 

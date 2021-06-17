@@ -1,3 +1,4 @@
+import { message } from "antd";
 import RemoteBattle from "components/NetworkPlay/RemoteBattle";
 import React, { useEffect, useRef, useState } from "react"
 import { Socket } from "socket.io-client";
@@ -60,6 +61,11 @@ const NetworkPlayController = (props: Props) => {
         else {
             setUiState("main-lobby");
         }
+         socket.on("disconnect",()=>{
+            message.error("You have disconnected from the server");
+            socket.off("disconnect");
+            setUiState("login-screen");            
+        });
     }
 
     const handleGameStart = (gameStartArgs: any) => {
