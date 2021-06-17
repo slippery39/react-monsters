@@ -148,6 +148,14 @@ async function FindSocketByUserName(username: string) {
     return socket;
 }
 
+const LogOff = (customSocket:CustomSocket)=>{
+    console.log(customSocket.username + " has disconnected");
+    _.remove(loggedInUsers, (user) => user.name === customSocket.username);
+    DeclineChallenge(customSocket.username,"Challenge has been cancelled - other player has disconnected");
+    RemoveChallenge(customSocket.username);
+    NotifyPlayerStatusChange();
+}
+
 io.on("connection", (socket) => {
 
     let customSocket = (socket as CustomSocket);
@@ -158,18 +166,14 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnecting", () => {
-        console.log(customSocket.username + " has disconnected");
-        _.remove(loggedInUsers, (user) => user.name === customSocket.username);
-        DeclineChallenge(customSocket.username,"Challenge has been cancelled - other player has disconnected");
-        RemoveChallenge(customSocket.username);
-        console.log("Challenge Length", challenges.length);
-        NotifyPlayerStatusChange();
+        LogOff(customSocket);
+    });
+
+    socket.on("logoff",()=>{
+        LogOff(customSocket);
     });
 
     socket.on("challenge-request", async (challengeOptions) => {
-        console.log(challengeOptions.player1);
-        console.log(challengeOptions.player2);
-
         const { player1, player2 } = challengeOptions;
 
         if (FindChallenge(player1) !== undefined || IsInGame(player1)) {

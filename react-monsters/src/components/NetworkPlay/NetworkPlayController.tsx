@@ -1,5 +1,5 @@
 import RemoteBattle from "components/NetworkPlay/RemoteBattle";
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Socket } from "socket.io-client";
 import ConnectToServer from "./ConnectToServerScreen";
 import MainLobby from "./MainLobby";
@@ -32,6 +32,27 @@ const NetworkPlayController = (props: Props) => {
         currentInGameId: -1
     });
 
+
+    useEffect(()=>{
+
+        let mounted = true;
+
+        console.log("current network info",networkInfo.current)
+
+        return function cleanup(){
+
+            if (networkInfo.current.socket === undefined){
+                return;
+            }
+
+            console.log("logging off",networkInfo.current);
+            networkInfo.current.socket?.emit("logoff");
+            networkInfo.current.socket.close();
+            
+
+        }
+    },[])
+
     const handleLogIn = (username: string, userInfo: LoggedInUserInfo) => {
         networkInfo.current.currentPlayer = username;
         const socket = networkInfo.current.socket;
@@ -53,6 +74,8 @@ const NetworkPlayController = (props: Props) => {
         networkInfo.current.currentInGameId = gameStartArgs.myId;
         setUiState("in-game");
     }
+
+
 
     const render = () => {
         switch (uiState) {

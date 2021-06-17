@@ -19,7 +19,6 @@ const MainLobby = (props: Props) => {
 
     const onChallengeClick = ((player: string) => {
         //TODO: do not handle is user clicked is the connected user.
-        console.log(player);
         props.networkInfo.socket!.emit("challenge-request", {
             player1: props.networkInfo.currentPlayer,
             player2: player
@@ -57,6 +56,8 @@ const MainLobby = (props: Props) => {
                 throw new Error(`something went wrong, socket is undefined`);
             }
 
+            console.log("Network Info in the Main Lobby",props.networkInfo)
+
             props.networkInfo.socket.on("match-begin",(info)=>{
                 message.info("Match is beginning");
                 console.log(info);
@@ -66,16 +67,13 @@ const MainLobby = (props: Props) => {
             let challengeRecievedModal:any | undefined = undefined;
 
             const handleAccept = ()=>{
-                console.log("trying to handle accept");
                 props.networkInfo.socket!.emit("challenge-request-accept");
-                console.log("player request recieved");
                 challengeRecievedModal?.destroy();
             }
 
             const handleDecline = ()=>{
                 props.networkInfo.socket!.emit("challenge-request-decline");
-                console.log("player request declined");
-                challengeRecievedModal?.destroy();
+                    challengeRecievedModal?.destroy();
             }
 
             const handleCancel = ()=>{
@@ -119,18 +117,25 @@ const MainLobby = (props: Props) => {
             props.networkInfo.socket!.on("challenge-request-declined",(serverMessage)=>{
                 waitingForResponseModal?.destroy();
                 challengeRecievedModal?.destroy(); //in case the issuing player cancels the challenge.
-                console.log(serverMessage);
                 message.warn(serverMessage);
             });
 
             props.networkInfo.socket!.on("challenge-request-error",(serverMessage)=>{
                 waitingForResponseModal?.destroy();
-                console.log("testing");
-                console.log(serverMessage);
                 message.warn(serverMessage);
             });
+
+
+            return function(){
+                props.networkInfo.socket?.off("challenge-request-error");
+                props.networkInfo.socket?.off("challenge-request-declined");
+                props.networkInfo.socket?.off("challenge-ready");
+                props.networkInfo.socket?.off("challenge-request-sent");
+                props.networkInfo.socket?.off("challenge-request-received");
+                props.networkInfo.socket?.off("match-begin");
+            }
             //eslint-disable-next-line
-        }, []);
+        }, [props.networkInfo.socket]);
 
         const createPlayerInfo = (player: NetworkPlayerInfo): NetworkPlayerInfo => {
             return {
