@@ -2,7 +2,7 @@ import { Button, Card, Form, Input, message } from "antd"
 import React, { useState } from "react"
 import { io } from "socket.io-client";
 import { LoggedInUserInfo, NetworkInfo } from "./NetworkPlayController";
-
+import "./ConnectToServer.css";
 interface Props {
     OnLogIn: (name:string,userInfo:LoggedInUserInfo)=>void
     networkInfo:NetworkInfo
@@ -18,6 +18,10 @@ const layout = {
     labelCol: { span: 8 },
     wrapperCol: { span: 16 },
 };
+
+const tailLayout = {
+    wrapperCol: { offset: 8, span: 16 },
+  };
 
 const ConnectToServer = (props: Props) => {
     const [form] = Form.useForm();
@@ -72,6 +76,7 @@ const ConnectToServer = (props: Props) => {
 
     return (<Card>
         <h1>Connect to a Server</h1>
+        <Card>
         <Form
             form={form}
             {...layout}
@@ -87,10 +92,11 @@ const ConnectToServer = (props: Props) => {
             onFinishFailed={onFinishFailed}
             requiredMark={false}
             initialValues={{ ipaddress: "https://react-monsters-server.herokuapp.com" }}>
-            <Form.Item label="Username" name="username" rules={[{ required: true, message: "Input their username" }]}><Input placeholder="Pick a username"></Input></Form.Item>
+            <Form.Item label="Username" name="username" rules={[{ required: true, message: "Input their username" }]}><Input placeholder="Pick a username" maxLength={10}></Input></Form.Item>
             <Form.Item label="Server Address" name="ipaddress" rules={[{ required: true, message: "Please input the server address" }]}><Input placeholder="Enter the server address"></Input></Form.Item>
-            <Form.Item><Button type="primary" disabled={isFetching} htmlType="submit" >Connect</Button></Form.Item>
+            <Form.Item {...tailLayout}><Button type="primary" disabled={isFetching} htmlType="submit" >Connect</Button></Form.Item>
         </Form>
+        </Card>
     </Card>)
 }
 

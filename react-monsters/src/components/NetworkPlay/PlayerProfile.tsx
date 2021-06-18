@@ -10,7 +10,7 @@ interface Props {
 
 
 const PlayerProfile = (props: Props) => {
-
+ 
     let onlineStatusClass = "";
 
     if (props.player.onlineStatus === NetworkPlayerStatus.Online){
