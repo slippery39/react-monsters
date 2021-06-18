@@ -25,7 +25,7 @@ const routing = (
         <Switch>
           <Route exact path="/" component={App} />
           <Route exact path="/battle" component={BattleSetupController} />
-          <Route exact path="/battleSimulator" component={BattleSimulatorMenu} />
+          <Route exact path="/battle-simulator" component={BattleSimulatorMenu} />
           <Route exact path="/devtestbattle" render={() => <DevTestBattle onEnd={()=>history.push("/")}/>} />
           <Route exact path="/networked-play" component={NetworkPlayController} />
         </Switch>

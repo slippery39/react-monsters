@@ -49,7 +49,7 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
     history.push('/battle');
   }
   function handleBattleSimClick(){
-    history.push('./battleSimulator')
+    history.push('./battle-simulator')
   }
 
   function handleTestGameClick(){
@@ -76,7 +76,7 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
             </Button>
             </div>
             <div>
-            <Button block type="primary" onClick={() => handleBattleSimClick} className="text-outline text-large">
+            <Button block type="primary" onClick={() => handleBattleSimClick()} className="text-outline text-large">
                 AI vs AI Battle Simulator
             </Button>
             </div>
