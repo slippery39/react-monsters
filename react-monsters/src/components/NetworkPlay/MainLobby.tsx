@@ -1,8 +1,12 @@
-import { Card, message, Modal } from "antd"
+import { Alert, Card, message, Modal } from "antd"
 import React, { useEffect, useState } from "react"
 import { NetworkInfo } from "./NetworkPlayController";
 import NetworkPlayerInfo from "../../game/NetworkPlay/NetworkPlayer";
 import PlayerProfile from "./PlayerProfile";
+import { Tabs } from 'antd';
+import TeamSelector from "components/TeamSelector/TeamSelector";
+
+const { TabPane } = Tabs;
 
 interface Props {
     networkInfo: NetworkInfo,
@@ -11,6 +15,7 @@ interface Props {
 
 const MainLobby = (props: Props) => {
     const [onlinePlayers, setOnlinePlayers] = useState<NetworkPlayerInfo[]>([]);
+    const [pokemonTeam,setPokemonTeam] = useState<string[]>([]);
 
     const handleUsersChanged = (players: NetworkPlayerInfo[]) => {
         //TODO - 
@@ -21,8 +26,11 @@ const MainLobby = (props: Props) => {
         //TODO: do not handle is user clicked is the connected user.
         props.networkInfo.socket!.emit("challenge-request", {
             player1: props.networkInfo.currentPlayer,
-            player2: player
+            player2: player,
+            player1Team:pokemonTeam
         })
+
+        console.log("challenge has been sent",pokemonTeam);
     })
 
     useEffect(() => {
@@ -66,7 +74,9 @@ const MainLobby = (props: Props) => {
             let challengeRecievedModal:any | undefined = undefined;
 
             const handleAccept = ()=>{
-                props.networkInfo.socket!.emit("challenge-request-accept");
+
+                console.log("handling challenge accept",pokemonTeam)
+                props.networkInfo.socket!.emit("challenge-request-accept",{player2Team:pokemonTeam});
                 challengeRecievedModal?.destroy();
             }
 
@@ -134,7 +144,7 @@ const MainLobby = (props: Props) => {
                 props.networkInfo.socket?.off("match-begin");
             }
             //eslint-disable-next-line
-        }, [props.networkInfo.socket]);
+        }, [props.networkInfo.socket,pokemonTeam]);
 
         const createPlayerInfo = (player: NetworkPlayerInfo): NetworkPlayerInfo => {
             return {
@@ -150,8 +160,16 @@ const MainLobby = (props: Props) => {
     return (<Card>
         <div><h1>Main Lobby</h1></div>
         <div><h3>Welcome {props.networkInfo.currentPlayer}!</h3></div>
+        <Tabs defaultActiveKey="1">
+            <TabPane tab="Main Lobby " key="1">
         <div>Players online: {onlinePlayers.length}</div>
         {otherPlayerList.length === 0 ? <div>No other players are online!</div> : otherPlayerList}
+        </TabPane>
+        <TabPane tab="Team Selection" key="2">
+            {pokemonTeam.length === 0 && <Alert type="warning" message="You do not have any pokemon selected. Your team will be chosen randomly instead"/>}
+            <TeamSelector onChange={(team)=>setPokemonTeam(team)} maxPokemon={6}></TeamSelector>
+            </TabPane>
+        </Tabs>
     </Card>)
 }
 

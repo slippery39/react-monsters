@@ -74,7 +74,6 @@ const NetworkPlayController = (props: Props) => {
     }
 
 
-
     const render = () => {
         switch (uiState) {
             case "login-screen": {

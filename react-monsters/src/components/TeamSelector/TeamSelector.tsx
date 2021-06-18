@@ -13,7 +13,10 @@ interface Props {
     amountNeededMessage?:string;
 }
 
-const TeamSelector = (props: Props) => {
+const TeamSelector = (propArgs: Props) => {
+    
+    const props = {...{defaultPokemon:[],...propArgs}}
+    
     const maxPokemon = props.maxPokemon
     const pokemon = GetAllPokemonInfo();
 
@@ -21,12 +24,9 @@ const TeamSelector = (props: Props) => {
     const [selectedTeam, setSelectedTeam] = useState<Array<string>>([]);
     const selectedTeamIcons = selectedTeam.map(p => (<div key={p} onClick={()=>{handleSelectedTeamIconClick(p)}} className='team-selector-icon'><PokemonImage type="small" name={p} /></div>));
 
+    
  
     useEffect(()=>{
-        if (props.defaultPokemon === undefined){
-            props.defaultPokemon = [];
-        }
-
         setSelectedTeam([...props.defaultPokemon]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     },[]);

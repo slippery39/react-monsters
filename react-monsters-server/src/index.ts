@@ -7,7 +7,8 @@ import { OnNewTurnLogArgs } from 'game/BattleGame';
 import http from "http";
 import { Server, Socket } from "socket.io";
 import bodyParser from 'body-parser';
-import NetworkInfo, { NetworkPlayerInfo, NetworkPlayerStatus } from "game/NetworkPlay/NetworkPlayer";
+import { NetworkPlayerInfo, NetworkPlayerStatus } from "game/NetworkPlay/NetworkPlayer";
+import { GetAllPokemonInfo } from 'game/Pokemon/PremadePokemon';
 
 
 
@@ -38,7 +39,8 @@ interface CustomSocket extends Socket {
 
 //We need to store who is currently challenging who
 interface ChallengeRequest {
-    players: string[]
+    players: string[],
+    teams:Array<string[]>
 }
 
 let challenges: ChallengeRequest[] = [];
@@ -108,21 +110,40 @@ function GetGameInfoForPlayer(username: string) {
     });
 }
 
-function CreateGame(players: string[]) {
+function CreateGame(challengeInfo:ChallengeRequest) {
 
-    const player1 = new PlayerBuilder()
-        .WithName(players[0])
-        .WithRandomPokemon(6)
-        .Build();
 
-    const player2 = new PlayerBuilder()
+    const {players,teams} = challengeInfo;
+
+    console.log(teams);
+
+    if (teams.length!==players.length){
+        console.error("ERROR: Invalid Game Settings");
+    }
+
+
+    let player1Builder = new PlayerBuilder().WithName(players[0]);
+    if (teams[0].length === 0){
+            player1Builder
+            .WithRandomPokemon(6)
+    }
+    else{
+        teams[0].forEach(name=>player1Builder.WithPokemon(name));
+    }
+
+    let player2Builder= new PlayerBuilder()
         .WithName(players[1])
-        .WithRandomPokemon(6)
-        .Build();
+    if (teams[1].length === 0){
+        player2Builder.WithRandomPokemon(6);
+    }
+    else{
+        teams[1].forEach(name=>player2Builder.WithPokemon(name));
+    }
+
 
     let battleService = new BattleService(true);
-    battleService.RegisterPlayer(player1);
-    battleService.RegisterPlayer(player2);
+    battleService.RegisterPlayer(player1Builder.Build());
+    battleService.RegisterPlayer(player2Builder.Build());
     battleService.Initialize();
 
     let gameInfo = {
@@ -173,7 +194,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("challenge-request", async (challengeOptions) => {
-        const { player1, player2 } = challengeOptions;
+        const { player1, player2, player1Team } = challengeOptions;
 
         if (FindChallenge(player1) !== undefined || IsInGame(player1)) {
             //should not be able to issue more than 1 challenge
@@ -204,7 +225,8 @@ io.on("connection", (socket) => {
 
         //this should be removed once the challenge is accepted.
         challenges.push({
-            players: [challengeOptions.player1, challengeOptions.player2]
+            players: [challengeOptions.player1, challengeOptions.player2],
+            teams:[player1Team]
         });
 
         player1Socket.emit("challenge-request-sent", challengeOptions);
@@ -251,14 +273,21 @@ io.on("connection", (socket) => {
     })
 
 
-    socket.on("challenge-request-accept", async (options) => {
+    socket.on("challenge-request-accept", async (options:{player2Team:string[]}) => {
+
+       
+
         //challenge has been accepted, remove the challenge and put them both into a game.
         const challenge = FindChallenge(customSocket.username);
+
+        
 
         if (challenge === undefined) {
             console.error(`Could not find challenge :(`);
             return;
         }
+
+        challenge.teams.push(options.player2Team)
 
         const player1Socket = await FindSocketByUserName(challenge.players[0]);
         const player2Socket = await FindSocketByUserName(challenge.players[1]);
@@ -268,7 +297,7 @@ io.on("connection", (socket) => {
 
         //emit a message to both players
         RemoveChallenge(customSocket.username);
-        const gameInfo = CreateGame(challenge.players);
+        const gameInfo = CreateGame(challenge);
         const battleService = gameInfo.service;
         player1Socket?.emit("match-begin", {
             players: gameInfo.players,
@@ -359,6 +388,16 @@ function ValidateUserName(username: string): string {
     return "success"
 }
 
+let playerTeams = new Map<string,string[]>();
+
+function SetRandomPlayerTeam(username:string){
+    if (playerTeams.get(username)!==undefined){
+        let randomTeam = _.shuffle(GetAllPokemonInfo());
+        randomTeam = _.take(randomTeam,6);
+        playerTeams.set(username, randomTeam.map(obj=>obj.species));
+    }    
+}
+
 app.post('/login', async (req, res) => {
     var username = req.body.name as unknown as string;
     //fail
@@ -391,12 +430,6 @@ app.post('/login', async (req, res) => {
         };
         if (game !== undefined) {
             const battleService = game.service;
-            const updateStateArgs: OnStateChangeArgs = {
-                newField: battleService?.GetField(),
-                currentTurnState: battleService.GetBattle().currentState,
-                actionsNeededIds: battleService.GetBattle().GetPlayerIdsThatNeedActions()
-            }
-
             userInfo.isInGame = true;
 
             const playerInGame = battleService.GetBattle().GetPlayers().find(p => p.name === username);
