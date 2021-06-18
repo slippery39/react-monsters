@@ -70,7 +70,7 @@ const TeamSelector = (propArgs: Props) => {
         }
 
         if (selectedTeam.length>=maxPokemon){
-            return "Party is full!"
+            return "(Party is full!)"
         }
         else{
             return "";
@@ -81,7 +81,7 @@ const TeamSelector = (propArgs: Props) => {
         <div>
             <div>Available Pokemon</div>
             <PartySelectionContainer>{pokemonIcons}</PartySelectionContainer>
-            <div style={{"marginTop":"10px"}}>Selected - {amountNeededMessage()}</div>
+            <div style={{"marginTop":"10px"}}>Selected  {amountNeededMessage()}</div>
             <PartySelectionContainer>{selectedTeamIcons}</PartySelectionContainer>
         </div>
     )
