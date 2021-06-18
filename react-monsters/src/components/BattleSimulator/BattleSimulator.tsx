@@ -2,7 +2,7 @@ import React from 'react';
 import RandomTeamsSimMenu from './RandomTeams/RandomTeams';
 import "./battlesim.css"
 import RoundRobinSim from './RoundRobin1v1/RoundRobin1v1';
-import { Tabs } from 'antd';
+import { Card, Tabs } from 'antd';
 import Title from 'components/_General/General';
 
 const { TabPane } = Tabs;
@@ -26,10 +26,12 @@ const BattleSimulatorMenu: React.FunctionComponent<Props> = () => {
     }
 
     return (
-        <div className="battle-simulator-menu">
-            <Title>AI Battle Simulator</Title>
-            {tabs()}
-        </div>
+        <Card>
+            <div className="battle-simulator-menu">
+                <Title>AI Battle Simulator</Title>
+                {tabs()}
+            </div>
+        </Card>
     );
 }
 

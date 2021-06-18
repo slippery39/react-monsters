@@ -65,6 +65,7 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
     const [currentPokemon, setCurrentPokemon] = useState<string>(GetRandomPokemon());
 
     return (
+        <Card>
         <div className="start-screen-container">
             <Title>Pokemon Battle Simulator</Title>
             <Card style={{ overflow: "hidden" }}><ComeFromLeft onAnimationIteration={() => {
@@ -89,8 +90,8 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
                 Developer Test Game
             </Button>}
             </Card>
-
         </div>
+        </Card>
     )
 }
 

@@ -3,6 +3,7 @@ import React, { useState } from "react"
 import { io } from "socket.io-client";
 import { LoggedInUserInfo, NetworkInfo } from "./NetworkPlayController";
 import "./ConnectToServer.css";
+import Title from "components/_General/General";
 interface Props {
     OnLogIn: (name:string,userInfo:LoggedInUserInfo)=>void
     networkInfo:NetworkInfo
@@ -75,7 +76,7 @@ const ConnectToServer = (props: Props) => {
         }
 
     return (<Card>
-        <h1>Connect to a Server</h1>
+        <Title>Connect to a Server</Title>
         <Card>
         <Form
             form={form}
@@ -97,7 +98,8 @@ const ConnectToServer = (props: Props) => {
             <Form.Item {...tailLayout}><Button type="primary" disabled={isFetching} htmlType="submit" >Connect</Button></Form.Item>
         </Form>
         </Card>
-    </Card>)
+        </Card>
+    )
 }
 
 

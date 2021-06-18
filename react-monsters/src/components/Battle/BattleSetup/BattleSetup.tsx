@@ -70,7 +70,7 @@ const BattleSetup: React.FunctionComponent<Props> = (props) => {
     
 
     return (
-        <div>
+        <Card>
             <Title>Battle Setup</Title>
             <Card>
                 <Space direction="vertical">
@@ -96,7 +96,7 @@ const BattleSetup: React.FunctionComponent<Props> = (props) => {
                 <TeamSelector defaultPokemon={tempTeam2Pokemon} onChange={(names) => setTempTeam2Pokemon(names)} maxPokemon={6} />
             </Modal>
             <Button size="large" onClick={handleStartClick} type="primary">Start Battle!</Button>
-        </div>
+        </Card>
     )
 }
 
