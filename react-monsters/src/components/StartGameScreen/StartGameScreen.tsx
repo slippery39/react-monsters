@@ -70,18 +70,25 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
             <Card style={{ overflow: "hidden" }}><ComeFromLeft onAnimationIteration={() => {
                 setCurrentPokemon(GetRandomPokemon())
             }}><PokemonImage name={currentPokemon} type="front" /></ComeFromLeft></Card>
+            <Card>            <div>
             <Button block type="primary" onClick={() => handleHumanVsCPU()} className="text-outline text-large">
                 Play vs Computer Opponent
             </Button>
+            </div>
+            <div>
             <Button block type="primary" onClick={() => handleBattleSimClick} className="text-outline text-large">
                 AI vs AI Battle Simulator
             </Button>
+            </div>
+            <div>
             <Button block type="primary" onClick={() => handleConnectToServerClick()} className="text-outline text-large">
                 Connect to server
             </Button>
+            </div>
             {false &&<Button block type="primary" onClick={() => handleTestGameClick()} className="text-outline text-large">
                 Developer Test Game
             </Button>}
+            </Card>
 
         </div>
     )

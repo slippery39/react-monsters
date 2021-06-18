@@ -8,3 +8,9 @@
 .start-screen-container .pokemon-sprite{
     width:175px;
 }
+
+.start-screen-container .ant-btn {
+    max-width: 500px;
+    min-height: 60px;
+    margin-bottom: 20px;
+}
