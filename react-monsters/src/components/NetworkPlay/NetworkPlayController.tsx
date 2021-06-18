@@ -34,17 +34,17 @@ const NetworkPlayController = (props: Props) => {
     });
 
 
-    useEffect(()=>{
-        return function cleanup(){
+    useEffect(() => {
+        return function cleanup() {
 
-            if (networkInfo.current.socket === undefined){
+            if (networkInfo.current.socket === undefined) {
                 return;
             }
             networkInfo.current.socket.emit("logoff");
             //eslint-disable-next-line
             networkInfo.current.socket.close();
         }
-    },[])
+    }, [])
 
     const handleLogIn = (username: string, userInfo: LoggedInUserInfo) => {
         networkInfo.current.currentPlayer = username;
@@ -61,10 +61,10 @@ const NetworkPlayController = (props: Props) => {
         else {
             setUiState("main-lobby");
         }
-         socket.on("disconnect",()=>{
+        socket.on("disconnect", () => {
             message.error("You have disconnected from the server");
             socket.off("disconnect");
-            setUiState("login-screen");            
+            setUiState("login-screen");
         });
     }
 
@@ -83,7 +83,7 @@ const NetworkPlayController = (props: Props) => {
                 return <MainLobby onGameStart={(info) => handleGameStart(info)} networkInfo={networkInfo.current} />
             }
             case "in-game": {
-                return <RemoteBattle onGameEnd={()=>setUiState("main-lobby")} networkInfo={networkInfo.current} />
+                return <RemoteBattle onGameEnd={() => setUiState("main-lobby")} networkInfo={networkInfo.current} />
             }
             default: {
                 return <div> Error, no ui state found for network play! </div>

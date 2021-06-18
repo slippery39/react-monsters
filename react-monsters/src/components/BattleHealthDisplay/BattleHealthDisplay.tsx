@@ -8,19 +8,12 @@ import { Pokemon } from 'game/Pokemon/Pokemon';
 
 interface Props {
     pokemon: Pokemon
-    onHealthAnimateComplete?: ()=>void
+    onHealthAnimateComplete?: () => void
 }
-
-//HP <HealthBar value={(props.pokemon.currentStats.health / props.pokemon.originalStats.health) * 100} />
 
 const BattleHealthDisplay: React.FunctionComponent<Props> = (props) => {
 
-
-
-
-//need a ref to 
-
-   return (
+    return (
         <div className='battle-health-container'>
             <div className='battle-name-and-status-container'>
                 <div className='battle-health-name'>
@@ -32,10 +25,10 @@ const BattleHealthDisplay: React.FunctionComponent<Props> = (props) => {
                 }
             </div>
             <div className='battle-health-bar'>
-                <AnimatedHealthBar animate={false} value={ (props.pokemon.currentStats.hp/props.pokemon.originalStats.hp) * 100} onComplete={()=>{ if(props.onHealthAnimateComplete){props.onHealthAnimateComplete()} } } />
+                <AnimatedHealthBar animate={false} value={(props.pokemon.currentStats.hp / props.pokemon.originalStats.hp) * 100} onComplete={() => { if (props.onHealthAnimateComplete) { props.onHealthAnimateComplete() } }} />
             </div>
             <div className='battle-health-text'>
-                <AnimatedNumber animate={false} number={props.pokemon.currentStats.hp}/> / {props.pokemon.originalStats.hp}
+                <AnimatedNumber animate={false} number={props.pokemon.currentStats.hp} /> / {props.pokemon.originalStats.hp}
             </div>
         </div>
     );

@@ -6,26 +6,26 @@ interface Props {
     message?: String,
     writeTimeMilliseconds?: number,
     finishDelayTime?: number,
-    animated?:Boolean,
+    animated?: Boolean,
     onFinish?(): any,
-    messageRef?:(el:any)=>void
+    messageRef?: (el: any) => void
 }
 
 //this default parameters thing is annoying
-const Message: React.FC<Props> = ({ message = '', animated= true, writeTimeMilliseconds = 1000, finishDelayTime = 1000, onFinish = () => { },messageRef=(el)=>{} }: Props,) => {
+const Message: React.FC<Props> = ({ message = '', animated = true, writeTimeMilliseconds = 1000, finishDelayTime = 1000, onFinish = () => { }, messageRef = (el) => { } }: Props,) => {
 
     //instantly show the message if the writeTime is set to 0
     const [currentTextIndex, setCurrentTextIndex] = useState(writeTimeMilliseconds === 0 || animated === false ? message.length : 0);
 
     const [hasFinished, setHasFinished] = useState(false);
 
-    useEffect(()=>{
+    useEffect(() => {
         setCurrentTextIndex(0)
-    },[message]);
+    }, [message]);
     /*eslint-disable*/
     useEffect(function () {
 
-        if (animated === false){
+        if (animated === false) {
             return;
         }
 
@@ -43,7 +43,7 @@ const Message: React.FC<Props> = ({ message = '', animated= true, writeTimeMilli
             }
         }, writeTimeMilliseconds / message.length);
         return () => clearInterval(interval);
-    }, [animated,currentTextIndex, writeTimeMilliseconds, message, onFinish, finishDelayTime, hasFinished]);
+    }, [animated, currentTextIndex, writeTimeMilliseconds, message, onFinish, finishDelayTime, hasFinished]);
     /*eslintenable*/
 
 

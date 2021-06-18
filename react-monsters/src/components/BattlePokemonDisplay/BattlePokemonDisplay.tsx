@@ -14,7 +14,7 @@ interface Props {
     pokemon: Pokemon,
     onHealthAnimateComplete?: () => void,
     imageRef: (el: any) => void,
-    potionRef:(el:any) => void
+    potionRef: (el: any) => void
 }
 
 const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
@@ -39,13 +39,13 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
         styles.top = "100px";
     }
 
-    const pokemonImage = (pokemon:Pokemon,type:"small" | "back" | "front")=>{
-        const image = props.pokemon.hasSubstitute? <img alt="substitute" src='./images/misc/substitute_back.png'/> : <PokemonImage type={type} name={props.pokemon.name} /> 
-        
-        if ([FieldPosition.BelowGround,FieldPosition.InAir].includes(pokemon.fieldPosition)){
+    const pokemonImage = (pokemon: Pokemon, type: "small" | "back" | "front") => {
+        const image = props.pokemon.hasSubstitute ? <img alt="substitute" src='./images/misc/substitute_back.png' /> : <PokemonImage type={type} name={props.pokemon.name} />
+
+        if ([FieldPosition.BelowGround, FieldPosition.InAir].includes(pokemon.fieldPosition)) {
             return (<></>)
         }
-        else{
+        else {
             return image;
         }
     }
@@ -54,7 +54,7 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
     const allyDisplay = (<div className="ally-display" style={{ position: "relative" }}>
         <div ref={props.imageRef} style={styles}>
             <div ref={props.potionRef} className="potion-healing">+++</div>
-            {pokemonImage(props.pokemon,"back")}
+            {pokemonImage(props.pokemon, "back")}
         </div>
         <div className="pokemon-health-display" style={{ left: "20px", position: 'absolute', top: "70px" }}>
             <BattleHealthDisplay onHealthAnimateComplete={() => { if (props.onHealthAnimateComplete) { props.onHealthAnimateComplete() } }} pokemon={props.pokemon} />
@@ -65,9 +65,9 @@ const BattlePokemonDisplay: React.FunctionComponent<Props> = (props) => {
         <div style={{ position: "absolute", left: "220px", top: "20px" }}>
             <BattleHealthDisplay onHealthAnimateComplete={() => { if (props.onHealthAnimateComplete) { props.onHealthAnimateComplete() } }} pokemon={props.pokemon} />
         </div>
-        <div  ref={props.imageRef} style={styles}>
+        <div ref={props.imageRef} style={styles}>
             <div ref={props.potionRef} className="potion-healing">+++</div>
-            {pokemonImage(props.pokemon,"front")}
+            {pokemonImage(props.pokemon, "front")}
         </div>
     </div>)
 

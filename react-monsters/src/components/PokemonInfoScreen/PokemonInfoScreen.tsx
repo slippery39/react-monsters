@@ -10,7 +10,7 @@ import "./PokemonInfoScreen.css"
 
 interface Props {
     pokemon: Pokemon,
-    onExitClick?:()=>void;
+    onExitClick?: () => void;
 }
 
 const PokemonInfo: React.FunctionComponent<Props> = (props) => {
@@ -98,8 +98,8 @@ const PokemonInfo: React.FunctionComponent<Props> = (props) => {
         return currentTab === name ? "selected-tab" : ""
     }
 
-    function triggerExitClick(){
-        if (props.onExitClick){
+    function triggerExitClick() {
+        if (props.onExitClick) {
             props.onExitClick();
         }
     }

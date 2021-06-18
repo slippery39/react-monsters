@@ -1,4 +1,4 @@
-import { Button,InputNumber, message } from 'antd';
+import { Button, InputNumber, message } from 'antd';
 import PokemonImage from 'components/PokemonImage/PokemonImage';
 import BasicAI from 'game/AI/AI';
 import { OnGameOverArgs } from 'game/BattleGame';

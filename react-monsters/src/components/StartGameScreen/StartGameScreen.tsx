@@ -44,53 +44,53 @@ const StartGameScreen: React.FunctionComponent<Props> = (props) => {
 
     const history = useHistory();
 
-    
-  function handleHumanVsCPU() {
-    history.push('/battle');
-  }
-  function handleBattleSimClick(){
-    history.push('./battle-simulator')
-  }
 
-  function handleTestGameClick(){
-    history.push("./devtestbattle");
-  }
+    function handleHumanVsCPU() {
+        history.push('/battle');
+    }
+    function handleBattleSimClick() {
+        history.push('./battle-simulator')
+    }
+
+    function handleTestGameClick() {
+        history.push("./devtestbattle");
+    }
 
 
-  function handleConnectToServerClick(){
-      history.push("./networked-play");
-  }
+    function handleConnectToServerClick() {
+        history.push("./networked-play");
+    }
 
 
     const [currentPokemon, setCurrentPokemon] = useState<string>(GetRandomPokemon());
 
     return (
         <Card>
-        <div className="start-screen-container">
-            <Title>Pokemon Battle Simulator</Title>
-            <Card style={{ overflow: "hidden" }}><ComeFromLeft onAnimationIteration={() => {
-                setCurrentPokemon(GetRandomPokemon())
-            }}><PokemonImage name={currentPokemon} type="front" /></ComeFromLeft></Card>
-            <Card>            <div>
-            <Button block type="primary" onClick={() => handleHumanVsCPU()} className="text-outline text-large">
-                Play vs Computer Opponent
-            </Button>
+            <div className="start-screen-container">
+                <Title>Pokemon Battle Simulator</Title>
+                <Card style={{ overflow: "hidden" }}><ComeFromLeft onAnimationIteration={() => {
+                    setCurrentPokemon(GetRandomPokemon())
+                }}><PokemonImage name={currentPokemon} type="front" /></ComeFromLeft></Card>
+                <Card>            <div>
+                    <Button block type="primary" onClick={() => handleHumanVsCPU()} className="text-outline text-large">
+                        Play vs Computer Opponent
+                    </Button>
+                </div>
+                    <div>
+                        <Button block type="primary" onClick={() => handleBattleSimClick()} className="text-outline text-large">
+                            AI vs AI Battle Simulator
+                        </Button>
+                    </div>
+                    <div>
+                        <Button block type="primary" onClick={() => handleConnectToServerClick()} className="text-outline text-large">
+                            Connect to server
+                        </Button>
+                    </div>
+                    {false && <Button block type="primary" onClick={() => handleTestGameClick()} className="text-outline text-large">
+                        Developer Test Game
+                    </Button>}
+                </Card>
             </div>
-            <div>
-            <Button block type="primary" onClick={() => handleBattleSimClick()} className="text-outline text-large">
-                AI vs AI Battle Simulator
-            </Button>
-            </div>
-            <div>
-            <Button block type="primary" onClick={() => handleConnectToServerClick()} className="text-outline text-large">
-                Connect to server
-            </Button>
-            </div>
-            {false &&<Button block type="primary" onClick={() => handleTestGameClick()} className="text-outline text-large">
-                Developer Test Game
-            </Button>}
-            </Card>
-        </div>
         </Card>
     )
 }

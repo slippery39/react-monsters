@@ -1,4 +1,4 @@
-import { Button, Card, Modal,  Space, message, Radio } from "antd"
+import { Button, Card, Modal, Space, message, Radio } from "antd"
 import PokemonImage from "components/PokemonImage/PokemonImage";
 import TeamSelector from "components/TeamSelector/TeamSelector"
 import Title, { PartySelectionContainer } from "components/_General/General";
@@ -56,8 +56,8 @@ const BattleSetup: React.FunctionComponent<Props> = (props) => {
         });
     }
 
-    const selectRandomTeam = (func:(a:any)=>any)=>{
-        const randomTeam = GetMultipleRandomPokemon(6).map(poke=>poke.name);
+    const selectRandomTeam = (func: (a: any) => any) => {
+        const randomTeam = GetMultipleRandomPokemon(6).map(poke => poke.name);
         func(randomTeam);
     }
 
@@ -67,7 +67,7 @@ const BattleSetup: React.FunctionComponent<Props> = (props) => {
             <Radio.Button value="computer">Computer Player</Radio.Button>
         </Radio.Group>)
 
-    
+
 
     return (
         <Card>
@@ -78,14 +78,14 @@ const BattleSetup: React.FunctionComponent<Props> = (props) => {
 
 
                     <div><Space>{team1PlayerTypeUI}</Space></div>
-                    <div><Space><Button onClick={() => { setTempTeam1Pokemon(team1Pokemon); setModalState("human") }}>Select Team</Button><Button type="primary" onClick={()=>selectRandomTeam(setTeam1Pokemon)}>Randomize</Button></Space></div>
+                    <div><Space><Button onClick={() => { setTempTeam1Pokemon(team1Pokemon); setModalState("human") }}>Select Team</Button><Button type="primary" onClick={() => selectRandomTeam(setTeam1Pokemon)}>Randomize</Button></Space></div>
                     <PartySelectionContainer>{team1Pokemon.map(name => <PokemonImage key={name} type="small" name={name} />)}</PartySelectionContainer>
                 </Space>
             </Card>
             <Card>
                 <Space direction="vertical">
                     <div>Team 2 </div>
-                    <div><Space><Button onClick={() => { setTempTeam2Pokemon(team2Pokemon); setModalState("cpu") }}>Select Team</Button><Button type="primary" onClick={()=>selectRandomTeam(setTeam2Pokemon)}>Randomize</Button></Space></div>
+                    <div><Space><Button onClick={() => { setTempTeam2Pokemon(team2Pokemon); setModalState("cpu") }}>Select Team</Button><Button type="primary" onClick={() => selectRandomTeam(setTeam2Pokemon)}>Randomize</Button></Space></div>
                     <PartySelectionContainer>{team2Pokemon.map(name => <PokemonImage key={name} type="small" name={name} />)}</PartySelectionContainer>
                 </Space>
             </Card>

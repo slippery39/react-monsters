@@ -18,7 +18,7 @@ export class RemoteBattleService implements BattleService {
     OnGameOver = new TypedEvent<OnGameOverArgs>();
     OnGameStart = new TypedEvent<OnGameStartArgs>();
 
- 
+
     //Temp Saved State
     private savedState: { field: Field } = {
         field: {
@@ -55,7 +55,7 @@ export class RemoteBattleService implements BattleService {
         });
         socket.on("gameover", (args: OnGameOverArgs) => {
             this.OnGameOver.emit(args);
-        });       
+        });
         socket.emit("game-ready"); //Only happens initially, perhaps we should do something different instead?
         socket.emit("get-game-state"); //grabs the game state. maybe should be an API call instead.
     }
@@ -67,7 +67,7 @@ export class RemoteBattleService implements BattleService {
 
     //Don't need to use this yet, players will be registered on the backend for now.
     RegisterPlayer(player: Player) {
-        return player;        
+        return player;
     }
 
     GetPlayers() {

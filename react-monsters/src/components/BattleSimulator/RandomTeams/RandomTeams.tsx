@@ -80,8 +80,6 @@ async function RunNBattles(numberOfBattles: number, teamSize: number, battleEnde
 
         battleEndedFunc(stats, matchResults);
     }
-    //Saving this so we can use this later to check stats.
-
 }
 
 
@@ -155,12 +153,10 @@ function GetPokemonOpponentTeamRates(pokeName: Array<string>, results: MatchResu
 
     const names = pokeName.map(name => name.toLowerCase());
 
-    //Should be the inverse of the ally team rates?
     results.forEach(result => {
         if (hasAll(result.winningPokemon.map(p => p.toLowerCase()), names)) {
             //take the result that has the pokemon on their team.
             UpdateAllyLossStats(stats, result.losingPokemon);
-            //stuff
         }
         if (hasAll(result.losingPokemon.map(p => p.toLowerCase()), names)) {
             UpdateAllyWinStats(stats, result.winningPokemon);
@@ -198,9 +194,9 @@ const RandomTeamsSimMenu: React.FunctionComponent<Props> = () => {
 
     const startButton = (<Button disabled={isSimming} type="primary" onClick={async () => {
 
-        if (currentPool.length<=teamSize){
-                message.error("The pokemon pool you choose from must be larger than the team sizes");
-                return;
+        if (currentPool.length <= teamSize) {
+            message.error("The pokemon pool you choose from must be larger than the team sizes");
+            return;
         }
 
         setIsSimming(true);

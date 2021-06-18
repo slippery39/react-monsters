@@ -4,33 +4,33 @@ import React from "react"
 import "./PlayerProfile.css";
 
 interface Props {
-    player:NetworkPlayerInfo,
-    onChallengeClick:(player:string)=>void
+    player: NetworkPlayerInfo,
+    onChallengeClick: (player: string) => void
 }
 
 
 const PlayerProfile = (props: Props) => {
- 
+
     let onlineStatusClass = "";
 
-    if (props.player.onlineStatus === NetworkPlayerStatus.Online){
+    if (props.player.onlineStatus === NetworkPlayerStatus.Online) {
         onlineStatusClass = "player-profile-online";
     }
-    if (props.player.onlineStatus === NetworkPlayerStatus.InGame){
+    if (props.player.onlineStatus === NetworkPlayerStatus.InGame) {
         onlineStatusClass = "player-profile-in-game";
     }
 
-    const getOnlineStatusText = (status:NetworkPlayerStatus)=>{
-        let statusMap  = new Map<NetworkPlayerStatus,string>();
+    const getOnlineStatusText = (status: NetworkPlayerStatus) => {
+        let statusMap = new Map<NetworkPlayerStatus, string>();
 
-        statusMap.set(NetworkPlayerStatus.Online,"Online");
-        statusMap.set(NetworkPlayerStatus.InGame,"In Game");
-        statusMap.set(NetworkPlayerStatus.Offline,"Offline");
+        statusMap.set(NetworkPlayerStatus.Online, "Online");
+        statusMap.set(NetworkPlayerStatus.InGame, "In Game");
+        statusMap.set(NetworkPlayerStatus.Offline, "Offline");
 
-        if (statusMap.has(status)){
+        if (statusMap.has(status)) {
             return statusMap.get(status);
         }
-        else{
+        else {
             return "Invalid Status";
         }
 
@@ -39,8 +39,8 @@ const PlayerProfile = (props: Props) => {
     return (<Card>
         <div>{props.player.name}</div>
         <div className={onlineStatusClass}>{getOnlineStatusText(props.player.onlineStatus)}</div>
-        {props.player.onlineStatus!== NetworkPlayerStatus.InGame &&<div><Button onClick={()=>props.onChallengeClick(props.player.name)}>Challenge!</Button></div>
-    }    </Card>)
+        {props.player.onlineStatus !== NetworkPlayerStatus.InGame && <div><Button onClick={() => props.onChallengeClick(props.player.name)}>Challenge!</Button></div>
+        }    </Card>)
 }
 
 

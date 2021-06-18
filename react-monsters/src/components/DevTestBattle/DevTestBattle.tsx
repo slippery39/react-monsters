@@ -15,17 +15,15 @@ function initializeTestBattle() {
 
     const zapdos1 = zapdosBuilder.Build();
 
-    zapdos1.techniques.forEach(tech=>{
+    zapdos1.techniques.forEach(tech => {
         tech.currentPP = 1;
     })
 
     const otherBuilder = PokemonBuilder()
-    .GetPremadePokemon("Dugtrio")
-    .WithTechniques([
-        "Swords Dance"
-    ])
-    
-    //const dugtrio2 = dugtrioTest.Build();
+        .GetPremadePokemon("Dugtrio")
+        .WithTechniques([
+            "Swords Dance"
+        ])
 
     const player1 = new PlayerBuilder()
         .WithName("Shayne")

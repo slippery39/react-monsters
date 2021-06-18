@@ -4,12 +4,12 @@ import React from "react"
 
 const { Panel } = Collapse;
 
-interface Props{
-    onChange:(pool:string[])=>void
-    defaultPokemon:string[],
+interface Props {
+    onChange: (pool: string[]) => void
+    defaultPokemon: string[],
 }
 
-const PokemonPoolSelector: React.FunctionComponent<Props> =  (props) => {
+const PokemonPoolSelector: React.FunctionComponent<Props> = (props) => {
     return (
         <Card>
             <Collapse defaultActiveKey={'1'}>

@@ -6,8 +6,7 @@ function App() {
 
   return (
     <div className='app-window'>
-       <StartGameScreen 
-          />
+      <StartGameScreen />
     </div>
   )
 }

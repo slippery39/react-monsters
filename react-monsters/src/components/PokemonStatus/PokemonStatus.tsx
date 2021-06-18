@@ -4,72 +4,72 @@ import './PokemonStatus.css'
 
 
 interface Props {
-    status : Status
+    status: Status
 }
 
-function GetStatusClass(status:Status){
-    switch(status){
-        case Status.Burned:{
+function GetStatusClass(status: Status) {
+    switch (status) {
+        case Status.Burned: {
             return 'status-burned'
         }
-        case Status.Frozen:{
+        case Status.Frozen: {
             return 'status-frozen'
         }
-        case Status.Paralyzed:{
+        case Status.Paralyzed: {
             return 'status-paralyze'
         }
-        case Status.Poison:{
+        case Status.Poison: {
             return 'status-poison'
         }
-        case Status.ToxicPoison:{
+        case Status.ToxicPoison: {
             return 'status-poison'
         }
-        case Status.Sleep:{
+        case Status.Sleep: {
             return 'status-sleep'
-        }    
-        default:{
+        }
+        default: {
             return ''
-        }    
+        }
     }
 }
 
-function GetStatusAbbreivation(status:Status){
-    switch(status){
-        case Status.Burned:{
+function GetStatusAbbreivation(status: Status) {
+    switch (status) {
+        case Status.Burned: {
             return 'BRN'
         }
-        case Status.Frozen:{
+        case Status.Frozen: {
             return 'FRZ'
         }
-        case Status.Paralyzed:{
+        case Status.Paralyzed: {
             return 'PAR'
         }
-        case Status.Poison:{
+        case Status.Poison: {
             return 'PSN'
         }
-        case Status.Sleep:{
+        case Status.Sleep: {
             return 'SLP'
         }
-        case Status.ToxicPoison:{
+        case Status.ToxicPoison: {
             return 'PSN'
         }
-        case Status.Resting:{
+        case Status.Resting: {
             return 'SLP'
         }
-        case Status.None:{
+        case Status.None: {
             return ''
         }
-        default:{
+        default: {
             return 'ERROR'
         }
     }
 }
 
 const PokemonStatus: React.FunctionComponent<Props> = (props) => {
-     return (
-            <div className ={'battle-status status-icon ' + GetStatusClass(props.status)}>
-                {GetStatusAbbreivation(props.status)}
-            </div>  
+    return (
+        <div className={'battle-status status-icon ' + GetStatusClass(props.status)}>
+            {GetStatusAbbreivation(props.status)}
+        </div>
     );
 }
 

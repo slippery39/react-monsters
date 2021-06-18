@@ -10,12 +10,12 @@ const { TabPane } = Tabs;
 
 interface Props {
     networkInfo: NetworkInfo,
-    onGameStart:(info:any)=>void;
+    onGameStart: (info: any) => void;
 }
 
 const MainLobby = (props: Props) => {
     const [onlinePlayers, setOnlinePlayers] = useState<NetworkPlayerInfo[]>([]);
-    const [pokemonTeam,setPokemonTeam] = useState<string[]>([]);
+    const [pokemonTeam, setPokemonTeam] = useState<string[]>([]);
 
     const handleUsersChanged = (players: NetworkPlayerInfo[]) => {
         //TODO - 
@@ -27,10 +27,10 @@ const MainLobby = (props: Props) => {
         props.networkInfo.socket!.emit("challenge-request", {
             player1: props.networkInfo.currentPlayer,
             player2: player,
-            player1Team:pokemonTeam
+            player1Team: pokemonTeam
         })
 
-        console.log("challenge has been sent",pokemonTeam);
+        console.log("challenge has been sent", pokemonTeam);
     })
 
     useEffect(() => {
@@ -43,117 +43,116 @@ const MainLobby = (props: Props) => {
 
             setOnlinePlayers(resJSON.users);
         }
-            )();
+        )();
 
-            if (props.networkInfo.socket === undefined){
-                throw new Error(`socket was undefined`);
-            }
-
-            props.networkInfo.socket.on("users-changed", handleUsersChanged);
-
-            return () => {
-                props.networkInfo.socket?.off("users-changed", handleUsersChanged);
-            }
-
-        }, [props.networkInfo.serverAddress,props.networkInfo.socket]);
-
-        useEffect(() => {
-
-            if (props.networkInfo.socket === undefined){
-                console.error(`something went wrong, socket is undefined`);
-                throw new Error(`something went wrong, socket is undefined`);
-            }
-     
-
-
-            props.networkInfo.socket.on("match-begin",(info)=>{
-                message.info("Match is beginning");
-                props.onGameStart(info);
-            });     
-
-            let challengeRecievedModal:any | undefined = undefined;
-
-            const handleAccept = ()=>{
-
-                console.log("handling challenge accept",pokemonTeam)
-                props.networkInfo.socket!.emit("challenge-request-accept",{player2Team:pokemonTeam});
-                challengeRecievedModal?.destroy();
-            }
-
-            const handleDecline = ()=>{
-                props.networkInfo.socket!.emit("challenge-request-decline");
-                    challengeRecievedModal?.destroy();
-            }
-
-            const handleCancel = ()=>{
-                props.networkInfo.socket!.emit("challenge-cancel")
-                waitingForResponseModal?.destroy();
-            }
-
-            props.networkInfo.socket!.on("challenge-request-received", (options: { player1: string, player2: string }) => {
-   
-                challengeRecievedModal = Modal.confirm({
-                    content: `${options.player1} has challenged you to a battle`,
-                    title: `Battle Request`,
-                    okText: 'Accept',
-                    onOk:()=>handleAccept(),
-                    cancelText: 'Decline',
-                    onCancel:()=>handleDecline()
-                }
-                );                
-               
-                //close if the challenge is void        
-                // message.info(`${options.player1} has challenged you to a battle!`)
-            });
-
-
-            let waitingForResponseModal:any |undefined;
-            props.networkInfo.socket!.on("challenge-request-sent", (options: { player1: string, player2: string })=>{
-               
-                waitingForResponseModal = Modal.confirm({
-                    content: `Waiting for ${options.player2} to respond`,
-                    title: `Battle Request`,  
-                    onCancel:()=>handleCancel(),  
-                    okButtonProps:{disabled:true,style:{display:'none'}}                 
-                    });   
-            });
-
-            props.networkInfo.socket!.on("challenge-ready",()=>{
-                waitingForResponseModal?.destroy();
-                message.info(`Challenge has been accepted`);                                        
-            });
-
-            props.networkInfo.socket!.on("challenge-request-declined",(serverMessage)=>{
-                waitingForResponseModal?.destroy();
-                challengeRecievedModal?.destroy(); //in case the issuing player cancels the challenge.
-                message.warn(serverMessage);
-            });
-
-            props.networkInfo.socket!.on("challenge-request-error",(serverMessage)=>{
-                waitingForResponseModal?.destroy();
-                message.warn(serverMessage);
-            });
-
-
-            return function(){
-                props.networkInfo.socket?.off("challenge-request-error");
-                props.networkInfo.socket?.off("challenge-request-declined");
-                props.networkInfo.socket?.off("challenge-ready");
-                props.networkInfo.socket?.off("challenge-request-sent");
-                props.networkInfo.socket?.off("challenge-request-received");
-                props.networkInfo.socket?.off("match-begin");
-            }
-            //eslint-disable-next-line
-        }, [props.networkInfo.socket,pokemonTeam]);
-
-        const createPlayerInfo = (player: NetworkPlayerInfo): NetworkPlayerInfo => {
-            return {
-                name: player.name,
-                onlineStatus: player.onlineStatus
-            }
+        if (props.networkInfo.socket === undefined) {
+            throw new Error(`socket was undefined`);
         }
 
-        const otherPlayerList = onlinePlayers
+        props.networkInfo.socket.on("users-changed", handleUsersChanged);
+
+        return () => {
+            props.networkInfo.socket?.off("users-changed", handleUsersChanged);
+        }
+
+    }, [props.networkInfo.serverAddress, props.networkInfo.socket]);
+
+    useEffect(() => {
+
+        if (props.networkInfo.socket === undefined) {
+            console.error(`something went wrong, socket is undefined`);
+            throw new Error(`something went wrong, socket is undefined`);
+        }
+
+
+        props.networkInfo.socket.on("match-begin", (info) => {
+            message.info("Match is beginning");
+            props.onGameStart(info);
+        });
+
+        let challengeRecievedModal: any | undefined = undefined;
+
+        const handleAccept = () => {
+
+            console.log("handling challenge accept", pokemonTeam)
+            props.networkInfo.socket!.emit("challenge-request-accept", { player2Team: pokemonTeam });
+            challengeRecievedModal?.destroy();
+        }
+
+        const handleDecline = () => {
+            props.networkInfo.socket!.emit("challenge-request-decline");
+            challengeRecievedModal?.destroy();
+        }
+
+        const handleCancel = () => {
+            props.networkInfo.socket!.emit("challenge-cancel")
+            waitingForResponseModal?.destroy();
+        }
+
+        props.networkInfo.socket!.on("challenge-request-received", (options: { player1: string, player2: string }) => {
+
+            challengeRecievedModal = Modal.confirm({
+                content: `${options.player1} has challenged you to a battle`,
+                title: `Battle Request`,
+                okText: 'Accept',
+                onOk: () => handleAccept(),
+                cancelText: 'Decline',
+                onCancel: () => handleDecline()
+            }
+            );
+
+            //close if the challenge is void        
+            // message.info(`${options.player1} has challenged you to a battle!`)
+        });
+
+
+        let waitingForResponseModal: any | undefined;
+        props.networkInfo.socket!.on("challenge-request-sent", (options: { player1: string, player2: string }) => {
+
+            waitingForResponseModal = Modal.confirm({
+                content: `Waiting for ${options.player2} to respond`,
+                title: `Battle Request`,
+                onCancel: () => handleCancel(),
+                okButtonProps: { disabled: true, style: { display: 'none' } }
+            });
+        });
+
+        props.networkInfo.socket!.on("challenge-ready", () => {
+            waitingForResponseModal?.destroy();
+            message.info(`Challenge has been accepted`);
+        });
+
+        props.networkInfo.socket!.on("challenge-request-declined", (serverMessage) => {
+            waitingForResponseModal?.destroy();
+            challengeRecievedModal?.destroy(); //in case the issuing player cancels the challenge.
+            message.warn(serverMessage);
+        });
+
+        props.networkInfo.socket!.on("challenge-request-error", (serverMessage) => {
+            waitingForResponseModal?.destroy();
+            message.warn(serverMessage);
+        });
+
+
+        return function () {
+            props.networkInfo.socket?.off("challenge-request-error");
+            props.networkInfo.socket?.off("challenge-request-declined");
+            props.networkInfo.socket?.off("challenge-ready");
+            props.networkInfo.socket?.off("challenge-request-sent");
+            props.networkInfo.socket?.off("challenge-request-received");
+            props.networkInfo.socket?.off("match-begin");
+        }
+        //eslint-disable-next-line
+    }, [props.networkInfo.socket, pokemonTeam]);
+
+    const createPlayerInfo = (player: NetworkPlayerInfo): NetworkPlayerInfo => {
+        return {
+            name: player.name,
+            onlineStatus: player.onlineStatus
+        }
+    }
+
+    const otherPlayerList = onlinePlayers
         .filter(player => player.name !== props.networkInfo.currentPlayer)
         .map(player => <PlayerProfile onChallengeClick={onChallengeClick} player={createPlayerInfo(player)}></PlayerProfile>)
 
@@ -162,12 +161,12 @@ const MainLobby = (props: Props) => {
         <div><h3>Welcome {props.networkInfo.currentPlayer}!</h3></div>
         <Tabs defaultActiveKey="1">
             <TabPane tab="Main Lobby " key="1">
-        <div>Players online: {onlinePlayers.length}</div>
-        {otherPlayerList.length === 0 ? <div>No other players are online!</div> : otherPlayerList}
-        </TabPane>
-        <TabPane tab="Team Selection" key="2">
-            {pokemonTeam.length === 0 && <Alert type="warning" message="You do not have any pokemon selected. Your team will be chosen randomly instead"/>}
-            <TeamSelector onChange={(team)=>setPokemonTeam(team)} maxPokemon={6}></TeamSelector>
+                <div>Players online: {onlinePlayers.length}</div>
+                {otherPlayerList.length === 0 ? <div>No other players are online!</div> : otherPlayerList}
+            </TabPane>
+            <TabPane tab="Team Selection" key="2">
+                {pokemonTeam.length === 0 && <Alert type="warning" message="You do not have any pokemon selected. Your team will be chosen randomly instead" />}
+                <TeamSelector onChange={(team) => setPokemonTeam(team)} maxPokemon={6}></TeamSelector>
             </TabPane>
         </Tabs>
     </Card>)

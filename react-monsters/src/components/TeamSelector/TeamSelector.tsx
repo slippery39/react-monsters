@@ -7,33 +7,33 @@ import "./TeamSelector.css";
 
 interface Props {
     maxPokemon: number,
-    defaultPokemon?:Array<string>
-    onChange?:(team:Array<string>)=>void;
-    handleSubmitTeam?:(team:Array<string>)=>void;
-    amountNeededMessage?:string;
+    defaultPokemon?: Array<string>
+    onChange?: (team: Array<string>) => void;
+    handleSubmitTeam?: (team: Array<string>) => void;
+    amountNeededMessage?: string;
 }
 
 const TeamSelector = (propArgs: Props) => {
-    
-    const props = {...{defaultPokemon:[],...propArgs}}
-    
+
+    const props = { ...{ defaultPokemon: [], ...propArgs } }
+
     const maxPokemon = props.maxPokemon
     const pokemon = GetAllPokemonInfo();
 
 
     const [selectedTeam, setSelectedTeam] = useState<Array<string>>([]);
-    const selectedTeamIcons = selectedTeam.map(p => (<div key={p} onClick={()=>{handleSelectedTeamIconClick(p)}} className='team-selector-icon'><PokemonImage type="small" name={p} /></div>));
+    const selectedTeamIcons = selectedTeam.map(p => (<div key={p} onClick={() => { handleSelectedTeamIconClick(p) }} className='team-selector-icon'><PokemonImage type="small" name={p} /></div>));
 
-    
- 
-    useEffect(()=>{
+
+
+    useEffect(() => {
         setSelectedTeam([...props.defaultPokemon]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const pokemonIcons = pokemon.filter(p=>{
+    const pokemonIcons = pokemon.filter(p => {
         return (!selectedTeam.includes(p.species));
-    }).map(p=>{
+    }).map(p => {
         let iconClass = "team-selector-icon";
         return (<div key={p.species} className={iconClass} onClick={() => { handleIconClick(p.species) }}><PokemonImage type="small" name={p.species} /></div>)
     });
@@ -49,30 +49,30 @@ const TeamSelector = (propArgs: Props) => {
         let newArr = selectedTeam.slice();
         newArr.push(name);
         setSelectedTeam(newArr);
-        if (props.onChange!==undefined){
+        if (props.onChange !== undefined) {
             props.onChange(newArr);
         }
     }
 
-    const handleSelectedTeamIconClick = (name:string)=>{
+    const handleSelectedTeamIconClick = (name: string) => {
 
         let newArr = selectedTeam.slice();
-        _.remove(newArr,(el)=>el === name);
+        _.remove(newArr, (el) => el === name);
         setSelectedTeam(newArr);
-        if (props.onChange!==undefined){
+        if (props.onChange !== undefined) {
             props.onChange(newArr);
         }
     }
 
-    const amountNeededMessage = ()=>{
-        if (props.amountNeededMessage!==undefined){
+    const amountNeededMessage = () => {
+        if (props.amountNeededMessage !== undefined) {
             return props.amountNeededMessage;
         }
 
-        if (selectedTeam.length>=maxPokemon){
+        if (selectedTeam.length >= maxPokemon) {
             return "(Party is full!)"
         }
-        else{
+        else {
             return "";
         }
     }
@@ -81,7 +81,7 @@ const TeamSelector = (propArgs: Props) => {
         <div>
             <div>Available Pokemon</div>
             <PartySelectionContainer>{pokemonIcons}</PartySelectionContainer>
-            <div style={{"marginTop":"10px"}}>Selected  {amountNeededMessage()}</div>
+            <div style={{ "marginTop": "10px" }}>Selected  {amountNeededMessage()}</div>
             <PartySelectionContainer>{selectedTeamIcons}</PartySelectionContainer>
         </div>
     )

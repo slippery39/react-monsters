@@ -37,7 +37,7 @@ const WinLossTable: React.FunctionComponent<Props> = (props) => {
                 continue;
             }
 
-            if (nameFilter.trim().toLowerCase()!=="" && !(key.toLowerCase().includes(nameFilter.toLowerCase()))){
+            if (nameFilter.trim().toLowerCase() !== "" && !(key.toLowerCase().includes(nameFilter.toLowerCase()))) {
                 continue;
             }
 
@@ -86,10 +86,10 @@ const WinLossTable: React.FunctionComponent<Props> = (props) => {
         return (
             <div>
                 <Space>
-                <span>Name</span>
-                <Input placeholder="Search Name" value={nameFilter} onChange={e => {const currValue = e.target.value;setNameFilter(currValue);}}></Input>
+                    <span>Name</span>
+                    <Input placeholder="Search Name" value={nameFilter} onChange={e => { const currValue = e.target.value; setNameFilter(currValue); }}></Input>
                 </Space>
-            </div>            
+            </div>
         )
     }
 

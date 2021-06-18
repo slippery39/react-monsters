@@ -35,13 +35,13 @@ function CreatePlayerVsPlayerBattle(settings: BattleSettings) {
 
     if (settings.team1Type === 'computer') {
         //adding a delay or else the ui gets really laggy for ai vs ai battles.
-        new BasicAI(player1, battleService,{chooseDelayMS:1500});
+        new BasicAI(player1, battleService, { chooseDelayMS: 1500 });
     }
     //player 2 is always an ai for now.
     new BasicAI(player2, battleService);
 
     battleService.Initialize();
- 
+
     return battleService;
 }
 
@@ -50,21 +50,21 @@ const PlayerBattleController = () => {
 
     const [battleState, setBattleState] = useState<"setup" | "in-battle">("setup");
     const [battleService, setBattleService] = useState<LocalBattleService | undefined>(undefined);
-    const [spectateMode,setSpectateMode] = useState<boolean>(false);
+    const [spectateMode, setSpectateMode] = useState<boolean>(false);
 
-    const handleSetupComplete = (settings:BattleSettings)=>{  
-        
+    const handleSetupComplete = (settings: BattleSettings) => {
+
         const service = CreatePlayerVsPlayerBattle(settings);
 
-        if (settings.team1Type === "computer"){
+        if (settings.team1Type === "computer") {
             setSpectateMode(true)
         }
 
-        setBattleService(service); 
+        setBattleService(service);
         setBattleState("in-battle");
         service.Start();
     }
-    const handleBattleEnded = ()=>{
+    const handleBattleEnded = () => {
         setBattleState("setup");
     }
 
@@ -73,7 +73,7 @@ const PlayerBattleController = () => {
     return (
         <div>
             {battleState === "setup" && <BattleSetup onOk={handleSetupComplete} />}
-            {(battleState === "in-battle" && battleService !== undefined) && <Battle spectateMode={spectateMode} onLoad={()=>battleService.Start()} allyPlayerID={battleService.GetPlayers()[0].id} battle={battleService} onEnd={handleBattleEnded} />}
+            {(battleState === "in-battle" && battleService !== undefined) && <Battle spectateMode={spectateMode} onLoad={() => battleService.Start()} allyPlayerID={battleService.GetPlayers()[0].id} battle={battleService} onEnd={handleBattleEnded} />}
         </div>
     )
 }

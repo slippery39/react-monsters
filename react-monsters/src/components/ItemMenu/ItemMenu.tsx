@@ -13,7 +13,7 @@ interface Props {
 const ItemMenu: React.FunctionComponent<Props> = (props) => {
 
     const items = props.items.map((el, index) =>
-        <ItemContainer onClick={(item)=>props.onItemClick(item)}  key={el.id} item={el} />
+        <ItemContainer onClick={(item) => props.onItemClick(item)} key={el.id} item={el} />
     );
 
     return (
@@ -21,7 +21,7 @@ const ItemMenu: React.FunctionComponent<Props> = (props) => {
             <div className='item-menu-top'>
                 <div className='cancel-button' onClick={() => { if (props.onCancelClick) { props.onCancelClick() } }} style={{ width: "80%" }}>Cancel </div>
             </div>
-            <div className='item-menu-bottom'>                
+            <div className='item-menu-bottom'>
                 <div className='item-menu-items'>
                     {items}
                 </div>
