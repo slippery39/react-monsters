@@ -71,6 +71,7 @@ const ConnectToServer = (props: Props) => {
         }
 
     return (<Card>
+        <h1>Connect to a Server</h1>
         <Form
             form={form}
             {...layout}
@@ -85,7 +86,7 @@ const ConnectToServer = (props: Props) => {
             }}
             onFinishFailed={onFinishFailed}
             requiredMark={false}
-            initialValues={{ ipaddress: "http://localhost:8000" }}>
+            initialValues={{ ipaddress: "https://react-monsters-server.herokuapp.com" }}>
             <Form.Item label="Username" name="username" rules={[{ required: true, message: "Input their username" }]}><Input placeholder="Pick a username"></Input></Form.Item>
             <Form.Item label="Server Address" name="ipaddress" rules={[{ required: true, message: "Please input the server address" }]}><Input placeholder="Enter the server address"></Input></Form.Item>
             <Form.Item><Button type="primary" disabled={isFetching} htmlType="submit" >Connect</Button></Form.Item>
