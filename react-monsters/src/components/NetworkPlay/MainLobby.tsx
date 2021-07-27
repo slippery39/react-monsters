@@ -154,7 +154,7 @@ const MainLobby = (props: Props) => {
 
     const otherPlayerList = onlinePlayers
         .filter(player => player.name !== props.networkInfo.currentPlayer)
-        .map(player => <PlayerProfile onChallengeClick={onChallengeClick} player={createPlayerInfo(player)}></PlayerProfile>)
+        .map(player => <PlayerProfile key={player.name} onChallengeClick={onChallengeClick} player={createPlayerInfo(player)}></PlayerProfile>)
 
     return (<Card>
         <div><h1>Main Lobby</h1></div>
@@ -162,7 +162,7 @@ const MainLobby = (props: Props) => {
         <Tabs defaultActiveKey="1">
             <TabPane tab="Main Lobby " key="1">
                 <div>Players online: {onlinePlayers.length}</div>
-                {otherPlayerList.length === 0 ? <div>No other players are online!</div> : otherPlayerList}
+                {otherPlayerList.length === 0 ? <div>No other players are online!</div> : <div>{otherPlayerList}</div>}
             </TabPane>
             <TabPane tab="Team Selection" key="2">
                 {pokemonTeam.length === 0 && <Alert type="warning" message="You do not have any pokemon selected. Your team will be chosen randomly instead" />}

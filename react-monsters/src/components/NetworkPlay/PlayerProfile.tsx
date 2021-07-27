@@ -36,11 +36,12 @@ const PlayerProfile = (props: Props) => {
 
     }
 
-    return (<Card>
+    return (<div className='player-profile-container'><Card>
         <div>{props.player.name}</div>
         <div className={onlineStatusClass}>{getOnlineStatusText(props.player.onlineStatus)}</div>
         {props.player.onlineStatus !== NetworkPlayerStatus.InGame && <div><Button onClick={() => props.onChallengeClick(props.player.name)}>Challenge!</Button></div>
-        }    </Card>)
+        }    </Card>
+    </div>)
 }
 
 

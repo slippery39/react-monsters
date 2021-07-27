@@ -153,10 +153,10 @@ class StaticAbility extends AbstractAbility {
             const shouldParalyze = game.Roll(30);
             if (shouldParalyze) {
                 ApplyInflictStatus({
-                    game:game,
-                    targetPokemon:attackingPokemon,
-                    status:Status.Paralyzed,
-                    sourcePokemon:defendingPokemon
+                    game: game,
+                    targetPokemon: attackingPokemon,
+                    status: Status.Paralyzed,
+                    sourcePokemon: defendingPokemon
                 })
             }
         }
@@ -168,7 +168,7 @@ class SturdyAbility extends AbstractAbility {
     name = "Sturdy"
     description = "It cannot be knocked out with one hit."
 
-    ModifyDamageTaken(turn: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
+    ModifyDamageTaken(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
         let modifiedDamage = originalDamage;
         if (defendingPokemon.currentStats.hp === defendingPokemon.originalStats.hp && originalDamage >= defendingPokemon.currentStats.hp) {
             modifiedDamage = defendingPokemon.originalStats.hp - 1;
@@ -176,9 +176,9 @@ class SturdyAbility extends AbstractAbility {
         return modifiedDamage;
     }
     //Little hacky but will work for now.
-    OnDamageTakenFromTechnique(turn: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
+    OnDamageTakenFromTechnique(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, damage: number) {
         if (defendingPokemon.currentStats.hp === 1 && damage === defendingPokemon.originalStats.hp - 1) {
-            turn.AddMessage(`${defendingPokemon.name} has survived due to its Sturdy ability!`);
+            game.AddMessage(`${defendingPokemon.name} has survived due to its Sturdy ability!`);
         }
     }
 }
@@ -189,10 +189,10 @@ class AnalyticAbility extends AbstractAbility {
     name = "Analytic"
     description = "Boosts move power when the Pokémon moves last."
 
-    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, turn: IGame) {
-        const attackingOwner = GetPokemonOwner(turn.GetPlayers(), attackingPokemon);
+    OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game: IGame) {
+        const attackingOwner = GetPokemonOwner(game.GetPlayers(), attackingPokemon);
 
-        if (turn.GetMoveOrder()[1].playerId === attackingOwner.id) {
+        if (game.GetMoveOrder()[1].playerId === attackingOwner.id) {
             return damage * 1.3;
         }
         return damage;
@@ -288,7 +288,7 @@ class MagicGuardAbility extends AbstractAbility {
     name = "Magic Guard"
     description = "The Pokémon only takes damage from attacks."
 
-    ModifyIndirectDamage(turn: IGame, pokemon: Pokemon, damage: number) {
+    ModifyIndirectDamage(game: IGame, pokemon: Pokemon, damage: number) {
         return 0;
     }
 }
@@ -304,10 +304,10 @@ class EffectSporeAbility extends AbstractAbility {
                 const statusToInflict = shuffle([Status.Poison, Status.Sleep, Status.Paralyzed])[0];
                 game.AddMessage(`${defendingPokemon.name} has released spores from contact!`);
                 ApplyInflictStatus({
-                    game:game,
-                    sourcePokemon:defendingPokemon,
-                    targetPokemon:attackingPokemon,
-                    status:statusToInflict
+                    game: game,
+                    sourcePokemon: defendingPokemon,
+                    targetPokemon: attackingPokemon,
+                    status: statusToInflict
                 });
             }
         }
@@ -425,13 +425,13 @@ class SynchronizeAbility extends AbstractAbility {
     description = "The attacker will receive the same status condition if it inflicts a burn, poison, or paralysis to the Pokémon."
 
     OnStatusChange(game: IGame, pokemon: Pokemon, status: Status, source: Pokemon | undefined) {
-        
-        if (source === undefined){
+
+        if (source === undefined) {
             return;
         }
         if (source.id !== pokemon.id && [Status.Burned, Status.Paralyzed, Status.Poison, Status.ToxicPoison].includes(status)) {
             if (source.status === Status.None) {
-                game.SetStatusOfPokemon(pokemon.id,status);
+                game.SetStatusOfPokemon(pokemon.id, status);
                 game.AddMessage(`${pokemon.name} copied its status onto its foe due to the Synchronize ability!`);
             }
         }
@@ -464,7 +464,7 @@ class PressureAbility extends AbstractAbility {
     name = "Pressure"
     description = "The Pokémon raises the foe's PP usage."
 
-    OnOppTechniqueUsed(turn: IGame, pokemon: Pokemon, tech: Technique) {
+    OnOppTechniqueUsed(game: IGame, pokemon: Pokemon, tech: Technique) {
         DecrementPP(tech);
     }
 }
@@ -572,16 +572,16 @@ class WaterAbsorbAbility extends AbstractAbility {
     NegateDamage(game: IGame, move: Technique, pokemon: Pokemon): boolean {
         if (move.elementalType === ElementType.Water) {
             //no damage taken, maybe write a message
-            game.ApplyHealing(pokemon,pokemon.originalStats.hp/4);
+            game.ApplyHealing(pokemon, pokemon.originalStats.hp / 4);
             game.AddMessage(`${pokemon.name} absorbed the water attack!`);
             return true;
         }
         return false;
-    }    
+    }
 }
 
-class NoGuardAbility extends AbstractAbility{
-    name="No Guard";
+class NoGuardAbility extends AbstractAbility {
+    name = "No Guard";
     description = "The Pokémon employs no-guard tactics to ensure incoming and outgoing attacks always land.";
 
     ModifyTechnique(pokemon: Pokemon, technique: Technique) {
@@ -590,21 +590,21 @@ class NoGuardAbility extends AbstractAbility{
         newTech.accuracy = 99999;
         return newTech;
     }
-    ModifyOpponentTechnique(pokemon:Pokemon,technique:Technique){
+    ModifyOpponentTechnique(pokemon: Pokemon, technique: Technique) {
         const newTech = _.cloneDeep(technique);
         newTech.accuracy = 99999;
         return newTech;
     }
 }
 
-class DrySkinAbility extends AbstractAbility{
-    name="Dry Skin";
-    description="Restores HP in rain or when hit by Water-type moves. Reduces HP in harsh sunlight, and increases the damage received from Fire-type moves.";
+class DrySkinAbility extends AbstractAbility {
+    name = "Dry Skin";
+    description = "Restores HP in rain or when hit by Water-type moves. Reduces HP in harsh sunlight, and increases the damage received from Fire-type moves.";
 
 
     NegateDamage(game: IGame, move: Technique, pokemon: Pokemon): boolean {
-        if (move.elementalType === ElementType.Water){
-            game.ApplyHealing(pokemon,pokemon.originalStats.hp/4);
+        if (move.elementalType === ElementType.Water) {
+            game.ApplyHealing(pokemon, pokemon.originalStats.hp / 4);
             game.AddMessage(`${pokemon.name}'s dry skin absorbed the water attack!`);
             return true;
         }
@@ -613,57 +613,57 @@ class DrySkinAbility extends AbstractAbility{
 
     ModifyDamageTaken(game: IGame, attackingPokemon: Pokemon, defendingPokemon: Pokemon, move: Technique, originalDamage: number) {
         let modifiedDamage = originalDamage;
-        if (move.elementalType === ElementType.Fire){
-            return modifiedDamage*1.25;
+        if (move.elementalType === ElementType.Fire) {
+            return modifiedDamage * 1.25;
         }
         return modifiedDamage;
     }
-    
-    EndOfTurn(game: IGame, pokemon: Pokemon){
-        if (game.field.weather?.name === WeatherType.Rain){
-            game.ApplyHealing(pokemon,pokemon.originalStats.hp/8);
+
+    EndOfTurn(game: IGame, pokemon: Pokemon) {
+        if (game.field.weather?.name === WeatherType.Rain) {
+            game.ApplyHealing(pokemon, pokemon.originalStats.hp / 8);
             game.AddMessage(`${pokemon.name} healed from the rain due to its dry skin!`);
         }
-        else if (game.field.weather?.name === WeatherType.Sunny){
-            game.ApplyIndirectDamage(pokemon,pokemon.originalStats.hp/8);
+        else if (game.field.weather?.name === WeatherType.Sunny) {
+            game.ApplyIndirectDamage(pokemon, pokemon.originalStats.hp / 8);
             game.AddMessage(`${pokemon.name} took damage from the sunlight due to its dry skin!`);
-        }        
+        }
     }
 }
 
-class TintedLensAbility extends AbstractAbility{
-    name="Tinted Lens";
+class TintedLensAbility extends AbstractAbility {
+    name = "Tinted Lens";
     description = `The Pokémon can use "not very effective" moves to deal regular damage.`;
 
     OnAfterDamageCalculated(attackingPokemon: Pokemon, move: Technique, defendingPokemon: Pokemon, damage: number, damageInfo: DamageModifierInfo, game?: IGame) {
-        if (damageInfo.typeEffectivenessBonus < 1){
-            return damage*2; //technically doubles the power of non effective moves... if you search it up.
+        if (damageInfo.typeEffectivenessBonus < 1) {
+            return damage * 2; //technically doubles the power of non effective moves... if you search it up.
         }
         return damage;
-    } 
+    }
 }
 
-class RegeneratorAbility extends AbstractAbility{
-    name="Regenerator"
+class RegeneratorAbility extends AbstractAbility {
+    name = "Regenerator"
     description = "Restores a little HP when withdrawn from battle.";
 
     OnSwitchedOut(game: IGame, pokemon: Pokemon) {
-        if (pokemon.currentStats.hp ===  0){
+        if (pokemon.currentStats.hp === 0) {
             return; //bug fix -> this triggers when they switch out after fainting otherwise.
         }
-        pokemon.currentStats.hp+= Math.ceil(pokemon.originalStats.hp/3);
-        if (pokemon.currentStats.hp>pokemon.originalStats.hp){
+        pokemon.currentStats.hp += Math.ceil(pokemon.originalStats.hp / 3);
+        if (pokemon.currentStats.hp > pokemon.originalStats.hp) {
             pokemon.currentStats.hp = pokemon.originalStats.hp;
         }
     }
 }
 
-class LiquidOozeAbility extends AbstractAbility{
-    name="Liquid Ooze";
-    description="The oozed liquid has a strong stench, which damages attackers using any draining move.";
+class LiquidOozeAbility extends AbstractAbility {
+    name = "Liquid Ooze";
+    description = "The oozed liquid has a strong stench, which damages attackers using any draining move.";
 
     //NOTE: This ability has been programmed inside the "drain effect";
-    
+
 }
 
 class NoAbility extends AbstractAbility {
@@ -770,22 +770,22 @@ function GetAbility(name: String) {
         case 'arena trap': {
             return new ArenaTrapAbility();
         }
-        case 'water absorb':{
+        case 'water absorb': {
             return new WaterAbsorbAbility();
         }
-        case 'no guard':{
+        case 'no guard': {
             return new NoGuardAbility();
         }
-        case 'dry skin':{
+        case 'dry skin': {
             return new DrySkinAbility();
         }
-        case 'tinted lens':{
+        case 'tinted lens': {
             return new TintedLensAbility();
         }
-        case 'regenerator':{
+        case 'regenerator': {
             return new RegeneratorAbility();
         }
-        case 'liquid ooze':{
+        case 'liquid ooze': {
             return new LiquidOozeAbility();
         }
         default: {
